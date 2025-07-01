@@ -1,6 +1,9 @@
+using TMPro;
+using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class PilotingSystem : MonoBehaviour
+public class PilotingSystem : NetworkBehaviour
 {
     [Header("Control References")]
     private GameObject controlHandler;
@@ -30,6 +33,7 @@ public class PilotingSystem : MonoBehaviour
     private CourseHeading courseHeading;
     private HorizontalThrusters horizontalThrusters;
     private VerticalThrusters verticalThrusters;
+    private PilotNavigation pilotNavigation;
 
     // Input values
     private float currentImpulse;
@@ -56,6 +60,8 @@ public class PilotingSystem : MonoBehaviour
         courseHeading = controlHandler.GetComponent<CourseHeading>();
         horizontalThrusters = controlHandler.GetComponent<HorizontalThrusters>();
         verticalThrusters = controlHandler.GetComponent<VerticalThrusters>();
+
+        pilotNavigation = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>();
 
         return impulseThrottle && courseHeading &&
                horizontalThrusters && verticalThrusters;
@@ -137,10 +143,17 @@ public class PilotingSystem : MonoBehaviour
         }
 
         forwardSpeed = currentVelocity.magnitude;
+
         HandleRotation(dt);
+
+        if (currentVerticalSpeed != 0.0f)
+        {
+            //update pilot altimeter
+            altitudeChangeRPC();
+        }
     }
 
-    /*
+    /* OLD CODE
     private float GetThrusterAccelerationRate(float activeTime)
     {
         return Mathf.Lerp(baseThrusterAccelerationRate, maxThrusterAccelerationRate,
@@ -182,5 +195,20 @@ public class PilotingSystem : MonoBehaviour
         {
             transform.Rotate(0f, -1.0f * currentRotationSpeed * dt, 0f);
         }
+
+        //update pilot course heading slider
+        rotationChangeRPC();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void rotationChangeRPC()
+    {
+        pilotNavigation.updateCourseHeadingScreen();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void altitudeChangeRPC()
+    {
+        pilotNavigation.updateAltimeterScreen();
     }
 }

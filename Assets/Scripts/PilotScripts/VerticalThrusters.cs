@@ -3,14 +3,12 @@
     - Handles inputs for vertical thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 6/25/2025
+    Last Updated: 6/30/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using Unity.Netcode;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class VerticalThrusters : ThrusterControl, IControllable
@@ -87,80 +85,6 @@ public class VerticalThrusters : ThrusterControl, IControllable
             new Vector3(Mathf.Lerp(0.055f, -0.055f, diamond_location),
                         diamond.transform.localPosition.y,
                         diamond.transform.localPosition.z);
-
-
-        //update altitude screen
-        float current_altitude = world_root.transform.position.y;
-        for (int i = 0; i < 21; i++)
-        {
-            altitude_slider.transform.GetChild(i).gameObject.SetActive(false);
-        }
-        int smallest_number = (((int)(current_altitude * -1.0f)) / 10) * 10;
-        int next_number = smallest_number + 10;
-        if (current_altitude > 0.0f)
-        {
-            next_number = smallest_number - 10;
-        }
-        altitude_slider.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
-        altitude_slider.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
-        List<GameObject> bars = new List<GameObject>();
-        int[] marker_indices = new int[4];
-        int[] corresponding_markers = new int[4];
-        int marker_index = 18 - (int)(Mathf.Abs((current_altitude - 50000.0f) % 5.0f) / 1.0f);
-        if (current_altitude > 0.0f)
-        {
-            marker_index--;
-        }
-        for (int i = 0; i < 4; i++)
-        {
-            marker_indices[i] = marker_index - (i * 5);
-        }
-        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f))
-        {
-            corresponding_markers[0] = 0;
-            corresponding_markers[1] = 1;
-            corresponding_markers[2] = 2;
-            corresponding_markers[3] = 3;
-        }
-        else
-        {
-            corresponding_markers[0] = 1;
-            corresponding_markers[1] = 0;
-            corresponding_markers[2] = 3;
-            corresponding_markers[3] = 2;
-        }
-        if (current_altitude > 0.0f)
-        {
-            for (int x = 0; x < 2; x++)
-            {
-                int temp = corresponding_markers[3 - x];
-                corresponding_markers[3 - x] = corresponding_markers[x];
-                corresponding_markers[x] = temp;
-            }
-        }
-        for (int i = 0; i < 17; i++)
-        {
-            bool marked = false;
-            for (int x = 0; x < 4; x++)
-            {
-                if (i == marker_indices[x])
-                {
-                    bars.Add(altitude_slider.transform.GetChild(corresponding_markers[x]).gameObject);
-                    marked = true;
-                    break;
-                }
-            }
-            if (marked == false)
-            {
-                bars.Add(altitude_slider.transform.GetChild(i + 4).gameObject);
-            }
-        }
-        float shift = ((current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
-        for (int i = 0; i < 17; i++)
-        {
-            bars[i].SetActive(true);
-            bars[i].transform.localPosition = new Vector3(bars[i].transform.localPosition.x, (0.01f * i) - 0.08f + shift, 0.0f);
-        }
     }
 
     [Rpc(SendTo.Everyone)]

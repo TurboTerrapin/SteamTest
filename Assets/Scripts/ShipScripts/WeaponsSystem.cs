@@ -61,10 +61,11 @@ public class WeaponsSystem : MonoBehaviour
     private const float LONG_RANGE_BEAM_LENGTH = 500f;
     private const float SHORT_RANGE_BEAM_LENGTH = 150f;
     private const string EMISSION_COLOR = "_EmissionColor";
-    private const string EMISSION_ = "_EMISION";
+    private const string EMISSION_ = "_EMISSION";
 
     // Runtime variables
     private float SRPulsePhase;
+    private float[] currSRBeamWidth = new float[2];
     private float pulseTimer;
     private float smoothedPulse;
     private float velocity;
@@ -116,18 +117,16 @@ public class WeaponsSystem : MonoBehaviour
 
     }
 
-    private void InitializeTorpedos() { }
+    private void InitializeTorpedoes() { }
 
     private void Start()
     { 
 
         InitializeLongRangePhaser();
         InitializeShortRangePhasers();
-        InitializeTorpedos();
+        InitializeTorpedoes();
 
     }
-
-
 
     public bool AssignControlReferences(GameObject controlHandler) // Called by ShipController.cs
     {
@@ -142,15 +141,14 @@ public class WeaponsSystem : MonoBehaviour
 
     public void UpdateInput()
     {
-        activePhasers = phaserPowers.GetActivePhasers();
-        longRangePhaserAngle = longRangeDirection.GetLRPhaserAngle();
-        phaserTemps = phaserTemperatures.GetPhaserTemperatures();
+        activePhasers = phaserPowers.getActivePhasers();
+        longRangePhaserAngle = longRangeDirection.getPhaserDirectionAngle();
+        phaserTemps = phaserTemperatures.getPhaserTemperatures();
     }
-
    
     private void UpdateLongRangePhaser(float dt)
     {
-        bool active = activePhasers[0] && phaserTemps[1] > 0;
+        bool active = activePhasers[0] && phaserTemps[0] > 0.0f;
 
         if (longRangePhaser.enabled != active)
         {
@@ -160,7 +158,7 @@ public class WeaponsSystem : MonoBehaviour
             return;
         }
 
-        float beamTemp = Mathf.Clamp01(phaserTemps[1]);
+        float beamTemp = Mathf.Clamp01(phaserTemps[0]);
         float temperatureScaledSpeed = Mathf.Lerp(baseLRPulseSpeed, maxLRPulseSpeed, beamTemp);
 
         pulseTimer += dt * temperatureScaledSpeed;
@@ -184,32 +182,19 @@ public class WeaponsSystem : MonoBehaviour
         ResizeCollider(currentBaseWidth);
     }
 
-    private void UpdateShortRangePhaser(LineRenderer phaser, bool active, float temperature, float dt)
+    private void UpdateShortRangePhaser(LineRenderer phaser, int index, float temperature, float dt)
     {
         if (phaser == null) return;
 
-        // Handle activation/deactivation
-        if (phaser.enabled != active)
-        {
-            phaser.enabled = active;
-            if (!active)
-            {
-                SRPulsePhase = 0f; // Reset phase when deactivated
-                return;
-            }
-        }
+        bool active = (activePhasers[index + 1] && temperature > 0.0f);
 
-        if (!active)
+        // Handle activation/deactivation
+        phaser.enabled = active;
+        if (active == false)
         {
-            phaser.enabled = false;
-            SRPulsePhase = 0f;
+            currSRBeamWidth[index] = minSRBeamDiameter;
             return;
         }
-
-        float currentPulseInterval = Mathf.Lerp(maxSRPulseInterval, minSRPulseInterval, 1 - temperature);
-
-        SRPulsePhase += dt / currentPulseInterval;
-        SRPulsePhase %= 2f;
 
         float pulseValue = Mathf.SmoothStep(0, 1, Mathf.PingPong(SRPulsePhase, 1));
 
@@ -217,17 +202,25 @@ public class WeaponsSystem : MonoBehaviour
         phaser.enabled = beamVisible;
 
         float beamWidth = Mathf.Lerp(minSRBeamDiameter, maxSRBeamDiameter, temperature) * pulseValue;
-        phaser.startWidth = beamWidth;
+        phaser.startWidth = currSRBeamWidth[index];
         phaser.endWidth = beamWidth * SRBeamEndDiameterRatio;
-
     }
 
     private void UpdateShortRangePhasers(float dt)
     {
-        bool active = activePhasers[1] && phaserTemps[0] > 0;
+        if (activePhasers[1] == false && activePhasers[2] == false)
+        {
+            SRPulsePhase = 0.0f; // Reset phase when both are deactivated
+        }
+        else
+        {
+            float currentPulseInterval = Mathf.Lerp(maxSRPulseInterval, minSRPulseInterval, 1 - phaserTemps[1]);
+            SRPulsePhase += dt / currentPulseInterval;
+            SRPulsePhase %= 2f;
+        }
 
-        UpdateShortRangePhaser(shortRangePhaserLeft, active, phaserTemps[0], dt); // Handle Left SR Phaser
-        UpdateShortRangePhaser(shortRangePhaserRight, active, phaserTemps[0], dt); // Handle Right SR Phaser
+        UpdateShortRangePhaser(shortRangePhaserLeft, 0, phaserTemps[1], dt); // Handle Left SR Phaser
+        UpdateShortRangePhaser(shortRangePhaserRight, 1, phaserTemps[1], dt); // Handle Right SR Phaser
     }
 
     public void UpdateWeapons()

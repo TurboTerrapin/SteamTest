@@ -3,15 +3,12 @@
     - Handles inputs for steering wheel
     - Moves wheel accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 6/25/2025
+    Last Updated: 6/30/2025
 */
-//
+
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using TMPro;
 using Unity.Netcode;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class CourseHeading : NetworkBehaviour, IControllable
@@ -23,7 +20,7 @@ public class CourseHeading : NetworkBehaviour, IControllable
     private const float wheelFriction = 0.95f;
 
     private string CONTROL_NAME = "COURSE HEADING";
-    private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
+    private List<string> CONTROL_DESCS = new List<string> { "TURN LEFT", "TURN RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
@@ -31,7 +28,6 @@ public class CourseHeading : NetworkBehaviour, IControllable
     public GameObject fill_circle;
     public GameObject heading_text;
     public GameObject compass;
-    private GameObject spaceship;
 
     // State variables
     private float angularVelocity = 0f;
@@ -44,8 +40,6 @@ public class CourseHeading : NetworkBehaviour, IControllable
 
     private void Start()
     {
-        spaceship = GameObject.FindGameObjectWithTag("Spaceship");
-
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
@@ -64,89 +58,6 @@ public class CourseHeading : NetworkBehaviour, IControllable
 
         //point physical wheel in right direction
         wheel.transform.localRotation = Quaternion.Euler(-113.0f, 0.0f, 450f * wheel_angle);
-
-        //adjust course heading text
-        float current_rotation = Mathf.Round(spaceship.transform.rotation.eulerAngles.y * 10.0f) / 10.0f;
-        if (current_rotation < 0.0f)
-        {
-            current_rotation += 360.0f;
-        }
-        else if (current_rotation >= 360.0f)
-        {
-            current_rotation -= 360.0f;
-        }
-        string display_heading = current_rotation.ToString();
-        if (display_heading.Contains(".") == false)
-        {
-            display_heading += ".0";
-        }
-        heading_text.GetComponent<TMP_Text>().SetText(display_heading + "°");
-
-        //adjust course heading slider
-        current_rotation = spaceship.transform.rotation.eulerAngles.y;
-        if (current_rotation < 0.0f)
-        {
-            current_rotation += 360.0f;
-        }
-        else if (current_rotation >= 360.0f)
-        {
-            current_rotation -= 360.0f;
-        }
-        List<GameObject> bars = new List<GameObject>();
-        int marker_index = 18 - (int)((current_rotation % 22.5f) / 2.5f);
-        int halfway_index = marker_index - 9;
-        for (int i = 0; i < 21; i++)
-        {
-            compass.transform.GetChild(i).gameObject.SetActive(false);
-        }
-        int[] possible_options = { 315, 270, 225, 180, 135, 90, 45, 0};
-        for (int i = 0; i < possible_options.Length; i++)
-        {
-            if (Mathf.Abs(current_rotation - possible_options[i]) < 22.5f)
-            {
-                compass.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText(possible_options[i].ToString());
-                break;
-            }
-            if (i == 6)
-            {
-                compass.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText("0");
-            }
-        }
-        for (int i = 0; i < 19; i++)
-        {
-            if (i == marker_index)
-            {
-                if (current_rotation % 45.0f > 22.5f)
-                {
-                    bars.Add(compass.transform.GetChild(1).gameObject);
-                }
-                else
-                {
-                    bars.Add(compass.transform.GetChild(0).gameObject);
-                }
-            } 
-            else if (i == halfway_index)
-            {
-                if (current_rotation % 45.0f > 22.5f)
-                {
-                    bars.Add(compass.transform.GetChild(0).gameObject);
-                }
-                else
-                {
-                    bars.Add(compass.transform.GetChild(1).gameObject);
-                }
-            }
-            else 
-            {
-                bars.Add(compass.transform.GetChild(i + 2).gameObject);
-            }
-        }
-        float shift = ((current_rotation % 2.5f) / 2.5f) * -0.01f; //0.01 in distance between markers equals 2.5 degrees
-        for (int i = 0; i < 19; i++)
-        {
-            bars[i].SetActive(true);
-            bars[i].transform.localPosition = new Vector3((-0.01f * i) + 0.09f - shift, bars[i].transform.localPosition.y, 0.0f);
-        }
     }
 
     IEnumerator wheelSpinning()
@@ -163,12 +74,12 @@ public class CourseHeading : NetworkBehaviour, IControllable
 
             if (!(ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)))
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) // E
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //E
                 {
                     inputDirection = 1;
                     isPlayerInputActive = true;
                 }
-                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) // Q
+                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //Q
                 {
                     inputDirection = -1;
                     isPlayerInputActive = true;
@@ -252,7 +163,7 @@ public class CourseHeading : NetworkBehaviour, IControllable
                 hasCrossedZeroSinceLastInput = false;
             }
 
-            transmitWheelAngleRPC(wheel_angle);
+            transmitWheelAngleRPC(wheel_angle, steering_input);
             keys_down.Clear();
             yield return null;
         }
@@ -261,9 +172,10 @@ public class CourseHeading : NetworkBehaviour, IControllable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitWheelAngleRPC(float wheel_ang)
+    private void transmitWheelAngleRPC(float wheel_ang, float steering_in)
     {
         wheel_angle = wheel_ang;
+        steering_input = steering_in;
         displayAdjustment();
     }
 

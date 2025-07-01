@@ -36,7 +36,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable
     {
         return hud_info;
     }
-    public float GetLRPhaserAngle()
+    public float getPhaserDirectionAngle()
     {
         return long_range_angle;
     }

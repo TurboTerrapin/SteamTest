@@ -2,7 +2,7 @@
     PhaserPowers.cs
     - Determines whether phasers are enabled or not
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2025
+    Last Updated: 6/30/2025
 */
 
 using System.Collections;
@@ -14,23 +14,26 @@ public class PhaserPowers : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.2f;
-    private static float ENABLE_TIME = 5.0f;
+    private static float ENABLE_TIME = 1.0f;
 
     private string CONTROL_NAME = "PHASER POWER SWITCHES";
     private List<string> CONTROL_DESCS = new List<string> {"LONG-RANGE", "SHORT-RANGE LEFT", "SHORT-RANGE RIGHT"};
-    private List<int> CONTROL_INDEXES = new List<int>() {4, 0, 5 };
+    private List<int> CONTROL_INDEXES = new List<int>() {7, 8, 9};
     private List<Button> BUTTONS = new List<Button>();
 
     public List<GameObject> phaser_switches = null;
     public List<GameObject> phaser_coverups = null;
     public GameObject phaser_switch_canvas;
+    private PhaserTemperatures phaser_temperatures;
 
     private Coroutine[] phaser_switch_coroutines = {null, null, null};
-    private bool[] phaser_is_enabled = {true, true, true};
+    private bool[] phaser_is_enabled = {false, false, false};
 
     private static HUDInfo hud_info = null;
     private void Start()
     {
+        phaser_temperatures = transform.GetComponent<PhaserTemperatures>();
+
         hud_info = new HUDInfo(CONTROL_NAME);
 
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
@@ -43,9 +46,9 @@ public class PhaserPowers : NetworkBehaviour, IControllable
     {
         return hud_info;
     }
-    public bool[] GetActivePhasers()
+    public bool[] getActivePhasers()
     {
-        return (bool[])phaser_is_enabled.Clone();
+        return phaser_is_enabled;
     }
 
     IEnumerator switchPhaser(int index)
@@ -58,6 +61,14 @@ public class PhaserPowers : NetworkBehaviour, IControllable
             phaser_coverups[index].SetActive(true);
             phaser_is_enabled[index] = false;
             increasing = false;
+            if (index == 0)
+            {
+                phaser_temperatures.changeInPower(0, false);
+            }
+            else
+            {
+                phaser_temperatures.changeInPower(index, phaser_is_enabled[1] == true || phaser_is_enabled[2] == true);
+            }
         }
 
         float switch_time = SWITCH_TIME;
@@ -92,6 +103,14 @@ public class PhaserPowers : NetworkBehaviour, IControllable
         {
             phaser_coverups[index].SetActive(false);
             phaser_is_enabled[index] = true;
+            if (index == 0)
+            {
+                phaser_temperatures.changeInPower(0, true);
+            }
+            else
+            {
+                phaser_temperatures.changeInPower(1, true);
+            }
         }
 
         BUTTONS[index].updateInteractable(true);

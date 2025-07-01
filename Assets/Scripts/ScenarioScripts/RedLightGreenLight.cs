@@ -424,7 +424,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
     [Rpc(SendTo.Everyone)]
     private void readyToPlayRPC()
     {
-        if (NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost == true)
         {
             players_ready++;
         }
