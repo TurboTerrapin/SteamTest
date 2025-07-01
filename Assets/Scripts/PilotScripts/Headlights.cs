@@ -43,7 +43,7 @@ public class Headlights : NetworkBehaviour, IControllable
         hud_info.setButtons(BUTTONS);
 
         initial_pos = slider.transform.localPosition;
-        final_pos = new Vector3(0.2816f, -1.2822f, 19.2651f);
+        final_pos = new Vector3(0.2817f, -1.2825f, 19.2646f);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
