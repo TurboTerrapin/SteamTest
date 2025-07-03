@@ -24,6 +24,7 @@ public class ThrusterControl : NetworkBehaviour
     protected float[] button_push_percentage = new float[2]{0.0f, 0.0f};
     protected Vector3 button_initial_pos;
     protected Vector3 button_final_pos;
+    protected float inertial_dampener_modifier = 1.0f;
     protected float thrust_direction = 0;
     protected Coroutine thruster_coroutine;
 
@@ -31,6 +32,11 @@ public class ThrusterControl : NetworkBehaviour
     {
         button_initial_pos = thruster_buttons[0].transform.localPosition;
         button_final_pos = new Vector3(0.2816f, -1.3473f, 19.1217f);
+    }
+
+    public void adjustInertialDampenerModifier(float new_modifier)
+    {
+        inertial_dampener_modifier = new_modifier;
     }
 
     protected void updateThrust()

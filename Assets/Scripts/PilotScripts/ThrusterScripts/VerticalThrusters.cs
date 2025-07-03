@@ -1,22 +1,24 @@
 /*
-    HorizontalThrusters.cs
-    - Handles inputs for horizontal thrusters
+    VerticalThrusters.cs
+    - Handles inputs for vertical thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2025
+    Last Updated: 7/2/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
 
-public class HorizontalThrusters : ThrusterControl, IControllable
+public class VerticalThrusters : ThrusterControl, IControllable
 {
-    private string CONTROL_NAME = "HORIZONTAL THRUSTERS";
-    private List<string> CONTROL_DESCS = new List<string> { "MOVE LEFT", "MOVE RIGHT" };
-    private List<int> CONTROL_INDEXES = new List<int>() {1, 3};
+    private string CONTROL_NAME = "VERTICAL THRUSTERS";
+    private List<string> CONTROL_DESCS = new List<string>{"DESCEND", "ASCEND"};
+    private List<int> CONTROL_INDEXES = new List<int>(){2, 0};
     private List<Button> BUTTONS = new List<Button>();
+
+    public GameObject altitude_slider;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
 
@@ -34,9 +36,9 @@ public class HorizontalThrusters : ThrusterControl, IControllable
         return hud_info;
     }
 
-    public float getHorizontalThrusterState()
+    public float getVerticalThrusterState()
     {
-        return (thruster_percentage[0] - thruster_percentage[1]);
+        return (thruster_percentage[1] - thruster_percentage[0]);
     }
 
     IEnumerator adjustingThrust()
@@ -50,7 +52,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable
             {
                 if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down))
                 {
-                    thruster_percentage[i] = Mathf.Min(1.0f, thruster_percentage[i] + (dt * MOVE_SPEED));
+                    thruster_percentage[i] = Mathf.Min(1.0f, thruster_percentage[i] + (dt * MOVE_SPEED * inertial_dampener_modifier));
                     button_push_percentage[i] = Mathf.Min(1.0f, button_push_percentage[i] + (dt * MOVE_SPEED * PUSH_SPEED));
                 }
                 else
@@ -60,7 +62,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable
                 }
             }
 
-            transmitHorizontalThrusterRPC(thruster_percentage[0], thruster_percentage[1], button_push_percentage[0], button_push_percentage[1]);
+            transmitVerticalThrusterRPC(thruster_percentage[0], thruster_percentage[1], button_push_percentage[0], button_push_percentage[1]);
             keys_down.Clear();
             yield return null;
         }
@@ -84,12 +86,12 @@ public class HorizontalThrusters : ThrusterControl, IControllable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitHorizontalThrusterRPC(float left_thrust, float right_thrust, float left_button, float right_button)
+    private void transmitVerticalThrusterRPC(float down_thrust, float up_thrust, float down_button, float up_button)
     {
-        thruster_percentage[0] = left_thrust;
-        thruster_percentage[1] = right_thrust;
-        button_push_percentage[0] = left_button;
-        button_push_percentage[1] = right_button;
+        thruster_percentage[0] = down_thrust;
+        thruster_percentage[1] = up_thrust;
+        button_push_percentage[0] = down_button;
+        button_push_percentage[1] = up_button;
         updateThrust();
         displayAdjustment();
     }

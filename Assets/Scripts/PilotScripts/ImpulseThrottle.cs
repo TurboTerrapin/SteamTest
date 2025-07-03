@@ -14,7 +14,7 @@ using Unity.Netcode;
 public class ImpulseThrottle : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float MOVE_SPEED = 50.0f;
+    private static float MOVE_SPEED = 25.0f;
 
     private string CONTROL_NAME = "IMPULSE THROTTLE";
     private List<string> CONTROL_DESCS = new List<string> {"DECREASE", "INCREASE"};
@@ -26,6 +26,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
     public GameObject speed_text; //used to update the speedometer
 
     private float impulse = 0.0f;
+    private float inertial_dampener_modifier = 1.0f;
     private Vector3 initial_pos; //handle starting position (0% impulse)
     private Vector3 final_pos = new Vector3(0.2816f, -1.2306f, 19.3834f);
 
@@ -42,6 +43,11 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+
+    public void adjustInertialDampenerModifier(float new_modifier)
+    {
+        inertial_dampener_modifier = new_modifier;
     }
 
     public float getCurrentImpulse()
@@ -81,11 +87,11 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
         {
             if (impulse_direction > 0)
             {
-                impulse = Mathf.Min(1.0f, impulse + (0.002f * (impulse / 0.5f) + 0.001f) * dt * MOVE_SPEED);
+                impulse = Mathf.Min(1.0f, impulse + (0.002f * (impulse / 0.5f) + 0.001f) * dt * MOVE_SPEED * inertial_dampener_modifier);
             }
             else
             {
-                impulse = Mathf.Max(0.0f, impulse - (0.002f * (impulse / 0.5f) + 0.001f) * dt * MOVE_SPEED);
+                impulse = Mathf.Max(0.0f, impulse - (0.002f * (impulse / 0.5f) + 0.001f) * dt * MOVE_SPEED * inertial_dampener_modifier);
             }
             if (impulse <= 0)
             {
