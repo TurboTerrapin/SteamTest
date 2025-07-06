@@ -3,25 +3,35 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2025
+    Last Updated: 7/3/2025
 */
 
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using TMPro;
 
 public class TractorBeamPower : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 50.0f;
+    private static float TRACTOR_BEAM_RANGE = 100.0f;
 
     private string CONTROL_NAME = "TRACTOR BEAM";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
+    public Material lit_green;
+    public Material lit_red;
+    public Material unlit_green;
+    public Material unlit_red;
+
     public GameObject lever;
-    public GameObject display_canvas; //used to display the bars beneath the handle
+    public GameObject bars_canvas; //used to display the bars beneath the handle
+    public GameObject info_canvas; //used to display range in meters, visual indicator
+    public GameObject active_indicator; //green light
+    public GameObject inactive_indicator; //red light
 
     private float power = 0.0f;
 
@@ -45,14 +55,36 @@ public class TractorBeamPower : NetworkBehaviour, IControllable
         if (power_as_int < 100)
         {
             int position = (power_as_int / 5);
-            if (display_canvas.transform.childCount > position + 1)
+            if (bars_canvas.transform.childCount > position + 1)
             {
-                display_canvas.transform.GetChild(position + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.5f + (0.5f * (position / 20.0f)), 0.5f, 0f, (0.2f * (power_as_int % 5)));
+                bars_canvas.transform.GetChild(position + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.5f + (0.5f * (position / 20.0f)), 0.5f, 0f, (0.2f * (power_as_int % 5)));
             }
         }
 
         //update lever position
         lever.transform.localRotation = Quaternion.Euler(-150 + (80 * power), 0f, 0f);
+
+        //update range
+        string range_text = (Mathf.Round(power * TRACTOR_BEAM_RANGE * 10.0f) / 10.0f).ToString();
+        if (range_text.Contains(".") == false)
+        {
+            range_text += ".0";
+        }
+        info_canvas.transform.GetChild(1).gameObject.SetActive(power > 0.0f);
+        info_canvas.transform.GetChild(1).GetComponent<TMP_Text>().SetText(range_text + "M");
+
+        float tmp_power = power;
+        //update the waves thing
+        for (int i = 0; i <= 4; i++)
+        {
+            tmp_power = power - (0.2f * i);
+            float a = 0.0f;
+            if (tmp_power > 0.0f)
+            {
+                a = tmp_power / 0.2f;
+            }
+            info_canvas.transform.GetChild(2 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        }
     }
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {

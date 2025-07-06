@@ -4,10 +4,9 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 7/2/2025
+    Last Updated: 7/5/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -27,8 +26,11 @@ public class InertialDampeners : NetworkBehaviour, IControllable
     private bool[] dampener_is_enabled = new bool[3]{false, false, false};
     private Coroutine dampener_switch_coroutine = null;
 
+    public Material lit_neon;
+    public Material unlit_blue;
+
     public List<GameObject> dampener_sticks = null;
-    public List<GameObject> dampener_displays = null;
+    public List<GameObject> dampener_indicators = null;
 
     private static HUDInfo hud_info = null;
     private void Start()
@@ -63,25 +65,20 @@ public class InertialDampeners : NetworkBehaviour, IControllable
     IEnumerator switchDampener(int index, bool to_switch_to)
     {
         GameObject current_stick = dampener_sticks[index];
-        GameObject current_display = dampener_displays[index];
-        UnityEngine.UI.Image current_diamond = current_display.transform.GetChild(5).gameObject.GetComponent<UnityEngine.UI.Image>();
+        GameObject current_indicator = dampener_indicators[index];
 
         float starting_stick_rotation = -80.0f;
-        float starting_canvas_rotation = 45.0f;
-        float starting_diamond_fill_amount = 1.0f;
 
         float desired_stick_rotation = -60.0f;
-        float desired_canvas_rotation = 0.0f;
-        float desired_diamond_fill_amount = 0.0f;
 
         if (to_switch_to == true)
         {
             starting_stick_rotation = -140.0f;
-            starting_canvas_rotation = 0.0f;
-            starting_diamond_fill_amount = 0.0f;
             desired_stick_rotation = 60.0f;
-            desired_canvas_rotation = 45.0f;
-            desired_diamond_fill_amount = 1.0f;
+        }
+        else
+        {
+            current_indicator.GetComponent<Renderer>().material = unlit_blue;
         }
 
         float anim_time = SWITCH_TIME;
@@ -94,13 +91,6 @@ public class InertialDampeners : NetworkBehaviour, IControllable
                 Quaternion.Euler(starting_stick_rotation + Mathf.Lerp(desired_stick_rotation, 0.0f, anim_time / SWITCH_TIME),
                                  0.0f,
                                  0.0f);
-            //set center diamond
-            dampener_displays[index].transform.localRotation =
-                Quaternion.Euler(-23.0f,
-                                 -180.0f,
-                                 Mathf.Lerp(desired_canvas_rotation, starting_canvas_rotation, anim_time / SWITCH_TIME));
-            dampener_displays[index].transform.GetChild(5).GetComponent<UnityEngine.UI.Image>().fillAmount = 
-                Mathf.Lerp(desired_diamond_fill_amount, starting_diamond_fill_amount, anim_time / SWITCH_TIME); 
 
             yield return null;
         }
@@ -108,6 +98,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable
         if (to_switch_to == true)
         {
             BUTTONS[index].updateDesc(ALT_CONTROL_DESCS[index]);
+            current_indicator.GetComponent<Renderer>().material = lit_neon;
         }
         else
         {
@@ -129,25 +120,20 @@ public class InertialDampeners : NetworkBehaviour, IControllable
         for (int i = 0; i <= 2; i++)
         {
             float stick_rotation = -140.0f;
-            float canvas_rotation = 0.0f;
-            float diamond_fill_amount = 0.0f;
             if (dampener_is_enabled[i] == true)
             {
                 stick_rotation = -80.0f;
-                canvas_rotation = 45.0f;
-                diamond_fill_amount = 1.0f;
+                dampener_indicators[i].GetComponent<Renderer>().material = lit_neon;
+            }
+            else
+            {
+                dampener_indicators[i].GetComponent<Renderer>().material = unlit_blue;
             }
             //reset stick
             dampener_sticks[i].transform.localRotation =
                 Quaternion.Euler(stick_rotation,
                                  0.0f,
                                  0.0f);
-            //reset center diamond
-            dampener_displays[i].transform.localRotation =
-                Quaternion.Euler(-23.0f,
-                                 -180.0f,
-                                 canvas_rotation);
-            dampener_displays[i].transform.GetChild(5).GetComponent<UnityEngine.UI.Image>().fillAmount = diamond_fill_amount;
         }
     }
 

@@ -83,7 +83,6 @@ public class PrefixCodeManager : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost)
         {
             generateNewCodes();
-            transmitNewCodesRPC(prefix_codes[0], prefix_codes[1], prefix_codes[2], prefix_codes[3]);
             transmitNewLoopRPC();
         }
     }
