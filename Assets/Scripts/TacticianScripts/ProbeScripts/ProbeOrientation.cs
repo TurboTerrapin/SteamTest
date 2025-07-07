@@ -55,8 +55,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         {
             display_orientation += ".0";
         }
-        orientation_canvas.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().SetText(display_orientation);
-        orientation_canvas.transform.GetChild(2).localPosition = new Vector3(0f, -0.012f + (display_orientation.Length - 3) * -0.004f, 0f);
+        orientation_canvas.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().SetText(display_orientation + "°");
 
         //update lever positions
         orientation_lever.transform.localRotation = Quaternion.Euler(270f + orientation_lever_angle, 0f, 90f);

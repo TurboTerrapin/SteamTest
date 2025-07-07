@@ -23,7 +23,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
 
     public GameObject handle;
     public GameObject blue_bars; //used to display the bars beneath the handle
-    public GameObject speed_text; //used to update the speedometer
+    //public GameObject speed_text; //used to update the speedometer
 
     private float impulse = 0.0f;
     private float inertial_dampener_modifier = 1.0f;
@@ -70,7 +70,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
                         Mathf.Lerp(initial_pos.z, final_pos.z, impulse));
         
         //update speedometer text
-        speed_text.GetComponent<TMP_Text>().SetText("" + Mathf.Round(impulse * 100.0f));
+        //speed_text.GetComponent<TMP_Text>().SetText("" + Mathf.Round(impulse * 100.0f));
     }
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {

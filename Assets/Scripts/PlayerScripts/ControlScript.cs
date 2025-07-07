@@ -18,7 +18,7 @@ using Steamworks;
 public class ControlScript : MonoBehaviour
 {
     //CLASS CONSTANTS
-    private static float RAYCAST_RANGE = 2.0f;
+    private static float RAYCAST_RANGE = 1.5f;
     private static string[] POSITION_NAMES = { "PILOT", "TACTICIAN", "ENGINEER", "CAPTAIN" };
 
     //GAME OBJECTS
@@ -405,7 +405,7 @@ public class ControlScript : MonoBehaviour
                         }
                         control_info.SetActive(true); //show UI indicator
                         float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-                        target_control.handleInputs(current_inputs, hit.collider.gameObject, dt, 1); //call when all inputs have been checked
+                        target_control.handleInputs(current_inputs, hit.collider.gameObject, dt, curr_pos); //call when all inputs have been checked
                         return;
                     }
                 }

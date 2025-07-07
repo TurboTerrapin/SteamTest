@@ -23,7 +23,6 @@ public class DirectionalShifter : NetworkBehaviour, IControllable
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject lever;
-    public GameObject directional_arrow; //on the speedometer screen
     public GameObject forward_indicator;
     public GameObject reverse_indicator;
     private GameObject spaceship;
@@ -74,14 +73,6 @@ public class DirectionalShifter : NetworkBehaviour, IControllable
 
         forward_indicator.SetActive(!in_reverse);
         reverse_indicator.SetActive(in_reverse);
-        if (in_reverse)
-        {
-            directional_arrow.transform.localRotation = Quaternion.Euler(0f, 0f, 180f);
-        }
-        else
-        {
-            directional_arrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-        }
     }
 
     private bool checkNeutralState()

@@ -129,6 +129,10 @@ public class PilotNavigation : MonoBehaviour
         {
             display_heading += ".0";
         }
+        if (display_heading.CompareTo("360.0") == 0)
+        {
+            display_heading = "0.0";
+        }
         heading_text.GetComponent<TMP_Text>().SetText(display_heading + "°");
 
         //adjust course heading slider
