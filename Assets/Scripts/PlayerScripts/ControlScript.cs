@@ -5,7 +5,7 @@
     - Manages the HUD display for control interaction
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     Contributor(s): Jake Schott
-    Last Updated: 6/5/2025
+    Last Updated: 7/7/2025
 */
 
 using UnityEngine;
@@ -45,10 +45,6 @@ public class ControlScript : MonoBehaviour
     //SETTINGS
     private int HUD_setting = 0; //0 is Default, 1 is Minimized, 2 is Cursor Only, 3 is None
     private bool paused = false;
-
-    //CONTROL INFO
-    public List<string> collider_names = null; //names of the GameObjects that contain the colliders that the Raycast must hit 
-    public List<string> corresponding_scripts = null; //names of the scripts that correspond to the GameObject colliders (ex. lever_target corresponds to Throttle)
 
     //INPUT INFO
     public static List<KeyCode[]> input_options = new List<KeyCode[]>{ 
@@ -349,7 +345,7 @@ public class ControlScript : MonoBehaviour
                     if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
                         IControllable target_control =
-                            (IControllable)control_script_holder.GetComponent(corresponding_scripts[collider_names.IndexOf(hit.collider.gameObject.name)]); //get corresponding class
+                            (IControllable)control_script_holder.GetComponent(hit.collider.transform.GetChild(0).name); //get corresponding class
 
                         HUDInfo temp_info = target_control.getHUDinfo(hit.collider.gameObject);
 

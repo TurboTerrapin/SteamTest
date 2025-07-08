@@ -74,7 +74,6 @@ public class PilotSCA : NetworkBehaviour
         for (int m = 0; m < molecule_quantities.Count; m++)
         {
             number_of_molecules += molecule_quantities[m];
-            Debug.Log(number_of_molecules);
         }
 
         //ensure there are less molecules than possible locations
