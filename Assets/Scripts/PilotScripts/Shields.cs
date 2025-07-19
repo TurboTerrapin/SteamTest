@@ -92,6 +92,7 @@ public class Shields : NetworkBehaviour, IControllable
             float dt = Time.deltaTime;
             anim_time = Mathf.Max(0.0f, anim_time - dt);
 
+            //pilot ship display
             float current_shield_percentage = Mathf.Lerp(desired_shield_percentage, starting_shield_percentage, anim_time / CHANGE_TIME);
             for (int i = 0; i <= 3; i++)
             {
@@ -100,6 +101,7 @@ public class Shields : NetworkBehaviour, IControllable
             }
             pilot_shield_display.transform.GetChild(shield_to_change + 1).GetChild(0).GetChild(2).gameObject.SetActive(current_shield_percentage == 1.0f);
 
+            //engineer ship display
             for (int i = 0; i <= e_current_section.childCount - 1; i++)
             {
                 bool is_visible = (current_shield_percentage > (1.0f / e_current_section.childCount) * (e_current_section.childCount - 1 - i));

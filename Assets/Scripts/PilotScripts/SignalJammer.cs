@@ -1,0 +1,246 @@
+/*
+    SignalJammer.cs
+    - Meant to temporarily jam signals
+    - Does nothing
+    Contributor(s): Jake Schott
+    Last Updated: 7/19/2025
+*/
+
+using System.Collections;
+using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
+
+public class SignalJammer : NetworkBehaviour, IControllable
+{
+    //CLASS CONSTANTS
+    private static float JAM_TIME = 10.0f; //seconds
+    private static float RESET_TIME = 15.0f; //seconds
+    private static float BUTTON_PUSH_TIME = 1.0f; //seconds
+    private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
+    private static Color BLUE = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+    private static Color RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+
+    private string CONTROL_NAME = "SIGNAL JAMMER";
+    private List<string> CONTROL_DESCS = new List<string>() { "ACTIVATE" };
+    private List<int> CONTROL_INDEXES = new List<int>() { 6 };
+    private List<Button> BUTTONS = new List<Button>();
+
+    public Material lit_red;
+    public Material neon;
+    public Material unlit_blue;
+
+    public GameObject signal_jam_button;
+    public GameObject signal_jam_display;
+    public GameObject signal_indicators;
+
+    private Coroutine signal_jam_coroutine = null;
+    private Coroutine bars_animation_coroutine = null;
+    private Vector3 button_initial_pos;
+    private Vector3 button_final_pos = new Vector3(-2.4599f, -0.6773f, 2.1674f);
+
+    private static HUDInfo hud_info = null;
+    private void Start()
+    {
+        button_initial_pos = signal_jam_button.transform.localPosition;
+
+        hud_info = new HUDInfo(CONTROL_NAME);
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        hud_info.setButtons(BUTTONS);
+    }
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return hud_info;
+    }
+
+    //changes the colors of the screen's border and lines
+    private void colorChange(Color to_change_to)
+    {
+        GameObject border = signal_jam_display.transform.GetChild(1).gameObject;
+        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        border.GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
+        for (int i = 0; i < lines.transform.childCount; i++)
+        {
+            GameObject line = lines.transform.GetChild(i).gameObject;
+            line.GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
+            line.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
+            line.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
+        }
+    }
+
+    //sizes the bar at the index to the to_size_to input
+    private void resizeBar(int index, float to_size_to)
+    {
+        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        lines.transform.GetChild(index).GetComponent<RectTransform>().sizeDelta = new Vector2(0.003f + to_size_to * 2, 0.005f);
+        lines.transform.GetChild(index).GetChild(0).localPosition = new Vector3(0.0015f + to_size_to, 0.0f, 0.0f);
+        lines.transform.GetChild(index).GetChild(1).localPosition = new Vector3(-0.0015f - to_size_to, 0.0f, 0.0f);
+    }
+
+    IEnumerator barAnimation()
+    {
+        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        while (true)
+        {
+            float anim_time = BAR_ANIMATION_TIME;
+            float[] starting_sizes = new float[lines.transform.childCount];
+            float[] sizes = new float[lines.transform.childCount];
+            for (int i = 0; i < sizes.Length; i++)
+            {
+                starting_sizes[i] = lines.transform.GetChild(i).GetChild(0).localPosition.x - 0.0015f;
+                sizes[i] = Random.Range(0.0f, 1.0f) * 0.005f;
+            }
+            while (anim_time > 0.0f)
+            {
+                float dt = Time.deltaTime;
+                anim_time = Mathf.Max(0.0f, anim_time - dt);
+                for (int i = 0; i < sizes.Length; i++)
+                {
+                    float to_size_to = Mathf.Lerp(starting_sizes[i], sizes[i], 1.0f - (anim_time / BAR_ANIMATION_TIME));
+                    resizeBar(i, to_size_to);
+                }
+                yield return null;
+            }
+        }
+    }
+
+    IEnumerator resetBars()
+    {
+        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        float anim_time = BAR_ANIMATION_TIME;
+        float[] starting_sizes = new float[lines.transform.childCount];
+        float[] sizes = new float[lines.transform.childCount];
+        for (int i = 0; i < sizes.Length; i++)
+        {
+            starting_sizes[i] = lines.transform.GetChild(i).GetChild(0).localPosition.x - 0.0015f;
+            sizes[i] = 0.0f;
+        }
+        while (anim_time > 0.0f)
+        {
+            float dt = Time.deltaTime;
+            anim_time = Mathf.Max(0.0f, anim_time - dt);
+            for (int i = 0; i < sizes.Length; i++)
+            {
+                float to_size_to = Mathf.Lerp(starting_sizes[i], sizes[i], 1.0f - (anim_time / BAR_ANIMATION_TIME));
+                resizeBar(i, to_size_to);
+            }
+            yield return null;
+        }
+    }
+
+    IEnumerator signalJam()
+    {
+        //button push
+        for (int i = 0; i <= 1; i++)
+        {
+            float half_time = BUTTON_PUSH_TIME * 0.5f;
+            float push_time = half_time;
+
+            while (push_time > 0.0f)
+            {
+                float dt = Time.deltaTime;
+                push_time = Mathf.Max(0.0f, push_time - dt);
+
+                float push_percentage = 1.0f - (push_time / half_time);
+                if (i == 1)
+                {
+                    push_percentage = (push_time / half_time);
+                }
+
+                signal_jam_button.transform.localPosition =
+                    new Vector3(Mathf.Lerp(button_initial_pos.x, button_final_pos.x, push_percentage),
+                                Mathf.Lerp(button_initial_pos.y, button_final_pos.y, push_percentage),
+                                Mathf.Lerp(button_initial_pos.z, button_final_pos.z, push_percentage));
+
+                yield return null;
+            }
+        }
+        BUTTONS[0].untoggle();
+
+        //start signal jam
+        if (bars_animation_coroutine != null)
+        {
+            StopCoroutine(bars_animation_coroutine);
+        }
+        bars_animation_coroutine = StartCoroutine(barAnimation());
+
+        colorChange(RED);
+        for (int i = 0; i < signal_indicators.transform.childCount; i++)
+        {
+            signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+        }
+
+        float jam_time = JAM_TIME;
+        while (jam_time > 0.0f)
+        {
+            float dt = Time.deltaTime;
+            jam_time = Mathf.Max(0.0f, jam_time - dt);
+
+            for (int i = 0; i < signal_indicators.transform.childCount; i++)
+            {
+                if ((jam_time / JAM_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
+                {
+                    signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = unlit_blue;
+                }
+                else
+                {
+                    signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+                }
+            }
+
+            yield return null;
+        }
+
+        StopCoroutine(bars_animation_coroutine);
+        bars_animation_coroutine = StartCoroutine(resetBars());
+        colorChange(BLUE);
+
+        float reset_time = RESET_TIME;
+        while (reset_time > 0.0f)
+        {
+            float dt = Time.deltaTime;
+            reset_time = Mathf.Max(0.0f, reset_time - dt);
+
+            for (int i = 0; i < signal_indicators.transform.childCount; i++)
+            {
+                if ((reset_time / RESET_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
+                {
+                    signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = neon;
+                }
+                else
+                {
+                    signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = unlit_blue;
+                }
+            }
+
+            yield return null;
+        }
+
+        BUTTONS[0].updateInteractable(true);
+
+        bars_animation_coroutine = null;
+        signal_jam_coroutine = null;
+    }
+
+    public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
+    {
+        if (signal_jam_coroutine == null)
+        {
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            {
+                BUTTONS[0].toggle();
+                transmitSignalJamRPC();
+            }
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void transmitSignalJamRPC()
+    {
+        if (signal_jam_coroutine != null)
+        {
+            StopCoroutine(signal_jam_coroutine);
+        }
+        signal_jam_coroutine = StartCoroutine(signalJam());
+    }
+}
