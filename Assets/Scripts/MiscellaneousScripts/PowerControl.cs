@@ -1,7 +1,7 @@
 /*
     PowerControl.cs
     - Handles power-on/power-off procedure
-    - Moves throttle lever accordingly
+    - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
     Last Updated: 5/14/2025
 */

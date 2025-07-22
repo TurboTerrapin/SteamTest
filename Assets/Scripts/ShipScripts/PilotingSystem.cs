@@ -34,6 +34,7 @@ public class PilotingSystem : NetworkBehaviour
     private HorizontalThrusters horizontalThrusters;
     private VerticalThrusters verticalThrusters;
     private PilotNavigation pilotNavigation;
+    private TacticianMap tacticianMap;
 
     // Input values
     private float currentImpulse;
@@ -62,6 +63,7 @@ public class PilotingSystem : NetworkBehaviour
         verticalThrusters = controlHandler.GetComponent<VerticalThrusters>();
 
         pilotNavigation = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>();
+        tacticianMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
 
         return impulseThrottle && courseHeading &&
                horizontalThrusters && verticalThrusters;
@@ -204,6 +206,7 @@ public class PilotingSystem : NetworkBehaviour
     private void rotationChangeRPC()
     {
         pilotNavigation.updateCourseHeadingScreen();
+        tacticianMap.rotateMap();
     }
 
     [Rpc(SendTo.Everyone)]

@@ -3,7 +3,7 @@
     - Handles inputs for map zoom, map configuration
     - Updates map
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2025
+    Last Updated: 7/20/2025
 */
 
 using Unity.Netcode;
@@ -58,6 +58,11 @@ public class MapOptions : NetworkBehaviour, IControllable
         return hud_info;
     }
 
+    public float getZoom()
+    {
+        return zoom;
+    }
+
     IEnumerator adjustMapConfig()
     {
         for (int i = 0; i <= 1; i++)
@@ -92,6 +97,7 @@ public class MapOptions : NetworkBehaviour, IControllable
 
     private void displayZoomAdjustment()
     {
+        Debug.Log(zoom);
         //zoom map
         for (int i = 0; i < 6; i++)
         {
