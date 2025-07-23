@@ -22,15 +22,14 @@ using Steamworks;
 public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
 {
     //CLASS CONSTANTS
-    private static int MINIMUM_PLAYERS = 4;
     private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
     private static float ENDPOINT_RANGE = 25.0f;
 
     private GameObject PlayerPrefab;
     Vector3 OriginalCameraPosition;
     bool ScenarioEndpointReached = false;
+    private ScenarioManager scenarioManager;
     private ImpulseThrottle impulse;
-    private UniversalCommunicator communicator;
     private ScanWaveManager scanWaveManager;
     private ShipHealth shipHealth;
     private Coroutine redLightCoroutine = null;
@@ -38,9 +37,6 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
     private Coroutine cameraShakeCoroutine = null;
 
     private GameObject spaceship;
-    private GameObject endpoint;
-
-    private int players_ready = 0;
 
     //--SCAN WAVE INFORMATION--//
     //CENTER OF WAVE
@@ -57,19 +53,8 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
     private int num_dotted = 0;
     //-------------------------//
 
-    public float getDistanceToEndpoint()
-    {
-        float dist = 9999.9f;
-        if (endpoint != null && spaceship != null)
-        {
-            dist = Vector3.Distance(endpoint.transform.position, spaceship.transform.position);
-        }
-        return dist;
-    }
-
     private void randomizeColors()
     {
-
         for (int i = 0; i < 4; i++)
         {
             int new_color = Random.Range(0, 4);
@@ -106,11 +91,12 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
         return to_return;
     }
 
-    public void initializeScenario()
+    private void Start()
     {
+        scenarioManager = GameObject.FindWithTag("ScenarioManager").GetComponent<ScenarioManager>();
+
         GameObject controlHandler = GameObject.FindWithTag("ControlHandler");
         impulse = controlHandler.GetComponent<ImpulseThrottle>();
-        communicator = controlHandler.GetComponent<UniversalCommunicator>();
 
         GameObject sensorHandler = GameObject.FindWithTag("SensorHandler");
         scanWaveManager = sensorHandler.GetComponent<ScanWaveManager>();
@@ -118,59 +104,44 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
         spaceship = GameObject.FindWithTag("Spaceship");
         shipHealth = spaceship.GetComponent<ShipHealth>();
 
-        endpoint = GameObject.FindWithTag("ScenarioEndPoint");
-
         string playerPrefabName = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
         PlayerPrefab = GameObject.Find(playerPrefabName);
         OriginalCameraPosition = PlayerPrefab.transform.GetChild(0).transform.localPosition;
 
-        readyToPlayRPC();
-
+        //if host, begin scenario stuff
         if (NetworkManager.Singleton.IsHost)
         {
-            StartCoroutine(waitForOthers());
-        }
-    }
+            //initialize wave, randomize initial colors and textures
+            randomizeColors();
 
-    //only run by the host
-    IEnumerator waitForOthers()
-    {
-        while (players_ready < MINIMUM_PLAYERS)
-        {
-            yield return null;
-        }
-
-        //initialize wave, randomize initial colors and textures
-        randomizeColors();
-
-        int[] ring_textures = new int[4];
-        for (int i = 0; i < 4; i++)
-        {
-            int random_texture = Random.Range(1, texture_options.Count);
-            //50-50 chance it's dotted
-            if (Random.Range(0, 2) == 0)
+            int[] ring_textures = new int[4];
+            for (int i = 0; i < 4; i++)
             {
-                random_texture = 0;
+                int random_texture = Random.Range(1, texture_options.Count);
+                //50-50 chance it's dotted
+                if (Random.Range(0, 2) == 0)
+                {
+                    random_texture = 0;
+                }
+                ring_textures[i] = random_texture;
             }
-            ring_textures[i] = random_texture;
-        }
 
-        string cc = "";
-        for (int i = 0; i < 5; i++)
-        {
-            cc += curr_colors[i].ToString();
-        }
+            string cc = "";
+            for (int i = 0; i < 5; i++)
+            {
+                cc += curr_colors[i].ToString();
+            }
 
-        string rt = "";
-        for (int i = 0; i < 4; i++)
-        {
-            rt += ring_textures[i].ToString();
-        }
+            string rt = "";
+            for (int i = 0; i < 4; i++)
+            {
+                rt += ring_textures[i].ToString();
+            }
 
-        waveInitializationRPC(cc, rt);
-        enterRedLightStateRPC();
+            waveInitializationRPC(cc, rt);
+            enterRedLightStateRPC();
+        }
     }
-
     IEnumerator GreenLightState()
     {
         //contract energy wave
@@ -202,7 +173,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
 
         if (NetworkManager.Singleton.IsHost)
         {
-            while (shipHealth.getHullIntegrity() > 0.0f && getDistanceToEndpoint() > ENDPOINT_RANGE)
+            while (shipHealth.getHullIntegrity() > 0.0f && scenarioManager.getDistanceToEndpoint() > ENDPOINT_RANGE)
             {
                 // if the ship is moving
                 if (impulse.getCurrentImpulse() > 0.0f)
@@ -225,11 +196,11 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
             }
             if (shipHealth.getHullIntegrity() <= 0.0f)
             {
-                endScenarioRPC(false);
+                scenarioManager.endScenario(false);
             }
             else
             {
-                endScenarioRPC(true);
+                scenarioManager.endScenario(true);
             }
         }
     }
@@ -401,32 +372,5 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
     {
         resetCoroutines();
         greenLightCoroutine = StartCoroutine(EndGreenLight(contraction_time));
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void endScenarioRPC(bool success)
-    {
-        resetCoroutines();
-        GameObject plr_canvas = GameObject.Find("Canvas");
-        if (plr_canvas != null)
-        {
-            if (success == true)
-            {
-                plr_canvas.GetComponent<EndScenario>().displayEndScenario("SCENARIO COMPLETE", new Color(0.0f, 1.0f, 0.0f, 0.0f));
-            }
-            else
-            {
-                plr_canvas.GetComponent<EndScenario>().displayEndScenario("SCENARIO FAILED", new Color(1.0f, 0.0f, 0.0f, 0.0f));
-            }
-        }
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void readyToPlayRPC()
-    {
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            players_ready++;
-        }
     }
 }

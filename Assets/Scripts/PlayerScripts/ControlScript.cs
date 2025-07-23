@@ -124,8 +124,8 @@ public class ControlScript : MonoBehaviour
         player_prefab.GetComponent<PlayerMove>().initialize();
         seat_check_coroutine = StartCoroutine(seatCheck());
 
-        GameObject scenario_handler = GameObject.FindWithTag("ScenarioHandler");
-        scenario_handler.GetComponent<RedLightGreenLight>().initializeScenario();
+        GameObject scenario_manager = GameObject.FindWithTag("ScenarioManager");
+        scenario_manager.GetComponent<ScenarioManager>().initializeScenarioManager();
     }
 
     //used to clear buttons and minimized list entries

@@ -1,16 +1,15 @@
 /*
     MapOptions.cs
     - Handles inputs for map zoom, map configuration
-    - Updates map
+    - Zooms the lines for the map, tells TacticianMap to zoom the objects accordingly
     Contributor(s): Jake Schott
-    Last Updated: 7/20/2025
+    Last Updated: 7/22/2025
 */
 
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
 public class MapOptions : NetworkBehaviour, IControllable
 {
@@ -28,6 +27,8 @@ public class MapOptions : NetworkBehaviour, IControllable
     public GameObject config_canvas;
     public GameObject map_canvas;
 
+    private TacticianMap tactician_map;
+
     private Vector3 config_button_initial_pos;
     private Vector3 config_button_final_pos = new Vector3(-3.1877f, 8.7354f, 3.7738f);
 
@@ -42,6 +43,8 @@ public class MapOptions : NetworkBehaviour, IControllable
     private static HUDInfo hud_info = null;
     private void Start()
     {
+        tactician_map = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
+
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
@@ -88,8 +91,18 @@ public class MapOptions : NetworkBehaviour, IControllable
 
                 yield return null;
             }
+            //switch map config
+            if (i == 0)
+            {
+                for (int z = 1; z <= 3; z++)
+                {
+                    config_canvas.transform.GetChild(z).GetChild(0).gameObject.SetActive((z - 1) != map_config);
+                }
+                map_canvas.transform.GetChild(3).gameObject.SetActive(map_config == 0);
+                map_canvas.transform.GetChild(4).gameObject.SetActive(map_config != 0);
+            }
         }
-
+        
         BUTTONS[0].updateInteractable(true);
 
         map_config_coroutine = null;
@@ -97,7 +110,6 @@ public class MapOptions : NetworkBehaviour, IControllable
 
     private void displayZoomAdjustment()
     {
-        Debug.Log(zoom);
         //zoom map
         for (int i = 0; i < 6; i++)
         {
@@ -105,8 +117,11 @@ public class MapOptions : NetworkBehaviour, IControllable
             map_canvas.transform.GetChild(1).GetChild(i).gameObject.SetActive(!(circle_diameter > 0.31f));
 
             map_canvas.transform.GetChild(1).GetChild(i).gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(circle_diameter, circle_diameter);
-            map_canvas.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(circle_diameter - 0.005f, circle_diameter - 0.005f);
+            map_canvas.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(circle_diameter - 0.0025f, circle_diameter - 0.0025f);
         }
+
+        //zoom items
+        tactician_map.zoomMap();
 
         //update zoom slider position
         slider.transform.localPosition =
@@ -137,22 +152,8 @@ public class MapOptions : NetworkBehaviour, IControllable
             {
                 zoom = Mathf.Max(0.0f, zoom - dt * ZOOM_SPEED);
             }
-            if (zoom <= 0f)
-            {
-                BUTTONS[1].updateInteractable(false);
-            }
-            else
-            {
-                BUTTONS[1].updateInteractable(true);
-            }
-            if (zoom >= 1f)
-            {
-                BUTTONS[2].updateInteractable(false);
-            }
-            else
-            {
-                BUTTONS[2].updateInteractable(true);
-            }
+            BUTTONS[1].updateInteractable(zoom > 0.0f);
+            BUTTONS[2].updateInteractable(zoom < 1.0f);
             transmitMapZoomAdjustmentRPC(zoom);
         }
 
@@ -162,6 +163,11 @@ public class MapOptions : NetworkBehaviour, IControllable
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTONS[0].toggle(0.2f);
+                map_config++;
+                if (map_config > 2)
+                {
+                    map_config = 0;
+                }
                 transmitMapConfigurationAdjustmentRPC(map_config);
             }
         }

@@ -170,11 +170,15 @@ public class SignalOptions : NetworkBehaviour, IControllable
         GameObject scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
         if (scenario_handler != null)
         {
-            Component scenario_script = scenario_handler.GetComponentAtIndex(2);
-            IUniversalCommunicable transmission_receiver = scenario_script as IUniversalCommunicable;
-            if (transmission_receiver != null)
+            Component[] scenario_handler_components = scenario_handler.GetComponents<Component>();
+            for (int i = 0; i < scenario_handler_components.Length; i++)
             {
-                transmission_receiver.handleTransmission(uc.getCodeIndexes(), uc.getCodeColors(), uc.getCodeIsNumeric());
+                IUniversalCommunicable transmission_receiver = scenario_handler_components[i] as IUniversalCommunicable;
+                if (transmission_receiver != null)
+                {
+                    transmission_receiver.handleTransmission(uc.getCodeIndexes(), uc.getCodeColors(), uc.getCodeIsNumeric());
+                    break;
+                }
             }
         }
         uc.resetDisplay();
