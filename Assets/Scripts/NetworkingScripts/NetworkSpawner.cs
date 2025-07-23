@@ -3,8 +3,6 @@ using Unity.Netcode;
 
 public class NetworkSpawner : MonoBehaviour
 {
-
-
     public static NetworkSpawner Instance { get; private set; }
 
     public GameObject pref = null;

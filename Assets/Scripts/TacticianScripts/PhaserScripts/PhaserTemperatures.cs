@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser temperature screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 6/30/2025
+    Last Updated: 7/23/2025
 */
 
 using UnityEngine;
@@ -15,7 +15,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.1f;
 
-    private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASERS", "SHORT-RANGE PHASERS"};
+    private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASER", "SHORT-RANGE PHASERS"};
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>()};
