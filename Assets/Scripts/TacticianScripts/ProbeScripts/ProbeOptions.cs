@@ -74,6 +74,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         }
     }
 
+    //called any time a probe is destroyed
     public void onProbeDestroyed()
     {
         if (dial_activation_coroutine == null)
@@ -110,6 +111,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         }
     }
 
+    //turns corresponding dial based on dial_turn_percentage
     private void displayDialAdjustment(int index)
     {
         //turn corresponding dial
@@ -119,6 +121,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
                              Mathf.Lerp(90.0f, 180.0f, dial_turn_percentage));
     }
 
+    //adjusts the fill bar and colors
     private void displayScreenAdjustment(int index)
     {
         //adjust fill bar
@@ -141,11 +144,13 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         }
     }
 
+    //enable destruct button
     public void linkProbe()
     {
         BUTTON_LISTS[1][0].updateInteractable(true);
     }
 
+    //disable destruct button
     public void unlinkProbe()
     {
         BUTTON_LISTS[1][0].updateInteractable(false);
@@ -156,6 +161,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         return (dial_turn_percentage <= 0.0f && function_charge_percentage <= 0.0f);
     }
 
+    //initial charging
     IEnumerator dialTurn(int index)
     {
         while (keys_down.Count > 0 || checkNeutralState() == false)
@@ -199,6 +205,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         dial_turn_coroutine = null;
     }
 
+    //used after charge complete
     IEnumerator dialReturn(int index, float starting_percentage)
     {
         float anim_time = (starting_percentage * TURN_TIME / 2.0f);
@@ -214,6 +221,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         dial_turn_coroutine = null;
     }
 
+    //charge complete, either launch probe or destroy it
     IEnumerator activateFunction(int index)
     {
         dial_turn_coroutine = StartCoroutine(dialReturn(index, 1.0f));
@@ -266,6 +274,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
             yield return new WaitForSeconds(0.5f);
             if (current_probe != null)
             {
+                //kills probe
                 current_probe.GetComponent<Probe>().damageProbe(150.0f);
             }
             setChargeColor(new Color(0.0f, 0.84f, 1.0f, 1.0f));
