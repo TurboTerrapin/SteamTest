@@ -49,7 +49,7 @@ public class ShipHealth : NetworkBehaviour
         return hull_integrity;
     }
 
-    private Color getDesiredColor(float health)
+    public static Color getDesiredColor(float health)
     {
         Color desired_color = new Color();
         if (health > 50.0)

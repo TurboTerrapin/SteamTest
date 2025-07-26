@@ -148,7 +148,7 @@ public class WeaponsSystem : MonoBehaviour
    
     private void UpdateLongRangePhaser(float dt)
     {
-        bool active = activePhasers[0] && phaserTemps[0] > 0.0f;
+        bool active = activePhasers[0];
 
         if (longRangePhaser.enabled != active)
         {
@@ -158,7 +158,7 @@ public class WeaponsSystem : MonoBehaviour
             return;
         }
 
-        float beamTemp = Mathf.Clamp01(phaserTemps[0]);
+        float beamTemp = Mathf.Clamp01(Mathf.Max(0.1f, phaserTemps[0]));
         float temperatureScaledSpeed = Mathf.Lerp(baseLRPulseSpeed, maxLRPulseSpeed, beamTemp);
 
         pulseTimer += dt * temperatureScaledSpeed;
@@ -186,7 +186,7 @@ public class WeaponsSystem : MonoBehaviour
     {
         if (phaser == null) return;
 
-        bool active = (activePhasers[index + 1] && temperature > 0.0f);
+        bool active = activePhasers[index + 1];
 
         // Handle activation/deactivation
         phaser.enabled = active;
@@ -201,7 +201,7 @@ public class WeaponsSystem : MonoBehaviour
         bool beamVisible = pulseValue > 0.3f;
         phaser.enabled = beamVisible;
 
-        float beamWidth = Mathf.Lerp(minSRBeamDiameter, maxSRBeamDiameter, temperature) * pulseValue;
+        float beamWidth = Mathf.Lerp(minSRBeamDiameter, maxSRBeamDiameter, Mathf.Max(0.01f, temperature)) * pulseValue;
         phaser.startWidth = currSRBeamWidth[index];
         phaser.endWidth = beamWidth * SRBeamEndDiameterRatio;
     }

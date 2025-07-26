@@ -4,7 +4,7 @@
     - Adjusts probe heading
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2025
+    Last Updated: 7/25/2025
 */
 
 using System.Collections;
@@ -39,8 +39,8 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -61,7 +61,32 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         orientation_lever.transform.localRotation = Quaternion.Euler(270f + orientation_lever_angle, 0f, 90f);
 
         //update probe
-        probe.transform.localRotation = Quaternion.Euler(0f, orientation_angle, 0f);
+        if (probe != null)
+        {
+            probe.transform.localRotation = Quaternion.Euler(0f, orientation_angle, 0f);
+        }
+    }
+
+    public void linkProbe(GameObject new_probe)
+    {
+        probe = new_probe;
+        for (int i = 0; i <= 1; i++)
+        {
+            BUTTONS[i].updateInteractable(true);
+        }
+        orientation_angle = (Mathf.Round(probe.transform.localRotation.eulerAngles.y * 10) / 10.0f); 
+        displayAdjustment();
+    }
+
+    public void unlinkProbe()
+    {
+        probe = null;
+        for (int i = 0; i <= 1; i++)
+        {
+            BUTTONS[i].updateInteractable(false);
+        }
+        orientation_angle = 0.0f;
+        displayAdjustment();
     }
 
     private bool isNeutralState()
@@ -77,11 +102,11 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
 
             int orientation_direction = 0;
 
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
             {
                 orientation_direction += 1;
             }
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down))
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
             {
                 orientation_direction -= 1;
             }

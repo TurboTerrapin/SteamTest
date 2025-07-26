@@ -2,18 +2,17 @@
     TacticianMap.cs
     - Handles tactician radar map
     Contributor(s): Jake Schott
-    Last Updated: 7/22/2025
+    Last Updated: 7/25/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
 
-public class TacticianMap : NetworkBehaviour
+public class TacticianMap : MonoBehaviour
 {
     //CLASS CONSTANTS
-    private static float MAP_UPDATE_DELAY = 1.5f; //updates every second
+    private static float MAP_UPDATE_DELAY = 1.5f; //updates every 1.5 seconds
 
     private GameObject this_ship;
     private GameObject world_root;

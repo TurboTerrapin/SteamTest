@@ -153,6 +153,17 @@ public class PilotingSystem : NetworkBehaviour
             //update pilot altimeter
             altitudeChangeRPC();
         }
+
+        //any movement at all
+        if (currentImpulseSpeed != 0.0f || currentVerticalSpeed != 0.0f || currentHorizontalSpeed != 0.0f)
+        {
+            //update probe (if it exists)
+            GameObject probe = GameObject.FindGameObjectWithTag("Probe");
+            if (probe != null)
+            {
+                probe.GetComponent<Probe>().updateDistance();
+            }
+        }
     }
 
     /* OLD CODE

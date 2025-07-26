@@ -1,8 +1,8 @@
 /*
-    PhaserPowers.cs
-    - Determines whether phasers are enabled or not
+    CargoJettions.cs
+    - Launches items in various slots
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2025
+    Last Updated: 7/23/2025
 */
 
 using System.Collections;

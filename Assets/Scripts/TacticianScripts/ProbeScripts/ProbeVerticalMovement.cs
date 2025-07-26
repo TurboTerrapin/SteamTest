@@ -4,13 +4,15 @@
     - Adjusts screen
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2025
+    Last Updated: 7/25/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using TMPro;
 using Unity.Netcode;
+using Unity.VisualScripting;
+using UnityEngine;
 
 public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 {
@@ -37,8 +39,8 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
 
         probe_position = probe.transform.localPosition;
@@ -47,16 +49,127 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
     {
         return hud_info;
     }
+
+    public void updateAltimeterScreen()
+    {
+        GameObject altimeter = vertical_canvas.transform.GetChild(1).GetChild(2).gameObject;
+
+        //get current altitude (remember, is inverse, so - is positive and + is negative)
+        float current_altitude = -probe.transform.position.y;
+
+        //define which markers display text
+        int smallest_number = (((int)(current_altitude * -1.0f)) / 10) * 10;
+        int next_number = smallest_number + 10;
+        if (current_altitude > 0.0f)
+        {
+            next_number = smallest_number - 10;
+        }
+        //set text for text markers
+        altimeter.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
+        altimeter.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
+        List<GameObject> bars = new List<GameObject>();
+        int[] marker_indices = new int[4];
+        int[] corresponding_markers = new int[4];
+        int marker_index = 18 - (int)(Mathf.Abs((current_altitude - 50000.0f) % 5.0f) / 1.0f);
+        if (current_altitude > 0.0f)
+        {
+            marker_index--;
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            marker_indices[i] = marker_index - (i * 5);
+        }
+        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f))
+        {
+            corresponding_markers[0] = 0;
+            corresponding_markers[1] = 1;
+            corresponding_markers[2] = 2;
+            corresponding_markers[3] = 3;
+        }
+        else
+        {
+            corresponding_markers[0] = 1;
+            corresponding_markers[1] = 0;
+            corresponding_markers[2] = 3;
+            corresponding_markers[3] = 2;
+        }
+        //if negative altitude then switch the markers around
+        if (current_altitude > 0.0f)
+        {
+            for (int x = 0; x < 2; x++)
+            {
+                int temp = corresponding_markers[3 - x];
+                corresponding_markers[3 - x] = corresponding_markers[x];
+                corresponding_markers[x] = temp;
+            }
+        }
+        //define order of markers
+        for (int i = 0; i < 17; i++)
+        {
+            bool marked = false;
+            for (int x = 0; x < 4; x++)
+            {
+                if (i == marker_indices[x])
+                {
+                    bars.Add(altimeter.transform.GetChild(corresponding_markers[x]).gameObject);
+                    marked = true;
+                    break;
+                }
+            }
+            if (marked == false)
+            {
+                bars.Add(altimeter.transform.GetChild(i + 4).gameObject);
+            }
+        }
+        //hide all markers
+        for (int i = 0; i < 21; i++)
+        {
+            altimeter.transform.GetChild(i).gameObject.SetActive(false);
+        }
+        //set positions and active state of each marker
+        float shift = ((current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
+        for (int i = 0; i < 17; i++)
+        {
+            bars[i].SetActive(true);
+            bars[i].transform.localPosition = new Vector3(bars[i].transform.localPosition.x, (0.01f * i) - 0.08f + shift, 0.0f);
+        }
+    }
+
     private void displayAdjustment()
     {
         //update lever position
         vertical_lever.transform.localRotation = Quaternion.Euler(-70f - vertical_lever_angle, 180f, -90f);
 
         //update probe
-        probe.transform.localPosition = probe_position;
+        if (probe != null)
+        {
+            probe.transform.localPosition = probe_position;
+            probe.GetComponent<Probe>().updateDistance();
 
-        //lastly, update altitude screen
-        vertical_canvas.transform.GetChild(1).transform.localPosition = new Vector3(-0.0095f, 0.045f * (probe.transform.localPosition.y / 50f), 0);
+            //lastly, update altitude screen
+            updateAltimeterScreen();
+        }
+    }
+
+    public void linkProbe(GameObject new_probe)
+    {
+        probe = new_probe;
+        for (int i = 0; i <= 1; i++)
+        {
+            BUTTONS[i].updateInteractable(true);
+        }
+        updateAltimeterScreen();
+        vertical_canvas.transform.GetChild(1).gameObject.SetActive(true);
+    }
+
+    public void unlinkProbe()
+    {
+        probe = null;
+        for (int i = 0; i <= 1; i++)
+        {
+            BUTTONS[i].updateInteractable(false);
+        }
+        vertical_canvas.transform.GetChild(1).gameObject.SetActive(false);
     }
 
     private bool isNeutralState()
@@ -70,15 +183,18 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
 
-            probe_position = probe.transform.localPosition;
+            if (probe != null)
+            {
+                probe_position = probe.transform.localPosition;
+            }
 
             int vertical_direction = 0;
 
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
             {
                 vertical_direction += 1;
             }
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down))
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
             {
                 vertical_direction -= 1;
             }
