@@ -12,7 +12,7 @@ using UnityEngine;
 public class Probe : MonoBehaviour
 {
     //CLASS CONSTANTS
-    private static float RANGE = 300.0f; //how far the probe can be from the ship while still being in contact
+    private static float RANGE = 125.0f; //how far the probe can be from the ship while still being in contact
 
     private float probe_health;
     private bool connected;
