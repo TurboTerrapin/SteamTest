@@ -6,9 +6,10 @@
     Last Updated: 7/23/2025
 */
 
-using UnityEngine;
 using System.Collections.Generic;
+using NUnit.Framework;
 using Unity.Netcode;
+using UnityEngine;
 
 public class PhaserTemperatures : NetworkBehaviour, IControllable
 {
@@ -91,18 +92,17 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable
                         Mathf.Lerp(phaser_slider_initial_positions[index].z, phaser_slider_final_positions[index].z, phaser_temperatures[index]));
 
         //adjust screen
-        int power_as_int = (int)(phaser_temperatures[index] * 100.0f);
-        if (power_as_int < 100)
+        Color phaser_color = new Color(0.0f, 0.84f, 1.0f);
+        if (index == 1)
         {
-            int position = (power_as_int / 5);
-            if (index == 0)
-            {
-                phaser_display_canvases[index].transform.GetChild(position + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0f, 0.5f + 0.34f * ((19 - position) / 20.0f), 1f, (0.2f * (power_as_int % 5)));
-            }
-            else
-            {
-                phaser_display_canvases[index].transform.GetChild(position + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.5f + (0.5f * (position / 20.0f)), 0.5f, 0f, (0.2f * (power_as_int % 5)));
-            }
+            phaser_color = new Color(0.85f, 0.62f, 0.0f);
+        }
+        float tmp_pwr = phaser_temperatures[index];
+        for (int i = 0; i <= 19; i++)
+        {
+            tmp_pwr = phaser_temperatures[index] - (0.05f * i);
+            float a = tmp_pwr / 0.05f;
+            phaser_display_canvases[index].transform.GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(phaser_color.r, phaser_color.g, phaser_color.b, a);
         }
     }
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
