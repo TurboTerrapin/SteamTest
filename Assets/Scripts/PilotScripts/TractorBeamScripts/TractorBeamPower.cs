@@ -51,14 +51,12 @@ public class TractorBeamPower : NetworkBehaviour, IControllable
     private void displayAdjustment()
     {
         //update bars on screen
-        int power_as_int = (int)(power * 100.0f);
-        if (power_as_int < 100)
+        float tmp_pwr = power;
+        for (int i = 0; i <= 19; i++)
         {
-            int position = (power_as_int / 5);
-            if (bars_canvas.transform.childCount > position + 1)
-            {
-                bars_canvas.transform.GetChild(position + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.5f + (0.5f * (position / 20.0f)), 0.5f, 0f, (0.2f * (power_as_int % 5)));
-            }
+            tmp_pwr = power - (0.05f * i);
+            float a = tmp_pwr / 0.05f;
+            bars_canvas.transform.GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.85f, 0.62f, 0.0f, a);
         }
 
         //update lever position

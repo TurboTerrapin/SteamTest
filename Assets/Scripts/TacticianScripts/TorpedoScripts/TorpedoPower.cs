@@ -70,17 +70,21 @@ public class TorpedoPower : NetworkBehaviour, IControllable
                         Mathf.Lerp(initial_positions[index].z, final_positions[index].z, power_levels[index]));
 
         //update bars on screen
-        int power_as_int = (int)(power_levels[index] * 100.0f);
-        if (power_as_int < 100)
+        //update bars on screen
+        float tmp_pwr = power_levels[index];
+        for (int i = 0; i <= 19; i++)
         {
-            for (int i = 0; i <= 1; i++)
+            tmp_pwr = power_levels[index] - (0.05f * i);
+            float a = tmp_pwr / 0.05f;
+            //do both sides
+            for (int x = 0; x <= 1; x++)
             {
-                information_containers[index].transform.GetChild(i).GetChild((power_as_int / 5) + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0, 0.73f, 1.0f, (0.1f * (power_as_int % 5)));
+                information_containers[index].transform.GetChild(x).GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.73f, 1.0f, a);
             }
         }
 
         //update lit indicators
-        if (power_as_int >= 100)
+        if (power_levels[index] >= 1.0f)
         {
             information_containers[index].transform.GetChild(2).gameObject.GetComponent<Renderer>().material = lit_green;
             information_containers[index].transform.GetChild(3).gameObject.GetComponent<Renderer>().material = unlit_red;

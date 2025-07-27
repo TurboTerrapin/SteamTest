@@ -6,10 +6,11 @@
     Last Updated: 5/23/2025
 */
 
-using UnityEngine;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
+using UnityEngine;
 
 public class ImpulseThrottle : NetworkBehaviour, IControllable
 {
@@ -57,10 +58,12 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
     private void displayAdjustment()
     {
         //update bars on screen
-        int impulse_as_int = (int)(impulse * 100.0f);
-        if (impulse_as_int < 100)
-        { 
-            blue_bars.transform.GetChild((impulse_as_int / 5) + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0, 0.93f, 1.0f, (0.2f * (impulse_as_int % 5)));
+        float tmp_imp = impulse;
+        for (int i = 0; i <= 19; i++)
+        {
+            tmp_imp = impulse - (0.05f * i);
+            float a = tmp_imp / 0.05f;
+            blue_bars.transform.GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
         }
 
         //update lever position

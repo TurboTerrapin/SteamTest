@@ -52,10 +52,12 @@ public class EmergencyLights : NetworkBehaviour, IControllable
     private void displayAdjustment()
     {
         //update bars on screen
-        int light_level_as_int = (int)(light_level * 100.0f);
-        if (light_level_as_int < 100)
+        float tmp_lght = light_level;
+        for (int i = 0; i <= 19; i++)
         {
-            display_canvas.transform.GetChild((light_level_as_int / 5) + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0, 0.93f, 1.0f, (0.2f * (light_level_as_int % 5)));
+            tmp_lght = light_level - (0.05f * i);
+            float a = tmp_lght / 0.05f;
+            display_canvas.transform.GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.93f, 1.0f, a);
         }
 
         //update lever position
