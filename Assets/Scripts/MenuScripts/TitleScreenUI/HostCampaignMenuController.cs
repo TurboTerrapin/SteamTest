@@ -34,7 +34,7 @@ public class HostCampaignMenuController : MonoBehaviour
 
     public void HandleEngageButtonClick()
     {
-        SceneSwapper.Instance.ChangeSceneClientRPC("BridgeEnvironment");
+        SceneSwapper.Instance.ChangeSceneRPC("BridgeEnvironment", 0);
     }
 
     private void SwitchTo(GameObject target)
