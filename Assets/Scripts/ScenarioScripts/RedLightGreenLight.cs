@@ -219,8 +219,13 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
             yield return null;
         }
     }
+    
+    public bool checkTransmission(int frequency, List<int> code_indexes, List<int> code_colors, List<int> code_is_numeric)
+    {
+        return isFriendlyMessage(code_indexes, code_colors, code_is_numeric);
+    }
 
-    public void handleTransmission(List<int> code_indexes, List<int> code_colors, List<int> code_is_numeric)
+    public void handleTransmission(int frequency, List<int> code_indexes, List<int> code_colors, List<int> code_is_numeric)
     {
         if (NetworkManager.Singleton.IsHost && greenLightCoroutine == null)
         {

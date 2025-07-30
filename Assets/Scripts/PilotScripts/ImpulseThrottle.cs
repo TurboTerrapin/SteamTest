@@ -96,22 +96,8 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
             {
                 impulse = Mathf.Max(0.0f, impulse - (0.002f * (impulse / 0.5f) + 0.001f) * dt * MOVE_SPEED * inertial_dampener_modifier);
             }
-            if (impulse <= 0)
-            {
-                hud_info.getButtons()[0].updateInteractable(false);
-            }
-            else
-            {
-                hud_info.getButtons()[0].updateInteractable(true);
-            }
-            if (impulse >= 1f)
-            {
-                hud_info.getButtons()[1].updateInteractable(false);
-            }
-            else
-            {
-                hud_info.getButtons()[1].updateInteractable(true);
-            }
+            hud_info.getButtons()[0].updateInteractable(impulse > 0.0f);
+            hud_info.getButtons()[1].updateInteractable(impulse < 1.0f);
             transmitImpulseAdjustmentRPC(impulse);
         }
     }

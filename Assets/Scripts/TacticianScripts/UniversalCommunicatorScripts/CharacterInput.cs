@@ -20,7 +20,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>() {6};
     private List<Button> BUTTONS = new List<Button>();
 
-    public List<GameObject> character_buttons = null;
+    public GameObject input_buttons;
 
     private Vector3[] initial_pos = new Vector3[12];
     private Vector3 push_direction = new Vector3(0, -0.0034f, 0.0014f);
@@ -37,9 +37,9 @@ public class CharacterInput : NetworkBehaviour, IControllable
         hud_info.setButtons(BUTTONS);
 
         //set initial positions
-        for (int i = 0; i < character_buttons.Count; i++)
+        for (int i = 0; i < input_buttons.transform.childCount; i++)
         {
-            initial_pos[i] = character_buttons[i].transform.localPosition;
+            initial_pos[i] = input_buttons.transform.GetChild(i).localPosition;
         }
     }
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -66,7 +66,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
                     push_percentage = (push_time / half_time);
                 }
 
-                character_buttons[button_index].transform.localPosition =
+                input_buttons.transform.GetChild(button_index).transform.localPosition =
                     new Vector3(Mathf.Lerp(initial_pos[button_index].x, final_pos.x, push_percentage),
                                 Mathf.Lerp(initial_pos[button_index].y, final_pos.y, push_percentage),
                                 Mathf.Lerp(initial_pos[button_index].z, final_pos.z, push_percentage));
@@ -105,7 +105,6 @@ public class CharacterInput : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        //check map config button
         if (character_input_coroutine == null && is_active == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))

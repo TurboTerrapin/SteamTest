@@ -3,7 +3,7 @@
     - Updates SCA reset bar
     - Updates SCA circular screen
     Contributor(s): Jake Schott
-    Last Updated: 7/5/2025
+    Last Updated: 7/30/2025
 */
 
 using System.Collections;
@@ -44,26 +44,6 @@ public class PilotSCA : NetworkBehaviour
             molecule.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, mol_r[m] * 2.0f);
             molecule.SetActive(true);
         }
-    }
-
-    private string arrayToString(int[] to_convert)
-    {
-        string to_return = "";
-        for (int i = 0; i < to_convert.Length; i++)
-        {
-            to_return += (char)to_convert[i];
-        }
-        return to_return;
-    }
-
-    private int[] stringToArray(string to_convert)
-    {
-        int[] return_array = new int[to_convert.Length];
-        for (int i = 0; i < to_convert.Length; i++)
-        {
-            return_array[i] = (int)to_convert[i];
-        }
-        return return_array;
     }
 
     private void generateNewMolecules()
@@ -118,7 +98,7 @@ public class PilotSCA : NetworkBehaviour
             current_rots[m] = Random.Range(0, 180);
         }
 
-        transmitNewMoleculesRPC(canvas_rotation, arrayToString(current_indices), arrayToString(current_locs), arrayToString(current_rots));
+        transmitNewMoleculesRPC(canvas_rotation, DataConverter.arrayToString(current_indices), DataConverter.arrayToString(current_locs), DataConverter.arrayToString(current_rots));
         transmitNewLoopRPC();
     }
 
@@ -167,9 +147,9 @@ public class PilotSCA : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void transmitNewMoleculesRPC(float canvas_rot, string molecule_ind, string molecule_loc, string molecule_rot)
     {
-        int[] molecule_indices = stringToArray(molecule_ind);
-        int[] molecule_locations = stringToArray(molecule_loc);
-        int[] molecule_rotations = stringToArray(molecule_rot);
+        int[] molecule_indices = DataConverter.stringToArray(molecule_ind);
+        int[] molecule_locations = DataConverter.stringToArray(molecule_loc);
+        int[] molecule_rotations = DataConverter.stringToArray(molecule_rot);
         displaySCA(canvas_rot, molecule_indices, molecule_locations, molecule_rotations);
     }
 

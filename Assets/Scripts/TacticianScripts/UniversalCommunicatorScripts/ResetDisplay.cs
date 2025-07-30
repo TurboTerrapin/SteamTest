@@ -2,7 +2,7 @@
     ResetDisplay.cs
     - Clears code
     Contributor(s): Jake Schott
-    Last Updated: 5/16/2025
+    Last Updated: 7/29/2025
 */
 
 using Unity.Netcode;
@@ -24,6 +24,7 @@ public class ResetDisplay : NetworkBehaviour, IControllable
 
     private Vector3 initial_pos;
     private Vector3 final_pos = new Vector3(-3.1877f, 8.7356f, 3.7738f);
+    bool is_active = true;
 
     private Coroutine reset_display_coroutine = null;
 
@@ -40,6 +41,18 @@ public class ResetDisplay : NetworkBehaviour, IControllable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+
+    public void activate()
+    {
+        is_active = true;
+        BUTTONS[0].updateInteractable(true);
+    }
+
+    public void deactivate()
+    {
+        is_active = false;
+        BUTTONS[0].updateInteractable(false);
     }
 
     IEnumerator resetDisplay()
@@ -74,7 +87,7 @@ public class ResetDisplay : NetworkBehaviour, IControllable
             }
         }
 
-        BUTTONS[0].updateInteractable(true);
+        BUTTONS[0].updateInteractable(is_active);
 
         reset_display_coroutine = null;
     }
@@ -91,7 +104,7 @@ public class ResetDisplay : NetworkBehaviour, IControllable
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         //check map config button
-        if (reset_display_coroutine == null)
+        if (reset_display_coroutine == null && is_active == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
