@@ -186,7 +186,16 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
                     }
                     if (impulse.getCurrentImpulse() > 0.0f)
                     {
-                        shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
+                        float[] damages = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f };
+                        float damage = 10.0f * impulse.getCurrentImpulse();
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (damages[i] == 0.0f || damages[i] != damage)
+                            {
+                                damages[i] = Random.Range(0.0f, damage);
+                            }
+                        }
+                        shipHealth.damageMultipleSections(damages);
                     }
                 }
                 else

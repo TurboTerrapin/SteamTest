@@ -10,7 +10,7 @@ public class PilotingSystem : NetworkBehaviour
 
     [Header("Speed Settings")]
     private float maxThrusterSpeed = 6f;
-    private float maxImpulseForwardSpeed = 70f;
+    private float maxImpulseForwardSpeed = 50f;
     private float maxImpulseReverseSpeed = 20f;
 
     [Header("Rotation Settings")]

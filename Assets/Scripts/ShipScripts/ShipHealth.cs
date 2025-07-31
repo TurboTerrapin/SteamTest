@@ -136,18 +136,21 @@ public class ShipHealth : NetworkBehaviour
         transmitHealthChangeRPC(health_areas[0], health_areas[1], health_areas[2], health_areas[3]);
     }
 
-    //will damage every section randomly between 0.0 and full damage but ensure that one is damaged as much as inputted parameter
-    public void damageAllSections(float damage)
+    // Aplies a specific amount of damage to each of the four sections 
+    public void damageMultipleSections(float[] damages)
     {
-        int most_damaged_area = Random.Range(0, 4);
-        updateHealth(damage, most_damaged_area);
+        Debug.Log($" Multiple sections damaged [ShipHealth] Forward: " +
+            $"{health_areas[0]}%, " +
+            $"Port: {health_areas[1]}%, " +
+            $"Starboard: {health_areas[2]}%, " +
+            $"Aft: {health_areas[3]}%, " +
+            $"Hull Integrity: {hull_integrity}%");
+
         for (int i = 0; i < 4; i++)
         {
-            if (i != most_damaged_area)
-            {
-                updateHealth(Random.Range(0.0f, damage), i);
-            }
+            updateHealth(damages[i], i);
         }
+
         transmitHealthChangeRPC(health_areas[0], health_areas[1], health_areas[2], health_areas[3]);
     }
 
