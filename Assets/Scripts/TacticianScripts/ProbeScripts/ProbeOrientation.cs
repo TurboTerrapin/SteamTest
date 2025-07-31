@@ -4,7 +4,7 @@
     - Adjusts probe heading
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 7/30/2025
 */
 
 using System.Collections;
@@ -16,8 +16,8 @@ using TMPro;
 public class ProbeOrientation : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float LEVER_SPEED = 100.0f;
-    private static float TURN_SPEED = 50.0f;
+    private static float LEVER_SPEED = 50.0f;
+    private static float TURN_SPEED = 25.0f;
 
     private string CONTROL_NAME = "PROBE ORIENTATION";
     private List<string> CONTROL_DESCS = new List<string> {"TURN LEFT", "TURN RIGHT"};
@@ -26,6 +26,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
 
     public GameObject orientation_lever;
     public GameObject orientation_canvas;
+    public GameObject orientation_icon_canvas;
     public GameObject probe;
 
     private float orientation_lever_angle = 0.0f;
@@ -74,7 +75,11 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         {
             BUTTONS[i].updateInteractable(true);
         }
-        orientation_angle = (Mathf.Round(probe.transform.localRotation.eulerAngles.y * 10) / 10.0f); 
+        orientation_angle = (Mathf.Round(probe.transform.localRotation.eulerAngles.y * 10) / 10.0f);
+        //show heading
+        orientation_canvas.transform.GetChild(1).gameObject.SetActive(true);
+        //lighten probe icon
+        orientation_icon_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         displayAdjustment();
     }
 
@@ -86,6 +91,10 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
             BUTTONS[i].updateInteractable(false);
         }
         orientation_angle = 0.0f;
+        //hide heading
+        orientation_canvas.transform.GetChild(1).gameObject.SetActive(false);
+        //darken probe icon
+        orientation_icon_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
         displayAdjustment();
     }
 

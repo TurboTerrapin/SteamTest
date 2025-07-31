@@ -26,7 +26,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 
     public GameObject vertical_lever;
     public GameObject vertical_canvas;
-    public GameObject vertical_probe_icon_cavas;
+    public GameObject vertical_probe_icon_canvas;
     public GameObject probe;
 
     private float vertical_lever_angle = 0.0f;
@@ -70,7 +70,6 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         int[] marker_indices = new int[4];
         int[] corresponding_markers = new int[4];
         int marker_index = 18 - (int)((current_altitude % 5.0f) / 1.0f); //defines top marker
-        Debug.Log(marker_index);
 
         for (int i = 0; i < 4; i++) //define other markers (every 5th marker)
         {
@@ -159,7 +158,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         }
         updateAltimeterScreen();
         vertical_canvas.transform.GetChild(1).gameObject.SetActive(true);
-        vertical_probe_icon_cavas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        vertical_probe_icon_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
     }
 
     public void unlinkProbe()
@@ -170,7 +169,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
             BUTTONS[i].updateInteractable(false);
         }
         vertical_canvas.transform.GetChild(1).gameObject.SetActive(false);
-        vertical_probe_icon_cavas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
+        vertical_probe_icon_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
     }
 
     private bool isNeutralState()
