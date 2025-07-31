@@ -28,32 +28,52 @@ public class PilotNavigation : MonoBehaviour
 
     public void updateAltimeterScreen()
     {
-        //get current altitude (remember, is inverse, so - is positive and + is negative)
-        float current_altitude = world_root.transform.position.y;
+        //get current altitude
+        float current_altitude = -1.0f * world_root.transform.position.y;
 
-        //define which markers display text
-        int smallest_number = (((int)(current_altitude * -1.0f)) / 10) * 10;
+        //get number markers
+        int smallest_number = (((int)(current_altitude)) / 10) * 10;
         int next_number = smallest_number + 10;
-        if (current_altitude > 0.0f)
+        if (current_altitude < 0.0f)
         {
             next_number = smallest_number - 10;
         }
-        //set text for text markers
-        altimeter.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
-        altimeter.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
+
+        //define order of markers
         List<GameObject> bars = new List<GameObject>();
         int[] marker_indices = new int[4];
         int[] corresponding_markers = new int[4];
-        int marker_index = 18 - (int)(Mathf.Abs((current_altitude - 50000.0f) % 5.0f) / 1.0f);
-        if (current_altitude > 0.0f)
-        {
-            marker_index--;
-        }
-        for (int i = 0; i < 4; i++)
+        int marker_index = 18 - (int)((current_altitude % 5.0f) / 1.0f); //defines top marker
+
+        for (int i = 0; i < 4; i++) //define other markers (every 5th marker)
         {
             marker_indices[i] = marker_index - (i * 5);
+            if (current_altitude < 0.0f)
+            {
+                marker_indices[i] -= 5;
+            }
         }
-        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f))
+
+        bool lower_half = true;
+
+        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f)) //swap between number/midpoint halfway
+        {
+            lower_half = true;
+            if (current_altitude < 0.0f)
+            {
+                lower_half = false;
+            }
+        }
+        else
+        {
+            lower_half = false;
+            if (current_altitude < 0.0f)
+            {
+                lower_half = true;   
+            }
+        }
+
+        if (lower_half == true)
         {
             corresponding_markers[0] = 0;
             corresponding_markers[1] = 1;
@@ -67,16 +87,18 @@ public class PilotNavigation : MonoBehaviour
             corresponding_markers[2] = 3;
             corresponding_markers[3] = 2;
         }
-        //if negative altitude then switch the markers around
-        if (current_altitude > 0.0f)
+
+        if (current_altitude < 0.0f)
         {
-            for (int x = 0; x < 2; x++)
-            {
-                int temp = corresponding_markers[3 - x];
-                corresponding_markers[3 - x] = corresponding_markers[x];
-                corresponding_markers[x] = temp;
-            }
+            int temp = smallest_number;
+            smallest_number = next_number;
+            next_number = temp;
         }
+
+        //set text for text markers
+        altimeter.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
+        altimeter.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
+
         //define order of markers
         for (int i = 0; i < 17; i++)
         {
@@ -95,13 +117,13 @@ public class PilotNavigation : MonoBehaviour
                 bars.Add(altimeter.transform.GetChild(i + 4).gameObject);
             }
         }
-        //hide all markers
+        //hide all markers to start
         for (int i = 0; i < 21; i++)
         {
             altimeter.transform.GetChild(i).gameObject.SetActive(false);
         }
         //set positions and active state of each marker
-        float shift = ((current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
+        float shift = ((-current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
         for (int i = 0; i < 17; i++)
         {
             bars[i].SetActive(true);

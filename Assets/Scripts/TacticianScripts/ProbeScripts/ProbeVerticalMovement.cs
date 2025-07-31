@@ -4,14 +4,13 @@
     - Adjusts screen
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 7/30/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ProbeVerticalMovement : NetworkBehaviour, IControllable
@@ -27,6 +26,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 
     public GameObject vertical_lever;
     public GameObject vertical_canvas;
+    public GameObject vertical_probe_icon_cavas;
     public GameObject probe;
 
     private float vertical_lever_angle = 0.0f;
@@ -54,32 +54,29 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
     {
         GameObject altimeter = vertical_canvas.transform.GetChild(1).GetChild(2).gameObject;
 
-        //get current altitude (remember, is inverse, so - is positive and + is negative)
-        float current_altitude = -probe.transform.position.y;
+        //get current altitude
+        float current_altitude = probe.transform.position.y;
 
-        //define which markers display text
-        int smallest_number = (((int)(current_altitude * -1.0f)) / 10) * 10;
+        //get number markers
+        int smallest_number = (((int)(current_altitude)) / 10) * 10;
         int next_number = smallest_number + 10;
-        if (current_altitude > 0.0f)
+        if (current_altitude < 0.0f)
         {
             next_number = smallest_number - 10;
         }
-        //set text for text markers
-        altimeter.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
-        altimeter.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
+
+        //define order of markers
         List<GameObject> bars = new List<GameObject>();
         int[] marker_indices = new int[4];
         int[] corresponding_markers = new int[4];
-        int marker_index = 18 - (int)(Mathf.Abs((current_altitude - 50000.0f) % 5.0f) / 1.0f);
-        if (current_altitude > 0.0f)
-        {
-            marker_index--;
-        }
-        for (int i = 0; i < 4; i++)
+        int marker_index = 18 - (int)((current_altitude % 5.0f) / 1.0f); //defines top marker
+        Debug.Log(marker_index);
+
+        for (int i = 0; i < 4; i++) //define other markers (every 5th marker)
         {
             marker_indices[i] = marker_index - (i * 5);
         }
-        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f))
+        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f)) //swap between number/midpoint halfway
         {
             corresponding_markers[0] = 0;
             corresponding_markers[1] = 1;
@@ -92,42 +89,44 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
             corresponding_markers[1] = 0;
             corresponding_markers[2] = 3;
             corresponding_markers[3] = 2;
-        }
-        //if negative altitude then switch the markers around
-        if (current_altitude > 0.0f)
-        {
-            for (int x = 0; x < 2; x++)
+            //if negative, switch numbers
+            if (current_altitude < 0.0f)
             {
-                int temp = corresponding_markers[3 - x];
-                corresponding_markers[3 - x] = corresponding_markers[x];
-                corresponding_markers[x] = temp;
+                int temp = smallest_number;
+                smallest_number = next_number;
+                next_number = temp;
             }
         }
+
+        //set text for text markers
+        altimeter.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
+        altimeter.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
+
         //define order of markers
         for (int i = 0; i < 17; i++)
-        {
-            bool marked = false;
-            for (int x = 0; x < 4; x++)
             {
-                if (i == marker_indices[x])
+                bool marked = false;
+                for (int x = 0; x < 4; x++)
                 {
-                    bars.Add(altimeter.transform.GetChild(corresponding_markers[x]).gameObject);
-                    marked = true;
-                    break;
+                    if (i == marker_indices[x])
+                    {
+                        bars.Add(altimeter.transform.GetChild(corresponding_markers[x]).gameObject);
+                        marked = true;
+                        break;
+                    }
+                }
+                if (marked == false)
+                {
+                    bars.Add(altimeter.transform.GetChild(i + 4).gameObject);
                 }
             }
-            if (marked == false)
-            {
-                bars.Add(altimeter.transform.GetChild(i + 4).gameObject);
-            }
-        }
-        //hide all markers
+        //hide all markers to start
         for (int i = 0; i < 21; i++)
         {
             altimeter.transform.GetChild(i).gameObject.SetActive(false);
         }
         //set positions and active state of each marker
-        float shift = ((current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
+        float shift = ((-current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
         for (int i = 0; i < 17; i++)
         {
             bars[i].SetActive(true);
@@ -160,6 +159,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         }
         updateAltimeterScreen();
         vertical_canvas.transform.GetChild(1).gameObject.SetActive(true);
+        vertical_probe_icon_cavas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
     }
 
     public void unlinkProbe()
@@ -170,6 +170,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
             BUTTONS[i].updateInteractable(false);
         }
         vertical_canvas.transform.GetChild(1).gameObject.SetActive(false);
+        vertical_probe_icon_cavas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
     }
 
     private bool isNeutralState()

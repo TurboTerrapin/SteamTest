@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 7/31/2025
 */
 
 using System.Collections;
@@ -14,8 +14,8 @@ using Unity.Netcode;
 public class ProbeOptions : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float TURN_TIME = 1.5f;
-    private static float CHARGE_TIME = 3.0f;
+    private static float TURN_TIME = 1.0f;
+    private static float CHARGE_TIME = 2.0f;
     private static float FUNCTION_TIME = 4.0f;
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };
@@ -96,7 +96,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
     private void spawnProbe()
     {
         current_probe = GameObject.Instantiate(probe_prefab, GameObject.FindGameObjectWithTag("WorldRoot").transform);
-        current_probe.transform.position = new Vector3(0, -12.5f, 0);
+        current_probe.transform.position = new Vector3(0, -10.0f, 0);
         current_probe.transform.rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation;
         transform.GetComponent<ProbeLateralMovement>().linkProbe(current_probe);
         transform.GetComponent<ProbeVerticalMovement>().linkProbe(current_probe);
