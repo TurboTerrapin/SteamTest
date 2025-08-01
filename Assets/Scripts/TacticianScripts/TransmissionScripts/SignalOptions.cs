@@ -99,6 +99,24 @@ public class SignalOptions : NetworkBehaviour, IControllable
         return null;
     }
 
+    private IBroadcastable findSender()
+    {
+        GameObject scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
+        if (scenario_handler != null)
+        {
+            Component[] scenario_handler_components = scenario_handler.GetComponents<Component>();
+            for (int i = 0; i < scenario_handler_components.Length; i++)
+            {
+                IBroadcastable transmission_sender = scenario_handler_components[i] as IBroadcastable;
+                if (transmission_sender != null)
+                {
+                    return transmission_sender;
+                }
+            }
+        }
+        return null;
+    }
+
     IEnumerator dialReturn()
     {
         while (dial_turn_percentages[0] > 0.0f || dial_turn_percentages[1] > 0.0f)
@@ -216,7 +234,12 @@ public class SignalOptions : NetworkBehaviour, IControllable
         }
         else //receive
         {
-
+            IBroadcastable transmission_sender = findSender();
+            if (transmission_sender != null)
+            {
+                successful_transmission = transmission_sender.canFetchTransmission(freq);
+                transmission_sender.fetchTransmission(freq);
+            }
         }
 
         if (successful_transmission)
@@ -297,6 +320,10 @@ public class SignalOptions : NetworkBehaviour, IControllable
 
         UniversalCommunicator uc = gameObject.GetComponent<UniversalCommunicator>();
         uc.clearUC();
+        if (index == 0)
+        {
+            uc.clearMsgPreview();
+        }
         InputOutputToggle iot = gameObject.GetComponent<InputOutputToggle>();
         if (iot.getIsInputMode() == true && index == 0)
         {

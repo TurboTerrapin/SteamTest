@@ -182,6 +182,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
     [Rpc(SendTo.Everyone)]
     private void transmitInputOutputSwitchRPC(bool om)
     {
+        transform.GetComponent<UniversalCommunicator>().clearMsgPreview();
         input_mode = om;
         if (input_output_switch_coroutine != null && is_active == true)
         {

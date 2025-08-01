@@ -109,11 +109,8 @@ public class UniversalCommunicator : NetworkBehaviour
         //handle input characters
         updateCharacters();
 
-        //hide transmission handler icons
-        for (int i = 0; i <= 7; i++)
-        {
-            transmission_preview_display.transform.GetChild(1 + i).gameObject.SetActive(false);
-        }
+        //hide transmission preview message icons
+        clearMsgPreview();
 
         //show transmission handler
         for (int i = 0; i < code_index.Count; i++)
@@ -166,6 +163,15 @@ public class UniversalCommunicator : NetworkBehaviour
         code_display.transform.GetChild(24).transform.localPosition =
             new Vector3(0.14f, 0.03f, 0.0f);
         code_display.transform.GetChild(24).gameObject.SetActive(true);
+    }
+
+    public void clearMsgPreview()
+    {
+        //hide transmission handler icons
+        for (int i = 0; i <= 7; i++)
+        {
+            transmission_preview_display.transform.GetChild(1 + i).gameObject.SetActive(false);
+        }
     }
 
     [Rpc(SendTo.Everyone)]

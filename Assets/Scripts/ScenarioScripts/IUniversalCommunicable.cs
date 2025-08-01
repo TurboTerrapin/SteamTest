@@ -1,8 +1,8 @@
 /*
     IUniversalCommunicable.cs
-    - Interface for all scenarios that involve receiving a transmission
+    - Interface for all scenarios that involve receiving a transmission from the ship
     Contributor(s): Jake Schott
-    Last Updated: 7/30/2025
+    Last Updated: 7/31/2025
 */
 
 
