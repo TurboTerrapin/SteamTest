@@ -26,7 +26,8 @@ public class PlayerMove : NetworkBehaviour
     private Coroutine sit_coroutine = null;
     private Coroutine shift_coroutine = null;
     private Coroutine move_coroutine = null;
-    private bool is_left = false; //used for shifting
+    private int shift_index = -1; //used for shifting
+    private bool shift_increasing = false; //used for shifting
     private SeatManager seat_manager = null;
 
     void Start()
@@ -54,19 +55,21 @@ public class PlayerMove : NetworkBehaviour
         move_coroutine = null;
 
         //figure out which shift point the player is closer to
-        float dist_to_left_pos = Vector3.Distance(transform.position, seat_manager.left_shift_position_points[pos].transform.position);
-        float dist_to_right_pos = Vector3.Distance(transform.position, seat_manager.right_shift_position_points[pos].transform.position);
-
-        is_left = (dist_to_left_pos < dist_to_right_pos);
-
-        if (is_left == true)
+        int closest_index = -1;
+        float closest_dist = 9999;
+        GameObject position_info_holder = seat_manager.position_point_holders[pos];
+        for (int i = 1; i < position_info_holder.transform.childCount; i++)
         {
-            transform.position = seat_manager.left_shift_position_points[pos].transform.position;
+            float temp_dist = Vector3.Distance(transform.position, position_info_holder.transform.GetChild(i).position);
+            if (temp_dist < closest_dist)
+            {
+                closest_dist = temp_dist;
+                closest_index = i;
+                shift_index = i;
+            }
         }
-        else
-        {
-            transform.position = seat_manager.right_shift_position_points[pos].transform.position;
-        }
+
+        transform.position = position_info_holder.transform.GetChild(closest_index).position;
 
         if (sit_coroutine != null)
         {
@@ -74,7 +77,11 @@ public class PlayerMove : NetworkBehaviour
             sit_coroutine = null;
         }
 
-        sit_coroutine = StartCoroutine(checkForShifting());
+        //captain doesn't shift
+        if (pos != 3)
+        {
+            sit_coroutine = StartCoroutine(checkForShifting());
+        }
     }
 
     public void getUp(int pos)
@@ -99,14 +106,41 @@ public class PlayerMove : NetworkBehaviour
 
         if (pos == 3) //captain exception
         {
-            transform.localPosition = seat_manager.position_points[3].transform.localPosition;
+            transform.position = seat_manager.position_point_holders[3].transform.GetChild(0).position;
         }
 
         move_coroutine = StartCoroutine(checkForMovement());
     }
 
-    IEnumerator shift(Vector3 start_pos, Vector3 end_pos)
+    IEnumerator shift(int pos)
     {
+        GameObject pph = seat_manager.position_point_holders[pos];
+
+        Vector3 start_pos = pph.transform.GetChild(shift_index).position;
+        
+        if (shift_index == pph.transform.childCount - 1) //must decrease
+        {
+            shift_index--;
+            shift_increasing = false;
+        }
+        else if (shift_index != 1) //in the middle
+        {
+            if (shift_increasing == true)
+            {
+                shift_index++;
+            }
+            else
+            {
+                shift_index--;
+            }
+        }
+        else //increasing, use default positions
+        {
+            shift_index++;
+            shift_increasing = true;
+        }
+        Vector3 end_pos = pph.transform.GetChild(shift_index).position;
+
         float total_shift_time = Vector3.Distance(start_pos, end_pos) / SHIFT_SPEED;
         float shift_time = total_shift_time;
         while (shift_time > 0.0f)
@@ -121,8 +155,6 @@ public class PlayerMove : NetworkBehaviour
             yield return null;
         }
 
-        is_left = !is_left;
-
         shift_coroutine = null;
 
         sit_coroutine = StartCoroutine(checkForShifting());
@@ -130,19 +162,13 @@ public class PlayerMove : NetworkBehaviour
 
     IEnumerator checkForShifting()
     {
+
         while (shift_coroutine == null)
         {
             if (UnityEngine.Input.GetKeyDown(KeyCode.LeftShift) || UnityEngine.Input.GetKeyDown(KeyCode.RightShift))
             {
                 int pos = ControlScript.Instance.currentSeat();
-                if (is_left == true) //left to right
-                {
-                    shift_coroutine = StartCoroutine(shift(seat_manager.left_shift_position_points[pos].transform.localPosition, seat_manager.right_shift_position_points[pos].transform.localPosition));
-                }
-                else //right to left
-                {
-                    shift_coroutine = StartCoroutine(shift(seat_manager.right_shift_position_points[pos].transform.localPosition, seat_manager.left_shift_position_points[pos].transform.localPosition));
-                }
+                shift_coroutine = StartCoroutine(shift(pos));
             }
             yield return null;
         }
@@ -197,42 +223,4 @@ public class PlayerMove : NetworkBehaviour
             transform.position += movement;
         }
     }
-
-
-    //OLD CODE
-
-    /*
-    void FixedUpdate()
-    {
-        moveDir.x = Input.GetAxis("Horizontal");
-        moveDir.y = Input.GetAxis("Vertical");
-        Debug.DrawLine(transform.position, transform.position + transform.forward * 10);
-        if (moveDir.magnitude > 1)
-        {
-            moveDir.Normalize();
-        }
-        Move();
-
-        if (transform.localPosition.y < -10)
-        {
-            transform.localPosition = new Vector3(0f, 1f, 1f);
-            playerRB.linearVelocity = Vector3.zero;
-        }
-        else if (moveDir == Vector2.zero)
-        {
-            playerRB.linearVelocity = Vector3.zero;
-        }
-    }
-    
-    */
-
-    /*
-    
-    void Move()
-    {
-        //transform.localPosition += new Vector3  (moveDir.x, 0, moveDir.y) * moveSpeed * Time.deltaTime;
-        transform.localPosition += transform.right * moveDir.x * moveSpeed * Time.deltaTime;
-        transform.localPosition += transform.forward * moveDir.y * moveSpeed * Time.deltaTime;
-    }
-    */
 }

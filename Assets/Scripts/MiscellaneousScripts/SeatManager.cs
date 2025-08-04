@@ -3,10 +3,9 @@
     - Used to ensure two players are not sitting in the same seat at the same time
     - Checks if a player is close enough to sit down
     Contributor(s): Jake Schott
-    Last Updated: 6/7/2025
+    Last Updated: 8/3/2025
 */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
@@ -14,12 +13,10 @@ using Unity.Netcode;
 public class SeatManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static float SIT_RANGE = 0.5f;
+    private static float[] SIT_RANGES = new float[4] { 0.5f, 0.5f, 1.5f, 0.5f }; //pilot, tactician, engineer, captain
 
     //GAME OBJECTS
-    public List<GameObject> position_points = null; //empties that are used to check if a player is close enough to sit
-    public List<GameObject> left_shift_position_points = null; //shift left positions
-    public List<GameObject> right_shift_position_points = null; //shift right positions
+    public List<GameObject> position_point_holders = null;
 
     private bool[] occupied_seats = new bool[4] { false, false, false, false };
 
@@ -27,14 +24,15 @@ public class SeatManager : NetworkBehaviour
     {
         float closest_dist = 9999.9f;
         int closest_pos = -1;
-        for (int i = 0; i < position_points.Count; i++)
+        for (int i = 0; i < position_point_holders.Count; i++)
         {
-            float test_dist = Vector3.Distance(player_pos, position_points[i].transform.position);
+            //check the 0 child on the holder for the proximity
+            float test_dist = Vector3.Distance(player_pos, position_point_holders[i].transform.GetChild(0).position);
             if (test_dist < closest_dist)
             {
-                closest_dist = test_dist;
-                if (closest_dist < SIT_RANGE && occupied_seats[i] == false)
+                if (test_dist < SIT_RANGES[i] && occupied_seats[i] == false)
                 {
+                    closest_dist = test_dist;
                     closest_pos = i;
                 }
             }
