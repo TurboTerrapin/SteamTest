@@ -16,7 +16,7 @@ public class PhaserPowers : NetworkBehaviour, IControllable
     private static float SWITCH_TIME = 0.2f; //how long it takes for the switch to be flipped
     private static float ENABLE_TIME = 1.0f; //how long it takes for the phaser to charge/uncharge
 
-    private List<string> CONTROL_NAMES = new List<string>() { "LONG-RANGE PHASER", "SR LEFT PHASER", "SR RIGHT PHASER" };
+    private List<string> CONTROL_NAMES = new List<string>() { "LONG-RANGE PHASER", "SHORT-RANGE LEFT PHASER", "SHORT-RANGE RIGHT PHASER" };
     private List<string> CONTROL_DESCS = new List<string> {"ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -42,13 +42,21 @@ public class PhaserPowers : NetworkBehaviour, IControllable
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
         BUTTON_LISTS[2].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[index]);
+
+        if (index != 0)
+        {
+            hud_info.setButtons(BUTTON_LISTS[index], 6);
+        }
+        else
+        {
+            hud_info.setButtons(BUTTON_LISTS[index]);
+        }
 
         return hud_info;
     }

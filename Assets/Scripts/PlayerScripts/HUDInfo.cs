@@ -3,11 +3,10 @@
     - Stores information for the onscreen UI indicator that appears when facing a control
         - Includes control title and button information
     Contributor(s): Jake Schott
-    Last Updated: /2025
+    Last Updated: 8/9/2025
 */
 
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 public class HUDInfo
 {

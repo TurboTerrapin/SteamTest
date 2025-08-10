@@ -1,8 +1,8 @@
 /*
     CargoJettions.cs
-    - Launches items in various slots
+    - Launches item loaded in cargo bay
     Contributor(s): Jake Schott
-    Last Updated: 7/23/2025
+    Last Updated: 8/8/2025
 */
 
 using System.Collections;
@@ -17,61 +17,50 @@ public class CargoJettisons : NetworkBehaviour, IControllable
     private static float PUSH_TIME = 1.0f;
     private static float COOLDOWN_TIME = 3.0f;
 
-    private string[] CONTROL_NAMES = new string[4] { "CARGO JETTISON A", "CARGO JETTISON B", "CARGO JETTISON C", "CARGO JETTISON D" };
-    private List<string> CONTROL_DESCS = new List<string> { "EJECT", "ARM" };
+    private string CONTROL_NAME = "CARGO JETTISON";
+    private List<string> CONTROL_DESCS = new List<string>() { "EJECT", "ARM" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 11 };
-    private List<Button>[] BUTTON_LISTS = new List<Button>[4] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
+    private List<Button> BUTTONS = new List<Button>(0);
 
-    public List<GameObject> dials = null;
+    public GameObject dial;
 
     private Coroutine dial_turn_coroutine = null;
-    private Coroutine[] cargo_eject_coroutines = { null, null, null, null };
-    private float[] dial_turn_percentages = { 0.0f, 0.0f, 0.0f, 0.0f };
-    private Vector3[] initial_pos = new Vector3[4];
+    private Coroutine cargo_eject_coroutine = null;
+    private float dial_turn_percentage = 0.0f;
+    private Vector3 initial_pos;
     private Vector3 push_direction = new Vector3(0.006f, -0.0151f, 0.0f);
 
     private List<KeyCode> keys_down = new List<KeyCode>();
-    private List<string> ray_targets = new List<string> { "cargo_jettison_a", "cargo_jettison_b", "cargo_jettison_c", "cargo_jettison_d" };
-    private int ray_target_index = -1;
 
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAME);
 
-        for (int i = 0; i < 4; i++)
-        {
-            BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-            BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
-            initial_pos[i] = dials[i].transform.localPosition;
-        }
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
+        initial_pos = dial.transform.localPosition;
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTONS);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
-        int index = ray_targets.IndexOf(current_target.name);
-        hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[index]);
         return hud_info;
     }
 
-    private void displayDialTurn(int index)
+    private void displayDialTurn()
     {
-        dials[index].transform.localRotation =
-            Quaternion.Euler(dials[index].transform.localEulerAngles.x,
-                             dials[index].transform.localEulerAngles.y,
-                             Mathf.Lerp(-90.0f, -180.0f, dial_turn_percentages[index]));
+        dial.transform.localRotation =
+            Quaternion.Euler(dial.transform.localEulerAngles.x,
+                             dial.transform.localEulerAngles.y,
+                             Mathf.Lerp(-90.0f, -180.0f, dial_turn_percentage));
     }
 
     private bool checkNeutralState()
     {
-        for (int i = 0; i < 4; i++)
+        if (dial_turn_percentage > 0.0f && cargo_eject_coroutine == null)
         {
-            if (dial_turn_percentages[i] > 0.0f && cargo_eject_coroutines[i] == null)
-            {
-                return false;
-            }
+            return false;
         }
         return true;
     }
@@ -82,46 +71,34 @@ public class CargoJettisons : NetworkBehaviour, IControllable
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
 
-            if (ray_target_index >= 0)
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
-                {
-                    dial_turn_percentages[ray_target_index] = Mathf.Min(1.0f, dial_turn_percentages[ray_target_index] + (dt / ARM_TIME));
-                }
-                else
-                {
-                    dial_turn_percentages[ray_target_index] = Mathf.Max(0.0f, dial_turn_percentages[ray_target_index] - (dt / ARM_TIME));
-                }
-                BUTTON_LISTS[ray_target_index][0].updateInteractable(dial_turn_percentages[ray_target_index] >= 1.0f);
+                dial_turn_percentage = Mathf.Min(1.0f, dial_turn_percentage + (dt / ARM_TIME));
             }
-
-            for (int i = 0; i < 4; i++)
+            else
             {
-                if (i != ray_target_index)
-                {
-                    dial_turn_percentages[i] = Mathf.Max(0.0f, dial_turn_percentages[i] - (dt / ARM_TIME));
-                }
+                dial_turn_percentage = Mathf.Max(0.0f, dial_turn_percentage - (dt / ARM_TIME));
             }
+            BUTTONS[0].updateInteractable(dial_turn_percentage >= 1.0f);
 
-            transmitDialArmRPC(dial_turn_percentages[0], dial_turn_percentages[1], dial_turn_percentages[2], dial_turn_percentages[3]);
+            transmitDialArmRPC(dial_turn_percentage);
 
             keys_down.Clear();
-            ray_target_index = -1;
             yield return null;
         }
 
         dial_turn_coroutine = null;
     }
 
-    IEnumerator ejectCargo(int index)
+    IEnumerator ejectCargo()
     {
-        dials[index].transform.localPosition = initial_pos[index];
-        dials[index].transform.localRotation =
-            Quaternion.Euler(dials[index].transform.localEulerAngles.x,
-                             dials[index].transform.localEulerAngles.y,
+        dial.transform.localPosition = initial_pos;
+        dial.transform.localRotation =
+            Quaternion.Euler(dial.transform.localEulerAngles.x,
+                             dial.transform.localEulerAngles.y,
                              -180.0f);
 
-        Vector3 final_pos = initial_pos[index] + push_direction;
+        Vector3 final_pos = initial_pos + push_direction;
 
         //push the dial in
         float push_time = PUSH_TIME;
@@ -130,10 +107,10 @@ public class CargoJettisons : NetworkBehaviour, IControllable
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             push_time = Mathf.Max(0.0f, push_time - dt);
 
-            dials[index].transform.localPosition =
-                new Vector3(Mathf.Lerp(initial_pos[index].x, final_pos.x, 1.0f - (push_time / PUSH_TIME)),
-                            Mathf.Lerp(initial_pos[index].y, final_pos.y, 1.0f - (push_time / PUSH_TIME)),
-                            Mathf.Lerp(initial_pos[index].z, final_pos.z, 1.0f - (push_time / PUSH_TIME)));
+            dial.transform.localPosition =
+                new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, 1.0f - (push_time / PUSH_TIME)),
+                            Mathf.Lerp(initial_pos.y, final_pos.y, 1.0f - (push_time / PUSH_TIME)),
+                            Mathf.Lerp(initial_pos.z, final_pos.z, 1.0f - (push_time / PUSH_TIME)));
 
             yield return null;
         }
@@ -145,40 +122,44 @@ public class CargoJettisons : NetworkBehaviour, IControllable
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             cooldown_time = Mathf.Max(0.0f, cooldown_time - dt);
 
-            dials[index].transform.localPosition =
-                new Vector3(Mathf.Lerp(initial_pos[index].x, final_pos.x, cooldown_time / COOLDOWN_TIME),
-                            Mathf.Lerp(initial_pos[index].y, final_pos.y, cooldown_time / COOLDOWN_TIME),
-                            Mathf.Lerp(initial_pos[index].z, final_pos.z, cooldown_time / COOLDOWN_TIME));
+            dial.transform.localPosition =
+                new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, cooldown_time / COOLDOWN_TIME),
+                            Mathf.Lerp(initial_pos.y, final_pos.y, cooldown_time / COOLDOWN_TIME),
+                            Mathf.Lerp(initial_pos.z, final_pos.z, cooldown_time / COOLDOWN_TIME));
 
-            dials[index].transform.localRotation =
-                Quaternion.Euler(dials[index].transform.localEulerAngles.x,
-                                 dials[index].transform.localEulerAngles.y,
+            dial.transform.localRotation =
+                Quaternion.Euler(dial.transform.localEulerAngles.x,
+                                 dial.transform.localEulerAngles.y,
                                  Mathf.Lerp(-90.0f, -180.0f, cooldown_time / COOLDOWN_TIME));
 
             yield return null;
         }
 
-        BUTTON_LISTS[index][1].updateInteractable(true);
-        dial_turn_percentages[index] = 0.0f;
+        BUTTONS[1].updateInteractable(true);
+        dial_turn_percentage = 0.0f;
 
-        cargo_eject_coroutines[index] = null;
+        dial_turn_coroutine = null;
+        cargo_eject_coroutine = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        ray_target_index = ray_targets.IndexOf(current_target.name);
 
-        if (dial_turn_percentages[ray_target_index] >= 1.0f && cargo_eject_coroutines[ray_target_index] == null)
+        //check for eject
+        if (dial_turn_percentage >= 1.0f && cargo_eject_coroutine == null)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
-                BUTTON_LISTS[ray_target_index][0].toggle(0.2f);
-                BUTTON_LISTS[ray_target_index][1].updateInteractable(false);
-                transmitEjectRPC(ray_target_index);
+                BUTTONS[0].toggle(0.2f);
+                BUTTONS[0].updateInteractable(false);
+                BUTTONS[1].updateInteractable(false);
+                transmitEjectRPC();
             }
         }
-        if (dial_turn_percentages[ray_target_index] == 0.0f && cargo_eject_coroutines[ray_target_index] == null)
+
+        //check for dial turn
+        if (dial_turn_percentage == 0.0f && cargo_eject_coroutine == null)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs))
             {
@@ -191,29 +172,27 @@ public class CargoJettisons : NetworkBehaviour, IControllable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitDialArmRPC(float dp_a, float dp_b, float dp_c, float dp_d)
+    private void transmitDialArmRPC(float dp)
     {
-        dial_turn_percentages[0] = dp_a;
-        dial_turn_percentages[1] = dp_b;
-        dial_turn_percentages[2] = dp_c;
-        dial_turn_percentages[3] = dp_d;
-
-        for (int i = 0; i < 4; i++)
+        dial_turn_percentage = dp;
+        if (cargo_eject_coroutine == null)
         {
-            if (cargo_eject_coroutines[i] == null)
-            {
-                displayDialTurn(i);
-            }
+            displayDialTurn();
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitEjectRPC(int index)
+    private void transmitEjectRPC()
     {
-        if (cargo_eject_coroutines[index] != null)
+        if (cargo_eject_coroutine != null)
         {
-            StopCoroutine(cargo_eject_coroutines[index]);
+            StopCoroutine(cargo_eject_coroutine);
         }
-        cargo_eject_coroutines[index] = StartCoroutine(ejectCargo(index));
+        if (dial_turn_coroutine != null)
+        {
+            StopCoroutine(dial_turn_coroutine);
+        }
+
+        cargo_eject_coroutine = StartCoroutine(ejectCargo());
     }
 }

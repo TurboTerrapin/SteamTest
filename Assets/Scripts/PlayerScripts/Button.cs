@@ -3,7 +3,7 @@
     - Stores information for a button
     - Handles button, divider GUI
     Contributor(s): Jake Schott
-    Last Updated: 5/8/2025
+    Last Updated: 8/9/2025
 */
 
 /*
@@ -25,6 +25,8 @@
     LAYOUT 4: 4 BUTTONS ALL CONNECTED BOTTOM ROW, 2 BUTTONS SEPARATED TOP ROW (ex. regulations manual)
 
     LAYOUT 5: 3 BUTTONS, 1 SEPARATED ON LEFT, 2 TOUCHING ON RIGHT (ex. map options)
+
+    LAYOUT 6: 1 BUTTON, CENTERED, ENLONGATED (ex. tractor beam incinerator, used for extra long titles)
 */
 
 using UnityEngine;
@@ -46,7 +48,19 @@ public class Button
         new Vector2(1800f, 250f),
         new Vector2(2300f, 250f),
         new Vector2(1600f, 350f),
-        new Vector2(1600f, 250f)
+        new Vector2(1600f, 250f),
+        new Vector2(1400f, 250f)
+    };
+
+    private static float[] title_sizes = new float[]
+    {
+        700f,
+        700f,
+        700f,
+        700f,
+        900f,
+        700f,
+        1200f
     };
 
     private static List<Vector2[]> button_positions = new List<Vector2[]>
@@ -57,6 +71,7 @@ public class Button
         new Vector2[] {new Vector2(-863f, -45f), new Vector2(-288f, -45f), new Vector2(288f, -45f), new Vector2(863f, -45f)},
         new Vector2[] {new Vector2(-315f, 15f), new Vector2(315f, 15f), new Vector2(-582f, -90f), new Vector2(-194f, -90f), new Vector2(194f, -90f), new Vector2(582f, -90f)},
         new Vector2[] {new Vector2(-510f, -45f), new Vector2(48f, -45f), new Vector2(536f, -45f)},
+        new Vector2[] {new Vector2(0f, -45f)}
     };
 
     private static List<int[]> button_templates = new List<int[]>
@@ -66,7 +81,8 @@ public class Button
         new int[] {0, 0, 0},
         new int[] {0, 0, 0, 0},
         new int[] {0, 0, 1, 3, 3, 2},
-        new int[] {0, 1, 2}
+        new int[] {0, 1, 2},
+        new int[] {0}
     };
 
     private static List<Vector2[]> button_sizes = new List<Vector2[]>
@@ -76,7 +92,8 @@ public class Button
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(500f, 80f)},
         new Vector2[] {new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f)},
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f)},
-        new Vector2[] {new Vector2(450f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)}
+        new Vector2[] {new Vector2(450f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
+        new Vector2[] {new Vector2(600f, 80f)}
     };
 
     private static List<Vector2[]> divider_positions = new List<Vector2[]>
@@ -86,7 +103,8 @@ public class Button
         new Vector2[] {},
         new Vector2[] {},
         new Vector2[] {new Vector2(-388f, -90f), new Vector2(0f, -90f), new Vector2(388f, -90f)},
-        new Vector2[] {new Vector2(292f, -45f)}
+        new Vector2[] {new Vector2(292f, -45f)},
+        new Vector2[] {}
     };
 
     //PRIVATE DATA MEMBERS
@@ -273,6 +291,8 @@ public class Button
                         divider.SetActive(true);
                     }
                 }
+                //handle title size
+                frame.transform.GetChild(3).GetComponent<RectTransform>().sizeDelta = new Vector2(title_sizes[layout], 80f);
             }
 
             //make transparent if non-interactable
@@ -336,7 +356,7 @@ public class Button
     {
         if (interactable == true)
         {
-            percent_blue = Mathf.Min(1f, percent_blue + delta_time * COLOR_CHANGE_FACTOR);
+            percent_blue = Mathf.Min(1.0f, percent_blue + delta_time * COLOR_CHANGE_FACTOR);
             updateColor(0.36f);
         }
     }
@@ -344,7 +364,7 @@ public class Button
     {
         if (interactable == true)
         {
-            percent_blue = Mathf.Max(0f, percent_blue - delta_time * COLOR_CHANGE_FACTOR);
+            percent_blue = Mathf.Max(0.0f, percent_blue - delta_time * COLOR_CHANGE_FACTOR);
             updateColor(0.36f);
         }
     }

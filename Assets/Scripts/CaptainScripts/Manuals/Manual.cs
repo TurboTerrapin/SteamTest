@@ -52,6 +52,7 @@ public class Manual : MonoBehaviour
             curr_button.GetComponent<IManualButton>().deselect();
             curr_button = new_button;
             curr_button.GetComponent<IManualButton>().select();
+            curr_screen.GetComponent<PanelInfo>().last_pressed_button = new_button;
         }
         updateInteractableButtons();
     }
@@ -116,7 +117,12 @@ public class Manual : MonoBehaviour
             curr_screen.SetActive(false);
             curr_screen = curr_screen.GetComponent<PanelInfo>().back_panel;
             curr_screen.SetActive(true);
-            if (curr_screen.GetComponent<PanelInfo>().default_button != null)
+            if (curr_screen.GetComponent<PanelInfo>().last_pressed_button != null)
+            {
+                curr_button = curr_screen.GetComponent<PanelInfo>().last_pressed_button;
+                curr_button.GetComponent<IManualButton>().select();
+            }
+            else if (curr_screen.GetComponent<PanelInfo>().default_button != null)
             {
                 curr_button = curr_screen.GetComponent<PanelInfo>().default_button;
                 curr_button.GetComponent<IManualButton>().select();
@@ -141,6 +147,7 @@ public class Manual : MonoBehaviour
             {
                 curr_button = curr_screen.GetComponent<PanelInfo>().default_button;
                 curr_button.GetComponent<IManualButton>().select();
+                curr_screen.GetComponent<PanelInfo>().last_pressed_button = curr_button;
             }
             else
             {

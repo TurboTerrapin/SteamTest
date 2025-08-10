@@ -2,7 +2,7 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 5/22/2025
+    Last Updated: 8/9/2025
 */
 
 using Unity.Netcode;
@@ -20,6 +20,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
+    public List<GameObject> target_colliders = null; //goes ship_manual_on_off, ship_manual_selector, communications_manual_on_off, communications_manual_selector
     public List<GameObject> power_switches = null;
     public Component[] manuals = new Component[2];
 
@@ -38,13 +39,13 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[index]);
+        hud_info.setButtons(BUTTON_LISTS[index], 6);
         return hud_info;
     }
     public void reactivate(int index)
@@ -89,10 +90,14 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         if (manual_index == 0) //ShipManual
         {
             transform.GetComponent<ShipManual>().powerSwitch(to_switch_to, msg);
+            target_colliders[0].SetActive(!to_switch_to);
+            target_colliders[1].SetActive(to_switch_to);
         }
         else //CommunicationsManual
         {
             transform.GetComponent<CommunicationsManual>().powerSwitch(to_switch_to);
+            target_colliders[2].SetActive(!to_switch_to);
+            target_colliders[3].SetActive(to_switch_to);
         }
 
         power_change_coroutine[manual_index] = null;

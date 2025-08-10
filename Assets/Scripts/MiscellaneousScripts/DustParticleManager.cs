@@ -2,7 +2,7 @@
     DustParticleManager.cs
     - Handles spawning in and manipulating exterior dust particles
     Contributor(s): Jake Schott
-    Last Updated: 6/25/2025
+    Last Updated: 8/9/2025
 */
 
 using System.Collections;
@@ -57,7 +57,7 @@ public class DustParticleManager : MonoBehaviour
             new_star.SetActive(true);
         }
     }
-    void LateUpdate()
+    private void Update()
     {
         //face particles towards camera
         //if greater than max distance, replace particle
