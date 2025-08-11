@@ -31,7 +31,6 @@ public class GameNetworkManager : MonoBehaviour
     {
         transport = GetComponent<FacepunchTransport>();
 
-
         SteamMatchmaking.OnLobbyCreated += SteamMatchmaking_OnLobbyCreated;
         SteamMatchmaking.OnLobbyEntered += SteamMatchmaking_OnLobbyEntered;
         SteamMatchmaking.OnLobbyMemberJoined += SteamMatchmaking_OnLobbyMemberJoined;
@@ -39,7 +38,6 @@ public class GameNetworkManager : MonoBehaviour
         SteamMatchmaking.OnLobbyInvite += SteamMatchmaking_OnLobbyInvite;
         SteamMatchmaking.OnLobbyGameCreated += SteamMatchmaking_OnLobbyGameCreated;
         SteamFriends.OnGameLobbyJoinRequested += SteamFriends_OnGameLobbyJoinRequested;
-
     }
     private void OnDestroy()
     {

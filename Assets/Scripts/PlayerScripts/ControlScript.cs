@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine.SceneManagement;
 using Steamworks;
+using Unity.Netcode;
 
 public class ControlScript : MonoBehaviour
 {
@@ -80,32 +81,22 @@ public class ControlScript : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(yieldForLoad());
-    }
-
-    IEnumerator yieldForLoad()
-    {
-        //wait to be in BridgeEnvironment scene
-        while (SceneManager.GetActiveScene().name != "BridgeEnvironment")
-        {
-            yield return null;
-        }
-
         //make an instance so can be referenced by CameraMove
         if (Instance != null)
         {
             Destroy(this);
         }
         Instance = this;
+    }
 
-        //find player, set player, free camera
-        string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
-        player_prefab = GameObject.Find(player_prefab_name);
-        while (player_prefab == null)
-        {
-            player_prefab = GameObject.Find(player_prefab_name);
-            yield return null;
-        }
+    public void unlockPlayer(GameObject plr_prefab)
+    {
+        player_prefab = plr_prefab;
+        StartCoroutine(unlockPlayerHelper());
+    }
+
+    IEnumerator unlockPlayerHelper()
+    {
         player_prefab.transform.GetChild(0).GetComponent<CameraMove>().initialize();
 
         //wait for camera
@@ -123,9 +114,6 @@ public class ControlScript : MonoBehaviour
         //free player movement, start checking to sit down, begin the scenario
         player_prefab.GetComponent<PlayerMove>().initialize();
         seat_check_coroutine = StartCoroutine(seatCheck());
-
-        GameObject scenario_manager = GameObject.FindWithTag("ScenarioManager");
-        scenario_manager.GetComponent<ScenarioManager>().initializeScenarioManager();
     }
 
     //used to clear buttons and minimized list entries

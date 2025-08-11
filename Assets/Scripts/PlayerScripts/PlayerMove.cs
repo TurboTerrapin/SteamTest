@@ -3,8 +3,9 @@
     - Handles player movement
     - Handles seating/unseating teleporting
     - Handles shifting while seated
+    - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 6/23/2025
+    Last Updated: 8/10/2025
 */
 
 using System.Collections;
@@ -31,16 +32,13 @@ public class PlayerMove : NetworkBehaviour
     private SeatManager seat_manager = null;
 
     void Start()
-    {
+    { 
         DontDestroyOnLoad(gameObject);
     }
 
     public void initialize()
     {
         seat_manager = GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>();
-
-        transform.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
-        transform.GetComponent<Rigidbody>().useGravity = true;
 
         move_coroutine = StartCoroutine(checkForMovement());
     }
@@ -116,7 +114,7 @@ public class PlayerMove : NetworkBehaviour
     {
         GameObject pph = seat_manager.position_point_holders[pos];
 
-        Vector3 start_pos = pph.transform.GetChild(shift_index).position;
+        Vector3 start_pos = pph.transform.GetChild(shift_index).localPosition;
         
         if (shift_index == pph.transform.childCount - 1) //must decrease
         {
@@ -139,7 +137,7 @@ public class PlayerMove : NetworkBehaviour
             shift_index++;
             shift_increasing = true;
         }
-        Vector3 end_pos = pph.transform.GetChild(shift_index).position;
+        Vector3 end_pos = pph.transform.GetChild(shift_index).localPosition;
 
         float total_shift_time = Vector3.Distance(start_pos, end_pos) / SHIFT_SPEED;
         float shift_time = total_shift_time;

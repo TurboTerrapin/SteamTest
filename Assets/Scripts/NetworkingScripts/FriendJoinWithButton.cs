@@ -25,6 +25,8 @@ public class FriendJoinWithButton : MonoBehaviour
         {
             Debug.Log(friend.GameInfo.Value.Lobby.Value.Id);
             GameNetworkManager.Instance.JoinWithButton(friend.GameInfo.Value.Lobby.Value);
+            //used for loading
+            GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
         }
     }
 

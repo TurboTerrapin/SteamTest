@@ -11,7 +11,6 @@ public class SceneSwapper : MonoBehaviour
 
     public static SceneSwapper Instance { get; private set; } = null;
 
-
     [SerializeField]
     private List<string> sceneNames = null;
     [SerializeField]

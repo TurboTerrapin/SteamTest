@@ -71,7 +71,4 @@ public class NetworkSpawner : MonoBehaviour
         }
         Instantiate<GameObject>(obj, location, Quaternion.identity);
     }
-
-
-
 }

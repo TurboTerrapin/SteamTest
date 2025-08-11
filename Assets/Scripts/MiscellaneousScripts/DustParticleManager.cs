@@ -57,10 +57,14 @@ public class DustParticleManager : MonoBehaviour
             new_star.SetActive(true);
         }
     }
-    private void Update()
+    private void LateUpdate()
     {
         //face particles towards camera
         //if greater than max distance, replace particle
+        if (Camera.main == null)
+        {
+            return;
+        }
         for (int i = 1; i <= NUM_PARTICLES; i++) 
         {
             transform.GetChild(i).LookAt(Camera.main.transform.position);

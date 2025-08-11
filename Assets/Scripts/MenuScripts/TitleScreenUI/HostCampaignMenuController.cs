@@ -1,7 +1,9 @@
-using UnityEngine;
 using System.Collections.Generic;
-using TMPro;
+using System.Linq;
 using Steamworks;
+using TMPro;
+using Unity.Netcode;
+using UnityEngine;
 
 public class HostCampaignMenuController : MonoBehaviour
 {
@@ -9,31 +11,53 @@ public class HostCampaignMenuController : MonoBehaviour
     public GameObject CampaignMenu;
 
     public List<TextMeshProUGUI> JoinedPlayersList = new List<TextMeshProUGUI>();
-    public float timer = 1.8f;
 
-    void Update()
+    //updates list of names 
+    private void UpdateLobbyList()
     {
-        timer += Time.deltaTime;
-        if (timer > 2f)
+        JoinedPlayersList[0].text = SteamClient.Name;
+        if (GameNetworkManager.Instance.currentLobby == null)
         {
-            timer = 0f;
-            int i = 0;
-            foreach (Friend player in GameNetworkManager.Instance.currentLobby.Value.Members)
-            {
-                Debug.Log(player.Name);
-                JoinedPlayersList[i].text = player.Name;
-                i++;
-            }
+            return;
         }
+        //clear non-host entries
+        for (int i = 1; i < 4; i++)
+        {
+            JoinedPlayersList[i].text = "";
+        }
+        //add however many friends are in the lobby
+        IEnumerable<Friend> lobby_members = GameNetworkManager.Instance.currentLobby.Value.Members;
+        for (int i = 1; i < lobby_members.Count<Friend>(); i++)
+        {
+            JoinedPlayersList[i].text = lobby_members.ElementAt<Friend>(i).Name;
+        }
+    }
+
+    private void OnLobbyChange(NetworkManager manager, ConnectionEventData eventData)
+    {
+        UpdateLobbyList();
+    }
+
+    public void CheckForLobbyUpdates()
+    {
+        UpdateLobbyList();
+        //listen for future updates to the lobby
+        NetworkManager.Singleton.OnConnectionEvent += OnLobbyChange;
     }
 
     public void HandleXButtonClick()
     {
+        //do not listen for future updates to the lobby
+        NetworkManager.Singleton.OnConnectionEvent -= OnLobbyChange;
         SwitchTo(CampaignMenu);
     }
 
     public void HandleEngageButtonClick()
     {
+        //do not listen for future updates to the lobby
+        NetworkManager.Singleton.OnConnectionEvent -= OnLobbyChange;
+        //lock the lobby once game starts
+        GameNetworkManager.Instance.currentLobby.Value.SetJoinable(false);
         SceneSwapper.Instance.ChangeSceneClientRPC("BridgeEnvironment");
     }
 
