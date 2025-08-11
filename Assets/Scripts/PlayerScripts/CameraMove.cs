@@ -1,16 +1,15 @@
 /*
     CameraMove.cs
-    - Names the player prefab to USERNAME_STEAMID if client, or OTHER_CLIENT if not
     - Handles pausing
     - Handles looking around
     - Handles camera zoom (using RMB)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 6/5/2025
+    Last Updated: 8/11/2025
 */
 
 using System.Collections;
 using UnityEngine;
-using Steamworks;
+
 
 public class CameraMove : MonoBehaviour
 {
@@ -22,17 +21,17 @@ public class CameraMove : MonoBehaviour
     public Camera my_camera;
     private float zoom_FOV = 40f;
 
-    public void Start()
+    private void Start()
     {
-        if (transform.parent.gameObject.GetComponent<PlayerMove>().IsOwner) //keep the camera
+        if (transform.parent.gameObject.GetComponent<PlayerMove>().IsOwner == false) //not owner, kill the camera
         {
-            //USERNAME_STEAMID
-            transform.parent.name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
-        }
-        else //delete the camera
-        {
-            transform.parent.name = "OTHER_CLIENT";
             Destroy(gameObject);
+        }
+
+        my_camera = transform.GetComponent<Camera>();
+        if (my_camera != null)
+        {
+            my_camera.gameObject.AddComponent<AudioListener>();
         }
     }
 
@@ -42,13 +41,7 @@ public class CameraMove : MonoBehaviour
         rb = transform.parent.gameObject.GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
 
-        my_camera = transform.GetComponent<Camera>();
         ControlScript.Instance.my_camera = my_camera;
-
-        if (my_camera != null)
-        {
-            my_camera.gameObject.AddComponent<AudioListener>();
-        }
 
         StartCoroutine(cameraUpdater());
     }

@@ -5,7 +5,7 @@ public class AudioManager : MonoBehaviour
 {
     public AudioMixer masterMixer;
 
-    private void Start()
+    public void initializeAudio()
     {
         FindAnyObjectByType<AudioManager>()?.SetMasterVolume(0.75f);
     }

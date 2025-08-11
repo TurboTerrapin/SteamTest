@@ -5,6 +5,7 @@
     Last Updated: 8/10/2025
 */
 
+using System;
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -15,6 +16,7 @@ public class PlayerManager : NetworkBehaviour
     private static int MINIMUM_PLAYERS = -1; //if -1, will default to how many players are in the game
 
     public GameObject spawn_points;
+    public GameObject audio_manager;
 
     private GameObject local_player;
     private LoadHandler load_handler;
@@ -85,13 +87,35 @@ public class PlayerManager : NetworkBehaviour
                     player_prefabs[index] = plr;
                     player_prefabs[index].name = player_names[index];
                     player_prefabs[index].transform.position = spawn_points.transform.GetChild(index).position;
-                    player_prefabs[index].GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
-                    player_prefabs[index].GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("None");
-                    player_prefabs[index].GetComponent<Rigidbody>().useGravity = true;
                 }
+            }
+        }
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            StartCoroutine(unlockPlayersDelay());
+        }
+    }
+
+    IEnumerator unlockPlayersDelay()
+    {
+        yield return new WaitForSeconds(1.0f);
+        unlockPlayersRPC();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void unlockPlayersRPC()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (player_prefabs[i] != null)
+            {
+                player_prefabs[i].GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
+                player_prefabs[i].GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("None");
+                player_prefabs[i].GetComponent<Rigidbody>().useGravity = true;
             }
         }
         ControlScript.Instance.unlockPlayer(local_player);
         load_handler.endLoad();
+        audio_manager.GetComponent<AudioManager>().initializeAudio();
     }
 }

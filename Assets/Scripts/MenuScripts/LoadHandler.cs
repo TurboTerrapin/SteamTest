@@ -6,6 +6,7 @@
 */
 
 using System.Collections;
+using System.Collections.Generic;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
@@ -71,36 +72,17 @@ public class LoadHandler : MonoBehaviour
     //randomizes the colors for the spinny load circle
     private void randomizeColors()
     {
+        List<int> possible_colors = new List<int> { 0, 1, 2, 3 };
         for (int i = 0; i < 3; i++)
         {
-            load_ring.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = LOAD_COLORS[Random.Range(0, 4)];
+            int c = Random.Range(0, possible_colors.Count);
+            load_ring.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = LOAD_COLORS[possible_colors[c]];
+            possible_colors.Remove(c);
         }
     }
 
-    IEnumerator loadBridgeEnvironment(AsyncOperation load_operation)
+    IEnumerator loadLoop()
     {
-        randomizeColors();
-        load_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
-        load_screen.SetActive(true);
-        while (load_operation.isDone == false)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                float z = load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation.eulerAngles.z + SPIN_SPEEDS[i] * Time.deltaTime;
-                load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation = Quaternion.Euler(0.0f, 0.0f, z);
-            }
-            yield return null;
-        }
-        //find player
-        string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
-        GameObject player_prefab = GameObject.Find(player_prefab_name);
-        while (player_prefab == null)
-        {
-            player_prefab = GameObject.Find(player_prefab_name);
-            yield return null;
-        }
-        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
-        load_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("WAITING FOR OTHERS");
         while (true)
         {
             for (int i = 0; i < 3; i++)
@@ -110,5 +92,38 @@ public class LoadHandler : MonoBehaviour
             }
             yield return null;
         }
+    }
+
+    IEnumerator loadBridgeEnvironment(AsyncOperation load_operation)
+    {
+        //find player
+        string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
+        GameObject player_prefab = GameObject.Find(player_prefab_name);
+        while (player_prefab == null)
+        {
+            player_prefab = GameObject.Find(player_prefab_name);
+            yield return null;
+        }
+        //enable load screen
+        randomizeColors();
+        load_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
+        load_screen.SetActive(true);
+        //switch cameras
+        Camera.main.gameObject.SetActive(false);
+        player_prefab.transform.GetChild(0).gameObject.SetActive(true);
+        //wait for scene to load
+        while (load_operation.isDone == false)
+        {
+            //spin circles while waiting
+            for (int i = 0; i < 3; i++)
+            {
+                float z = load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation.eulerAngles.z + SPIN_SPEEDS[i] * Time.deltaTime;
+                load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation = Quaternion.Euler(0.0f, 0.0f, z);
+            }
+            yield return null;
+        }
+        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
+        //wait until PlayerManager interrupts load screen using endLoad()
+        load_coroutine = StartCoroutine(loadLoop());
     }
 }

@@ -161,7 +161,7 @@ public class PilotingSystem : NetworkBehaviour
             GameObject probe = GameObject.FindGameObjectWithTag("Probe");
             if (probe != null)
             {
-                probe.GetComponent<Probe>().updateDistance();
+                probeDistanceChangeRPC();
             }
         }
     }
@@ -211,6 +211,17 @@ public class PilotingSystem : NetworkBehaviour
 
         //update pilot course heading slider
         rotationChangeRPC();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void probeDistanceChangeRPC()
+    {
+        //update probe (if it exists)
+        GameObject probe = GameObject.FindGameObjectWithTag("Probe");
+        if (probe != null)
+        {
+            probe.GetComponent<Probe>().updateDistance();
+        }
     }
 
     [Rpc(SendTo.Everyone)]

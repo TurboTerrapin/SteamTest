@@ -1,16 +1,18 @@
 /*
     PlayerMove.cs
+    - Names the player prefab to USERNAME_STEAMID if client, or OTHER_CLIENT if not
     - Handles player movement
     - Handles seating/unseating teleporting
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/10/2025
+    Last Updated: 8/11/2025
 */
 
 using System.Collections;
-using UnityEngine;
+using Steamworks;
 using Unity.Netcode;
+using UnityEngine;
 
 public class PlayerMove : NetworkBehaviour
 {
@@ -34,6 +36,16 @@ public class PlayerMove : NetworkBehaviour
     void Start()
     { 
         DontDestroyOnLoad(gameObject);
+
+        if (transform.gameObject.GetComponent<NetworkObject>().IsOwner == true)
+        {
+            //USERNAME_STEAMID
+            transform.name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
+        }
+        else 
+        {
+            transform.name = "OTHER_CLIENT";
+        }
     }
 
     public void initialize()
