@@ -117,5 +117,6 @@ public class PlayerManager : NetworkBehaviour
         ControlScript.Instance.unlockPlayer(local_player);
         load_handler.endLoad();
         audio_manager.GetComponent<AudioManager>().initializeAudio();
+        GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().initializeScenarioManager();
     }
 }

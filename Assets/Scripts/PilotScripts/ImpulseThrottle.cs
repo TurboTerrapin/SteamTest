@@ -3,10 +3,9 @@
     - Handles inputs for impulse throttle
     - Moves throttle lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 5/23/2025
+    Last Updated: 8/11/2025
 */
 
-using System;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
@@ -24,7 +23,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
 
     public GameObject handle;
     public GameObject blue_bars; //used to display the bars beneath the handle
-    //public GameObject speed_text; //used to update the speedometer
+    public GameObject speed_text; //used to update the speedometer
 
     private float impulse = 0.0f;
     private float inertial_dampener_modifier = 1.0f;
@@ -71,9 +70,14 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable
             new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, impulse),
                         Mathf.Lerp(initial_pos.y, final_pos.y, impulse),
                         Mathf.Lerp(initial_pos.z, final_pos.z, impulse));
-        
-        //update speedometer text
-        //speed_text.GetComponent<TMP_Text>().SetText("" + Mathf.Round(impulse * 100.0f));
+
+        //update speedometer text in engineer position
+        string rounded_speed = (Mathf.Round(impulse * 1000.0f) / 10.0f).ToString();
+        if (rounded_speed.Contains(".") == false)
+        {
+            rounded_speed += ".0";
+        }
+        speed_text.GetComponent<TMP_Text>().SetText("IMPULSE SPEED: " + rounded_speed + "%");
     }
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {

@@ -35,6 +35,7 @@ public class PilotingSystem : NetworkBehaviour
     private VerticalThrusters verticalThrusters;
     private PilotNavigation pilotNavigation;
     private TacticianMap tacticianMap;
+    private EngineerMap engineerMap;
 
     // Input values
     private float currentImpulse;
@@ -55,6 +56,14 @@ public class PilotingSystem : NetworkBehaviour
     public float currentHorizontalSpeed = 0f;
     public float currentVerticalSpeed = 0f;
 
+    //boundary values
+    private Vector2[] entrance_points = new Vector2[2];
+    private float entrance_slope = 0.0f;
+    private float[] entrance_intercepts = new float[2];
+    private Vector2[] exit_points = new Vector2[2];
+    private float exit_slope = 0.0f;
+    private float[] exit_intercepts = new float[2];
+
     public bool AssignControlReferences(GameObject controlHandler)
     {
         impulseThrottle = controlHandler.GetComponent<ImpulseThrottle>();
@@ -64,6 +73,7 @@ public class PilotingSystem : NetworkBehaviour
 
         pilotNavigation = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>();
         tacticianMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
+        engineerMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>();
 
         return impulseThrottle && courseHeading &&
                horizontalThrusters && verticalThrusters;
@@ -80,6 +90,81 @@ public class PilotingSystem : NetworkBehaviour
         steeringInput = courseHeading.getSteeringValue();
         horizontalThrust = horizontalThrusters.getHorizontalThrusterState();
         verticalThrust = verticalThrusters.getVerticalThrusterState();
+    }
+
+    public void PlaceShip(Vector2 position, float rotation)
+    {
+        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        worldRoot.transform.position = new Vector3(-position.y, worldRoot.transform.position.y, -position.x - (ScenarioManager.BOUNDARY_SIZE * 0.5f));
+        transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+        lateralMovementRPC();
+        rotationChangeRPC();
+    }
+
+    private bool ShipIsWithinBoundary()
+    {
+        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        Vector2 ship_position = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
+
+        Vector2[] check_points = new Vector2[2]; //0 is upper, 1 is lower
+        Vector2[] path_points = entrance_points;
+        float[] path_intercepts = entrance_intercepts;
+        float current_slope = entrance_slope;
+
+        if (ship_position.x > 0.0f)
+        {
+            path_points = exit_points;
+            path_intercepts = exit_intercepts;
+            current_slope = exit_slope;
+        }
+
+        for (int i = 0; i < 2; i++)
+        {
+            check_points[i].x = ship_position.x;
+            check_points[i].y = 9999.9f;
+            if (ship_position.x < 0.0f)
+            {
+                if (ship_position.x <= path_points[i].x) //ship position is to the right of the entrance point
+                {
+                    check_points[i].y = (current_slope * ship_position.x) + path_intercepts[i];
+                }
+            }
+            else
+            {
+                if (ship_position.x >= path_points[i].x) //ship position is to the left of the exit point
+                {
+                    check_points[i].y = (current_slope * ship_position.x) + path_intercepts[i];
+                }
+            }
+        }
+
+        return (ship_position.y > check_points[0].y && ship_position.y < check_points[1].y);
+    }
+
+    private Vector2 CalculatePoint(Vector2 path_point, float angle_difference)
+    {
+        float path_point_angle = (Mathf.Rad2Deg * Mathf.Atan(path_point.y / path_point.x));
+        Vector2 return_point = ScenarioManager.getBoundaryPointFromAngle(path_point_angle + angle_difference);
+        return return_point;
+    }
+
+    public void SetPaths(Vector2 entrance_path, float entrance_rotation, Vector2 exit_path, float exit_rotation)
+    {
+        //plot entrance points
+        entrance_points[0] = CalculatePoint(entrance_path, ScenarioManager.PATH_SIZE * 0.5f);
+        entrance_points[0] *= -1.0f;
+        entrance_points[1] = CalculatePoint(entrance_path, -ScenarioManager.PATH_SIZE * 0.5f);
+        entrance_points[1] *= -1.0f;
+        entrance_slope = Mathf.Tan(Mathf.Deg2Rad * entrance_rotation);
+        entrance_intercepts[0] = entrance_points[0].y - (entrance_slope * entrance_points[0].x);
+        entrance_intercepts[1] = entrance_points[1].y - (entrance_slope * entrance_points[1].x);
+
+        //plot exit points
+        exit_points[0] = CalculatePoint(exit_path, -ScenarioManager.PATH_SIZE * 0.5f);
+        exit_points[1] = CalculatePoint(exit_path, ScenarioManager.PATH_SIZE * 0.5f);
+        exit_slope = Mathf.Tan(Mathf.Deg2Rad * exit_rotation);
+        exit_intercepts[0] = exit_points[0].y - (exit_slope * exit_points[0].x);
+        exit_intercepts[1] = exit_points[1].y - (exit_slope * exit_points[1].x);
     }
 
     public void UpdateMovement(Transform worldRoot)
@@ -138,7 +223,7 @@ public class PilotingSystem : NetworkBehaviour
         {
             currentVelocity = currentVelocity.normalized * maxImpulseForwardSpeed;
         }
-        
+
         if (worldRoot != null)
         {
             worldRoot.position -= currentVelocity * dt;
@@ -152,6 +237,12 @@ public class PilotingSystem : NetworkBehaviour
         {
             //update pilot altimeter
             altitudeChangeRPC();
+        }
+
+        //lateral movement
+        if (currentImpulseSpeed != 0.0f || currentHorizontalSpeed != 0.0f)
+        {
+            lateralMovementRPC();
         }
 
         //any movement at all
@@ -209,7 +300,7 @@ public class PilotingSystem : NetworkBehaviour
             transform.Rotate(0f, -1.0f * currentRotationSpeed * dt, 0f);
         }
 
-        //update pilot course heading slider
+        //update maps/rotation slider
         rotationChangeRPC();
     }
 
@@ -225,15 +316,42 @@ public class PilotingSystem : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
+    private void lateralMovementRPC()
+    {
+        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+
+        //update map
+        Vector2 ship_position = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
+        engineerMap.updateShipLocation(ship_position);
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            //check for boundary
+            Vector2 shipPosition = new Vector2(worldRoot.transform.position.x, worldRoot.transform.position.z);
+            Vector2 circleCenter = new Vector2(0.0f, ScenarioManager.BOUNDARY_SIZE * -0.5f);
+            if (Vector2.Distance(shipPosition, circleCenter) > (ScenarioManager.BOUNDARY_SIZE * 0.5f))
+            {
+                if (ShipIsWithinBoundary() == false)
+                {
+                    Debug.Log("OUTSIDE BOUNDARY!");
+                }
+            }
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
     private void rotationChangeRPC()
     {
         pilotNavigation.updateCourseHeadingScreen();
         tacticianMap.rotateMap();
+        engineerMap.updateShipOrientation(transform.rotation.eulerAngles.y);
     }
 
     [Rpc(SendTo.Everyone)]
     private void altitudeChangeRPC()
     {
+        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         pilotNavigation.updateAltimeterScreen();
+        engineerMap.updateAltitude(-worldRoot.transform.position.y);
     }
 }

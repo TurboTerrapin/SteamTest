@@ -77,7 +77,7 @@ public class LoadHandler : MonoBehaviour
         {
             int c = Random.Range(0, possible_colors.Count);
             load_ring.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = LOAD_COLORS[possible_colors[c]];
-            possible_colors.Remove(c);
+            possible_colors.RemoveAt(c);
         }
     }
 
