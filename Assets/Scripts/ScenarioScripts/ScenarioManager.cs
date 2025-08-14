@@ -1,8 +1,8 @@
 /*
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
-    Contributor(s): John Aylward
-    Last Updated: 8/11/2025
+    Contributor(s): John Aylward, Jake Schott
+    Last Updated: 8/13/2025
 */
 
 using Unity.Netcode;
@@ -11,18 +11,21 @@ using UnityEngine;
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    public static int BOUNDARY_SIZE = 5000; //referenced by ShipController, EngineerMap
-    public static float PATH_SIZE = 10.0f; //degrees of the boundary, does not reflect on EngineerMap so be careful!
+    public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, EngineerMap
+    public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
+    public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
+    public const float PATH_SIZE = 10.0f; //degrees of the boundary, does not reflect on EngineerMap so be careful!
 
-    private GameObject spaceship;
-    private GameObject endpoint;
+
     private EngineerMap engineer_map;
 
+    //entrance/exit channel info
     private Vector2 entrance_position;
     private float entrance_rotation;
     private Vector2 exit_position;
     private float exit_rotation;
 
+    //called by generatePathLocation() and PilotingSystem.CalculatePoint()
     public static Vector2 getBoundaryPointFromAngle(float ang)
     {
         Vector2 return_point = new Vector2(0.0f, 0.0f);
@@ -33,6 +36,7 @@ public class ScenarioManager : NetworkBehaviour
         return return_point;
     }
 
+    //called by generatePaths() to generate the points for the entrance/exit channels
     private Vector2 generatePathLocation()
     {
         float path_angle = Random.Range(0.0f, 15.0f);
@@ -45,6 +49,7 @@ public class ScenarioManager : NetworkBehaviour
         return path_point;
     }
 
+    //sets entrance/exit channel points and rotations
     private void generatePaths()
     {
         entrance_position = generatePathLocation();
@@ -57,20 +62,20 @@ public class ScenarioManager : NetworkBehaviour
     //called by PlayerManager after scene is loaded in and all player scripts (ControlScript, CameraMove, PlayerMove) are initialized
     public void initializeScenarioManager()
     {
-        spaceship = GameObject.FindWithTag("Spaceship");
-        endpoint = GameObject.FindWithTag("ScenarioEndPoint");
         engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
 
-        startScenario();
-    }
-
-    public void startScenario()
-    {
+        //host starts stuff
         if (NetworkManager.Singleton.IsHost == true)
         {
-            generatePaths();
-            setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
+            startScenario();
         }
+    }
+
+    //only run by host
+    public void startScenario()
+    {
+        generatePaths();
+        setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
     }
 
     //called by whatever scenario is in the scene upon ending (ex. ship destruction, endpoint reached)
@@ -86,34 +91,6 @@ public class ScenarioManager : NetworkBehaviour
         }
     }
 
-    public float getDistanceToEndpoint()
-    {
-        float dist = 9999.9f;
-        if (endpoint != null && spaceship != null)
-        {
-            dist = Vector3.Distance(endpoint.transform.position, spaceship.transform.position);
-        }
-        return dist;
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void endScenarioRPC(bool success)
-    {
-        //temporary for testing purposes
-        GameObject plr_canvas = GameObject.Find("Canvas");
-        if (plr_canvas != null)
-        {
-            if (success == true)
-            {
-                plr_canvas.GetComponent<EndScenario>().displayEndScenario("SCENARIO COMPLETE", new Color(0.0f, 1.0f, 0.0f, 0.0f));
-            }
-            else
-            {
-                plr_canvas.GetComponent<EndScenario>().displayEndScenario("SCENARIO FAILED", new Color(1.0f, 0.0f, 0.0f, 0.0f));
-            }
-        }
-    }
-
     [Rpc(SendTo.Everyone)]
     private void setNewPathsRPC(Vector2 ent_pos, float ent_rot, Vector2 exit_pos, float exit_rot)
     {
@@ -124,8 +101,8 @@ public class ScenarioManager : NetworkBehaviour
 
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
             GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
+            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
         }
         engineer_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
     }

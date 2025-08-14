@@ -1,6 +1,14 @@
-using TMPro;
+/*
+    PilotingSystem.cs
+    - Handles moving WorldRoot to traverse through space
+    - Handles rotating Spaceship
+    - Handles boundary checking/handling
+    - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
+    Contributor(s): Henryk Musial
+    Last Updated: 8/13/2025
+*/
+
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PilotingSystem : NetworkBehaviour
@@ -17,16 +25,6 @@ public class PilotingSystem : NetworkBehaviour
      private float rotationPower = 3f;
      private float steeringResponsiveness = 2.5f;
      private float maxRotationSpeed = 5f;
-
-    [Header("Impulse Settings")]
-    //private float impulseAccelerationRate = 0.8f;
-    //private float impulseDecelerationRate = 1.75f;
-
-    [Header("Thruster Settings")]
-    //private float baseThrusterAccelerationRate = 0.5f;
-    //private float maxThrusterAccelerationRate = 1.5f;
-    //private float timeToMaxThrustAccel = 1.0f;
-    //private float thrusterDecelerationRate = 5.0f;
 
     // Component references
     private ImpulseThrottle impulseThrottle;
@@ -45,9 +43,7 @@ public class PilotingSystem : NetworkBehaviour
 
     // Movement state
     private float smoothedSteeringInput = 0f;
-    //private float horizontalThrusterActiveTime;
-    //private float verticalThrusterActiveTime;
-    private bool in_reverse;
+    private bool inReverse;
     public float currentRotationSpeed;
     public float forwardSpeed;
     public Vector3 currentVelocity;
@@ -57,12 +53,12 @@ public class PilotingSystem : NetworkBehaviour
     public float currentVerticalSpeed = 0f;
 
     //boundary values
-    private Vector2[] entrance_points = new Vector2[2];
-    private float entrance_slope = 0.0f;
-    private float[] entrance_intercepts = new float[2];
-    private Vector2[] exit_points = new Vector2[2];
-    private float exit_slope = 0.0f;
-    private float[] exit_intercepts = new float[2];
+    private Vector2[] entrancePoints = new Vector2[2];
+    private float entranceSlope = 0.0f;
+    private float[] entranceIntercepts = new float[2];
+    private Vector2[] exitPoints = new Vector2[2];
+    private float exitSlope = 0.0f;
+    private float[] exitIntercepts = new float[2];
 
     public bool AssignControlReferences(GameObject controlHandler)
     {
@@ -79,9 +75,9 @@ public class PilotingSystem : NetworkBehaviour
                horizontalThrusters && verticalThrusters;
     }
 
-    public void shiftDirection(bool new_direction)
+    public void ShiftDirection(bool newDirection)
     {
-        in_reverse = new_direction;
+        inReverse = newDirection;
     }
 
     public void UpdateInput()
@@ -92,79 +88,90 @@ public class PilotingSystem : NetworkBehaviour
         verticalThrust = verticalThrusters.getVerticalThrusterState();
     }
 
+    //called by ScenarioManager.setNewPathsRPC()
     public void PlaceShip(Vector2 position, float rotation)
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         worldRoot.transform.position = new Vector3(-position.y, worldRoot.transform.position.y, -position.x - (ScenarioManager.BOUNDARY_SIZE * 0.5f));
         transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-        lateralMovementRPC();
-        rotationChangeRPC();
+        worldRoot.transform.position += transform.forward * ScenarioManager.START_DIST_OFFSET;
+        LateralMovementRPC();
+        RotationChangeRPC();
     }
 
+    //returns true if within boundary
     private bool ShipIsWithinBoundary()
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
-        Vector2 ship_position = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
+        Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
 
-        Vector2[] check_points = new Vector2[2]; //0 is upper, 1 is lower
-        Vector2[] path_points = entrance_points;
-        float[] path_intercepts = entrance_intercepts;
-        float current_slope = entrance_slope;
+        Vector2[] checkPoints = new Vector2[2]; //0 is lower, 1 is upper
+        Vector2[] pathPoints = entrancePoints;
+        float[] pathIntercepts = entranceIntercepts;
+        float currentSlope = entranceSlope;
 
-        if (ship_position.x > 0.0f)
+        if (shipPosition.x > 0.0f) //if true, means we are checking the exit path
         {
-            path_points = exit_points;
-            path_intercepts = exit_intercepts;
-            current_slope = exit_slope;
+            pathPoints = exitPoints;
+            pathIntercepts = exitIntercepts;
+            currentSlope = exitSlope;
         }
 
+        //assign lower (0) and upper (1) points
         for (int i = 0; i < 2; i++)
         {
-            check_points[i].x = ship_position.x;
-            check_points[i].y = 9999.9f;
-            if (ship_position.x < 0.0f)
+            checkPoints[i].x = shipPosition.x;
+            checkPoints[i].y = -9999.9f; //lower minimum
+            if (i == 1)
             {
-                if (ship_position.x <= path_points[i].x) //ship position is to the right of the entrance point
+                checkPoints[i].y = 9999.9f; //upper maximum
+            }
+            if (shipPosition.x < 0.0f)
+            {
+                if (shipPosition.x <= pathPoints[i].x) //ship position is to the right of the entrance point
                 {
-                    check_points[i].y = (current_slope * ship_position.x) + path_intercepts[i];
+                    checkPoints[i].y = (currentSlope * shipPosition.x) + pathIntercepts[i];
                 }
             }
             else
             {
-                if (ship_position.x >= path_points[i].x) //ship position is to the left of the exit point
+                if (shipPosition.x >= pathPoints[i].x) //ship position is to the left of the exit point
                 {
-                    check_points[i].y = (current_slope * ship_position.x) + path_intercepts[i];
+                    checkPoints[i].y = (currentSlope * shipPosition.x) + pathIntercepts[i];
                 }
             }
         }
 
-        return (ship_position.y > check_points[0].y && ship_position.y < check_points[1].y);
+        //check if ship is between the two points
+        return (shipPosition.y > checkPoints[0].y && shipPosition.y < checkPoints[1].y);
     }
 
-    private Vector2 CalculatePoint(Vector2 path_point, float angle_difference)
+    //takes a point and an angle and returns a new point on the circle shifted angleDifference degrees
+    private Vector2 CalculatePoint(Vector2 pathPoint, float angleDifference)
     {
-        float path_point_angle = (Mathf.Rad2Deg * Mathf.Atan(path_point.y / path_point.x));
-        Vector2 return_point = ScenarioManager.getBoundaryPointFromAngle(path_point_angle + angle_difference);
-        return return_point;
+        float pathPointAngle = (Mathf.Rad2Deg * Mathf.Atan(pathPoint.y / pathPoint.x));
+        Vector2 returnPoint = ScenarioManager.getBoundaryPointFromAngle(pathPointAngle + angleDifference);
+        return returnPoint;
     }
-
-    public void SetPaths(Vector2 entrance_path, float entrance_rotation, Vector2 exit_path, float exit_rotation)
+    
+    //called by ScenarioManager.setNewPathsRPC() at the start of every scenario
+    public void SetPaths(Vector2 entrancePath, float entranceRotation, Vector2 exitPath, float exitRotation)
     {
         //plot entrance points
-        entrance_points[0] = CalculatePoint(entrance_path, ScenarioManager.PATH_SIZE * 0.5f);
-        entrance_points[0] *= -1.0f;
-        entrance_points[1] = CalculatePoint(entrance_path, -ScenarioManager.PATH_SIZE * 0.5f);
-        entrance_points[1] *= -1.0f;
-        entrance_slope = Mathf.Tan(Mathf.Deg2Rad * entrance_rotation);
-        entrance_intercepts[0] = entrance_points[0].y - (entrance_slope * entrance_points[0].x);
-        entrance_intercepts[1] = entrance_points[1].y - (entrance_slope * entrance_points[1].x);
+        entrancePoints[0] = CalculatePoint(entrancePath, ScenarioManager.PATH_SIZE * 0.5f);
+        entrancePoints[0] *= -1.0f;
+        entrancePoints[1] = CalculatePoint(entrancePath, -ScenarioManager.PATH_SIZE * 0.5f);
+        entrancePoints[1] *= -1.0f;
+        entranceSlope = Mathf.Tan(Mathf.Deg2Rad * entranceRotation);
+        entranceIntercepts[0] = entrancePoints[0].y - (entranceSlope * entrancePoints[0].x);
+        entranceIntercepts[1] = entrancePoints[1].y - (entranceSlope * entrancePoints[1].x);
 
         //plot exit points
-        exit_points[0] = CalculatePoint(exit_path, -ScenarioManager.PATH_SIZE * 0.5f);
-        exit_points[1] = CalculatePoint(exit_path, ScenarioManager.PATH_SIZE * 0.5f);
-        exit_slope = Mathf.Tan(Mathf.Deg2Rad * exit_rotation);
-        exit_intercepts[0] = exit_points[0].y - (exit_slope * exit_points[0].x);
-        exit_intercepts[1] = exit_points[1].y - (exit_slope * exit_points[1].x);
+        exitPoints[0] = CalculatePoint(exitPath, -ScenarioManager.PATH_SIZE * 0.5f);
+        exitPoints[1] = CalculatePoint(exitPath, ScenarioManager.PATH_SIZE * 0.5f);
+        exitSlope = Mathf.Tan(Mathf.Deg2Rad * exitRotation);
+        exitIntercepts[0] = exitPoints[0].y - (exitSlope * exitPoints[0].x);
+        exitIntercepts[1] = exitPoints[1].y - (exitSlope * exitPoints[1].x);
     }
 
     public void UpdateMovement(Transform worldRoot)
@@ -175,7 +182,7 @@ public class PilotingSystem : NetworkBehaviour
         Vector3 horizontal = -transform.right;
         Vector3 vertical = transform.up;
 
-        if (in_reverse == false)
+        if (inReverse == false)
         {
             currentImpulseSpeed = currentImpulse * maxImpulseForwardSpeed;
         }
@@ -186,32 +193,6 @@ public class PilotingSystem : NetworkBehaviour
 
         currentHorizontalSpeed = maxThrusterSpeed * horizontalThrust;
         currentVerticalSpeed = maxThrusterSpeed * verticalThrust;
-
-        /* OLD CODE 
-        // Update impulse speed
-        currentImpulseSpeed = Mathf.MoveTowards(
-            currentImpulseSpeed,
-            currentImpulse * maxImpulseSpeed,
-            ((Mathf.Abs(currentImpulseSpeed) < Mathf.Abs(currentImpulse * maxImpulseSpeed)) ? impulseAccelerationRate : impulseDecelerationRate) * dt
-        );
-        
-
-        // Update horizontal thruster speed
-        float horizontalRate = GetThrusterAccelerationRate(horizontalThrusterActiveTime);
-        currentHorizontalSpeed = Mathf.MoveTowards(
-            currentHorizontalSpeed,
-            horizontalThrust * maxThrusterSpeed,
-            ((Mathf.Abs(currentHorizontalSpeed) < Mathf.Abs(horizontalThrust * maxThrusterSpeed)) ? horizontalRate : thrusterDecelerationRate) * dt
-        );
-
-        // Update vertical thruster speed
-        float verticalRate = GetThrusterAccelerationRate(verticalThrusterActiveTime);
-        currentVerticalSpeed = Mathf.MoveTowards(
-            currentVerticalSpeed,
-            verticalThrust * maxThrusterSpeed,
-            ((Mathf.Abs(currentVerticalSpeed) < Mathf.Abs(verticalThrust * maxThrusterSpeed)) ? verticalRate : thrusterDecelerationRate) * dt
-        );
-        */
 
         Vector3 impulseVelocity = forward * currentImpulseSpeed;
         Vector3 horizontalVelocity = horizontal * currentHorizontalSpeed;
@@ -233,16 +214,17 @@ public class PilotingSystem : NetworkBehaviour
 
         HandleRotation(dt);
 
+        //vertical movement
         if (currentVerticalSpeed != 0.0f)
         {
             //update pilot altimeter
-            altitudeChangeRPC();
+            AltitudeChangeRPC();
         }
 
         //lateral movement
         if (currentImpulseSpeed != 0.0f || currentHorizontalSpeed != 0.0f)
         {
-            lateralMovementRPC();
+            LateralMovementRPC();
         }
 
         //any movement at all
@@ -252,17 +234,10 @@ public class PilotingSystem : NetworkBehaviour
             GameObject probe = GameObject.FindGameObjectWithTag("Probe");
             if (probe != null)
             {
-                probeDistanceChangeRPC();
+                ProbeDistanceChangeRPC();
             }
         }
     }
-
-    /* OLD CODE
-    private float GetThrusterAccelerationRate(float activeTime)
-    {
-        return Mathf.Lerp(baseThrusterAccelerationRate, maxThrusterAccelerationRate,
-            Mathf.Clamp01(activeTime / timeToMaxThrustAccel));
-    }*/
 
     private void HandleRotation(float dt)
     {
@@ -291,7 +266,7 @@ public class PilotingSystem : NetworkBehaviour
             currentRotationSpeed = Mathf.Lerp(currentRotationSpeed, 0f, rotationPower * dt);
         }
 
-        if (in_reverse == false)
+        if (inReverse == false)
         {
             transform.Rotate(0f, currentRotationSpeed * dt, 0f);
         }
@@ -301,11 +276,11 @@ public class PilotingSystem : NetworkBehaviour
         }
 
         //update maps/rotation slider
-        rotationChangeRPC();
+        RotationChangeRPC();
     }
 
     [Rpc(SendTo.Everyone)]
-    private void probeDistanceChangeRPC()
+    private void ProbeDistanceChangeRPC()
     {
         //update probe (if it exists)
         GameObject probe = GameObject.FindGameObjectWithTag("Probe");
@@ -316,22 +291,39 @@ public class PilotingSystem : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void lateralMovementRPC()
+    private void LateralMovementRPC()
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
 
         //update map
-        Vector2 ship_position = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
-        engineerMap.updateShipLocation(ship_position);
+        Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
+        engineerMap.updateShipLocation(shipPosition);
 
         if (NetworkManager.Singleton.IsHost == true)
         {
             //check for boundary
-            Vector2 shipPosition = new Vector2(worldRoot.transform.position.x, worldRoot.transform.position.z);
-            Vector2 circleCenter = new Vector2(0.0f, ScenarioManager.BOUNDARY_SIZE * -0.5f);
-            if (Vector2.Distance(shipPosition, circleCenter) > (ScenarioManager.BOUNDARY_SIZE * 0.5f))
+            Vector2 circleCenter = new Vector2(0.0f, 0.0f);
+            float distanceFromCenter = Vector2.Distance(shipPosition, circleCenter);
+            if (distanceFromCenter > (ScenarioManager.BOUNDARY_SIZE * 0.5f)) //check if outside circle
             {
-                if (ShipIsWithinBoundary() == false)
+                if (ShipIsWithinBoundary() == true)
+                {
+                    if (shipPosition.x < 0.0f) //check if too far back in entrance path
+                    {
+                        if (distanceFromCenter > ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.START_DIST_OFFSET + 50.0f))
+                        {
+                            Debug.Log("OUTSIDE BOUNDARY!"); //ship is inside entrance path but too far back
+                        }
+                    }
+                    else //check if reached exit in exit path
+                    {
+                        if (distanceFromCenter > ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.DIST_TO_ENDPOINT))
+                        {
+                            Debug.Log("REACHED ENDPOINT!"); //ship is far enough in exit path to trigger end
+                        }
+                    }    
+                }
+                else
                 {
                     Debug.Log("OUTSIDE BOUNDARY!");
                 }
@@ -340,7 +332,7 @@ public class PilotingSystem : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void rotationChangeRPC()
+    private void RotationChangeRPC()
     {
         pilotNavigation.updateCourseHeadingScreen();
         tacticianMap.rotateMap();
@@ -348,7 +340,7 @@ public class PilotingSystem : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void altitudeChangeRPC()
+    private void AltitudeChangeRPC()
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         pilotNavigation.updateAltimeterScreen();

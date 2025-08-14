@@ -23,7 +23,6 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
 {
     //CLASS CONSTANTS
     private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
-    private static float ENDPOINT_RANGE = 25.0f;
 
     private GameObject PlayerPrefab;
     Vector3 OriginalCameraPosition;
@@ -173,7 +172,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
 
         if (NetworkManager.Singleton.IsHost)
         {
-            while (shipHealth.getHullIntegrity() > 0.0f && scenarioManager.getDistanceToEndpoint() > ENDPOINT_RANGE)
+            while (true)
             {
                 // if the ship is moving
                 if (impulse.getCurrentImpulse() > 0.0f)
@@ -193,14 +192,6 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
                 {
                     yield return null;
                 }
-            }
-            if (shipHealth.getHullIntegrity() <= 0.0f)
-            {
-                scenarioManager.endScenario(false);
-            }
-            else
-            {
-                scenarioManager.endScenario(true);
             }
         }
     }
