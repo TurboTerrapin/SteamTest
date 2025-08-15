@@ -8,6 +8,8 @@
     Last Updated: 8/13/2025
 */
 
+using System.Collections;
+using System.Net.Sockets;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -52,14 +54,16 @@ public class PilotingSystem : NetworkBehaviour
     public float currentHorizontalSpeed = 0f;
     public float currentVerticalSpeed = 0f;
 
-    //boundary values
+    // Boundary values
     private Vector2[] entrancePoints = new Vector2[2];
     private float entranceSlope = 0.0f;
     private float[] entranceIntercepts = new float[2];
     private Vector2[] exitPoints = new Vector2[2];
     private float exitSlope = 0.0f;
     private float[] exitIntercepts = new float[2];
-
+    private bool insideBoundary = true;
+    private bool insideAltitudeBoundary = true; //used for altitude boundary display in EngineerMap
+    private Coroutine boundaryCountdownCoroutine = null;
     public bool AssignControlReferences(GameObject controlHandler)
     {
         impulseThrottle = controlHandler.GetComponent<ImpulseThrottle>();
@@ -97,6 +101,8 @@ public class PilotingSystem : NetworkBehaviour
         worldRoot.transform.position += transform.forward * ScenarioManager.START_DIST_OFFSET;
         LateralMovementRPC();
         RotationChangeRPC();
+        insideBoundary = true;
+        insideAltitudeBoundary = true;
     }
 
     //returns true if within boundary
@@ -106,7 +112,7 @@ public class PilotingSystem : NetworkBehaviour
         Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
 
         Vector2[] checkPoints = new Vector2[2]; //0 is lower, 1 is upper
-        Vector2[] pathPoints = entrancePoints;
+        Vector2[] pathPoints = entrancePoints; //where the boundary interesects the 
         float[] pathIntercepts = entranceIntercepts;
         float currentSlope = entranceSlope;
 
@@ -115,6 +121,17 @@ public class PilotingSystem : NetworkBehaviour
             pathPoints = exitPoints;
             pathIntercepts = exitIntercepts;
             currentSlope = exitSlope;
+            if (shipPosition.x < pathPoints[0].x && shipPosition.x < pathPoints[1].x)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if (shipPosition.x > pathPoints[0].x && shipPosition.x > pathPoints[1].x)
+            {
+                return false;
+            }
         }
 
         //assign lower (0) and upper (1) points
@@ -290,45 +307,140 @@ public class PilotingSystem : NetworkBehaviour
         }
     }
 
+    private void BoundaryCheck(GameObject worldRoot)
+    {
+        //check for boundary
+        Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
+        Vector2 circleCenter = new Vector2(0.0f, 0.0f);
+
+        if (Mathf.Abs(worldRoot.transform.position.y) > ScenarioManager.BOUNDARY_ALTITUDE)
+        {
+            if (insideAltitudeBoundary == true)
+            {
+                insideAltitudeBoundary = false;
+                string msg = "INCREASE";
+                if (worldRoot.transform.position.y < 0)
+                {
+                    msg = "DECREASE";
+                }
+                ShipBoundaryAltitudeWarningChangeRPC(true, msg);
+            }
+            if (insideBoundary == true)
+            {
+
+                ShipBoundaryChangeRPC(false);
+            }
+            return;
+        }
+
+        if (insideAltitudeBoundary == false)
+        {
+            insideAltitudeBoundary = true;
+            ShipBoundaryAltitudeWarningChangeRPC(false, "");
+        }
+
+        float distanceFromCenter = Vector2.Distance(shipPosition, circleCenter);
+        if (distanceFromCenter > (ScenarioManager.BOUNDARY_SIZE * 0.5f)) //check if outside circle
+        {
+            if (ShipIsWithinBoundary() == true)
+            {
+                if (shipPosition.x < 0.0f) //check if too far back in entrance path
+                {
+                    if (distanceFromCenter < ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.START_DIST_OFFSET + 50.0f))
+                    {
+                        if (insideBoundary == false)
+                        {
+                            ShipBoundaryChangeRPC(true); //ship is inside entrance path but too far back
+                        }
+                        return;
+                    }
+                }
+                else //check if reached exit in exit path
+                {
+                    if (distanceFromCenter > ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.DIST_TO_ENDPOINT))
+                    {
+                        Debug.Log("REACHED ENDPOINT!"); //ship is far enough in exit path to trigger end
+                    }
+                    return;
+                }
+            }
+            if (insideBoundary == true)
+            {
+                ShipBoundaryChangeRPC(false); //ship is outside boundary
+            }
+        }
+        else //is inside the circle
+        {
+            if (insideBoundary == false)
+            {
+                ShipBoundaryChangeRPC(true);
+            }
+        }
+    }
+
     [Rpc(SendTo.Everyone)]
     private void LateralMovementRPC()
     {
-        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
-
         //update map
+        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
         engineerMap.updateShipLocation(shipPosition);
 
+        //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)
         {
-            //check for boundary
-            Vector2 circleCenter = new Vector2(0.0f, 0.0f);
-            float distanceFromCenter = Vector2.Distance(shipPosition, circleCenter);
-            if (distanceFromCenter > (ScenarioManager.BOUNDARY_SIZE * 0.5f)) //check if outside circle
-            {
-                if (ShipIsWithinBoundary() == true)
-                {
-                    if (shipPosition.x < 0.0f) //check if too far back in entrance path
-                    {
-                        if (distanceFromCenter > ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.START_DIST_OFFSET + 50.0f))
-                        {
-                            Debug.Log("OUTSIDE BOUNDARY!"); //ship is inside entrance path but too far back
-                        }
-                    }
-                    else //check if reached exit in exit path
-                    {
-                        if (distanceFromCenter > ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.DIST_TO_ENDPOINT))
-                        {
-                            Debug.Log("REACHED ENDPOINT!"); //ship is far enough in exit path to trigger end
-                        }
-                    }    
-                }
-                else
-                {
-                    Debug.Log("OUTSIDE BOUNDARY!");
-                }
-            }
+            BoundaryCheck(worldRoot);
         }
+    }
+
+    IEnumerator BoundaryCountdown()
+    {
+        int countdown = 10;
+        ShipBoundaryCountdownChangeRPC(countdown);
+        while (countdown > 0)
+        {
+            yield return new WaitForSeconds(1.0f);
+            countdown--;
+            ShipBoundaryCountdownChangeRPC(countdown);
+        }
+        if (countdown <= 0)
+        {
+            Debug.Log("SHIP ESCAPED BOUNDARY!");
+        }
+
+        boundaryCountdownCoroutine = null;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void ShipBoundaryChangeRPC(bool withinBoundary)
+    {
+        if (withinBoundary == false && withinBoundary != insideBoundary)
+        {
+            if (boundaryCountdownCoroutine != null)
+            {
+                StopCoroutine(boundaryCountdownCoroutine);
+            }
+            boundaryCountdownCoroutine = StartCoroutine(BoundaryCountdown());
+        }
+        else if (withinBoundary == true && boundaryCountdownCoroutine != null)
+        {
+            StopCoroutine(boundaryCountdownCoroutine);
+            boundaryCountdownCoroutine = null;
+        }
+        insideBoundary = withinBoundary;
+        engineerMap.updateShipBoundaryStatus(withinBoundary);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void ShipBoundaryCountdownChangeRPC(int countdownValue)
+    {
+        engineerMap.updateShipBoundaryCountdownStatus(countdownValue);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void ShipBoundaryAltitudeWarningChangeRPC(bool active, string msg)
+    {
+        engineerMap.updateAltitudeWarning(active, msg);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -345,5 +457,11 @@ public class PilotingSystem : NetworkBehaviour
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         pilotNavigation.updateAltimeterScreen();
         engineerMap.updateAltitude(-worldRoot.transform.position.y);
+
+        //if host, check boundary
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            BoundaryCheck(worldRoot);   
+        }
     }
 }

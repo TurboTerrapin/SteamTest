@@ -12,10 +12,10 @@ public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, EngineerMap
+    public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
     public const float PATH_SIZE = 10.0f; //degrees of the boundary, does not reflect on EngineerMap so be careful!
-
 
     private EngineerMap engineer_map;
 
