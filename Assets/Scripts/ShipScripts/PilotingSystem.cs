@@ -96,16 +96,23 @@ public class PilotingSystem : NetworkBehaviour
     public void PlaceShip(Vector2 position, float rotation)
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        //place at entrance path point
         worldRoot.transform.position = new Vector3(-position.y, worldRoot.transform.position.y, -position.x - (ScenarioManager.BOUNDARY_SIZE * 0.5f));
+        //rotate to match entrance path channel
         transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+        //set back a little bit in the entrance path channel
         worldRoot.transform.position += transform.forward * ScenarioManager.START_DIST_OFFSET;
+        //randomize height
+        worldRoot.transform.position = new Vector3(worldRoot.transform.position.x, Random.Range(-10.0f, 10.0f), worldRoot.transform.position.z);
         LateralMovementRPC();
+        AltitudeChangeRPC();
         RotationChangeRPC();
+        //start inside the boundary
         insideBoundary = true;
         insideAltitudeBoundary = true;
     }
 
-    //returns true if within boundary
+    //returns true if within boundary (including entrance/exit channels)
     private bool ShipIsWithinBoundary()
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");

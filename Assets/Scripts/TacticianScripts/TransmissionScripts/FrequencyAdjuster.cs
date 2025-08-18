@@ -12,8 +12,8 @@ using System.Collections.Generic;
 public class FrequencyAdjuster : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float TURN_TIME = 70.0f;
-    private static float FREQUENCY_SWITCH_TIME = 1.5f;
+    private static float TURN_TIME = 70.0f; //for dial
+    private static float FREQUENCY_SWITCH_TIME = 1.5f; //for frequency
 
     private string CONTROL_NAME = "FREQUENCY ADJUSTER";
     private List<string> CONTROL_DESCS = new List<string>{"DECREASE", "INCREASE"};

@@ -1,15 +1,14 @@
 /*
-    WaveInfo.cs
-    - Holds information about a specific scan wave (ex. colors, number of rings, shapes, etc.)
+    PatternData.cs
+    - Holds information about a specific energy pattern (ex. colors, number of rings, shapes, etc.)
     Contributor(s): Jake Schott
-    Last Updated: 6/8/2025
+    Last Updated: 8/16/2025
 */
 
 using System.Collections.Generic;
-using NUnit.Framework;
 using UnityEngine;
 
-public class WaveInfo
+public class PatternData
 {
     private Texture center;
     private Color center_color;

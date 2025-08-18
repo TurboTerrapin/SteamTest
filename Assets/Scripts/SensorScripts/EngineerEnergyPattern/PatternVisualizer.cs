@@ -1,22 +1,22 @@
 /*
-    ScanWave.cs
-    - Handles visuals for a scan wave as seen in the engineer position
+    PatternVisualizer.cs
+    - Handles visuals for an energy pattern as seen in the engineer position
     - Currently operates under the assumption that there are only four rings
     Contributor(s): Jake Schott
-    Last Updated: 6/8/2025
+    Last Updated: 8/16/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ScanWave : MonoBehaviour
+public class PatternVisualizer : MonoBehaviour
 {
     //CLASS CONSTANTS
     private static int NUM_OF_ITEMS_PER_RING = 36;
 
-    public WaveInfo wave_information;
-    public GameObject wave_center;
+    public PatternData pattern_information;
+    public GameObject pattern_center;
     public List<GameObject> rings = null; //a-d
     private Coroutine default_rotation_coroutine = null;
     private Coroutine size_change_coroutine = null;
@@ -25,7 +25,7 @@ public class ScanWave : MonoBehaviour
     private float ring_min_size = 0.05f;
     private float ring_separation_distance = 0.01f;
 
-    private void waveSizeHelper(float ring_size)
+    private void patternSizeHelper(float ring_size)
     {
         //change ring size
         for (int r = 0; r < rings.Count; r++)
@@ -47,15 +47,16 @@ public class ScanWave : MonoBehaviour
         }
     }
 
-    IEnumerator waveColorChange(List<Color> end_colors, float anim_time)
+    //handles color changes in (runs for anim_time)
+    IEnumerator patternColorChange(List<Color> end_colors, float anim_time)
     {
-        Color[] starting_colors = new Color[wave_information.getNumberOfRings()];
+        Color[] starting_colors = new Color[pattern_information.getNumberOfRings()];
         for (int i = 0; i < starting_colors.Length; i++)
         {
-            starting_colors[i] = wave_information.getRingColors()[i];
+            starting_colors[i] = pattern_information.getRingColors()[i];
         }
 
-        List<bool> is_solid = wave_information.getRingSolids();
+        List<bool> is_solid = pattern_information.getRingSolids();
 
         float time_remaining = anim_time;
         while (time_remaining > 0.0f)
@@ -70,14 +71,14 @@ public class ScanWave : MonoBehaviour
                               Mathf.Lerp(starting_colors[r].b, end_colors[r].b, 1.0f - (time_remaining / anim_time)),
                               1.0f);
 
-                if (is_solid[r] == false)
+                if (is_solid[r] == false) //must recolor each individual dot
                 {
                     for (int x = 1; x < rings[r].transform.GetChild(0).childCount; x++)
                     {
                         rings[r].transform.GetChild(0).GetChild(x).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = temp_color;
                     }
                 }
-                else
+                else //recolor the ring
                 {
                     rings[r].GetComponent<UnityEngine.UI.RawImage>().color = temp_color;
                 }
@@ -86,10 +87,11 @@ public class ScanWave : MonoBehaviour
             yield return null;
         }
 
-        wave_information.setRingColors(end_colors);
+        pattern_information.setRingColors(end_colors);
     }
 
-    IEnumerator waveSizeChange(bool contract, float time_interval)
+    //ring resize to small if true, big is false (runs for time_interval) 
+    IEnumerator patternSizeChange(bool contract, float time_interval)
     {
         float ring_start_size = 1.0f;
         float ring_end_size = 0.0f;
@@ -105,16 +107,18 @@ public class ScanWave : MonoBehaviour
 
             float ring_size = Mathf.Lerp(ring_start_size, ring_end_size, 1.0f - (time_remaining / time_interval));
 
-            waveSizeHelper(ring_size);
+            patternSizeHelper(ring_size);
 
             yield return null;
         }
     }
+
+    //ring spin coroutine (runs forever)
     IEnumerator spinRings(float[] rotate_speeds)
     {
         while (true)
         {
-            wave_center.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, wave_center.transform.localEulerAngles.z + Time.deltaTime * rotate_speeds[0]);
+            pattern_center.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, pattern_center.transform.localEulerAngles.z + Time.deltaTime * rotate_speeds[0]);
             for (int r = 1; r < rotate_speeds.Length; r++)
             {
                 rings[r - 1].transform.localRotation = Quaternion.Euler(0.0f, 0.0f, rings[r - 1].transform.localEulerAngles.z + Time.deltaTime * rotate_speeds[r]);
@@ -123,7 +127,7 @@ public class ScanWave : MonoBehaviour
         }
     }
 
-    public void resetWave()
+    public void resetPattern()
     {
         //destroy all individual items
         for (int r = 0; r < rings.Count; r++)
@@ -142,19 +146,19 @@ public class ScanWave : MonoBehaviour
         default_rotation_coroutine = null;
     }
 
-    public void initializeWave(WaveInfo wave_info)
+    public void displayPattern(PatternData pattern_info)
     {
         //set center
-        wave_center.GetComponent<UnityEngine.UI.RawImage>().texture = wave_info.getCenterTexture();
-        wave_center.GetComponent<UnityEngine.UI.RawImage>().color = wave_info.getCenterColor();
+        pattern_center.GetComponent<UnityEngine.UI.RawImage>().texture = pattern_info.getCenterTexture();
+        pattern_center.GetComponent<UnityEngine.UI.RawImage>().color = pattern_info.getCenterColor();
 
         //set rings
-        for (int r = 0; r < wave_info.getNumberOfRings(); r++)
+        for (int r = 0; r < pattern_info.getNumberOfRings(); r++)
         {
-            if (wave_info.getRingSolids()[r] == true) //is just a texture that spins around
+            if (pattern_info.getRingSolids()[r] == true) //is just a texture that spins around
             {
-                rings[r].GetComponent<UnityEngine.UI.RawImage>().texture = wave_info.getRingTextures()[r];
-                rings[r].GetComponent<UnityEngine.UI.RawImage>().color = wave_info.getRingColors()[r];
+                rings[r].GetComponent<UnityEngine.UI.RawImage>().texture = pattern_info.getRingTextures()[r];
+                rings[r].GetComponent<UnityEngine.UI.RawImage>().color = pattern_info.getRingColors()[r];
             }
             else //is comprised of more than one textures (ex. circles, diamonds)
             {
@@ -165,25 +169,25 @@ public class ScanWave : MonoBehaviour
                 for (int i = 0; i < NUM_OF_ITEMS_PER_RING; i++)
                 {
                     GameObject new_item = Object.Instantiate(rings[r].transform.GetChild(0).GetChild(0).gameObject, rings[r].transform.GetChild(0));
-                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = wave_info.getRingTextures()[r];
-                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = wave_info.getRingColors()[r];
+                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = pattern_info.getRingTextures()[r];
+                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = pattern_info.getRingColors()[r];
                     new_item.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, i * (360.0f / NUM_OF_ITEMS_PER_RING));
                     new_item.SetActive(true);
                 }
             }
         }
 
-        float[] rotate_speeds = new float[wave_info.getNumberOfRings() + 1];
-        rotate_speeds[0] = wave_info.getCenterSpeed();
-        for (int r = 0; r < wave_info.getNumberOfRings(); r++)
+        float[] rotate_speeds = new float[pattern_info.getNumberOfRings() + 1];
+        rotate_speeds[0] = pattern_info.getCenterSpeed();
+        for (int r = 0; r < pattern_info.getNumberOfRings(); r++)
         {
-            rotate_speeds[r + 1] = wave_info.getRingSpeeds()[r];
+            rotate_speeds[r + 1] = pattern_info.getRingSpeeds()[r];
         }
 
-        wave_information = wave_info;
+        pattern_information = pattern_info;
 
         //start at biggest
-        waveSizeHelper(1.0f);
+        patternSizeHelper(1.0f);
 
         default_rotation_coroutine = StartCoroutine(spinRings(rotate_speeds));
     }
@@ -195,24 +199,24 @@ public class ScanWave : MonoBehaviour
             StopCoroutine(color_change_coroutine);
         }
 
-        color_change_coroutine = StartCoroutine(waveColorChange(new_colors, anim_time));
+        color_change_coroutine = StartCoroutine(patternColorChange(new_colors, anim_time));
     }
 
-    public void contractWave(float time_interval)
+    public void contractPattern(float time_interval)
     {
         if (size_change_coroutine != null)
         {
             StopCoroutine(size_change_coroutine);
         }
-        size_change_coroutine = StartCoroutine(waveSizeChange(true, time_interval));
+        size_change_coroutine = StartCoroutine(patternSizeChange(true, time_interval));
     }
 
-    public void expandWave(float time_interval)
+    public void expandPattern(float time_interval)
     {
         if (size_change_coroutine != null)
         {
             StopCoroutine(size_change_coroutine);
         }
-        size_change_coroutine = StartCoroutine(waveSizeChange(false, time_interval));
+        size_change_coroutine = StartCoroutine(patternSizeChange(false, time_interval));
     }
 }

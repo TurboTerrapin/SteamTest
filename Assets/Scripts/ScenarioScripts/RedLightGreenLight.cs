@@ -14,7 +14,6 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using Steamworks;
@@ -29,7 +28,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
     bool ScenarioEndpointReached = false;
     private ScenarioManager scenarioManager;
     private ImpulseThrottle impulse;
-    private ScanWaveManager scanWaveManager;
+    private EnergyPatternManager energyPatternManager;
     private ShipHealth shipHealth;
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
@@ -37,12 +36,12 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
 
     private GameObject spaceship;
 
-    //--SCAN WAVE INFORMATION--//
-    //CENTER OF WAVE
+    //--ENERGY PATTERN INFORMATION--//
+    //CENTER OF PATTERN
     public Texture center_texture;
     public float center_speed = 50.0f;
 
-    //WAVE RINGS
+    //RINGS OF PATTERN
     public List<Texture> texture_options = null;
     public List<float> ring_speeds = null;
 
@@ -98,7 +97,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
         impulse = controlHandler.GetComponent<ImpulseThrottle>();
 
         GameObject sensorHandler = GameObject.FindWithTag("SensorHandler");
-        scanWaveManager = sensorHandler.GetComponent<ScanWaveManager>();
+        energyPatternManager = sensorHandler.GetComponent<EnergyPatternManager>();
 
         spaceship = GameObject.FindWithTag("Spaceship");
         shipHealth = spaceship.GetComponent<ShipHealth>();
@@ -110,7 +109,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
         //if host, begin scenario stuff
         if (NetworkManager.Singleton.IsHost)
         {
-            //initialize wave, randomize initial colors and textures
+            //initialize pattern, randomize initial colors and textures
             randomizeColors();
 
             int[] ring_textures = new int[4];
@@ -125,26 +124,17 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
                 ring_textures[i] = random_texture;
             }
 
-            string cc = "";
-            for (int i = 0; i < 5; i++)
-            {
-                cc += curr_colors[i].ToString();
-            }
+            string cc = DataConverter.arrayToString(curr_colors);
+            string rt = DataConverter.arrayToString(ring_textures);
 
-            string rt = "";
-            for (int i = 0; i < 4; i++)
-            {
-                rt += ring_textures[i].ToString();
-            }
-
-            waveInitializationRPC(cc, rt);
+            patternInitializationRPC(cc, rt);
             enterRedLightStateRPC();
         }
     }
     IEnumerator GreenLightState()
     {
-        //contract energy wave
-        scanWaveManager.resizeWave(0, true, 0.5f);
+        //contract energy pattern
+        energyPatternManager.resizePattern(0, true, 0.5f);
         if (NetworkManager.Singleton.IsHost)
         {
             yield return new WaitForSeconds(Random.Range(15.0f, 30.0f));
@@ -154,8 +144,8 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
 
     IEnumerator EndGreenLight(float end_time)
     {
-        //expand energy wave
-        scanWaveManager.resizeWave(0, false, end_time);
+        //expand energy pattern
+        energyPatternManager.resizePattern(0, false, end_time);
         yield return new WaitForSeconds(end_time);
         if (NetworkManager.Singleton.IsHost && ScenarioEndpointReached == false)
         {
@@ -174,7 +164,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
         {
             while (true)
             {
-                // if the ship is moving
+                //if the ship is moving
                 if (impulse.getCurrentImpulse() > 0.0f)
                 {
                     float time_before_damage_is_inflicted = 1.0f;
@@ -308,22 +298,17 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void waveInitializationRPC(string s_ring_colors, string s_ring_textures)
+    private void patternInitializationRPC(string s_ring_colors, string s_ring_textures)
     {
-        int[] temp_curr_colors = s_ring_colors.ToIntArray();
-        int[] temp_textures = s_ring_textures.ToIntArray();
+        int[] temp_curr_colors = DataConverter.stringToArray(s_ring_colors);
+        int[] temp_textures = DataConverter.stringToArray(s_ring_textures);
 
-        for (int i = 0; i < 5; i++)
-        {
-            curr_colors[i] = temp_curr_colors[i] - 48;
-        }
         setColorInfo();
 
         List<bool> ring_is_solid = new List<bool>();
         List<Texture> ring_textures = new List<Texture>();
         for (int i = 0; i < 4; i++)
         {
-            temp_textures[i] = temp_textures[i] - 48;
             ring_is_solid.Add(temp_textures[i] != 0);
             if (temp_textures[i] == 0)
             {
@@ -332,11 +317,11 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
             ring_textures.Add(texture_options[temp_textures[i]]);
         }
 
-        WaveInfo RLGLwave = new WaveInfo();
-        RLGLwave.setCenter(center_texture, COLOR_OPTIONS[curr_colors[4]], center_speed);
-        RLGLwave.setRings(4, getColorsAsColor(), ring_textures, ring_is_solid, ring_speeds);
+        PatternData RLGLpattern = new PatternData();
+        RLGLpattern.setCenter(center_texture, COLOR_OPTIONS[curr_colors[4]], center_speed);
+        RLGLpattern.setRings(4, getColorsAsColor(), ring_textures, ring_is_solid, ring_speeds);
 
-        scanWaveManager.initializeWave(0, RLGLwave);
+        energyPatternManager.setPattern(0, RLGLpattern);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -349,15 +334,11 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
     [Rpc(SendTo.Everyone)]
     private void enterGreenLightStateRPC(string s_new_colors)
     {
-        int[] temp_curr_colors = s_new_colors.ToIntArray();
+        int[] temp_curr_colors = DataConverter.stringToArray(s_new_colors);
 
-        for (int i = 0; i < 5; i++)
-        {
-            curr_colors[i] = temp_curr_colors[i] - 48;
-        }
         setColorInfo();
 
-        scanWaveManager.updateColors(0, getColorsAsColor(), 1.0f);
+        energyPatternManager.updateColors(0, getColorsAsColor(), 1.0f);
 
         resetCoroutines();
         greenLightCoroutine = StartCoroutine(GreenLightState());
