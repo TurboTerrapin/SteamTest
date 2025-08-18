@@ -2,28 +2,39 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/13/2025
+    Last Updated: 8/18/2025
 */
 
+using System.Collections;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
+    public const int COUNTDOWN_TIME = 360; //in seconds
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, EngineerMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
     public const float PATH_SIZE = 10.0f; //degrees of the boundary, does not reflect on EngineerMap so be careful!
 
+    public GameObject countdown_canvas;
+
     private EngineerMap engineer_map;
+    private Coroutine countdown_coroutine;
 
     //entrance/exit channel info
     private Vector2 entrance_position;
     private float entrance_rotation;
     private Vector2 exit_position;
     private float exit_rotation;
+
+    private void Start()
+    {
+        engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
+    }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
     public static Vector2 getBoundaryPointFromAngle(float ang)
@@ -62,8 +73,6 @@ public class ScenarioManager : NetworkBehaviour
     //called by PlayerManager after scene is loaded in and all player scripts (ControlScript, CameraMove, PlayerMove) are initialized
     public void initializeScenarioManager()
     {
-        engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
-
         //host starts stuff
         if (NetworkManager.Singleton.IsHost == true)
         {
@@ -76,6 +85,60 @@ public class ScenarioManager : NetworkBehaviour
     {
         generatePaths();
         setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
+        enableScenarioTimer();
+    }
+
+    private void displayCountdownAdjustment(int total_seconds)
+    {
+        string to_display = "";
+        int minutes = total_seconds / 60;
+        int seconds = total_seconds % 60;
+        to_display += minutes.ToString() + ":";
+        if (seconds < 10)
+        {
+            to_display += "0" + seconds;
+        }
+        else
+        {
+            to_display += seconds.ToString();
+        }
+        countdown_canvas.transform.GetChild(2).GetComponent<TMP_Text>().SetText(to_display);
+        countdown_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = (1.0f * total_seconds / COUNTDOWN_TIME);
+        Color to_change_to = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        if (total_seconds <= 60)
+        {
+            to_change_to = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+        }
+        for (int i = 0; i < countdown_canvas.transform.GetChild(0).childCount; i++)
+        {
+            countdown_canvas.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.Image>().color = to_change_to;
+        }
+        countdown_canvas.transform.GetChild(1).GetComponent<TMP_Text>().color = to_change_to;
+        countdown_canvas.transform.GetChild(2).GetComponent<TMP_Text>().color = to_change_to;
+        countdown_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().color = to_change_to;
+    }
+
+    IEnumerator scenarioCountdown()
+    {
+        int time_remaining = COUNTDOWN_TIME;
+        while (time_remaining > 0)
+        {
+            yield return new WaitForSeconds(1.0f);
+            time_remaining--;
+            displayCountdownAdjustment(time_remaining);
+        }
+
+        Debug.Log("COUNTDOWN OVER!");
+        countdown_coroutine = null;
+    }
+
+    private void enableScenarioTimer()
+    {
+        if (countdown_coroutine != null)
+        {
+            StopCoroutine(countdown_coroutine);
+        }
+        countdown_coroutine = StartCoroutine(scenarioCountdown());
     }
 
     //called by whatever scenario is in the scene upon ending (ex. ship destruction, endpoint reached)
