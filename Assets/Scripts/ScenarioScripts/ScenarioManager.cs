@@ -121,11 +121,12 @@ public class ScenarioManager : NetworkBehaviour
     IEnumerator scenarioCountdown()
     {
         int time_remaining = COUNTDOWN_TIME;
+        countdownUpdateRPC(time_remaining);
         while (time_remaining > 0)
         {
             yield return new WaitForSeconds(1.0f);
             time_remaining--;
-            displayCountdownAdjustment(time_remaining);
+            countdownUpdateRPC(time_remaining);
         }
 
         Debug.Log("COUNTDOWN OVER!");
@@ -168,5 +169,11 @@ public class ScenarioManager : NetworkBehaviour
             GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
         }
         engineer_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void countdownUpdateRPC(int time_remaining)
+    {
+        displayCountdownAdjustment(time_remaining);
     }
 }
