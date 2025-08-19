@@ -7,47 +7,9 @@ public class TransitionHandler : MonoBehaviour
     public Camera ProbeCamera;
     public Transform ScenarioTransitionCamera;
 
-    public Transform StartingCameraPosition1;
-    public Transform EndingCameraPosition1;
-    public Transform StartingCameraPosition2;
-    public Transform EndingCameraPosition2;
-    public Transform StartingCameraPosition3;
-    public Transform EndingCameraPosition3;
-    public Transform StartingCameraPosition4;
-    public Transform EndingCameraPosition4;
-    public Transform StartingCameraPosition5;
-    public Transform EndingCameraPosition5;
-    public Transform StartingCameraPosition6;
-    public Transform EndingCameraPosition6;
-    public Transform StartingCameraPosition7;
-    public Transform EndingCameraPosition7;
-    public Transform StartingCameraPosition8;
-    public Transform EndingCameraPosition8;
-    public Transform StartingCameraPosition9;
-    public Transform EndingCameraPosition9;
-    public Transform StartingCameraPosition10;
-    public Transform EndingCameraPosition10;
-
-    public TMP_Text StarDateText1;
-    public TMP_Text DistanceToDSFText1;
-    public TMP_Text StarDateText2;
-    public TMP_Text DistanceToDSFText2;
-    public TMP_Text StarDateText3;
-    public TMP_Text DistanceToDSFText3;
-    public TMP_Text StarDateText4;
-    public TMP_Text DistanceToDSFText4;
-    public TMP_Text StarDateText5;
-    public TMP_Text DistanceToDSFText5;
-    public TMP_Text StarDateText6;
-    public TMP_Text DistanceToDSFText6;
-    public TMP_Text StarDateText7;
-    public TMP_Text DistanceToDSFText7;
-    public TMP_Text StarDateText8;
-    public TMP_Text DistanceToDSFText8;
-    public TMP_Text StarDateText9;
-    public TMP_Text DistanceToDSFText9;
-    public TMP_Text StarDateText10;
-    public TMP_Text DistanceToDSFText10;
+    // Parents
+    public Transform CameraPositions;
+    public Transform TransitionText;
 
     // Start() for testing purposes
     void Start()
@@ -70,93 +32,126 @@ public class TransitionHandler : MonoBehaviour
         switch (scenario)
         {
             case 1:
-                StartCoroutine(MoveCamera(StartingCameraPosition1, EndingCameraPosition1, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(0), CameraPositions.GetChild(1), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText1, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(0).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(1).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText1, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(2).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(3).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
 
             case 2:
-                StartCoroutine(MoveCamera(StartingCameraPosition2, EndingCameraPosition2, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(2), CameraPositions.GetChild(3), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText2, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(4).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(5).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText2, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(6).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(7).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
 
             case 3:
-                StartCoroutine(MoveCamera(StartingCameraPosition3, EndingCameraPosition3, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(4), CameraPositions.GetChild(5), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText3, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(8).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(9).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText3, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(10).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(11).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
 
             case 4:
-                StartCoroutine(MoveCamera(StartingCameraPosition4, EndingCameraPosition4, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(6), CameraPositions.GetChild(7), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText4, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(12).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(13).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText4, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(14).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(15).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
 
             case 5:
-                StartCoroutine(MoveCamera(StartingCameraPosition5, EndingCameraPosition5, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(8), CameraPositions.GetChild(9), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText5, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(16).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(17).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText5, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(18).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(19).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
 
             case 6:
-                StartCoroutine(MoveCamera(StartingCameraPosition6, EndingCameraPosition6, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(10), CameraPositions.GetChild(11), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText6, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(12).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(20).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText6, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(14).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(21).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
+
 
             case 7:
-                StartCoroutine(MoveCamera(StartingCameraPosition7, EndingCameraPosition7, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(12), CameraPositions.GetChild(13), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText7, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(4).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(22).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText7, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(6).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(23).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
+
 
             case 8:
-                StartCoroutine(MoveCamera(StartingCameraPosition8, EndingCameraPosition8, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(14), CameraPositions.GetChild(15), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText8, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(8).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(24).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText8, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(10).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(25).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
 
+
             case 9:
-                StartCoroutine(MoveCamera(StartingCameraPosition9, EndingCameraPosition9, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(16), CameraPositions.GetChild(17), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText9, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(0).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(26).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText9, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(2).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(27).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
 
             case 10:
-                StartCoroutine(MoveCamera(StartingCameraPosition10, EndingCameraPosition10, 12f));
+                StartCoroutine(MoveCamera(CameraPositions.GetChild(18), CameraPositions.GetChild(19), 12f));
 
                 yield return new WaitForSeconds(2f);
-                yield return StartCoroutine(FadeText(StarDateText10, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(16).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(28).GetComponent<TMP_Text>(), 1f, 1.5f));
+
                 yield return new WaitForSeconds(3f);
-                yield return StartCoroutine(FadeText(DistanceToDSFText10, 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(18).GetComponent<TMP_Text>(), 1f, 1.5f));
+                StartCoroutine(FadeText(TransitionText.GetChild(29).GetComponent<TMP_Text>(), 1f, 1.5f));
                 break;
         }
     }
