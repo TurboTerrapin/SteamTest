@@ -17284,7 +17284,6 @@ GameObject:
   - component: {fileID: 191924465}
   - component: {fileID: 191924464}
   - component: {fileID: 191924463}
-  - component: {fileID: 191924462}
   m_Layer: 9
   m_Name: TestAsteroid (1)
   m_TagString: Asteroid
@@ -17307,33 +17306,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &191924462
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 191924460}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &191924463
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24729,7 +24701,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 271686953}
   serializedVersion: 4
-  m_Mass: 1e+9
+  m_Mass: 1
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -24746,7 +24718,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 1
   m_Interpolate: 1
-  m_Constraints: 126
+  m_Constraints: 0
   m_CollisionDetection: 1
 --- !u!1 &272429844
 GameObject:
@@ -41931,7 +41903,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 8521933880507242527}
   m_Father: {fileID: 617556425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &448718391
@@ -41968,6 +41941,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ASTEROID_DMG: 10
+  spriteRendererPrefab: {fileID: 141232353397881479, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+  explosionSprites:
+  - {fileID: 21300000, guid: aa28e3c0c5ab02340a92ad3e9ae30c4b, type: 3}
+  - {fileID: 21300000, guid: 91b16ad53c2cc554dadeb8d280ad8432, type: 3}
+  - {fileID: 21300000, guid: 8d7566d9193f18a408e82a2cf9219c7a, type: 3}
+  - {fileID: 21300000, guid: b5f92aff55df50a449997f3eacc99e59, type: 3}
+  - {fileID: 21300000, guid: 8ce33eb88691b4d459f39ee8dc76e1b2, type: 3}
+  frameRate: 12
 --- !u!1 &448841756
 GameObject:
   m_ObjectHideFlags: 0
@@ -57369,7 +57350,6 @@ GameObject:
   - component: {fileID: 617167812}
   - component: {fileID: 617167811}
   - component: {fileID: 617167810}
-  - component: {fileID: 617167809}
   m_Layer: 9
   m_Name: TestAsteroid (2)
   m_TagString: Asteroid
@@ -57377,33 +57357,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!54 &617167809
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 617167808}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &617167810
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -60375,7 +60328,6 @@ GameObject:
   - component: {fileID: 655720832}
   - component: {fileID: 655720831}
   - component: {fileID: 655720830}
-  - component: {fileID: 655720829}
   m_Layer: 9
   m_Name: TestAsteroid (7)
   m_TagString: Asteroid
@@ -60398,33 +60350,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &655720829
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 655720827}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &655720830
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -68518,6 +68443,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ASTEROID_DMG: 10
+  spriteRendererPrefab: {fileID: 0}
+  explosionSprites: []
+  frameRate: 12
 --- !u!1 &748758126
 GameObject:
   m_ObjectHideFlags: 0
@@ -100175,7 +100103,6 @@ GameObject:
   - component: {fileID: 1091469490}
   - component: {fileID: 1091469489}
   - component: {fileID: 1091469488}
-  - component: {fileID: 1091469487}
   m_Layer: 9
   m_Name: TestAsteroid (9)
   m_TagString: Asteroid
@@ -100198,33 +100125,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1091469487
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1091469485}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1091469488
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -102196,6 +102096,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ASTEROID_DMG: 10
+  spriteRendererPrefab: {fileID: 0}
+  explosionSprites: []
+  frameRate: 12
 --- !u!1 &1108799315
 GameObject:
   m_ObjectHideFlags: 0
@@ -107800,6 +107703,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ASTEROID_DMG: 10
+  spriteRendererPrefab: {fileID: 0}
+  explosionSprites: []
+  frameRate: 12
 --- !u!1 &1176343139
 GameObject:
   m_ObjectHideFlags: 0
@@ -114535,7 +114441,6 @@ GameObject:
   - component: {fileID: 1264792277}
   - component: {fileID: 1264792276}
   - component: {fileID: 1264792275}
-  - component: {fileID: 1264792274}
   m_Layer: 9
   m_Name: TestAsteroid (5)
   m_TagString: Asteroid
@@ -114558,33 +114463,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1264792274
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1264792272}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1264792275
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -120896,7 +120774,6 @@ GameObject:
   - component: {fileID: 1326593467}
   - component: {fileID: 1326593466}
   - component: {fileID: 1326593465}
-  - component: {fileID: 1326593464}
   m_Layer: 9
   m_Name: TestAsteroid (2)
   m_TagString: Asteroid
@@ -120919,33 +120796,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1326593464
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1326593462}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1326593465
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -121279,7 +121129,6 @@ GameObject:
   - component: {fileID: 1327919114}
   - component: {fileID: 1327919113}
   - component: {fileID: 1327919112}
-  - component: {fileID: 1327919111}
   m_Layer: 9
   m_Name: TestAsteroid (3)
   m_TagString: Asteroid
@@ -121287,33 +121136,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!54 &1327919111
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1327919110}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1327919112
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -126036,7 +125858,6 @@ GameObject:
   - component: {fileID: 1371625023}
   - component: {fileID: 1371625022}
   - component: {fileID: 1371625021}
-  - component: {fileID: 1371625020}
   m_Layer: 9
   m_Name: TestAsteroid (4)
   m_TagString: Asteroid
@@ -126059,33 +125880,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 45, y: 45, z: 0}
---- !u!54 &1371625020
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1371625018}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1371625021
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -131178,7 +130972,6 @@ GameObject:
   - component: {fileID: 1425656164}
   - component: {fileID: 1425656163}
   - component: {fileID: 1425656162}
-  - component: {fileID: 1425656161}
   m_Layer: 9
   m_Name: TestAsteroid
   m_TagString: Asteroid
@@ -131201,33 +130994,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 45, y: 45, z: 0}
---- !u!54 &1425656161
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1425656159}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1425656162
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -137162,7 +136928,6 @@ GameObject:
   - component: {fileID: 1515461207}
   - component: {fileID: 1515461206}
   - component: {fileID: 1515461205}
-  - component: {fileID: 1515461204}
   m_Layer: 9
   m_Name: TestAsteroid (4)
   m_TagString: Asteroid
@@ -137185,33 +136950,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1515461204
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1515461202}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1515461205
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -139107,7 +138845,6 @@ GameObject:
   - component: {fileID: 1532579822}
   - component: {fileID: 1532579821}
   - component: {fileID: 1532579820}
-  - component: {fileID: 1532579819}
   m_Layer: 9
   m_Name: TestAsteroid (8)
   m_TagString: Asteroid
@@ -139130,33 +138867,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1532579819
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1532579817}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &1532579820
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -193611,7 +193321,6 @@ GameObject:
   - component: {fileID: 2128465491}
   - component: {fileID: 2128465490}
   - component: {fileID: 2128465489}
-  - component: {fileID: 2128465488}
   m_Layer: 9
   m_Name: TestAsteroid (6)
   m_TagString: Asteroid
@@ -193634,33 +193343,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &2128465488
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2128465486}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0.5
-  m_AngularDrag: 0.5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 1
 --- !u!65 &2128465489
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -229121,6 +228803,68 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6081323542729184789}
   m_Mesh: {fileID: 1558065659430096813, guid: 4b2d6f988f4ceac4396f04cd50abf844, type: 3}
+--- !u!1001 &8521933880507242526
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 448718390}
+    m_Modifications:
+    - target: {fileID: 141232353397881479, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_Name
+      value: ExplosionRenderer
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+--- !u!4 &8521933880507242527 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6256993698979413170, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+  m_PrefabInstance: {fileID: 8521933880507242526}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8524251066549977661
 GameObject:
   m_ObjectHideFlags: 0
