@@ -1,33 +1,30 @@
 using UnityEngine;
 using TMPro;
-using Steamworks;
+using Steamworks.Data;
+using Unity.Netcode;
 
 
 public class FriendJoinWithButton : MonoBehaviour
 {
     [SerializeField]
-    private Friend friend;
+    private Lobby lobby;
     [SerializeField]
     private TextMeshProUGUI friendName;
     [SerializeField]
     private TextMeshProUGUI players;
 
-    public void SetFriend(Friend f)
+    public void SetLobby(Lobby l)
     {
-        friend = f;
-        friendName.text = friend.Name;
-        players.text = GetPlayers().ToString();
+        lobby = l;
+        friendName.text = l.Owner.Name;
+        players.text = GetPlayers().ToString() + "/4";
     }
 
     public void JoinFriendLobby()
     {
-        if (friend.GameInfo.Value.Lobby.HasValue)
-        {
-            Debug.Log(friend.GameInfo.Value.Lobby.Value.Id);
-            GameNetworkManager.Instance.JoinWithButton(friend.GameInfo.Value.Lobby.Value);
-            //used for loading
-            GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
-        }
+        GameNetworkManager.Instance.JoinWithButton(lobby);
+        //used for loading
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
     }
 
     public void ChangeCanvasMode(int i)
@@ -37,7 +34,6 @@ public class FriendJoinWithButton : MonoBehaviour
 
     private int GetPlayers()
     {
-        if(friend.GameInfo.Value.Lobby.HasValue) return friend.GameInfo.Value.Lobby.Value.MemberCount;
-        return -1;
+        return Mathf.Max(1, lobby.MemberCount);
     }
 }

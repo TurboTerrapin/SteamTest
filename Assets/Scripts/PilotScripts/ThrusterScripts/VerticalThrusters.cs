@@ -3,7 +3,7 @@
     - Handles inputs for vertical thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 7/2/2025
+    Last Updated: 8/20/2025
 */
 
 using System.Collections;
@@ -11,28 +11,32 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class VerticalThrusters : ThrusterControl, IControllable
+public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
 {
     private string CONTROL_NAME = "VERTICAL THRUSTERS";
     private List<string> CONTROL_DESCS = new List<string>{"DESCEND", "ASCEND"};
     private List<int> CONTROL_INDEXES = new List<int>(){2, 0};
     private List<Button> BUTTONS = new List<Button>();
 
-    public GameObject altitude_slider;
-
     private List<KeyCode> keys_down = new List<KeyCode>();
 
-    private static HUDInfo hud_info = null;
+    private bool is_powered = false;
+
+    private HUDInfo hud_info = null;
+
+    private void Start()
+    {
+        button_initial_pos = thruster_buttons[0].transform.localPosition;
+        button_final_pos = new Vector3(0.2816f, -1.3473f, 19.1217f);
+
+        hud_info = new HUDInfo(CONTROL_NAME);
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
+        hud_info.setButtons(BUTTONS);
+    }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
-        if (hud_info == null)
-        {
-            hud_info = new HUDInfo(CONTROL_NAME);
-            BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, false));
-            BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
-            hud_info.setButtons(BUTTONS);
-        }
         return hud_info;
     }
 
@@ -50,9 +54,9 @@ public class VerticalThrusters : ThrusterControl, IControllable
             //check inputs and adjust thruster/button percentages
             for (int i = 0; i < 2; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down))
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && is_powered == true)
                 {
-                    thruster_percentage[i] = Mathf.Min(1.0f, thruster_percentage[i] + (dt * MOVE_SPEED * inertial_dampener_modifier));
+                    thruster_percentage[i] = Mathf.Min(1.0f, thruster_percentage[i] + (dt * MOVE_SPEED * (1.0f + (1.5f * inertial_dampener_modifier))));
                     button_push_percentage[i] = Mathf.Min(1.0f, button_push_percentage[i] + (dt * MOVE_SPEED * PUSH_SPEED));
                 }
                 else
@@ -76,13 +80,29 @@ public class VerticalThrusters : ThrusterControl, IControllable
         adjustButton(thruster_buttons[1], 1);
 
         //update diamond
-        GameObject diamond = display_canvas.transform.GetChild(1).gameObject;
+        GameObject diamond = thruster_display.transform.GetChild(0).gameObject;
         float diamond_location = (thrust_direction + 1.0f) / 2.0f;
 
         diamond.transform.localPosition =
             new Vector3(Mathf.Lerp(0.055f, -0.055f, diamond_location),
                         diamond.transform.localPosition.y,
                         diamond.transform.localPosition.z);
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        BUTTONS[0].updateInteractable(true);
+        BUTTONS[1].updateInteractable(true);
+        thruster_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+        thruster_display.SetActive(false);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -99,7 +119,7 @@ public class VerticalThrusters : ThrusterControl, IControllable
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        if (thruster_coroutine == null)
+        if (thruster_coroutine == null && is_powered == true)
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {

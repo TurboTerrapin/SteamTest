@@ -4,7 +4,7 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 7/5/2025
+    Last Updated: 8/20/2025
 */
 
 using System.Collections;
@@ -12,160 +12,239 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class InertialDampeners : NetworkBehaviour, IControllable
+public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
 
-    private string CONTROL_NAME = "INERTIAL DAMPENERS";
-    private List<string> CONTROL_DESCS = new List<string>() { "ENABLE PRIMARY", "ENABLE SECONDARY", "ENABLE TERTIARY" };
-    private List<string> ALT_CONTROL_DESCS = new List<string>() { "DISABLE PRIMARY", "DISABLE SECONDARY", "DISABLE TERTIARY" };
-    private List<int> CONTROL_INDEXES = new List<int>() {7, 8, 9};
-    private List<Button> BUTTONS = new List<Button>();
+    private string[] CONTROL_NAMES = new string[] { "PRIMARY INERTIAL DAMPENER", "SECONDARY INERTIAL DAMPENER", "TERTIARY INERTIAL DAMPENER" };
+    private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
+    private List<int> CONTROL_INDEXES = new List<int>() { 6 };
+    private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
 
-    private bool[] dampener_is_enabled = new bool[3]{false, false, false};
-    private Coroutine dampener_switch_coroutine = null;
+    public GameObject dampener_switches;
+    public GameObject dampener_display;
 
-    public Material lit_neon;
-    public Material unlit_blue;
+    private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
+    private bool[] dampener_is_enabled = new bool[3] { false, false, false };
+    private float[] dampener_enabled_percentage = new float[3] { 0.0f, 0.0f, 0.0f };
+    private Coroutine fill_bar_coroutine = null;
+    private Coroutine[] dampener_switch_coroutines = new Coroutine[] { null, null, null };
 
-    public List<GameObject> dampener_sticks = null;
-    public List<GameObject> dampener_indicators = null;
+    private List<string> ray_targets = new List<string> { "primary_inertial_dampener", "secondary_inertial_dampener", "tertiary_inertial_dampener" };
 
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], true, true));
-        hud_info.setButtons(BUTTONS);
-        hud_info.adjustButtonFontSizes(34.0f);
+        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTON_LISTS[2].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
+        int index = ray_targets.IndexOf(current_target.name);
+        hud_info.setTitle(CONTROL_NAMES[index]);
+        hud_info.setButtons(BUTTON_LISTS[index], 6);
+
         return hud_info;
     }
 
-    private void adjustInertialDampenerModifiers()
+    private float getFillBarValue()
     {
-        float modifier = 1.0f;
+        float modifier = 0.0f;
         for (int i = 0; i <= 2; i++)
         {
             if (dampener_is_enabled[i] == true)
             {
-                modifier += 1.5f;
+                modifier += 1.0f;
             }
         }
+        return (modifier / 3.0f);
+    }
+
+    private float getInertialDampenerModifierValue()
+    {
+        float modifier = 0.0f;
+        for (int i = 0; i <= 2; i++)
+        {
+            if (dampener_enabled_percentage[i] >= 1.0f)
+            {
+                modifier += 1.0f;
+            }
+        }
+        return (modifier / 3.0f);
+    }
+
+    private void adjustInertialDampenerModifiers()
+    {
+        float modifier = getInertialDampenerModifierValue();
         transform.GetComponent<ImpulseThrottle>().adjustInertialDampenerModifier(modifier);
         transform.GetComponent<HorizontalThrusters>().adjustInertialDampenerModifier(modifier);
         transform.GetComponent<VerticalThrusters>().adjustInertialDampenerModifier(modifier);
     }
 
-    IEnumerator switchDampener(int index, bool to_switch_to)
+    IEnumerator adjustFillBar()
     {
-        GameObject current_stick = dampener_sticks[index];
-        GameObject current_indicator = dampener_indicators[index];
+        UnityEngine.UI.Image fill_bar = dampener_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
 
-        float starting_stick_rotation = -80.0f;
-
-        float desired_stick_rotation = -60.0f;
-
-        if (to_switch_to == true)
-        {
-            starting_stick_rotation = -140.0f;
-            desired_stick_rotation = 60.0f;
-        }
-        else
-        {
-            current_indicator.GetComponent<Renderer>().material = unlit_blue;
-        }
+        float start_fill = fill_bar.fillAmount;
+        float dest_fill = getFillBarValue();
 
         float anim_time = SWITCH_TIME;
         while (anim_time > 0.0f)
         {
-            anim_time = Mathf.Max(0.0f, anim_time -= Time.deltaTime);
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            //set stick
-            dampener_sticks[index].transform.localRotation =
-                Quaternion.Euler(starting_stick_rotation + Mathf.Lerp(desired_stick_rotation, 0.0f, anim_time / SWITCH_TIME),
-                                 0.0f,
-                                 0.0f);
+            fill_bar.fillAmount = Mathf.Lerp(start_fill, dest_fill, 1.0f - (anim_time / SWITCH_TIME));
+            yield return null;
+        }
+
+        fill_bar_coroutine = null;
+    }
+
+    IEnumerator switchDampener(int index, bool to_switch_to)
+    {
+        GameObject current_switch = dampener_switches.transform.GetChild(index).gameObject;
+        float starting_switch_rotation = current_switch.transform.localRotation.eulerAngles.z;
+        float desired_switch_rotation = 90.0f;
+
+        dampener_is_enabled[index] = to_switch_to;
+
+        if (to_switch_to == true)
+        {
+            desired_switch_rotation = 180.0f;
+        }
+
+        if (fill_bar_coroutine != null)
+        {
+            StopCoroutine(fill_bar_coroutine);
+        }
+        fill_bar_coroutine = StartCoroutine(adjustFillBar());
+
+        float anim_time = SWITCH_TIME;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            dampener_enabled_percentage[index] = anim_time / SWITCH_TIME;
+            if (to_switch_to == true)
+            {
+                dampener_enabled_percentage[index] = 1.0f - dampener_enabled_percentage[index];
+            }
+
+            //turn switch
+            current_switch.transform.localRotation = 
+                Quaternion.Euler(-113.0f, 0.0f, Mathf.Lerp(starting_switch_rotation, desired_switch_rotation, 1.0f - (anim_time / SWITCH_TIME)));
 
             yield return null;
         }
 
+        adjustInertialDampenerModifiers();
+
         if (to_switch_to == true)
         {
-            BUTTONS[index].updateDesc(ALT_CONTROL_DESCS[index]);
-            current_indicator.GetComponent<Renderer>().material = lit_neon;
+            BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[1]);
         }
         else
         {
-            BUTTONS[index].updateDesc(CONTROL_DESCS[index]);
+            BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[0]);
         }
 
-        adjustInertialDampenerModifiers();
+        BUTTON_LISTS[index][0].updateInteractable(is_powered);
 
-        for (int i = 0; i <= 2; i++)
-        {
-            BUTTONS[i].updateInteractable(true);
-        }
-        dampener_switch_coroutine = null;
-    }
-
-    //used to ensure all are in the correct place
-    private void setAllDampeners()
-    {
-        for (int i = 0; i <= 2; i++)
-        {
-            float stick_rotation = -140.0f;
-            if (dampener_is_enabled[i] == true)
-            {
-                stick_rotation = -80.0f;
-                dampener_indicators[i].GetComponent<Renderer>().material = lit_neon;
-            }
-            else
-            {
-                dampener_indicators[i].GetComponent<Renderer>().material = unlit_blue;
-            }
-            //reset stick
-            dampener_sticks[i].transform.localRotation =
-                Quaternion.Euler(stick_rotation,
-                                 0.0f,
-                                 0.0f);
-        }
+        dampener_switch_coroutines[index] = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (dampener_switch_coroutine == null)
+        int index = ray_targets.IndexOf(current_target.name);
+
+        if (dampener_switch_coroutines[index] == null && is_powered == true)
         {
-            for (int i = 0; i <= 2; i++)
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
-                {
-                    BUTTONS[i].toggle();
-                    for (int x = 0; x <= 2; x++)
-                    {
-                        BUTTONS[x].updateInteractable(false);
-                    }
-                    transmitInertialDampenerRPC(i, !dampener_is_enabled[i]);
-                }
+                BUTTON_LISTS[index][0].toggle(0.2f);
+                BUTTON_LISTS[index][0].updateInteractable(false);
+                transmitInertialDampenerRPC(index, dampener_is_enabled[index]);
             }
         }
 
+    }
+
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        float[] starting_rotations = new float[3] { 0.0f, 0.0f, 0.0f };
+        for (int i = 0; i < 3; i++)
+        {
+            if (dampener_switch_coroutines[i] != null)
+            {
+                StopCoroutine(dampener_switch_coroutines[i]);
+                dampener_switch_coroutines[i] = null;
+            }
+            BUTTON_LISTS[i][0].updateDesc(CONTROL_DESCS[0]);
+            BUTTON_LISTS[i][0].updateInteractable(false);
+            BUTTON_LISTS[i][0].untoggle();
+            dampener_is_enabled[i] = false;
+            dampener_enabled_percentage[i] = 0.0f;
+
+            starting_rotations[i] = dampener_switches.transform.GetChild(i).localRotation.eulerAngles.z;
+        }
+        dampener_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
+
+        float anim_time = power_off_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            //turn switches
+            for (int i = 0; i < 3; i++)
+            {
+                dampener_switches.transform.GetChild(i).localRotation =
+                    Quaternion.Euler(-113.0f, 0.0f, Mathf.Lerp(starting_rotations[i], 90.0f, 1.0f - (anim_time / power_off_time)));
+            }
+
+            yield return null;
+        }
+
+        adjustInertialDampenerModifiers();
+
+        power_loss_coroutine = null;
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        BUTTON_LISTS[0][0].updateInteractable(true);
+        BUTTON_LISTS[1][0].updateInteractable(true);
+        BUTTON_LISTS[2][0].updateInteractable(true);
+        dampener_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        dampener_display.SetActive(false);
+
+        //turn off all inertial dampeners
+        if (power_loss_coroutine != null)
+        {
+            StopCoroutine(power_loss_coroutine);
+        }
+        power_loss_coroutine = StartCoroutine(returnToZero(time));
     }
 
     [Rpc(SendTo.Everyone)]
     private void transmitInertialDampenerRPC(int index, bool is_enabled)
     {
         dampener_is_enabled[index] = is_enabled;
-        if (dampener_switch_coroutine != null)
+        if (dampener_switch_coroutines[index] != null)
         {
-            StopCoroutine(dampener_switch_coroutine);
-            setAllDampeners();
+            StopCoroutine(dampener_switch_coroutines[index]);
         }
-        dampener_switch_coroutine = StartCoroutine(switchDampener(index, is_enabled));
+        dampener_switch_coroutines[index] = StartCoroutine(switchDampener(index, !is_enabled));
     }
 }

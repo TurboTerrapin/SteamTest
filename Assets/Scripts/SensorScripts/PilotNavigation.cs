@@ -3,18 +3,22 @@
     - Updates course heading text and compass slider
     - Updates ship altimeter
     Contributor(s): Jake Schott
-    Last Updated: 6/30/2025
+    Last Updated: 8/20/2025
 */
 
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class PilotNavigation : MonoBehaviour
+public class PilotNavigation : MonoBehaviour, IPowerable
 {
+    public GameObject altitude_display;
+    public GameObject heading_display;
+
     public GameObject heading_text;
     public GameObject compass;
     public GameObject altimeter;
+
     private GameObject spaceship;
     private GameObject world_root;
 
@@ -214,5 +218,20 @@ public class PilotNavigation : MonoBehaviour
             bars[i].SetActive(true);
             bars[i].transform.localPosition = new Vector3((-0.01f * i) + 0.09f - shift, bars[i].transform.localPosition.y, 0.0f);
         }
+    }
+
+    public void powerOn(int position)
+    {
+        if (altitude_display.activeSelf == true)
+        {
+            heading_display.SetActive(true);
+        }
+        altitude_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        heading_display.SetActive(false);
+        altitude_display.SetActive(false);
     }
 }

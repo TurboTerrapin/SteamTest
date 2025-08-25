@@ -1,9 +1,6 @@
-
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Netcode.Transports.Facepunch;
 using Unity.Netcode;
 
 public class SceneSwapper : MonoBehaviour
@@ -37,7 +34,7 @@ public class SceneSwapper : MonoBehaviour
     }
 
 
-    [ClientRpc]
+    [Rpc(SendTo.Everyone)]
     public void ChangeSceneClientRPC(string sceneName)
     {
         NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);

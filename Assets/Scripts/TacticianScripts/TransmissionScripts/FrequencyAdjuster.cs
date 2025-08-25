@@ -22,15 +22,18 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
 
     public GameObject frequency_dial;
 
+    private TransmissionHandler transmission_handler;
     private float dial_rotation = 0.0f;
     private float frequency_update = 0.5f; //increases at 1.0, decreases at 0.0
 
     private static HUDInfo hud_info = null;
     private void Start()
     {
+        transmission_handler = transform.GetComponent<TransmissionHandler>();  
+
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -47,6 +50,11 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (transmission_handler.getIsPowered() == false || transmission_handler.isTransmitting() == true)
+        {
+            return;
+        }
+
         int dial_direction = 0;
         if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
         {
@@ -91,12 +99,24 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
         }
     }
 
+    public void activate()
+    {
+        BUTTONS[0].updateInteractable(true);
+        BUTTONS[1].updateInteractable(true);
+    }
+
+    public void deactivate()
+    {
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+    }
+
     [Rpc(SendTo.Everyone)]
     private void transmitFrequencyAdjustmentRPC(float dr, float fu, int freq)
     {
         dial_rotation = dr;
         frequency_update = fu;
-        transform.GetComponent<TransmissionHandler>().updateFrequency(freq);
+        transmission_handler.updateFrequency(freq);
         displayAdjustment();
     }
 }

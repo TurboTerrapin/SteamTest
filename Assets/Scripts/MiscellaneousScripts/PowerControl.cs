@@ -3,7 +3,7 @@
     - Handles power-on/power-off procedure
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2025
+    Last Updated: 8/20/2025
 */
 
 using System.Collections;
@@ -15,18 +15,18 @@ public class PowerControl : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     private static float TURN_TIME = 1.0f;
-    private static float COOLDOWN_TIME = 0.25f;
 
     private string CONTROL_NAME = "POWER CONTROL";
-    private List<string> CONTROL_DESCS = new List<string>{"ENABLE"};
+    private List<string> CONTROL_DESCS = new List<string>{ "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>(){6};
     private List<Button>[] BUTTON_LISTS = new List<Button>[4];
 
+    public GameObject power_handler;
     public List<GameObject> dials = null;
     public List<GameObject> light_indicator_groups = null;
 
+    private bool[] active_dials = new bool[4] { true, true, true, true };
     private List<string> ray_targets = new List<string>{"pilot_power", "tactician_power", "engineer_power", "captain_power"};
-    private bool[] power_enabled = new bool[4] { false, false, false, false };
     private Coroutine[] turn_coroutines = new Coroutine[4] {null, null, null, null};
 
     private static HUDInfo hud_info = null;
@@ -56,19 +56,21 @@ public class PowerControl : NetworkBehaviour, IControllable
         }
     }
 
-    IEnumerator dialTurn(int index)
+    IEnumerator dialTurn(int index, bool enabling)
     {
-        bool increasing = true;
-
         //disable indicator
-        if (power_enabled[index] == true)
+        if (enabling == false)
         {
             changeIndicator(index, false);
-            power_enabled[index] = false;
-            increasing = false;
         }
         
         float turn_time = TURN_TIME;
+        float starting_angle = dials[index].transform.localEulerAngles.z;
+        float dest_angle = 90.0f;
+        if (enabling == true)
+        {
+            dest_angle = 0.0f;
+        }
 
         //turn physical dial
         while (turn_time > 0)
@@ -76,11 +78,7 @@ public class PowerControl : NetworkBehaviour, IControllable
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             turn_time = Mathf.Max(0.0f, turn_time - dt);
 
-            float dial_angle = Mathf.Lerp(-90, 0, turn_time / TURN_TIME);
-            if (increasing == true)
-            {
-                dial_angle = Mathf.Lerp(-90, 0, 1.0f - (turn_time / TURN_TIME));
-            }
+            float dial_angle = Mathf.Lerp(starting_angle, dest_angle, 1.0f - (turn_time / TURN_TIME));
 
             dials[index].transform.localRotation =
                 Quaternion.Euler(dials[index].transform.localRotation.eulerAngles.x,
@@ -89,50 +87,74 @@ public class PowerControl : NetworkBehaviour, IControllable
             yield return null;
         }
 
-        //enable indicator
-        if (increasing == true)
+        //enable indicator and station
+        if (enabling == true)
         {
             changeIndicator(index, true);
-            power_enabled[index] = true;
-        }
-
-        //cooldown
-        yield return new WaitForSeconds(COOLDOWN_TIME);
-
-        BUTTON_LISTS[index][0].updateInteractable(true);
-        if (power_enabled[index])
-        {
-            BUTTON_LISTS[index][0].updateDesc("DISABLE");
-        }
-        else
-        {
-            BUTTON_LISTS[index][0].updateDesc("ENABLE");
+            power_handler.GetComponent<PowerManager>().powerStation(index);
         }
 
         turn_coroutines[index] = null;
     }
 
+    //called by PowerManager
+    public void enableDial(int index, bool power_enabled)
+    {
+        if (power_enabled == true)
+        {
+            BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[1]);
+        }
+        else
+        {
+            BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[0]);
+        }
+        active_dials[index] = true;
+        BUTTON_LISTS[index][0].untoggle();
+        BUTTON_LISTS[index][0].updateInteractable(true);
+    }
+
+    //called by PowerManager
+    public void disableDial(int index)
+    {
+        active_dials[index] = false;
+        BUTTON_LISTS[index][0].updateInteractable(false);
+    }
+
+    //called by PowerManager
+    public void turnDial(int index, bool enabling)
+    {
+        if (turn_coroutines[index] != null)
+        {
+            StopCoroutine(turn_coroutines[index]);
+        }
+        turn_coroutines[index] = StartCoroutine(dialTurn(index, enabling));
+    }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         int index = ray_targets.IndexOf(current_target.name);
-        if (turn_coroutines[index] == null)
+        if (active_dials[index] == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle(0.2f);
-                transmitPowerControlRPC(index, power_enabled[index]);
+                transmitPowerControlRPC(index, !power_handler.GetComponent<PowerManager>().getPowerEnabled(index));
             }
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitPowerControlRPC(int index, bool is_enabled)
+    private void transmitPowerControlRPC(int index, bool enabling)
     {
-        power_enabled[index] = is_enabled;
-        if (turn_coroutines[index] != null)
+        if (enabling == true && power_handler.GetComponent<PowerManager>().getPowerEnabled(index) == false)
         {
-            StopCoroutine(turn_coroutines[index]);
+            disableDial(index);
+            turnDial(index, true); //will call power_handler.GetComponent<PowerManager>().powerStation(index)
         }
-        turn_coroutines[index] = StartCoroutine(dialTurn(index));
+        else if (enabling == false && power_handler.GetComponent<PowerManager>().getPowerEnabled(index) == true)
+        {
+            disableDial(index);
+            power_handler.GetComponent<PowerManager>().disableStation(index);
+        }
     }
 }

@@ -34,7 +34,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTONS);
 
@@ -59,7 +59,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
 
     private GameObject getCharacterDisplay(int index)
     {
-        return input_glasses.transform.GetChild(index).GetChild(0).gameObject;
+        return input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
     }
 
     private void displayAdjustment()
@@ -67,8 +67,8 @@ public class SymbolToggle : NetworkBehaviour, IControllable
         for (int i = 0; i < 12; i++)
         {
             GameObject cd = getCharacterDisplay(i);
-            cd.transform.GetChild(1).gameObject.SetActive(symbol_mode);
-            cd.transform.GetChild(2).gameObject.SetActive(!symbol_mode);
+            cd.transform.GetChild(0).gameObject.SetActive(symbol_mode);
+            cd.transform.GetChild(1).gameObject.SetActive(!symbol_mode);
         }
         numeric_indicator_display.transform.GetChild(0).gameObject.SetActive(symbol_mode);
         numeric_indicator_display.transform.GetChild(1).gameObject.SetActive(!symbol_mode);
@@ -118,7 +118,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (numer_selector_coroutine == null && is_active == true)
+        if (numer_selector_coroutine == null && is_active == true && transform.GetComponent<UniversalCommunicator>().getIsPowered() == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {

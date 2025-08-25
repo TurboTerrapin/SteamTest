@@ -4,7 +4,7 @@
     - Adjusts screen
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 8/22/2025
 */
 
 using System.Collections;
@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class ProbeLateralMovement : NetworkBehaviour, IControllable
+public class ProbeLateralMovement : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float BUTTON_SPEED = 10.0f;
@@ -24,14 +24,15 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
     private List<Button> BUTTONS = new List<Button>();
 
     public List<GameObject> lateral_buttons = null; //forward, left, reverse, right
-    public GameObject lateral_canvas;
-    public GameObject probe;
+    public GameObject lateral_display;
 
+    private bool is_powered = false;
+    private GameObject probe;
     private Vector3[] initial_positions = new Vector3[4];
     private Vector3[] final_positions = new Vector3[4];
     private float[] lateral_movement_factors = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f }; //forward, left, reverse, right
     private Vector3 lateral_button_move_direction = new Vector3(0, -0.006f, 0.0024f);
-    private Vector3 probe_position;
+    private Vector3 probe_position = new Vector3(0.0f, 0.0f, 0.0f);
     private Coroutine lateral_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -51,8 +52,6 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
             initial_positions[i] = lateral_buttons[i].transform.localPosition;
             final_positions[i] = lateral_buttons[i].transform.localPosition + lateral_button_move_direction;
         }
-
-        probe_position = probe.transform.localPosition;
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
@@ -68,7 +67,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
                             Mathf.Lerp(initial_positions[i].y, final_positions[i].y, lateral_movement_factors[i]),
                             Mathf.Lerp(initial_positions[i].z, final_positions[i].z, lateral_movement_factors[i]));
 
-            lateral_canvas.transform.GetChild(i + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, lateral_movement_factors[i]);
+            lateral_display.transform.GetChild(i).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, lateral_movement_factors[i]);
         }
 
         //update probe
@@ -86,7 +85,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
         {
             BUTTONS[i].updateInteractable(true);
         }
-        lateral_canvas.transform.GetChild(5).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0, 0.84f, 1.0f, 1.0f);
+        lateral_display.transform.GetChild(4).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0, 0.84f, 1.0f, 1.0f);
     }
 
     public void unlinkProbe()
@@ -96,7 +95,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
         {
             BUTTONS[i].updateInteractable(false);
         }
-        lateral_canvas.transform.GetChild(5).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0, 0.84f, 1.0f, 0.196f);
+        lateral_display.transform.GetChild(4).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0, 0.84f, 1.0f, 0.196f);
     }
 
     private bool isNeutralState()
@@ -122,16 +121,19 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
                 probe_position = probe.transform.localPosition;
             }
 
-            //check inputs/return buttons to default
-            for (int i = 0; i <= 3; i++)
+            if (is_powered == true)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && probe != null)
+                //check inputs/return buttons to default
+                for (int i = 0; i <= 3; i++)
                 {
-                    lateral_movement_factors[i] = Mathf.Min(1.0f, lateral_movement_factors[i] + dt * BUTTON_SPEED);
-                }
-                else
-                {
-                    lateral_movement_factors[i] = Mathf.Max(0.0f, lateral_movement_factors[i] - dt * BUTTON_SPEED);
+                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && probe != null)
+                    {
+                        lateral_movement_factors[i] = Mathf.Min(1.0f, lateral_movement_factors[i] + dt * BUTTON_SPEED);
+                    }
+                    else
+                    {
+                        lateral_movement_factors[i] = Mathf.Max(0.0f, lateral_movement_factors[i] - dt * BUTTON_SPEED);
+                    }
                 }
             }
 
@@ -166,6 +168,11 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         if (lateral_adjustment_coroutine == null)
         {
@@ -178,6 +185,26 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
                 }
             }
         }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        lateral_display.SetActive(true);
+        BUTTONS[0].updateInteractable(probe != null);
+        BUTTONS[1].updateInteractable(probe != null);
+        BUTTONS[2].updateInteractable(probe != null);
+        BUTTONS[3].updateInteractable(probe != null);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        lateral_display.SetActive(false);
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+        BUTTONS[2].updateInteractable(false);
+        BUTTONS[3].updateInteractable(false);
     }
 
     [Rpc(SendTo.Everyone)]

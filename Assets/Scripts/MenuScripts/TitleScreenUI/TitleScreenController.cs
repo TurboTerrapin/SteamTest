@@ -51,7 +51,7 @@ public class TitleScreenController : MonoBehaviour
 
         while (time < duration)
         {
-            time += Time.deltaTime;
+            time += Time.deltaTime * 0.8f;
             float alpha = Mathf.Lerp(startAlpha, targetAlpha, time / duration);
             PressStartText.color = new Color(color.r, color.g, color.b, alpha);
             yield return null;

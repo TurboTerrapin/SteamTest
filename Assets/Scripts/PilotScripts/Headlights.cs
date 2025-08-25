@@ -4,7 +4,7 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 5/13/2025
+    Last Updated: 8/19/2025
 */
 
 using System.Collections;
@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class Headlights : NetworkBehaviour, IControllable
+public class Headlights : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.25f;
@@ -24,8 +24,10 @@ public class Headlights : NetworkBehaviour, IControllable
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject slider;
-    public GameObject screen;
+    public GameObject headlights_display;
 
+    private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
     private int headlight_configuration = 0;
     private Vector3 initial_pos;
     private Vector3 final_pos;
@@ -39,7 +41,7 @@ public class Headlights : NetworkBehaviour, IControllable
     {
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
 
         initial_pos = slider.transform.localPosition;
@@ -60,7 +62,7 @@ public class Headlights : NetworkBehaviour, IControllable
                         Mathf.Lerp(initial_pos.y, final_pos.y, headlight_configuration / 7.0f),
                         Mathf.Lerp(initial_pos.z, final_pos.z, headlight_configuration / 7.0f));
 
-        float starting_fill = screen.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount;
+        float starting_fill = headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount;
         float dest_fill = headlight_configuration / 7.0f;
 
         //move slider
@@ -73,7 +75,7 @@ public class Headlights : NetworkBehaviour, IControllable
                             Mathf.Lerp(starting_pos.y, dest_pos.y, 1.0f - (animation_time / MOVE_TIME)),
                             Mathf.Lerp(starting_pos.z, dest_pos.z, 1.0f - (animation_time / MOVE_TIME)));
             
-            screen.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill, dest_fill, 1.0f - (animation_time / MOVE_TIME));
+            headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill, dest_fill, 1.0f - (animation_time / MOVE_TIME));
             yield return null;
         }
 
@@ -102,7 +104,7 @@ public class Headlights : NetworkBehaviour, IControllable
             bool shifted = false;
             if (headlight_configuration < 7)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //brighten
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && is_powered == true) //brighten
                 {
                     shifted = true;
                     BUTTONS[1].toggle();
@@ -115,7 +117,7 @@ public class Headlights : NetworkBehaviour, IControllable
             {
                 if (headlight_configuration > 0)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //dim
+                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true) //dim
                     {
                         BUTTONS[0].toggle();
                         BUTTONS[1].updateInteractable(false);
@@ -136,8 +138,8 @@ public class Headlights : NetworkBehaviour, IControllable
                 yield return null;
             }
 
-            BUTTONS[0].updateInteractable(headlight_configuration > 0);
-            BUTTONS[1].updateInteractable(headlight_configuration < 7);
+            BUTTONS[0].updateInteractable(headlight_configuration > 0 && is_powered == true);
+            BUTTONS[1].updateInteractable(headlight_configuration < 7 && is_powered == true);
             BUTTONS[0].untoggle();
             BUTTONS[1].untoggle();
         }
@@ -148,7 +150,7 @@ public class Headlights : NetworkBehaviour, IControllable
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        if (headlight_adjustment_coroutine == null)
+        if (headlight_adjustment_coroutine == null && is_powered == true)
         {
             for (int i = CONTROL_INDEXES.Count - 1; i >= 0; i--)
             {
@@ -159,6 +161,46 @@ public class Headlights : NetworkBehaviour, IControllable
                 }
             }
         }
+    }
+
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        Vector3 start_pos = slider.transform.localPosition;
+        float anim_time = power_off_time;
+        headlight_configuration = 0;
+        headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            slider.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, 1.0f - (anim_time / power_off_time));
+            yield return null;
+        }
+
+        power_loss_coroutine = null;
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        BUTTONS[0].updateInteractable(headlight_configuration > 0);
+        BUTTONS[1].updateInteractable(headlight_configuration < 7);
+        headlights_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+        headlights_display.SetActive(false);
+
+        //return headlight slider to 0
+        if (power_loss_coroutine != null)
+        {
+            StopCoroutine(power_loss_coroutine);
+        }
+        power_loss_coroutine = StartCoroutine(returnToZero(time));
     }
 
     [Rpc(SendTo.Everyone)]

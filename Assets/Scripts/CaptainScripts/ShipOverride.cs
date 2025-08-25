@@ -2,7 +2,7 @@
     ShipOverride.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 8/9/2025
+    Last Updated: 8/24/2025
 */
 
 using System.Collections;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ShipOverride : NetworkBehaviour, IControllable
+public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.2f; //how long the switch takes to be flipped
@@ -29,6 +29,8 @@ public class ShipOverride : NetworkBehaviour, IControllable
     public GameObject override_switches;
     public GameObject override_lit_indicators;
 
+    private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
     private bool[] enabled_overrides = new bool[8] { false, false, false, false, false, false, false, false };
     private Coroutine[] override_switch_coroutines = new Coroutine[8] { null, null, null, null, null, null, null, null };
 
@@ -42,7 +44,7 @@ public class ShipOverride : NetworkBehaviour, IControllable
         for (int i = 0; i < 8; i++)
         {
             BUTTON_LISTS[i] = new List<Button>();
-            BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+            BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         }
 
         hud_info.setButtons(BUTTON_LISTS[0], 6);
@@ -71,7 +73,7 @@ public class ShipOverride : NetworkBehaviour, IControllable
     IEnumerator overrideChange(int override_to_change)
     {
         bool disabling = enabled_overrides[override_to_change];
-
+        
         if (disabling == true)
         {
             enabled_overrides[override_to_change] = false; //disable override
@@ -91,7 +93,7 @@ public class ShipOverride : NetworkBehaviour, IControllable
             }
 
             override_switches.transform.GetChild(override_to_change).localRotation =
-                Quaternion.Euler(Mathf.Lerp(-40.0f, -100.0f, switch_percentage),
+                Quaternion.Euler(Mathf.Lerp(320.0f, 260.0f, switch_percentage),
                                  -90.0f,
                                  180.0f);
 
@@ -115,13 +117,18 @@ public class ShipOverride : NetworkBehaviour, IControllable
         {
             BUTTON_LISTS[override_to_change][0].updateDesc(CONTROL_DESCS[0]);
         }
-        BUTTON_LISTS[override_to_change][0].updateInteractable(true);
+        BUTTON_LISTS[override_to_change][0].updateInteractable(is_powered);
 
         override_switch_coroutines[override_to_change] = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         int index = ray_targets.IndexOf(current_target.name);
 
         if (override_switch_coroutines[index] == null)
@@ -132,6 +139,68 @@ public class ShipOverride : NetworkBehaviour, IControllable
                 transmitOverrideChangeRPC(index, enabled_overrides[index]);
             }
         }
+    }
+
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        float[] starting_rotations = new float[8] { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+        for (int i = 0; i < 8; i++)
+        {
+            if (override_switch_coroutines[i] != null)
+            {
+                StopCoroutine(override_switch_coroutines[i]);
+                override_switch_coroutines[i] = null;
+            }
+            enabled_overrides[i] = false;
+            displayAdjustment(i);
+
+            BUTTON_LISTS[i][0].updateDesc(CONTROL_DESCS[0]);
+            BUTTON_LISTS[i][0].updateInteractable(false);
+            BUTTON_LISTS[i][0].untoggle();
+
+            starting_rotations[i] = override_switches.transform.GetChild(i).localRotation.eulerAngles.x;
+        }
+
+        float anim_time = power_off_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            //turn switches
+            for (int i = 0; i < 8; i++)
+            {
+                override_switches.transform.GetChild(i).localRotation =
+                    Quaternion.Euler(Mathf.Lerp(starting_rotations[i], 320.0f, 1.0f - (anim_time / power_off_time)),
+                                     -90.0f,
+                                     180.0f);
+            }
+
+            yield return null;
+        }
+
+        power_loss_coroutine = null;
+    }
+
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        for (int i = 0; i < 8; i++)
+        {
+            BUTTON_LISTS[i][0].updateInteractable(true);
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+
+        //return override switches to off
+        if (power_loss_coroutine != null)
+        {
+            StopCoroutine(power_loss_coroutine);
+        }
+        power_loss_coroutine = StartCoroutine(returnToZero(time));
     }
 
     [Rpc(SendTo.Everyone)]

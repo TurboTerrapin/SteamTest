@@ -3,7 +3,7 @@
     - Updates SCA reset bar
     - Updates SCA circular screen
     Contributor(s): Jake Schott
-    Last Updated: 7/30/2025
+    Last Updated: 8/20/2025
 */
 
 using System.Collections;
@@ -11,15 +11,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class PilotSCA : NetworkBehaviour
+public class PilotSCA : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float RESET_TIMER = 10.0f; //seconds
     private static float PARTICLE_ROTATION_SPEED = 25.0f;
 
     public GameObject reset_bar;
-    public GameObject SCA_canvas;
+    public GameObject SCA_display;
 
+    private bool is_powered = false;
     private List<int> current_molecules = new List<int>(); //indices of the molecules in the SCA
     private List<int> molecule_quantities = new List<int>(); //corresponds by index to current_molecules
 
@@ -28,19 +29,19 @@ public class PilotSCA : NetworkBehaviour
     private void displaySCA(float canvas_rotation, int[] mol_i, int[] mol_l, int[] mol_r)
     {
         //clear existing molecules
-        for (int m = SCA_canvas.transform.GetChild(1).childCount - 1; m >= 0; m--)
+        for (int m = SCA_display.transform.GetChild(0).childCount - 1; m >= 0; m--)
         {
-            Object.Destroy(SCA_canvas.transform.GetChild(1).GetChild(m).gameObject);
+            Object.Destroy(SCA_display.transform.GetChild(0).GetChild(m).gameObject);
         }
 
         //rotate canvas
-        SCA_canvas.transform.GetChild(1).localRotation = Quaternion.Euler(0.0f, 0.0f, canvas_rotation);
+        SCA_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, canvas_rotation);
 
         //instantiate new molecules
         for (int m = 0; m < mol_i.Length; m++)
         {
-            GameObject molecule = GameObject.Instantiate(SCA_canvas.transform.GetChild(2).GetChild(mol_i[m]).gameObject, SCA_canvas.transform.GetChild(1));
-            molecule.transform.localPosition = SCA_canvas.transform.GetChild(3).GetChild(mol_l[m]).localPosition;
+            GameObject molecule = GameObject.Instantiate(SCA_display.transform.GetChild(1).GetChild(mol_i[m]).gameObject, SCA_display.transform.GetChild(0));
+            molecule.transform.localPosition = SCA_display.transform.GetChild(2).GetChild(mol_l[m]).localPosition;
             molecule.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, mol_r[m] * 2.0f);
             molecule.SetActive(true);
         }
@@ -57,7 +58,7 @@ public class PilotSCA : NetworkBehaviour
         }
 
         //ensure there are less molecules than possible locations
-        if (number_of_molecules > SCA_canvas.transform.GetChild(3).childCount)
+        if (number_of_molecules > SCA_display.transform.GetChild(2).childCount)
         {
             Debug.Log("ERROR: Too many molecules in Spatial Composition Analyzer.");
             transmitNewLoopRPC();
@@ -65,7 +66,7 @@ public class PilotSCA : NetworkBehaviour
         }
 
         List<int> possible_locs = new List<int>();
-        for (int i = 0; i < SCA_canvas.transform.GetChild(3).childCount; i++)
+        for (int i = 0; i < SCA_display.transform.GetChild(2).childCount; i++)
         {
             possible_locs.Add(i);
         }
@@ -115,10 +116,10 @@ public class PilotSCA : NetworkBehaviour
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
 
             //rotate existing particles
-            for (int m = SCA_canvas.transform.GetChild(1).childCount - 1; m > 0; m--)
+            for (int m = SCA_display.transform.GetChild(0).childCount - 1; m > 0; m--)
             {
-                SCA_canvas.transform.GetChild(1).GetChild(m).transform.localRotation =
-                    Quaternion.Euler(0.0f, 0.0f, SCA_canvas.transform.GetChild(1).GetChild(m).transform.localRotation.eulerAngles.z + PARTICLE_ROTATION_SPEED * dt);
+                SCA_display.transform.GetChild(0).GetChild(m).transform.localRotation =
+                    Quaternion.Euler(0.0f, 0.0f, SCA_display.transform.GetChild(0).GetChild(m).transform.localRotation.eulerAngles.z + PARTICLE_ROTATION_SPEED * dt);
             }
 
             fill_time = Mathf.Max(0.0f, fill_time - dt);
@@ -137,10 +138,34 @@ public class PilotSCA : NetworkBehaviour
     {
         current_molecules.Add(0);
         molecule_quantities.Add(49);
-        if (NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost && is_powered == true)
         {
             generateNewMolecules();
             transmitNewLoopRPC();
+        }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        SCA_display.SetActive(true);
+        reset_bar.SetActive(true);
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            generateNewMolecules();
+            transmitNewLoopRPC();
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        SCA_display.SetActive(false);
+        reset_bar.SetActive(false);
+        if (reset_bar_coroutine != null)
+        {
+            StopCoroutine(reset_bar_coroutine);
+            reset_bar_coroutine = null;
         }
     }
 

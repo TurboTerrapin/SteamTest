@@ -4,7 +4,7 @@
     - Adjusts probe heading
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 7/30/2025
+    Last Updated: 8/22/2025
 */
 
 using System.Collections;
@@ -13,7 +13,7 @@ using UnityEngine;
 using Unity.Netcode;
 using TMPro;
 
-public class ProbeOrientation : NetworkBehaviour, IControllable
+public class ProbeOrientation : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float LEVER_SPEED = 50.0f;
@@ -25,10 +25,11 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject orientation_lever;
-    public GameObject orientation_canvas;
-    public GameObject orientation_icon_canvas;
-    public GameObject probe;
+    public GameObject orientation_display;
+    public GameObject orientation_icon_display;
 
+    private bool is_powered = false;
+    private GameObject probe;
     private float orientation_lever_angle = 0.0f;
     private float orientation_angle = 0.0f;
 
@@ -56,7 +57,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         {
             display_orientation += ".0";
         }
-        orientation_canvas.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().SetText(display_orientation + "°");
+        orientation_display.transform.GetChild(0).gameObject.GetComponent<TMP_Text>().SetText(display_orientation + "°");
 
         //update lever positions
         orientation_lever.transform.localRotation = Quaternion.Euler(270f + orientation_lever_angle, 0f, 90f);
@@ -77,9 +78,9 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         }
         orientation_angle = (Mathf.Round(probe.transform.localRotation.eulerAngles.y * 10) / 10.0f);
         //show heading
-        orientation_canvas.transform.GetChild(1).gameObject.SetActive(true);
+        orientation_display.transform.GetChild(0).gameObject.SetActive(true);
         //lighten probe icon
-        orientation_icon_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        orientation_icon_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         displayAdjustment();
     }
 
@@ -92,9 +93,9 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         }
         orientation_angle = 0.0f;
         //hide heading
-        orientation_canvas.transform.GetChild(1).gameObject.SetActive(false);
+        orientation_display.transform.GetChild(0).gameObject.SetActive(false);
         //darken probe icon
-        orientation_icon_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
+        orientation_icon_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
         displayAdjustment();
     }
 
@@ -111,13 +112,16 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
 
             int orientation_direction = 0;
 
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
+            if (is_powered == true)
             {
-                orientation_direction += 1;
-            }
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
-            {
-                orientation_direction -= 1;
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
+                {
+                    orientation_direction += 1;
+                }
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
+                {
+                    orientation_direction -= 1;
+                }
             }
 
             if (orientation_direction != 0)
@@ -178,6 +182,11 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         if (orientation_adjustment_coroutine == null)
         {
@@ -190,6 +199,24 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
                 }
             }
         }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        orientation_display.SetActive(true);
+        orientation_icon_display.SetActive(true);
+        BUTTONS[0].updateInteractable(probe != null);
+        BUTTONS[1].updateInteractable(probe != null);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        orientation_display.SetActive(false);
+        orientation_icon_display.SetActive(false);
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
     }
 
     [Rpc(SendTo.Everyone)]

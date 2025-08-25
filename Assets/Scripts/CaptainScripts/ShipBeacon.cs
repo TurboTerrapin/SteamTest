@@ -4,7 +4,7 @@
     - Turns dial, changes screen
     - Handles flashing of circle
     Contributor(s): Jake Schott
-    Last Updated: 8/9/2025
+    Last Updated: 8/24/2025
 */
 
 using System.Collections;
@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class ShipBeacon : NetworkBehaviour, IControllable
+public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f;
@@ -27,9 +27,11 @@ public class ShipBeacon : NetworkBehaviour, IControllable
     public Material unlit_neon;
 
     public GameObject dial;
-    public GameObject display_canvas; //used to display the circle/flashing circle
+    public GameObject beacon_display; //used to display the circle/flashing circle
 
-    private bool beacon_enabled = true;
+    private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
+    private bool beacon_enabled = false;
     private Coroutine beacon_switch_coroutine = null;
     private Coroutine beacon_flash_coroutine = null;
 
@@ -37,7 +39,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[0], true, true)); //enable button
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true)); //enable button
         hud_info.setButtons(BUTTONS);
 
         displayAdjustment();
@@ -76,16 +78,16 @@ public class ShipBeacon : NetworkBehaviour, IControllable
         else
         {
             //hide flashing beacon if not active
-            display_canvas.transform.GetChild(1).gameObject.SetActive(false);
-            display_canvas.transform.GetChild(2).gameObject.SetActive(false);
+            beacon_display.transform.GetChild(0).gameObject.SetActive(false);
+            beacon_display.transform.GetChild(1).gameObject.SetActive(false);
         }
     }
 
     //infinite loop that runs when the beacon is active
     IEnumerator beaconFlasher()
     {
-        display_canvas.transform.GetChild(2).gameObject.SetActive(true);
-        GameObject flashing_beacon = display_canvas.transform.GetChild(1).gameObject;
+        beacon_display.transform.GetChild(1).gameObject.SetActive(true);
+        GameObject flashing_beacon = beacon_display.transform.GetChild(0).gameObject;
         GameObject cover_up = flashing_beacon.transform.GetChild(0).gameObject;
         flashing_beacon.SetActive(true);
         while (true)
@@ -147,13 +149,18 @@ public class ShipBeacon : NetworkBehaviour, IControllable
         {
             BUTTONS[0].updateDesc(CONTROL_DESCS[0]);
         }
-        BUTTONS[0].updateInteractable(true);
+        BUTTONS[0].updateInteractable(is_powered);
 
         beacon_switch_coroutine = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //click to enable/disable
         {
             if (beacon_switch_coroutine == null)
@@ -163,6 +170,62 @@ public class ShipBeacon : NetworkBehaviour, IControllable
                 transmitEmergencyLightAdjustmentRPC(beacon_enabled);
             }
         }
+    }
+
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        float starting_rotation = dial.transform.localRotation.eulerAngles.z;
+
+        float anim_time = power_off_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            dial.transform.localRotation =
+                Quaternion.Euler(dial.transform.localEulerAngles.x,
+                                 dial.transform.localEulerAngles.y,
+                                 Mathf.Lerp(starting_rotation, 0.0f, 1.0f - (anim_time / power_off_time)));
+
+            yield return null;
+        }
+
+        power_loss_coroutine = null;
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        beacon_display.SetActive(true);
+        BUTTONS[0].updateInteractable(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        beacon_enabled = false;
+        beacon_display.SetActive(false);
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[0].untoggle();
+        BUTTONS[0].updateDesc(CONTROL_DESCS[0]);
+        displayAdjustment();
+
+        if (beacon_flash_coroutine != null)
+        {
+            StopCoroutine(beacon_flash_coroutine);
+            beacon_flash_coroutine = null;
+        }
+        if (beacon_switch_coroutine != null)
+        {
+            StopCoroutine(beacon_switch_coroutine);
+            beacon_switch_coroutine = null;
+        }
+
+        //return dial to off position
+        if (power_loss_coroutine != null)
+        {
+            StopCoroutine(power_loss_coroutine);
+        }
+        power_loss_coroutine = StartCoroutine(returnToZero(time));
     }
 
     [Rpc(SendTo.Everyone)]

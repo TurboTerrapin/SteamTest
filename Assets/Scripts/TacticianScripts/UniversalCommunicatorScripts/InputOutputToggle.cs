@@ -35,7 +35,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTONS);
     }
@@ -46,7 +46,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
 
     private GameObject getCharacterDisplay(int index)
     {
-        return input_glasses.transform.GetChild(index).GetChild(0).gameObject;
+        return input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
     }
 
     public void activate()
@@ -59,9 +59,10 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
     {
         is_active = false;
         BUTTONS[0].updateInteractable(false);
+        BUTTONS[0].untoggle();
     }
 
-    private void deactivateUC()
+    public void deactivateUC()
     {
         transform.GetComponent<CharacterInput>().deactivate();
         transform.GetComponent<ColorSelector>().deactivate();
@@ -69,7 +70,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
         transform.GetComponent<ResetDisplay>().deactivate();
     }
 
-    private void activateUC()
+    public void activateUC()
     {
         transform.GetComponent<CharacterInput>().activate();
         transform.GetComponent<ColorSelector>().activate();
@@ -77,31 +78,18 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
         transform.GetComponent<ResetDisplay>().activate();
     }
 
-    private void displayAdjustment()
+    public void displayAdjustment()
     {
+        bool is_powered = transform.GetComponent<UniversalCommunicator>().getIsPowered();
+        colors_display.SetActive(input_mode && is_powered);
+        numeric_display.SetActive(input_mode && is_powered);
         input_display.SetActive(input_mode);
-        colors_display.SetActive(input_mode);
-        numeric_display.SetActive(input_mode);
         output_display.SetActive(!input_mode);
 
-        if (input_mode == true)
+        for (int i = 0; i < 12; i++)
         {
-            bool symbol_mode = (transform.GetComponent<SymbolToggle>().getIsNumeric() == 1);
-            for (int i = 0; i < 12; i++)
-            {
-                GameObject cd = getCharacterDisplay(i);
-                cd.transform.GetChild(1).gameObject.SetActive(symbol_mode);
-                cd.transform.GetChild(2).gameObject.SetActive(!symbol_mode);
-            }
-        }
-        else
-        {
-            for (int i = 0; i < 12; i++)
-            {
-                GameObject cd = getCharacterDisplay(i);
-                cd.transform.GetChild(1).gameObject.SetActive(false);
-                cd.transform.GetChild(2).gameObject.SetActive(false);
-            }
+            GameObject cd = getCharacterDisplay(i);
+            cd.SetActive(input_mode && is_powered);
         }
     }
 
@@ -143,7 +131,8 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
 
         displayAdjustment();
 
-        if (input_mode == true)
+        bool is_powered = transform.GetComponent<UniversalCommunicator>().getIsPowered();
+        if (input_mode == true && is_powered == true)
         {
             activateUC();
         }
@@ -152,7 +141,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
             transform.GetComponent<UniversalCommunicator>().clearUC();
         }
 
-        BUTTONS[0].updateInteractable(is_active);
+        BUTTONS[0].updateInteractable(is_active && is_powered);
 
         input_output_switch_coroutine = null;
     }
@@ -169,7 +158,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (input_output_switch_coroutine == null)
+        if (input_output_switch_coroutine == null && is_active == true && transform.GetComponent<UniversalCommunicator>().getIsPowered() == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {

@@ -40,7 +40,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
     {
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);
 
         initial_pos = selector_lever.transform.localPosition;
@@ -72,7 +72,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
 
     private GameObject getCharacterDisplay(int index)
     {
-        return input_glasses.transform.GetChild(index).GetChild(0).gameObject;
+        return input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
     }
 
     private void displayAdjustment()
@@ -80,8 +80,8 @@ public class ColorSelector : NetworkBehaviour, IControllable
         for (int i = 0; i < 12; i++)
         {
             GameObject cd = getCharacterDisplay(i);
-            cd.transform.GetChild(1).gameObject.GetComponent<TMP_Text>().color = COLOR_OPTIONS[curr_color];
-            cd.transform.GetChild(2).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[curr_color];
+            cd.transform.GetChild(0).gameObject.GetComponent<TMP_Text>().color = COLOR_OPTIONS[curr_color];
+            cd.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[curr_color];
         }
     }
 
@@ -124,7 +124,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        if (color_shift_coroutine == null && is_active == true)
+        if (color_shift_coroutine == null && is_active == true && transform.GetComponent<UniversalCommunicator>().getIsPowered() == true)
         {
             bool shifted = false;
             if (curr_color < 3)

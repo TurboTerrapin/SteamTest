@@ -33,7 +33,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTONS);
 
         //set initial positions
@@ -105,7 +105,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (character_input_coroutine == null && is_active == true)
+        if (character_input_coroutine == null && is_active == true && transform.gameObject.GetComponent<UniversalCommunicator>().getIsPowered() == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {

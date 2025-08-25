@@ -31,7 +31,7 @@ public class ShipManual : Manual
         return (Random.Range(0, WELCOME_MESSAGES.Length));
     }
     
-    IEnumerator powerOn(int msg)
+    IEnumerator activateManual(int msg)
     {
         welcome_screen.transform.GetChild(0).GetComponent<TMP_Text>().SetText("");
         welcome_screen.SetActive(true);
@@ -65,7 +65,7 @@ public class ShipManual : Manual
             {
                 StopCoroutine(power_on_coroutine);
             }
-            power_on_coroutine = StartCoroutine(powerOn(msg));
+            power_on_coroutine = StartCoroutine(activateManual(msg));
         }
         else
         {

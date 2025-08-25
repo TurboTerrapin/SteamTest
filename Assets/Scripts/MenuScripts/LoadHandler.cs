@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -25,6 +26,13 @@ public class LoadHandler : MonoBehaviour
 
     void Start()
     {
+        transform.name = "TempLoadHandler";
+        if (GameObject.Find("LoadHandler") != null)
+        {
+            GameObject.Destroy(gameObject);
+        }
+        transform.name = "LoadHandler";
+
         DontDestroyOnLoad(gameObject);
 
         load_screen = transform.GetChild(0).gameObject;
@@ -56,6 +64,19 @@ public class LoadHandler : MonoBehaviour
             }
             load_coroutine = StartCoroutine(loadBridgeEnvironment(asyncOperation));
         }
+    }
+
+    //currently only called by quit button in pause menu
+    public void startLoad()
+    {
+        if (load_coroutine != null)
+        {
+            StopCoroutine(load_coroutine);
+            load_coroutine = null;
+        }
+        randomizeColors();
+        load_coroutine = StartCoroutine(loadLoop());
+        load_screen.SetActive(true);
     }
 
     //terminates the loading screen

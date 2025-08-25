@@ -2,14 +2,14 @@
     TacticianMap.cs
     - Handles tactician radar map
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 8/21/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TacticianMap : MonoBehaviour
+public class TacticianMap : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float MAP_UPDATE_DELAY = 1.5f; //updates every 1.5 seconds
@@ -25,6 +25,7 @@ public class TacticianMap : MonoBehaviour
     private GameObject[] corresponding_icons = new GameObject[0];
     private Color[] corresponding_colors = new Color[0]; 
     private Vector3[] corresponding_locations = new Vector3[0];
+    private Coroutine map_updater_coroutine = null;
     private Coroutine item_flasher_coroutine = null;
 
     void Start()
@@ -32,10 +33,8 @@ public class TacticianMap : MonoBehaviour
         map_options = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<MapOptions>();
         this_ship = GameObject.FindGameObjectWithTag("Spaceship");
         world_root = GameObject.FindGameObjectWithTag("WorldRoot");
-        natural_phenomena = map_display.transform.GetChild(3).gameObject;
-        ships = map_display.transform.GetChild(4).gameObject;
-
-        StartCoroutine(mapUpdater());    
+        natural_phenomena = map_display.transform.GetChild(2).gameObject;
+        ships = map_display.transform.GetChild(3).gameObject;
     }
 
     IEnumerator itemFlasher()
@@ -173,5 +172,24 @@ public class TacticianMap : MonoBehaviour
             updateMap();
             yield return new WaitForSeconds(MAP_UPDATE_DELAY);
         }
+    }
+
+    public void powerOn(int position)
+    {
+        if (map_updater_coroutine == null)
+        {
+            map_updater_coroutine = StartCoroutine(mapUpdater());
+        }
+        map_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        if (map_updater_coroutine != null)
+        {
+            StopCoroutine(map_updater_coroutine);
+            map_updater_coroutine = null;
+        }
+        map_display.SetActive(false);
     }
 }

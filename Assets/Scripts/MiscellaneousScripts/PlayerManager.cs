@@ -2,7 +2,7 @@
     PlayerManager.cs
     - Handles loading and managing of players
     Contributor(s): Jake Schott
-    Last Updated: 8/10/2025
+    Last Updated: 8/24/2025
 */
 
 using System;

@@ -3,7 +3,7 @@
     - Handles slider
     - Changes lights at highest status
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2025
+    Last Updated: 8/24/2025
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class ShipStatus: NetworkBehaviour, IControllable
+public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     Color[] COLOR_OPTIONS = new Color[3] { new Color(0f, 0.84f, 1f), new Color(0.89f, 1f, 0.0f), new Color(1f, 0.01f, 0.0f)};
@@ -22,6 +22,8 @@ public class ShipStatus: NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
+    private bool is_powered = false;
+    public List<GameObject> position_warnings = null;
     public List<GameObject> indicators = null;
     public GameObject selector_lever;
     public GameObject lights;
@@ -38,7 +40,7 @@ public class ShipStatus: NetworkBehaviour, IControllable
     {
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);
 
         initial_pos = selector_lever.transform.localPosition;
@@ -118,6 +120,11 @@ public class ShipStatus: NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         if (status_shift_coroutine == null)
         {
@@ -146,6 +153,44 @@ public class ShipStatus: NetworkBehaviour, IControllable
                     }
                 }
             }
+        }
+    }
+
+    public void powerOn(int position)
+    {
+        if (position < 2)
+        {
+            position_warnings[position].SetActive(true);
+        }
+        else if (position == 3)
+        {
+            is_powered = true;
+            for (int i = 0; i <= curr_status; i++)
+            {
+                indicators[i].SetActive(true);
+            }
+            BUTTONS[0].updateInteractable(curr_status > 0);
+            BUTTONS[1].updateInteractable(curr_status < 2);
+            BUTTONS[0].untoggle();
+            BUTTONS[1].untoggle();
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        if (position <= 1)
+        {
+            position_warnings[position].SetActive(false);
+        }
+        if (position == 3)
+        {
+            is_powered = false;
+            for (int i = 0; i < 3; i++)
+            {
+                indicators[i].SetActive(false);
+            }
+            BUTTONS[0].updateInteractable(false);
+            BUTTONS[1].updateInteractable(false);
         }
     }
 

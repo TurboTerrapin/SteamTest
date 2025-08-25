@@ -14,17 +14,14 @@ public class PublicLobbyJoinWithButton : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI playerText = null;
 
-
-
     public void SetLobby(Lobby l)
     {
         lobby = l;
-        playerText.text = l.MemberCount.ToString();
+        playerText.text = (Mathf.Max(1, l.MemberCount)).ToString() + "/4";
     }
 
     public void JoinPublicLobby()
     {
         GameNetworkManager.Instance.JoinWithButton(lobby);
     }
-
 }

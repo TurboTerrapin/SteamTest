@@ -2,22 +2,28 @@
     Manual.cs
     - Parent class for ShipManual and CommunicationsManual
     Contributor(s): Jake Schott
-    Last Updated: 5/22/2025
+    Last Updated: 8/24/2025
 */
 
 using UnityEngine;
 
-public class Manual : MonoBehaviour
+public class Manual : MonoBehaviour, IPowerable
 {
     public GameObject welcome_screen;
     public GameObject home_screen;
     public GameObject curr_screen;
-    public GameObject curr_button;
 
+    protected bool is_powered = false;
+    protected GameObject curr_button;
     protected int manual_index;
     protected bool[] interactable_options = new bool[6];
     protected bool currently_enabled = false;
     protected Coroutine power_on_coroutine = null;
+
+    public bool getIsPowered()
+    {
+        return is_powered;
+    }
 
     public bool getCurrentlyEnabled()
     {
@@ -155,5 +161,30 @@ public class Manual : MonoBehaviour
             }
         }
         updateInteractableButtons();
+    }
+
+    protected void cancelActivation()
+    {
+        if (power_on_coroutine != null)
+        {
+            StopCoroutine(power_on_coroutine);
+            power_on_coroutine = null;
+            welcome_screen.SetActive(false);
+        }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        currently_enabled = false;
+        transform.GetComponent<ManualOnOff>().reactivate(manual_index);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        currently_enabled = false;
+        transform.GetComponent<ManualOnOff>().disableManual(manual_index, time);
+        cancelActivation();
     }
 }

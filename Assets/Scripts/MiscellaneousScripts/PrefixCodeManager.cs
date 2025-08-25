@@ -3,7 +3,7 @@
     - Used to update the prefix codes on all four positions after a certain amount of time
     - Runs on host client
     Contributor(s): Jake Schott
-    Last Updated: 5/27/2025
+    Last Updated: 8/22/2025
 */
 
 using System.Collections;
@@ -12,7 +12,7 @@ using UnityEngine;
 using Unity.Netcode;
 using TMPro;
 
-public class PrefixCodeManager : NetworkBehaviour
+public class PrefixCodeManager : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static int LOOP_TIME = 30;
@@ -20,6 +20,7 @@ public class PrefixCodeManager : NetworkBehaviour
     public List<GameObject> code_labels = null;
     public List<GameObject> progress_bars = null;
 
+    private bool[] is_powered = new bool[4] { false, true, true, true };
     private int[] prefix_codes = new int[] { 0, 0, 0, 0 };
     private Coroutine progress_bars_coroutine;
 
@@ -84,6 +85,32 @@ public class PrefixCodeManager : NetworkBehaviour
         {
             generateNewCodes();
             transmitNewLoopRPC();
+        }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered[position] = true;
+        code_labels[position].SetActive(true);
+        if (position == 3)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                progress_bars[i].SetActive(true);
+            }
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered[position] = false;
+        code_labels[position].SetActive(false);
+        if (position == 3)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                progress_bars[i].SetActive(false);
+            }
         }
     }
 
