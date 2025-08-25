@@ -192,7 +192,7 @@ public class GameNetworkManager : MonoBehaviour
 
     private void Singleton_OnClientConnectedCallback(ulong obj)
     {
-        throw new System.NotImplementedException();
+        Debug.Log("Client connected");
     }
 
     private void Singleton_OnServerStarted()

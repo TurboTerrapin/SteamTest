@@ -112,12 +112,12 @@ public class CampaignLobbyController : NetworkBehaviour
         UpdateLobbyList();
     }
 
-    //fires whenever SteamFriends detects a change in any friend's state
+    //fires whenever SteamFriends detects a change in any friend's state (maybe?)
     private Action<Friend> OnFriendChange()
     {
         UpdateFriendsList();
         UpdateLobbyList();
-        return friend => { };
+        return nothing => { };
     }
 
     public void CheckForLobbyUpdates()

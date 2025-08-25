@@ -25,11 +25,26 @@ public class CheckLobbies : MonoBehaviour
                 }
             }
 
-            if (alreadyAdded == false)
+            Lobby toAdd = friend.GameInfo.Value.Lobby.Value;
+            toAdd.Refresh();
+            //Means lobby has valid data after refresh attempt
+            if (toAdd.Owner.Id != 0)
             {
-                Lobby toAdd = friend.GameInfo.Value.Lobby.Value;
-                toAdd.Refresh();
-                if (toAdd.Owner.Id != 0 && (toAdd.Owner.Id == friend.Id))
+                if (alreadyAdded == true)
+                {
+                    if (toAdd.Owner.Id == friend.Id)
+                    {
+                        foreach (Lobby l in availableLobbies)
+                        {
+                            if (l.Id == toAdd.Id)
+                            {
+                                availableLobbies.Remove(l);
+                            }
+                        }
+                        availableLobbies.Add(toAdd);
+                    }
+                }
+                else
                 {
                     availableLobbies.Add(toAdd);
                 }
