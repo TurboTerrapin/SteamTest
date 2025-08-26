@@ -157,13 +157,16 @@ public class EngineerMap : MonoBehaviour
         exit_path.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -90.0f + exit_rot);
     }
 
-    public void updateShipOrientation(float ship_rotation)
+    public void updateShipOrientation()
     {
+        float ship_rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation.eulerAngles.y;
         ship_icon.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, ship_rotation);
     }
 
-    public void updateShipLocation(Vector2 ship_location)
+    public void updateShipLocation()
     {
+        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        Vector2 ship_location = new Vector2(-world_root.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -world_root.transform.position.x);
         ship_location *= (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
         if (ship_location.y <= -0.285f)
         {
@@ -176,8 +179,10 @@ public class EngineerMap : MonoBehaviour
         ship_icon.transform.localPosition = new Vector3(ship_location.x, ship_location.y, 0.0f);
     }
 
-    public void updateAltitude(float new_altitude)
+    public void updateAltitude()
     {
+        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        float new_altitude = -world_root.transform.position.y;
         string rounded_altitude = (Mathf.Round(new_altitude * 10.0f) / 10.0f).ToString();
         if (rounded_altitude.Contains(".") == false)
         {

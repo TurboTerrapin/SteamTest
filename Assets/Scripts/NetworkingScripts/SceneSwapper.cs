@@ -34,8 +34,7 @@ public class SceneSwapper : MonoBehaviour
     }
 
 
-    [Rpc(SendTo.Everyone)]
-    public void ChangeSceneClientRPC(string sceneName)
+    public void ChangeScene(string sceneName)
     {
         NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
     }
@@ -48,7 +47,7 @@ public class SceneSwapper : MonoBehaviour
         {
             scene = Random.Range(0, sceneNames.Count);
         }
-        ChangeSceneClientRPC(sceneNames[scene]);
+        ChangeScene(sceneNames[scene]);
     }
 
     public void ChangeScenarioEasy()
@@ -59,7 +58,7 @@ public class SceneSwapper : MonoBehaviour
         {
             scene = Random.Range(0, easyScenarios.Count);
         }
-        ChangeSceneClientRPC(easyScenarios[scene]);
+        ChangeScene(easyScenarios[scene]);
     }
 
 
@@ -71,7 +70,7 @@ public class SceneSwapper : MonoBehaviour
         {
             scene = Random.Range(0, mediumScenarios.Count);
         }
-        ChangeSceneClientRPC(mediumScenarios[scene]);
+        ChangeScene(mediumScenarios[scene]);
     }
 
 
@@ -83,6 +82,6 @@ public class SceneSwapper : MonoBehaviour
         {
             scene = Random.Range(0, hardScenarios.Count);
         }
-        ChangeSceneClientRPC(hardScenarios[scene]);
+        ChangeScene(hardScenarios[scene]);
     }
 }

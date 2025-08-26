@@ -2,7 +2,7 @@
     LoadHandler.cs
     - Handles loading into BridgeEnvironment (at this time)
     Contributor(s): Jake Schott
-    Last Updated: 8/11/2025
+    Last Updated: 8/25/2025
 */
 
 using System.Collections;
@@ -10,11 +10,10 @@ using System.Collections.Generic;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LoadHandler : MonoBehaviour
+public class LoadHandler : NetworkBehaviour
 {
     //LOAD CIRCLE SETTINGS
     private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
@@ -93,6 +92,11 @@ public class LoadHandler : MonoBehaviour
     //randomizes the colors for the spinny load circle
     private void randomizeColors()
     {
+        //only randomize colors if load screen hasn't been shown yet
+        if (load_screen.activeSelf == true)
+        {
+            return;
+        }
         List<int> possible_colors = new List<int> { 0, 1, 2, 3 };
         for (int i = 0; i < 3; i++)
         {
@@ -146,5 +150,16 @@ public class LoadHandler : MonoBehaviour
         GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
         //wait until PlayerManager interrupts load screen using endLoad()
         load_coroutine = StartCoroutine(loadLoop());
+    }
+
+    public void startLoadForAllPlayers()
+    {
+        allPlayersLoadRPC();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void allPlayersLoadRPC()
+    {
+        startLoad();
     }
 }

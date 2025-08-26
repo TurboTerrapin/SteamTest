@@ -7,13 +7,14 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class CampaignLobbyController : NetworkBehaviour
+public class CampaignLobbyController : MonoBehaviour
 {
     public GameObject CampaignOptions;
     public GameObject CampaignLobby;
     public GameObject FriendListBox;
     public GameObject FriendsLabel;
     public GameObject NoFriendsOnlineLabel;
+    public GameObject EngageButton;
 
     [SerializeField]
     private GameObject FriendUITemplate = null;
@@ -24,6 +25,7 @@ public class CampaignLobbyController : NetworkBehaviour
 
     void OnEnable()
     {
+        DeactivateEngageButton();
         CheckForLobbyUpdates();
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
         if (YieldForLobbyCoroutine != null)
@@ -33,24 +35,57 @@ public class CampaignLobbyController : NetworkBehaviour
         StartCoroutine(YieldForLobby());
     }
 
-    //updates list of names 
+    //Used by ActivateEngageButton() and DeactivateEngageButton()
+    private void EngageButtonAlphaHelper(float a)
+    {
+        //Fade button
+        UnityEngine.Color buttonColor = EngageButton.GetComponent<UnityEngine.UI.Image>().color;
+        EngageButton.GetComponent<UnityEngine.UI.Image>().color = new UnityEngine.Color(buttonColor.r, buttonColor.g, buttonColor.b, a);
+        //Fade button text (ENGAGE)
+        EngageButton.transform.GetChild(1).GetComponent<TMP_Text>().color = new UnityEngine.Color(1.0f, 1.0f, 1.0f, a);
+        //Fade button border
+        UnityEngine.Color borderColor = EngageButton.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
+        EngageButton.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new UnityEngine.Color(borderColor.r, borderColor.g, borderColor.b, a);
+    }
+
+    private void ActivateEngageButton()
+    {
+        //Make button interactable
+        EngageButton.GetComponent<UnityEngine.UI.Button>().interactable = true;
+        //Unfade button
+        EngageButtonAlphaHelper(1.0f);
+    }
+
+    private void DeactivateEngageButton()
+    {
+        //Make button uninteractable
+        EngageButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
+        //Fade button
+        EngageButtonAlphaHelper(0.2f);
+    }
+
+    //Updates list of names in lobby
     private void UpdateLobbyList()
     {
+        //Used for temporary period where screen is displayed but lobby is not yet created
         if (NetworkManager.Singleton.IsHost == true)
         {
             JoinedPlayersList[0].text = SteamClient.Name;
         }
+
+        //Only update list if a lobby exists
         if (GameNetworkManager.Instance.currentLobby == null)
         {
             return;
         }
 
-        //clear names
+        //Clear names
         for (int i = 0; i < 4; i++)
         {
             JoinedPlayersList[i].text = "";
         }
-        //add however many friends are in the lobby
+
+        //Add however many friends are in the lobby
         IEnumerable<Friend> lobbyMembers = GameNetworkManager.Instance.currentLobby.Value.Members;
         for (int i = 0; i < lobbyMembers.Count<Friend>(); i++)
         {
@@ -62,6 +97,16 @@ public class CampaignLobbyController : NetworkBehaviour
             {
                 JoinedPlayersList[i].text = SteamClient.Name;
             }
+        }
+
+        //Activate/deactive engage button
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            ActivateEngageButton();
+        }
+        else
+        {
+            DeactivateEngageButton();
         }
     }
 
@@ -115,22 +160,23 @@ public class CampaignLobbyController : NetworkBehaviour
     //fires whenever SteamFriends detects a change in any friend's state (maybe?)
     private Action<Friend> OnFriendChange()
     {
-        UpdateFriendsList();
-        UpdateLobbyList();
-        return nothing => { };
+        return handleFriendChange => {
+            UpdateFriendsList();
+            UpdateLobbyList();
+        };
     }
 
     public void CheckForLobbyUpdates()
     {
         UpdateLobbyList();
-        //listen for future updates to the lobby
+        //Listen for future updates to the lobby
         NetworkManager.Singleton.OnConnectionEvent += OnLobbyChange;
         SteamFriends.OnPersonaStateChange += OnFriendChange();
     }
 
     public void HandleXButtonClick()
     {
-        //do not listen for future updates to the lobby
+        //Do not listen for future updates to the lobby
         NetworkManager.Singleton.OnConnectionEvent -= OnLobbyChange;
         SteamFriends.OnPersonaStateChange -= OnFriendChange();
         GameNetworkManager.Instance.currentLobby.Value.Leave();
@@ -139,13 +185,14 @@ public class CampaignLobbyController : NetworkBehaviour
 
     public void HandleEngageButtonClick()
     {
-        //do not listen for future updates to the lobby
+        //Do not listen for future updates to the lobby
         NetworkManager.Singleton.OnConnectionEvent -= OnLobbyChange;
         SteamFriends.OnPersonaStateChange -= OnFriendChange();
-        //lock the lobby once game starts
+        //Lock the lobby once game starts
         GameNetworkManager.Instance.currentLobby.Value.SetInvisible();
         GameNetworkManager.Instance.currentLobby.Value.SetJoinable(false);
-        SceneSwapper.Instance.ChangeSceneClientRPC("BridgeEnvironment");
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoadForAllPlayers();
+        SceneSwapper.Instance.ChangeScene("BridgeEnvironment");
     }
 
     private void SwitchTo(GameObject target)

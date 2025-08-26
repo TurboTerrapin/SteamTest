@@ -61,13 +61,14 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     //sets entrance/exit channel points and rotations
-    private void generatePaths()
+    public void generatePaths()
     {
         entrance_position = generatePathLocation();
         entrance_position.x *= -1.0f;
         entrance_rotation = Random.Range(-10.0f, 10.0f);
         exit_position = generatePathLocation();
         exit_rotation = Random.Range(-10.0f, 10.0f);
+        setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
     }
 
     //called by PlayerManager after scene is loaded in and all player scripts (ControlScript, CameraMove, PlayerMove) are initialized
@@ -83,8 +84,6 @@ public class ScenarioManager : NetworkBehaviour
     //only run by host
     public void startScenario()
     {
-        generatePaths();
-        setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
         enableScenarioTimer();
     }
 

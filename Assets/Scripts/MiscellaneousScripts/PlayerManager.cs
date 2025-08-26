@@ -2,7 +2,7 @@
     PlayerManager.cs
     - Handles loading and managing of players
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 8/25/2025
 */
 
 using System;
@@ -14,6 +14,7 @@ public class PlayerManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
     private static int MINIMUM_PLAYERS = -1; //if -1, will default to how many players are in the game
+    private static float LOAD_IN_DELAY = 1.0f; //how long it takes after all players have their scenes loaded to actually unlock them
 
     public GameObject spawn_points;
     public GameObject audio_manager;
@@ -92,13 +93,30 @@ public class PlayerManager : NetworkBehaviour
         }
         if (NetworkManager.Singleton.IsHost == true)
         {
-            StartCoroutine(unlockPlayersDelay());
+            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().generatePaths();
+            int players_loaded = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (player_prefabs[i] != null)
+                {
+                    players_loaded++;
+                }
+            }
+            if (players_loaded > 1)
+            {
+                //only yield if there is more than one player in the game
+                StartCoroutine(unlockPlayersDelay());
+            }
+            else
+            {
+                unlockPlayersRPC();
+            }
         }
     }
 
     IEnumerator unlockPlayersDelay()
     {
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(LOAD_IN_DELAY);
         unlockPlayersRPC();
     }
 
@@ -117,6 +135,14 @@ public class PlayerManager : NetworkBehaviour
         ControlScript.Instance.unlockPlayer(local_player);
         load_handler.endLoad();
         audio_manager.GetComponent<AudioManager>().initializeAudio();
-        GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().initializeScenarioManager();
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().initializeScenarioManager();
+        }
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateAltimeterScreen();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateCourseHeadingScreen();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateAltitude();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipLocation();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipOrientation();
     }
 }

@@ -390,8 +390,8 @@ public class PilotingSystem : NetworkBehaviour
     {
         //update map
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
-        Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
-        engineerMap.updateShipLocation(shipPosition);
+
+        engineerMap.updateShipLocation();
 
         //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)
@@ -455,7 +455,7 @@ public class PilotingSystem : NetworkBehaviour
     {
         pilotNavigation.updateCourseHeadingScreen();
         tacticianMap.rotateMap();
-        engineerMap.updateShipOrientation(transform.rotation.eulerAngles.y);
+        engineerMap.updateShipOrientation();
     }
 
     [Rpc(SendTo.Everyone)]
@@ -463,7 +463,7 @@ public class PilotingSystem : NetworkBehaviour
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         pilotNavigation.updateAltimeterScreen();
-        engineerMap.updateAltitude(-worldRoot.transform.position.y);
+        engineerMap.updateAltitude();
 
         //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)
