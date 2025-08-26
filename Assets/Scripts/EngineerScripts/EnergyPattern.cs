@@ -242,7 +242,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
             energy_pattern_power_coroutine = null;
         }
 
-        //return impulse throttle/impulse to 0
+        //return energy pattern dial to off
         if (power_loss_coroutine != null)
         {
             StopCoroutine(power_loss_coroutine);
