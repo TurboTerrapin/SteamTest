@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 8/17/2025
+    Last Updated: 8/25/2025
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class EnergyPattern : NetworkBehaviour, IControllable
+public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f; //how long it takes to turn on/off the energy pattern display
@@ -24,14 +24,16 @@ public class EnergyPattern : NetworkBehaviour, IControllable
 
     public GameObject energy_pattern_dial;
     public GameObject energy_pattern_slider;
+    public GameObject energy_pattern_indicator_display;
 
     private EnergyPatternManager energy_pattern_manager;
     private Vector3 energy_pattern_slider_initial_pos;
     private Vector3 energy_pattern_slider_final_pos = new Vector3(7.677f, -0.2442f, -8.2511f);
 
+    private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
     private bool display_enabled = false;
     private int currently_viewing = 0; //goes ship/probe/tractor beam
-
     private Coroutine energy_pattern_power_coroutine = null;
     private Coroutine energy_pattern_shift_coroutine = null;
 
@@ -46,7 +48,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
 
         //power on list
-        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         //configuration list
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[1], false, true));
@@ -158,6 +160,11 @@ public class EnergyPattern : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         int target_index = ray_targets.IndexOf(current_target.name);
         if (energy_pattern_power_coroutine == null && energy_pattern_shift_coroutine == null)
         {
@@ -189,6 +196,58 @@ public class EnergyPattern : NetworkBehaviour, IControllable
             }
         }
 
+    }
+
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        float starting_rotation = energy_pattern_dial.transform.localRotation.eulerAngles.z;
+
+        float anim_time = power_off_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            energy_pattern_dial.transform.localRotation =
+                Quaternion.Euler(energy_pattern_dial.transform.localEulerAngles.x,
+                                 energy_pattern_dial.transform.localEulerAngles.y,
+                                 Mathf.Lerp(starting_rotation, 180.0f, 1.0f - (anim_time / power_off_time)));
+
+            yield return null;
+        }
+
+        power_loss_coroutine = null;
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        energy_pattern_indicator_display.SetActive(true);
+        BUTTON_LISTS[0][0].updateInteractable(true);
+        BUTTON_LISTS[1][0].updateInteractable(false);
+        BUTTON_LISTS[1][0].updateInteractable(false);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        energy_pattern_indicator_display.SetActive(false);
+        display_enabled = false;
+        displayAdjustment();
+        BUTTON_LISTS[0][0].updateInteractable(false);
+        BUTTON_LISTS[1][0].updateInteractable(false);
+        BUTTON_LISTS[1][1].updateInteractable(false);
+        if (energy_pattern_power_coroutine != null)
+        {
+            StopCoroutine(energy_pattern_power_coroutine);
+            energy_pattern_power_coroutine = null;
+        }
+
+        //return impulse throttle/impulse to 0
+        if (power_loss_coroutine != null)
+        {
+            StopCoroutine(power_loss_coroutine);
+        }
+        power_loss_coroutine = StartCoroutine(returnToZero(time));
     }
 
     [Rpc(SendTo.Everyone)]

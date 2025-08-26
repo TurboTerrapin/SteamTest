@@ -9,6 +9,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PowerManager : NetworkBehaviour, IPowerable
@@ -25,9 +26,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
     private List<Component> pilot_modules = new List<Component>();
     private List<Component> tactician_modules = new List<Component>();
+    private List<Component> engineer_modules = new List<Component>();
     private List<Component> captain_modules = new List<Component>();
 
-    private bool[] powered_positions = new bool[] { false, false, true, false }; //corresponds to pilot, tactician, engineer, captain
+    private bool[] powered_positions = new bool[] { false, false, false, false }; //corresponds to pilot, tactician, engineer, captain
     private float[] power_levels = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null };
 
@@ -38,6 +40,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         addPilotModules();
         addTacticianModules();
+        addEngineerModules();
         addCaptainModules();
     }
 
@@ -88,6 +91,14 @@ public class PowerManager : NetworkBehaviour, IPowerable
         tactician_modules.Add(control_handler.GetComponent("PhaserPowers")); //19
     }
 
+    private void addEngineerModules()
+    {
+        engineer_modules.Add(control_handler.GetComponent("PhaserFrequency"));
+        engineer_modules.Add(control_handler.GetComponent("EnergyPattern"));
+        engineer_modules.Add(this);
+        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager"));
+    }
+
     private void addCaptainModules()
     {
         captain_modules.Add(control_handler.GetComponent("ShipStatus")); //1
@@ -101,7 +112,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
         captain_modules.Add(control_handler.GetComponent("ShipOverride")); //9
         captain_modules.Add(control_handler.GetComponent("EmergencyLights")); //10
     }
-
 
     IEnumerator modulePowerSequence(List<Component> to_power_on, int position)
     {
@@ -154,7 +164,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
         {
             to_enable = tactician_modules;
         }
-        else if (position == 3)
+        else if (position == 2)
+        {
+            to_enable = engineer_modules;
+        }
+        else
         {
             to_enable = captain_modules;
         }
@@ -187,7 +201,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
         {
             to_disable = tactician_modules;
         }
-        else if (position == 3)
+        else if (position == 2)
+        {
+            to_disable = engineer_modules;
+        }
+        else
         {
             to_disable = captain_modules;
         }

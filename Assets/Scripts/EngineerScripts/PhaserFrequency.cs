@@ -2,7 +2,7 @@
     PhaserFrequency.cs
     - Handles inputs for engineer phaser frequency adjustment
     Contributor(s): Jake Schott
-    Last Updated: 8/17/2025
+    Last Updated: 8/25/2025
 */
 
 using Unity.Netcode;
@@ -11,7 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-public class PhaserFrequency : NetworkBehaviour, IControllable
+public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float DIAL_SPEED = 100.0f;
@@ -25,13 +25,14 @@ public class PhaserFrequency : NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
-    public GameObject phaser_frequency_canvas;
+    public GameObject phaser_frequency_display;
     public GameObject phaser_frequency_slider;
     public GameObject phaser_frequency_dial;
 
     private Vector3 phaser_freq_slider_initial_pos; //slider starting position (long-range phaser)
     private Vector3 phaser_freq_slider_final_pos = new Vector3(7.7154f, -0.1597f, -8.3744f);
 
+    private bool is_powered = false;
     private int phaser_to_adjust = 0; //0 is long-range, 1 is short-range
     private float dial_rotation = 0.0f; //actual rotation of the dial
     private float[] frequency_update = { 0.5f, 0.5f }; //increases at 1.0, decreases at 0.0
@@ -44,9 +45,9 @@ public class PhaserFrequency : NetworkBehaviour, IControllable
         phaser_freq_slider_initial_pos = phaser_frequency_slider.transform.localPosition;
 
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], true, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], false, false));
         hud_info.setButtons(BUTTONS, 5);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -57,7 +58,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable
     private void displayFrequencyAdjustment()
     {
         //update frequency
-        phaser_frequency_canvas.transform.GetChild(1).GetComponent<TMP_Text>().SetText(phaser_frequencies[phaser_to_adjust].ToString() + ".0GH");
+        phaser_frequency_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText(phaser_frequencies[phaser_to_adjust].ToString() + ".0GH");
 
         //rotate dial
         phaser_frequency_dial.transform.localRotation =
@@ -67,11 +68,11 @@ public class PhaserFrequency : NetworkBehaviour, IControllable
     private void displaySwitchAdjustment()
     {
         //switch phaser icons
-        phaser_frequency_canvas.transform.GetChild(2).gameObject.SetActive(phaser_to_adjust == 0);
-        phaser_frequency_canvas.transform.GetChild(3).gameObject.SetActive(phaser_to_adjust == 1);
+        phaser_frequency_display.transform.GetChild(1).gameObject.SetActive(phaser_to_adjust == 0);
+        phaser_frequency_display.transform.GetChild(2).gameObject.SetActive(phaser_to_adjust == 1);
 
         //update text
-        phaser_frequency_canvas.transform.GetChild(1).GetComponent<TMP_Text>().color = phaser_frequency_canvas.transform.GetChild(2 + phaser_to_adjust).GetComponent<UnityEngine.UI.RawImage>().color;
+        phaser_frequency_display.transform.GetChild(0).GetComponent<TMP_Text>().color = phaser_frequency_display.transform.GetChild(1 + phaser_to_adjust).GetComponent<UnityEngine.UI.RawImage>().color;
         displayFrequencyAdjustment();
     }
 
@@ -93,15 +94,20 @@ public class PhaserFrequency : NetworkBehaviour, IControllable
         displaySwitchAdjustment();
 
         BUTTONS[0].untoggle();
-        BUTTONS[0].updateInteractable(true);
-        BUTTONS[1].updateInteractable(true);
-        BUTTONS[2].updateInteractable(true);
+        BUTTONS[0].updateInteractable(is_powered);
+        BUTTONS[1].updateInteractable(is_powered);
+        BUTTONS[2].updateInteractable(is_powered);
 
         phaser_switch_coroutine = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         if (phaser_switch_coroutine == null)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //phaser switch
@@ -165,6 +171,24 @@ public class PhaserFrequency : NetworkBehaviour, IControllable
                 }
             }
         }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        phaser_frequency_display.SetActive(true);
+        BUTTONS[0].updateInteractable(true);
+        BUTTONS[1].updateInteractable(true);
+        BUTTONS[2].updateInteractable(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        phaser_frequency_display.SetActive(false);
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+        BUTTONS[2].updateInteractable(false);
     }
 
     [Rpc(SendTo.Everyone)]
