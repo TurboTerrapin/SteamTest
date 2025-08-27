@@ -47,6 +47,7 @@ public class ScenarioManager : NetworkBehaviour
     private Coroutine countdown_coroutine;
     private GameObject scenario_handler;
 
+    private bool endpoint_reached = false;
     private bool game_over = false;
     private int scenario_number = 0;
 
@@ -98,6 +99,7 @@ public class ScenarioManager : NetworkBehaviour
 
     public string loadNewScenario()
     {
+        endpoint_reached = false;
         scenario_number += 1;
         SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
         return "RedLightGreenLight";
@@ -190,12 +192,13 @@ public class ScenarioManager : NetworkBehaviour
 
         if (reason == EndCondition.ReachedEndpoint) //only success condition is to reach endpoint
         {
+            endpoint_reached = true;
             handleTransitionRPC(scenario_number);
             return;
         }
 
-        //check if already did game over
-        if (game_over == true)
+        //check if already did game over or reached endpoint
+        if (game_over == true || endpoint_reached == true)
         {
             return;
         }
@@ -272,9 +275,22 @@ public class ScenarioManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void handleTransitionRPC(int sn)
     {
+        //prepare to load next scenario
+        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().resetPlayersReady();
+
+        //power down all stations
+        for (int i = 0; i < 4; i++)
+        {
+            GameObject.Find("PowerHandler").GetComponent<PowerManager>().disableStation(i);
+        }
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
         ControlScript.Instance.deactivate(true, false);
         scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            loadNewScenario();
+        } 
     }
 
     [Rpc(SendTo.Everyone)]

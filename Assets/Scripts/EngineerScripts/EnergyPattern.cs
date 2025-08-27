@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 8/25/2025
+    Last Updated: 8/27/2025
 */
 
 using System.Collections;
@@ -234,6 +234,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         display_enabled = false;
         displayAdjustment();
         BUTTON_LISTS[0][0].updateInteractable(false);
+        BUTTON_LISTS[0][0].updateDesc(CONTROL_DESCS[0]);
         BUTTON_LISTS[1][0].updateInteractable(false);
         BUTTON_LISTS[1][1].updateInteractable(false);
         if (energy_pattern_power_coroutine != null)

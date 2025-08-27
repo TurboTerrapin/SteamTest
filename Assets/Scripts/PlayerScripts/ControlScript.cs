@@ -246,6 +246,7 @@ public class ControlScript : MonoBehaviour
     public void reactivate()
     {
         is_active = true;
+        can_pause = true;
         unpause();
     }
 

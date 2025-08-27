@@ -54,25 +54,21 @@ public class LoadHandler : NetworkBehaviour
 
     private void handleSceneLoad(ulong clientId, string sceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
     {
-        //currently only does something for the initial load-in
-        if (sceneName == "BridgeEnvironment")
+        StopAllCoroutines();
+        if (sceneName == "BridgeEnvironment") //BridgeEnvironment load-in
         {
-            if (load_coroutine != null)
-            {
-                StopCoroutine(load_coroutine);
-            }
             load_coroutine = StartCoroutine(loadBridgeEnvironment(asyncOperation));
+        }
+        else //scenario transition
+        {
+            load_coroutine = StartCoroutine(loadScenarioTransition(asyncOperation));
         }
     }
 
     //currently only called by quit button in pause menu
     public void startLoad()
     {
-        if (load_coroutine != null)
-        {
-            StopCoroutine(load_coroutine);
-            load_coroutine = null;
-        }
+        StopAllCoroutines();
         randomizeColors();
         load_coroutine = StartCoroutine(loadLoop());
         load_screen.SetActive(true);
@@ -81,11 +77,7 @@ public class LoadHandler : NetworkBehaviour
     //terminates the loading screen
     public void endLoad()
     {
-        if (load_coroutine != null)
-        {
-            StopCoroutine(load_coroutine);
-            load_coroutine = null;
-        }
+        StopAllCoroutines();
         load_screen.SetActive(false);
     }
 
@@ -106,15 +98,20 @@ public class LoadHandler : NetworkBehaviour
         }
     }
 
+    private void spinRings()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            float z = load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation.eulerAngles.z + SPIN_SPEEDS[i] * Time.deltaTime;
+            load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation = Quaternion.Euler(0.0f, 0.0f, z);
+        }
+    }
+
     IEnumerator loadLoop()
     {
         while (true)
         {
-            for (int i = 0; i < 3; i++)
-            {
-                float z = load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation.eulerAngles.z + SPIN_SPEEDS[i] * Time.deltaTime;
-                load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation = Quaternion.Euler(0.0f, 0.0f, z);
-            }
+            spinRings();
             yield return null;
         }
     }
@@ -143,16 +140,46 @@ public class LoadHandler : NetworkBehaviour
         while (load_operation.isDone == false)
         {
             //spin circles while waiting
-            for (int i = 0; i < 3; i++)
-            {
-                float z = load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation.eulerAngles.z + SPIN_SPEEDS[i] * Time.deltaTime;
-                load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation = Quaternion.Euler(0.0f, 0.0f, z);
-            }
+            spinRings();
             yield return null;
         }
         GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
         //wait until PlayerManager interrupts load screen using endLoad()
         load_coroutine = StartCoroutine(loadLoop());
+    }
+
+    IEnumerator loadScenarioTransition(AsyncOperation load_operation)
+    {
+        PlayerManager player_manager = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>();
+        GameObject transition_canvas = GameObject.Find("ScenarioTransitioner").GetComponent<TransitionHandler>().TransitionCanvas;
+        bool scenario_loaded = false;
+        bool switched_to_load_screen = false;
+        while (true)
+        {
+            if (scenario_loaded == false)
+            {
+                if (load_operation.isDone == true)
+                {
+                    player_manager.signifyScenarioLoaded();
+                    scenario_loaded = true;
+                }
+            }
+            if (transition_canvas == null)
+            {
+                break;
+            }
+            if (transition_canvas.activeSelf == false && switched_to_load_screen == false)
+            {
+                switched_to_load_screen = true;
+                randomizeColors();
+                load_screen.SetActive(true);
+            }
+            if (switched_to_load_screen == true)
+            {
+                spinRings();
+            }
+            yield return null;
+        }
     }
 
     public void startLoadForAllPlayers()

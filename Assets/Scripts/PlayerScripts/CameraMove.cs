@@ -47,6 +47,20 @@ public class CameraMove : MonoBehaviour
         cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
     }
 
+    public void reactivateCamera()
+    {
+        if (my_camera != null)
+        {
+            my_camera.fieldOfView = 60.0f;
+        }
+
+        if (cameraUpdateCoroutine != null)
+        {
+            StopCoroutine(cameraUpdateCoroutine);
+        }
+        cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
+    }
+
     //called by FailureHandler on game restart
     public void resetCamera()
     {
@@ -58,6 +72,7 @@ public class CameraMove : MonoBehaviour
         prevPos = new Vector2(0.0f, 0.0f);
         transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         transform.parent.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        rb.angularVelocity = Vector3.zero;
         if (my_camera != null)
         {
             my_camera.fieldOfView = 60.0f;

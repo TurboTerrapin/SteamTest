@@ -3,7 +3,7 @@
     - Handles loading and managing of players
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 8/25/2025
+    Last Updated: 8/27/2025
 */
 
 using System.Collections;
@@ -21,6 +21,7 @@ public class PlayerManager : NetworkBehaviour
 
     public GameObject spawn_points;
     public GameObject audio_manager;
+    public GameObject scenario_transitioner;
 
     private GameObject local_player;
     private LoadHandler load_handler;
@@ -32,7 +33,6 @@ public class PlayerManager : NetworkBehaviour
 
     private bool game_initialized = false;
     private int players_ready = 0;
-    private Coroutine scenario_load_coroutine = null;
 
     //called by LoadHandler after scene is loaded in
     public void addPlayer(GameObject this_player, LoadHandler lh)
@@ -133,6 +133,18 @@ public class PlayerManager : NetworkBehaviour
         return player_steam_names;
     }
 
+    //called by ScenarioManager
+    public void resetPlayersReady()
+    {
+        players_ready = 0;
+    }
+
+    //called by LoadHandler
+    public void signifyScenarioLoaded()
+    {
+        scenarioLoadedRPC();
+    }
+
     public void handleShipRepositioning()
     {
         GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateAltimeterScreen();
@@ -161,7 +173,7 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    //called by waitForOthers after minimum players have loaded in
+    //called by waitForOthers after minimum players have loaded in initially
     [Rpc(SendTo.Everyone)]
     private void endLoadingRPC(string plr_a_steam_name, ulong plr_a_steam_id, string plr_b_steam_name, ulong plr_b_steam_id, string plr_c_steam_name, ulong plr_c_steam_id, string plr_d_steam_name, ulong plr_d_steam_id)
     {
@@ -197,58 +209,31 @@ public class PlayerManager : NetworkBehaviour
         }
         if (NetworkManager.Singleton.IsHost == true)
         {
-            string scenario_to_load = GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().loadNewScenario();
-            int players_loaded = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                if (player_prefabs[i] != null)
-                {
-                    players_loaded++;
-                }
-            }
-
-            loadScenarioRPC(scenario_to_load);
-        }
-    }
-
-    IEnumerator yieldForScenarioLoad(string scenario_to_load)
-    {
-        while (SceneManager.GetActiveScene().name != scenario_to_load)
-        {
-            yield return null;
-        }
-        scenarioLoadedRPC();
-    }
-
-    //only run by host
-    IEnumerator unlockPlayersDelay(bool initial_load)
-    {
-        yield return new WaitForSeconds(LOAD_IN_DELAY);
-        if (initial_load == true)
-        {
-            game_initialized = true;
-            unlockPlayersRPC();
-        }
-        else
-        {
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
+            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().loadNewScenario();
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void loadScenarioRPC(string scenario_to_load)
+    private void startScenarioRPC()
     {
-        if (scenario_load_coroutine != null)
+        if (NetworkManager.Singleton.IsHost == true)
         {
-            StopCoroutine(scenario_load_coroutine);
+            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
         }
-        scenario_load_coroutine = StartCoroutine(yieldForScenarioLoad(scenario_to_load));
+        scenario_transitioner.GetComponent<TransitionHandler>().EndTransition();
+        load_handler.endLoad();
+        ControlScript.Instance.reactivate();
+        local_player.transform.GetChild(0).GetComponent<CameraMove>().reactivateCamera();
+        handleShipRepositioning();
     }
 
+    //fired when a client's AsyncOperation for loading a scene is complete
     [Rpc(SendTo.Everyone)]
     private void scenarioLoadedRPC()
     {
         players_ready++;
+
+        //if host, check if all players are ready
         if (NetworkManager.Singleton.IsHost == true)
         {
             if (players_ready >= num_starting_players)
@@ -268,6 +253,27 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
+    //only run by host
+    IEnumerator unlockPlayersDelay(bool initial_load)
+    {
+        yield return new WaitForSeconds(LOAD_IN_DELAY);
+        if (initial_load == true)
+        {
+            game_initialized = true;
+            unlockPlayersRPC(); //only run once
+        }
+        else
+        {
+            GameObject transition_canvas = scenario_transitioner.GetComponent<TransitionHandler>().TransitionCanvas;
+            while (transition_canvas.activeSelf == true)
+            {
+                yield return null;
+            }
+            startScenarioRPC();
+        }
+    }
+
+    //called only at the start of the game
     [Rpc(SendTo.Everyone)]
     private void unlockPlayersRPC()
     {
@@ -286,7 +292,7 @@ public class PlayerManager : NetworkBehaviour
         audio_manager.GetComponent<AudioManager>().InitializeAudio();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
+            startScenarioRPC();
         }
         handleShipRepositioning();
     }

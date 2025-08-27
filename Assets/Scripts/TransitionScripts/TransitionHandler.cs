@@ -28,6 +28,18 @@ public class TransitionHandler : MonoBehaviour
         StartCoroutine(StartTransition(scenario));
     }
 
+    public void EndTransition()
+    {
+        StopAllCoroutines();
+        TransitionCanvas.SetActive(false);
+        for (int i = 0; i < TransitionText.transform.childCount; i++)
+        {
+            TMP_Text toHide = TransitionText.transform.GetChild(i).GetComponent<TMP_Text>();
+            Color textColor = toHide.color;
+            toHide.color = new Color(textColor.r, textColor.g, textColor.b, 0.0f);
+        }
+    }
+
     IEnumerator StartTransition(int scenario)
     {
         switch (scenario)
@@ -176,9 +188,7 @@ public class TransitionHandler : MonoBehaviour
 
     IEnumerator MoveCamera(Transform start, Transform end, float duration)
     {
-        yield return new WaitForSeconds(1f);
-
-        ScenarioTransitionCamera.transform.position= start.position;
+        ScenarioTransitionCamera.transform.position = start.position;
         ScenarioTransitionCamera.transform.rotation = start.rotation;
 
         float timeElapsed = 0f;
@@ -195,5 +205,15 @@ public class TransitionHandler : MonoBehaviour
         }
 
         ScenarioTransitionCamera.transform.position = end.position;
+        TransitionCanvas.SetActive(false);
+
+        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
+
+        GameObject playerCamera = localPlayer.transform.GetChild(0).gameObject;
+        GameObject transitionCamera = transform.GetChild(0).gameObject;
+
+        // switch cameras
+        playerCamera.SetActive(true);
+        transitionCamera.SetActive(false);
     }
 }
