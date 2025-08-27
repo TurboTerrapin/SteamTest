@@ -45,6 +45,15 @@ public class ShipController : NetworkBehaviour
 
         if (NetworkManager.Singleton.IsHost == true)
         {
+
+
+            if (worldRoot == null)
+            {
+                worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+                return;
+            }
+
+
             pilotingSystem.UpdateMovement(worldRoot.transform);
         }
     }

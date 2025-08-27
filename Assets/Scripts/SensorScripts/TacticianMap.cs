@@ -98,6 +98,13 @@ public class TacticianMap : MonoBehaviour, IPowerable
     private void updateMap()
     {
         List<GameObject> map_items = new List<GameObject>();
+
+        if(world_root == null)
+        {
+            world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        }
+
+
         foreach (Transform m in world_root.transform)
         {
             Component[] item_components = m.GetComponents<Component>();

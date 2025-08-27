@@ -55,7 +55,7 @@ public class ControlScript : MonoBehaviour
         new KeyCode[] {KeyCode.D, KeyCode.RightArrow},
         new KeyCode[] {KeyCode.Q, KeyCode.LeftArrow},
         new KeyCode[] {KeyCode.E, KeyCode.RightArrow},
-        new KeyCode[] {KeyCode.Mouse0, KeyCode.KeypadEnter},
+        new KeyCode[] {KeyCode.Mouse0, KeyCode.KeypadEnter, KeyCode.Return},
         new KeyCode[] {KeyCode.Alpha1, KeyCode.Keypad1},
         new KeyCode[] {KeyCode.Alpha2, KeyCode.Keypad2},
         new KeyCode[] {KeyCode.Alpha3, KeyCode.Keypad3},

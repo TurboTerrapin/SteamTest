@@ -192,7 +192,7 @@ public class CampaignLobbyController : MonoBehaviour
         GameNetworkManager.Instance.currentLobby.Value.SetInvisible();
         GameNetworkManager.Instance.currentLobby.Value.SetJoinable(false);
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoadForAllPlayers();
-        SceneSwapper.Instance.ChangeScene("BridgeEnvironment");
+        SceneSwapper.Instance.ChangeScene("BridgeEnvironment", 0);
     }
 
     private void SwitchTo(GameObject target)
