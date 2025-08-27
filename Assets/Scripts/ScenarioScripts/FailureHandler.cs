@@ -12,13 +12,14 @@ public class FailureHandler : MonoBehaviour
     public TMP_Text[] playerNames;
     public TMP_Text[] playerVotes;
     private int[] playerStates = new int[4];
+    private string[] testNames = new string[4];
     private bool quitButtonPressed = false;
     public TMP_Text notEnoughPlayersText;
 
     // for testing
     void Start()
     {
-        string [] testNames = {"Beata", "Henryk", "Jake", "John" };
+        testNames = new string[] {"Beata", "Henryk", "Jake", "John" };
         StartCoroutine(printReport(7));
     }
 
@@ -27,6 +28,7 @@ public class FailureHandler : MonoBehaviour
     {
         // print report
         //StartCoroutine(printReport(1));
+        //StartCoroutine(printReport(scenario));
     }
 
     // print star date and message (2-3 sentences).
@@ -74,7 +76,14 @@ public class FailureHandler : MonoBehaviour
         // print report message
         yield return StartCoroutine(printTextCharbyChar(Report, "Stolen ship designated NCC_3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage."));
 
-        // fade in restart and quit buttons
+        //set player names and default states
+        for (int i = 0; i < testNames.Length; i++)
+        {
+            playerNames[i].text = testNames[i];
+            playerVotes[i].text = "Not Ready";
+            playerVotes[i].color = Color.white;
+        }
+        // fade in restart button, quit button, player names, and their votes
         yield return new WaitForSeconds(0.5f);
         StartCoroutine(fadeGroup(fadeInGroup, 1f, 2f));
     }
@@ -160,11 +169,13 @@ public class FailureHandler : MonoBehaviour
 
     public void handleQuitButtonClick()
     {
-
+        // change player state to 2 - "Left Lobby"
+        //playerStateChange(plrIndex, 2)
     }
 
     public void handleRestartButtonClick()
     {
-
+        // change player state to 1 - "Ready"
+        //playerStateChange(plrIndex, 1)
     }
 }
