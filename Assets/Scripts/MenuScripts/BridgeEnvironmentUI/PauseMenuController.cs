@@ -31,11 +31,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void HandleQuitButtonClick()
     {
-        //added by Jake to avoid an error
-        GameObject.Destroy(GameObject.Find("NetworkManager"));
-        SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
-        SceneData.targetUI = "MainMenu";
-        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
+        PlayerManager.leaveGame();
     }
 
     private void SwitchTo(GameObject target)

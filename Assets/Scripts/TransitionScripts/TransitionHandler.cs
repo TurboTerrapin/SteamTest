@@ -4,31 +4,32 @@ using TMPro;
 
 public class TransitionHandler : MonoBehaviour
 {
-    public Camera ProbeCamera;
     public Transform ScenarioTransitionCamera;
 
     // Parents
     public Transform CameraPositions;
     public Transform TransitionText;
-
-    // Start() for testing purposes
-    void Start()
-    {
-        ShowTransition(10);
-    }
+    public GameObject TransitionCanvas;
 
     public void ShowTransition(int scenario)
     {
+        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
+
+        GameObject playerCamera = localPlayer.transform.GetChild(0).gameObject;
+        GameObject transitionCamera = transform.GetChild(0).gameObject;
+
+        // switch cameras
+        playerCamera.SetActive(false);
+        transitionCamera.SetActive(true);
+
+        // show UI
+        TransitionCanvas.SetActive(true);
+
         StartCoroutine(StartTransition(scenario));
     }
 
     IEnumerator StartTransition(int scenario)
     {
-        //    //--SWITCH CAMERAS--
-        //    ProbeCamera.gameObject.SetActive(false);
-        //    // turn off player prefab cam
-        //    ScenarioTransitionCamera.gameObject.SetActive(true);
-
         switch (scenario)
         {
             case 1:

@@ -134,7 +134,10 @@ public class LoadHandler : NetworkBehaviour
         load_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
         load_screen.SetActive(true);
         //switch cameras
-        Camera.main.gameObject.SetActive(false);
+        if (Camera.main != null)
+        {
+            Camera.main.gameObject.SetActive(false);
+        }
         player_prefab.transform.GetChild(0).gameObject.SetActive(true);
         //wait for scene to load
         while (load_operation.isDone == false)

@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/18/2025
+    Last Updated: 8/27/2025
 */
 
 using System.Collections;
@@ -13,17 +13,42 @@ using UnityEngine;
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    public const int COUNTDOWN_TIME = 360; //in seconds
+    public const int COUNTDOWN_TIME = 360; //how long each round lasts before scenario failure
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, EngineerMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
-    public const float PATH_SIZE = 10.0f; //degrees of the boundary, does not reflect on EngineerMap so be careful!
+    public const float PATH_SIZE = 10.0f; //for entrance/exit paths, degrees of the boundary, does not reflect on EngineerMap so be careful!
+
+    //different reasons for why a scenario ended
+    public enum EndCondition
+    {
+        ReachedEndpoint = 0,
+        LeftBoundary = 1,
+        ShipDestroyed = 2,
+        TimeRanOut = 3
+    }
+
+    private enum Difficulty
+    {
+        Random,
+        Easy,
+        Medium,
+        Hard,
+        Specific
+    }
 
     public GameObject countdown_canvas;
+    public GameObject player_manager; 
+    public GameObject scenario_transitioner;
+    public GameObject failure_handler;
 
     private EngineerMap engineer_map;
     private Coroutine countdown_coroutine;
+    private GameObject scenario_handler;
+
+    private bool game_over = false;
+    private int scenario_number = 0;
 
     //entrance/exit channel info
     private Vector2 entrance_position;
@@ -71,14 +96,18 @@ public class ScenarioManager : NetworkBehaviour
         setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
     }
 
-    //called by PlayerManager after scene is loaded in and all player scripts (ControlScript, CameraMove, PlayerMove) are initialized
-    public void initializeScenarioManager()
+    public string loadNewScenario()
     {
-        //host starts stuff
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            startScenario();
-        }
+        scenario_number += 1;
+        SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+        return "RedLightGreenLight";
+    }
+
+    public void prepScenario()
+    {
+        scenario_handler = GameObject.FindWithTag("ScenarioHandler");
+        GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+        generatePaths();
     }
 
     //only run by host
@@ -128,31 +157,101 @@ public class ScenarioManager : NetworkBehaviour
             countdownUpdateRPC(time_remaining);
         }
 
-        Debug.Log("COUNTDOWN OVER!");
+        yield return new WaitForSeconds(2.0f); //2-second courtesy
+
         countdown_coroutine = null;
+
+        endScenario(EndCondition.TimeRanOut);
     }
 
     private void enableScenarioTimer()
     {
-        if (countdown_coroutine != null)
-        {
-            StopCoroutine(countdown_coroutine);
-        }
+        disableScenarioTimer();
         countdown_coroutine = StartCoroutine(scenarioCountdown());
     }
 
-    //called by whatever scenario is in the scene upon ending (ex. ship destruction, endpoint reached)
-    public void endScenario(bool success)
+    private void disableScenarioTimer()
     {
-        if (success)
+        if (countdown_coroutine != null)
         {
-            //transition and load next scenario
-        }
-        else
-        {
-            //reload scenario? end game? who knows!
+            StopCoroutine(countdown_coroutine);
+            countdown_coroutine = null;
         }
     }
+
+    //called when a scenario ends by PilotingSystem, ShipHealth, a scenario, or this
+    public void endScenario(EndCondition reason)
+    {
+        //only run if host
+        if (NetworkManager.IsHost == false)
+        {
+            return; 
+        }
+
+        if (reason == EndCondition.ReachedEndpoint) //only success condition is to reach endpoint
+        {
+            handleTransitionRPC(scenario_number);
+            return;
+        }
+
+        //check if already did game over
+        if (game_over == true)
+        {
+            return;
+        }
+
+        game_over = true;
+        string failure_report_message = "";
+
+        //failure conditions
+        if (reason == EndCondition.TimeRanOut)
+        {
+            failure_report_message = "Stolen ship designated NCC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic 6-minute reset window.";
+        }
+        else if (reason == EndCondition.LeftBoundary)
+        {
+            failure_report_message = "Stolen ship designated NCC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. Four crew members were found alive and have been arrested.";
+        }
+        else if (reason == EndCondition.ShipDestroyed)
+        {
+            failure_report_message = "Stolen ship designated NCC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
+            Component scenario_script_component = scenario_handler.GetComponentAtIndex(2);
+            if (scenario_script_component != null)
+            {
+                IScenario scenario_script = (IScenario)scenario_script_component;
+                if (scenario_script != null)
+                {
+                    failure_report_message = scenario_script.getDeathMessage();
+                }
+            }
+        }
+
+        handleFailureRPC(scenario_number, failure_report_message);
+    }
+
+
+    /*
+     *         if (difficulty == Difficulty.Random)
+        {
+            SceneSwapper.Instance.ChangeSceneRandom();
+        }
+        else if (difficulty == Difficulty.Easy)
+        {
+            SceneSwapper.Instance.ChangeScenarioEasy();
+        }
+        else if (difficulty == Difficulty.Medium)
+        {
+            SceneSwapper.Instance.ChangeScenarioMedium();
+        }
+        else if (difficulty == Difficulty.Hard)
+        {
+            SceneSwapper.Instance.ChangeScenarioHard();
+        }
+        else if (difficulty == Difficulty.Specific)
+        {
+            SceneSwapper.Instance.ChangeScene(specificSceneName, specificSceneNum);
+        }
+    */
 
     [Rpc(SendTo.Everyone)]
     private void setNewPathsRPC(Vector2 ent_pos, float ent_rot, Vector2 exit_pos, float exit_rot)
@@ -168,6 +267,22 @@ public class ScenarioManager : NetworkBehaviour
             GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
         }
         engineer_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void handleTransitionRPC(int sn)
+    {
+        GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+        ControlScript.Instance.deactivate(true, false);
+        scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void handleFailureRPC(int sn, string frm)
+    {
+        GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+        ControlScript.Instance.deactivate(false, true);
+        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(player_manager.GetComponent<PlayerManager>().getPlayerNames(), sn, frm);
     }
 
     [Rpc(SendTo.Everyone)]

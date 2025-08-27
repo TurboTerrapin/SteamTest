@@ -5,16 +5,13 @@
     - Manages the HUD display for control interaction
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     Contributor(s): Jake Schott
-    Last Updated: 7/7/2025
+    Last Updated: 8/26/2025
 */
 
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine.SceneManagement;
-using Steamworks;
-using Unity.Netcode;
 
 public class ControlScript : MonoBehaviour
 {
@@ -45,7 +42,9 @@ public class ControlScript : MonoBehaviour
 
     //SETTINGS
     private int HUD_setting = 0; //0 is Default, 1 is Minimized, 2 is Cursor Only, 3 is None
+    private bool can_pause = false;
     private bool paused = false;
+    private bool is_active = false;
 
     //INPUT INFO
     public static List<KeyCode[]> input_options = new List<KeyCode[]>{ 
@@ -112,6 +111,8 @@ public class ControlScript : MonoBehaviour
         seat_script_holder = GameObject.FindWithTag("SeatHandler");
 
         //free player movement, start checking to sit down, begin the scenario
+        is_active = true;
+        can_pause = true;
         player_prefab.GetComponent<PlayerMove>().initialize();
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
@@ -196,6 +197,12 @@ public class ControlScript : MonoBehaviour
     {
         return paused;
     }
+
+    public bool canPause()
+    {
+        return can_pause;
+    }
+
     public void pause()
     {
         UnityEngine.Cursor.visible = true;
@@ -218,6 +225,28 @@ public class ControlScript : MonoBehaviour
         {
             cursor.SetActive(true);
         }
+    }
+
+    public void deactivate(bool allow_pausing, bool free_cursor)
+    {
+        is_active = false;
+        can_pause = allow_pausing;
+        if (allow_pausing == false && paused == true)
+        {
+            unpause();
+        }
+        if (free_cursor == true)
+        {
+            UnityEngine.Cursor.visible = true;
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
+        }
+        cursor.SetActive(false);
+    }
+
+    public void reactivate()
+    {
+        is_active = true;
+        unpause();
     }
 
     public bool isSitting()
@@ -244,7 +273,7 @@ public class ControlScript : MonoBehaviour
 
     private void checkForSeats()
     {
-        if (!paused)
+        if (!paused && is_active)
         {
             int closest_seat = seat_script_holder.GetComponent<SeatManager>().checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
@@ -303,7 +332,7 @@ public class ControlScript : MonoBehaviour
     {
         if (my_camera != null)
         {
-            if (!paused)
+            if (!paused && is_active)
             {
                 //check if trying to unseat
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up

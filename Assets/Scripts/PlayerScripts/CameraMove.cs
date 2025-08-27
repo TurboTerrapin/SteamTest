@@ -2,9 +2,9 @@
     CameraMove.cs
     - Handles pausing
     - Handles looking around
-    - Handles camera zoom (using RMB)
+    - Handles camera zoom (using RMB or CTRL)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/11/2025
+    Last Updated: 8/26/2025
 */
 
 using System.Collections;
@@ -19,7 +19,8 @@ public class CameraMove : MonoBehaviour
 
     private float mouseSensitivity = 1f;
     public Camera my_camera;
-    private float zoom_FOV = 40f;
+    private float zoomFOV = 40f;
+    private Coroutine cameraUpdateCoroutine = null;
 
     private void Start()
     {
@@ -43,7 +44,24 @@ public class CameraMove : MonoBehaviour
 
         ControlScript.Instance.my_camera = my_camera;
 
-        StartCoroutine(cameraUpdater());
+        cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
+    }
+
+    //called by FailureHandler on game restart
+    public void resetCamera()
+    {
+        if (cameraUpdateCoroutine != null)
+        {
+            StopCoroutine(cameraUpdateCoroutine);
+            cameraUpdateCoroutine = null;
+        }
+        prevPos = new Vector2(0.0f, 0.0f);
+        transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        transform.parent.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        if (my_camera != null)
+        {
+            my_camera.fieldOfView = 60.0f;
+        }
     }
 
     //calls updateCamera() every frame
@@ -63,7 +81,7 @@ public class CameraMove : MonoBehaviour
         if (!transform.parent.gameObject.GetComponent<PlayerMove>().IsOwner) return;
 
         //handle pause/unpause
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) && ControlScript.Instance.canPause())
         {
             if (Cursor.lockState == CursorLockMode.Locked)
             {
@@ -85,11 +103,11 @@ public class CameraMove : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.Mouse1))
             {
-                my_camera.fieldOfView = Mathf.Max(zoom_FOV, my_camera.fieldOfView -= 100f * Time.deltaTime);
+                my_camera.fieldOfView = Mathf.Max(zoomFOV, my_camera.fieldOfView -= 100.0f * Time.deltaTime);
                 return;
             }
         }
-        my_camera.fieldOfView = Mathf.Min(60f, my_camera.fieldOfView += 100f * Time.deltaTime);
+        my_camera.fieldOfView = Mathf.Min(60.0f, my_camera.fieldOfView += 100.0f * Time.deltaTime);
     }
 
     void MouseMove()
@@ -99,9 +117,9 @@ public class CameraMove : MonoBehaviour
         mouseMove = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
  
         //Increases the sensitivity to movement
-        mouseMove *= mouseSensitivity * Mathf.Min(1f, (1.1f - ((60f - my_camera.fieldOfView) / 20f)));
+        mouseMove *= mouseSensitivity * Mathf.Min(1.0f, (1.1f - ((60.0f - my_camera.fieldOfView) / 20.0f)));
 
-        prevPos.y = Mathf.Clamp(prevPos.y, -90f, 90f);
+        prevPos.y = Mathf.Clamp(prevPos.y, -90.0f, 90.0f);
 
         prevPos.y -= mouseMove.y;
         prevPos.x += mouseMove.x;

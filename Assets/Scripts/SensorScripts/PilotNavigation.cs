@@ -3,7 +3,7 @@
     - Updates course heading text and compass slider
     - Updates ship altimeter
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 8/27/2025
 */
 
 using System.Collections.Generic;
@@ -19,19 +19,20 @@ public class PilotNavigation : MonoBehaviour, IPowerable
     public GameObject compass;
     public GameObject altimeter;
 
-    private GameObject spaceship;
-    private GameObject world_root;
-
     private void Start()
     {
-        spaceship = GameObject.FindGameObjectWithTag("Spaceship");
-        world_root = GameObject.FindGameObjectWithTag("WorldRoot");
         updateCourseHeadingScreen();
         updateAltimeterScreen();
     }
 
     public void updateAltimeterScreen()
     {
+        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        if (world_root == null)
+        {
+            return;
+        }
+
         //get current altitude
         float current_altitude = -1.0f * world_root.transform.position.y;
 
@@ -137,6 +138,12 @@ public class PilotNavigation : MonoBehaviour, IPowerable
 
     public void updateCourseHeadingScreen()
     {
+        GameObject spaceship = GameObject.FindGameObjectWithTag("Spaceship");
+        if (spaceship == null)
+        {
+            return;
+        }
+
         //get ship rotation to get directional heading
         float current_rotation = spaceship.transform.rotation.eulerAngles.y;
         if (current_rotation < 0.0f)

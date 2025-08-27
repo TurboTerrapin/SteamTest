@@ -366,7 +366,10 @@ public class PilotingSystem : NetworkBehaviour
                 {
                     if (distanceFromCenter > ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.DIST_TO_ENDPOINT))
                     {
-                        Debug.Log("REACHED ENDPOINT!"); //ship is far enough in exit path to trigger end
+                        if (transform.GetComponent<ShipHealth>().getHullIntegrity() > 0.0f)
+                        {
+                            GameObject.Find("ScenarioManager").GetComponent<ScenarioManager>().endScenario(ScenarioManager.EndCondition.ReachedEndpoint);
+                        }
                     }
                     return;
                 }
@@ -410,9 +413,10 @@ public class PilotingSystem : NetworkBehaviour
             countdown--;
             ShipBoundaryCountdownChangeRPC(countdown);
         }
+        yield return new WaitForSeconds(2.0f);
         if (countdown <= 0)
         {
-            Debug.Log("SHIP ESCAPED BOUNDARY!");
+            GameObject.Find("ScenarioManager").GetComponent<ScenarioManager>().endScenario(ScenarioManager.EndCondition.LeftBoundary);
         }
 
         boundaryCountdownCoroutine = null;

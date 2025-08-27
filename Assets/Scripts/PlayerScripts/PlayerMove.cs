@@ -55,6 +55,26 @@ public class PlayerMove : NetworkBehaviour
         move_coroutine = StartCoroutine(checkForMovement());
     }
 
+    //called by FailureHandler on game restart
+    public void resetPlayerMove()
+    {
+        if (move_coroutine != null)
+        {
+            StopCoroutine(move_coroutine);
+            move_coroutine = null;
+        }
+        if (sit_coroutine != null)
+        {
+            StopCoroutine(sit_coroutine);
+            sit_coroutine = null;
+        }
+        if (shift_coroutine != null)
+        {
+            StopCoroutine(shift_coroutine);
+            shift_coroutine = null;
+        }
+    }
+
     public void sitDown(int pos)
     {
         if (move_coroutine != null)

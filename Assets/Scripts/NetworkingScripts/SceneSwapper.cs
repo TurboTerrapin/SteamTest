@@ -43,7 +43,7 @@ public class SceneSwapper : MonoBehaviour
     public void ChangeScene(string sceneName, int newScene)
     {
         currentScene = newScene;
-        Debug.Log("Scene num for " + sceneName + " is " + currentScene + " in sceneNames list");
+        //Debug.Log("Scene num for " + sceneName + " is " + currentScene + " in sceneNames list");
         NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
     }
 

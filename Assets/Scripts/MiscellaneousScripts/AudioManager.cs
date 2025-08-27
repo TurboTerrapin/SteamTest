@@ -1,13 +1,23 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
 public class AudioManager : MonoBehaviour
 {
     public AudioMixer masterMixer;
+    public List<GameObject> audioSources;
 
-    public void initializeAudio()
+    private List<float> startingVolumes = new List<float>();
+
+    public void InitializeAudio()
     {
-        FindAnyObjectByType<AudioManager>()?.SetMasterVolume(0.75f);
+        SetMasterVolume(0.75f);
+
+        foreach (GameObject audioSource in audioSources)
+        {
+            startingVolumes.Add(audioSource.GetComponent<AudioSource>().volume);
+            audioSource.transform.GetComponent<AudioSource>().Play();
+        }
     }
 
     public void SetMasterVolume(float volume)
@@ -16,4 +26,19 @@ public class AudioManager : MonoBehaviour
         masterMixer.SetFloat("MasterVolume", dB);
     }
 
+    public void MuteAudio()
+    {
+        foreach (GameObject audioSource in audioSources)
+        {
+            audioSource.transform.GetComponent<AudioSource>().volume = 0.0f;
+        }
+    }
+
+    public void UnmuteAudio()
+    {
+        foreach (GameObject audioSource in audioSources)
+        {
+            audioSource.transform.GetComponent<AudioSource>().volume = startingVolumes[audioSources.IndexOf(audioSource)];
+        }
+    }
 }

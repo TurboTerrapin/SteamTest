@@ -18,10 +18,11 @@ using Unity.Netcode;
 using UnityEngine;
 using Steamworks;
 
-public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
+public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
     //CLASS CONSTANTS
     private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
+    private static string DEATH_MESSAGE = "Stolen ship NCC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
 
     private GameObject PlayerPrefab;
     Vector3 OriginalCameraPosition;
@@ -175,7 +176,7 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
                     }
                     if (impulse.getCurrentImpulse() > 0.0f)
                     {
-                        shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
+                     //   shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
                     }
                 }
                 else
@@ -195,9 +196,9 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
             {
                 float intensity = impulse.getCurrentImpulse() * 0.025f;
                 Vector3 Shake = Random.insideUnitSphere * intensity;
-                PlayerPrefab.transform.GetChild(0).transform.localPosition = OriginalCameraPosition + Shake;
+               // PlayerPrefab.transform.GetChild(0).transform.localPosition = OriginalCameraPosition + Shake;
             }
-            yield return null;
+            yield return new WaitForSeconds(0.05f);
         }
     }
     
@@ -295,6 +296,11 @@ public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
         redLightCoroutine = null;
         greenLightCoroutine = null;
         cameraShakeCoroutine = null;
+    }
+
+    public string getDeathMessage()
+    {
+        return DEATH_MESSAGE;
     }
 
     [Rpc(SendTo.Everyone)]

@@ -1,38 +1,52 @@
-using UnityEngine;
 using System.Collections;
 using TMPro;
+using Unity.Netcode;
+using UnityEngine;
 
-public class FailureHandler : MonoBehaviour
+public class FailureHandler : NetworkBehaviour
 {
     public TMP_Text StarDateText;
     public TMP_Text Report;
+    public GameObject FailureHandlerCanvas;
     public CanvasGroup fadeInGroup;
     public CanvasGroup restartGroup;
 
     public TMP_Text[] playerNames;
     public TMP_Text[] playerVotes;
-    private int[] playerStates = new int[4];
-    private string[] testNames = new string[4];
+    private int[] playerStates = new int[4] { 0, 0, 0, 0 };
     private bool quitButtonPressed = false;
     public TMP_Text notEnoughPlayersText;
 
-    // for testing
-    void Start()
+    // lobbyNames is a string table that could have 1-4 entries
+    public void displayDeathScreen(string[] lobbyNames, int scenario, string msg)
     {
-        testNames = new string[] {"Beata", "Henryk", "Jake", "John" };
-        StartCoroutine(printReport(7));
-    }
+        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
 
-    // player_names is a string table that could have 1-4 entries.
-    public void displayDeathScreen(string[] player_names, int scenario)
-    {
+        GameObject playerCamera = localPlayer.transform.GetChild(0).gameObject;
+        GameObject failureCamera = transform.GetChild(0).gameObject;
+
+        // switch cameras
+        playerCamera.SetActive(false);
+        failureCamera.SetActive(true);
+
+        // freeze players
+        GameObject.Find("PlayerManager").GetComponent<PlayerManager>().freezeAllPlayers();
+        // reparent player
+        localPlayer.transform.parent = GameObject.Find("NetworkManager").transform.parent;
+        // reset/freeze camera
+        localPlayer.transform.GetChild(0).GetComponent<CameraMove>().resetCamera();
+        // reset/freeze player
+        localPlayer.transform.GetComponent<PlayerMove>().resetPlayerMove();
+
+        // show UI
+        FailureHandlerCanvas.SetActive(true);
+
         // print report
-        //StartCoroutine(printReport(1));
-        //StartCoroutine(printReport(scenario));
+        StartCoroutine(printReport(lobbyNames, scenario, msg));
     }
 
-    // print star date and message (2-3 sentences).
-    IEnumerator printReport(int scenario)
+    // print star date and message (2-3 sentences)
+    IEnumerator printReport(string[] lobbyNames, int scenario, string msg)
     {
         // clear text before printing new text
         StarDateText.text = "";
@@ -74,12 +88,12 @@ public class FailureHandler : MonoBehaviour
         }
 
         // print report message
-        yield return StartCoroutine(printTextCharbyChar(Report, "Stolen ship designated NCC_3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage."));
+        yield return StartCoroutine(printTextCharbyChar(Report, msg));
 
         //set player names and default states
-        for (int i = 0; i < testNames.Length; i++)
+        for (int i = 0; i < lobbyNames.Length; i++)
         {
-            playerNames[i].text = testNames[i];
+            playerNames[i].text = lobbyNames[i];
             playerVotes[i].text = "Not Ready";
             playerVotes[i].color = Color.white;
         }
@@ -88,13 +102,13 @@ public class FailureHandler : MonoBehaviour
         StartCoroutine(fadeGroup(fadeInGroup, 1f, 2f));
     }
 
-    IEnumerator printTextCharbyChar(TMP_Text TargetText, string FullText)
+    IEnumerator printTextCharbyChar(TMP_Text targetText, string fullText)
     {
-        TargetText.text = "";
-        TargetText.color = Color.cyan;
-        foreach (char c in FullText)
+        targetText.text = "";
+        targetText.color = Color.cyan;
+        foreach (char c in fullText)
         {
-            TargetText.text += c;
+            targetText.text += c;
             yield return new WaitForSeconds(0.03f);
         }
     }
@@ -116,27 +130,27 @@ public class FailureHandler : MonoBehaviour
         group.alpha = targetAlpha;
     }
     
-    public void playerStateChange(int plr_index, int state)
+    public void handlePlayerStateChange(int plrIndex, int state)
     {
         // Store new state for player
-        playerStates[plr_index] = state;
+        playerStates[plrIndex] = state;
 
         // Update text for specific player based on their state
         switch (state)
         {
             case 0:
-                playerVotes[plr_index].text = "Not Ready";
-                playerVotes[plr_index].color = Color.white;
+                playerVotes[plrIndex].text = "Not Ready";
+                playerVotes[plrIndex].color = Color.white;
                 break;
             case 1:
-                playerVotes[plr_index].text = "Ready";
-                playerVotes[plr_index].color = Color.cyan;
+                playerVotes[plrIndex].text = "Ready";
+                playerVotes[plrIndex].color = Color.cyan;
                 break;
             case 2:
-                playerVotes[plr_index].text = "Left Lobby";
-                playerVotes[plr_index].color = Color.red;
+                playerVotes[plrIndex].text = "Left Lobby";
+                playerVotes[plrIndex].color = Color.red;
 
-                // on first player who quits, display "not enough players" and fade restart button.
+                // on first player who quits, display "not enough players" and fade restart button
                 if (quitButtonPressed == false)
                 {
                     quitButtonPressed = true;
@@ -146,6 +160,25 @@ public class FailureHandler : MonoBehaviour
                     restartGroup.blocksRaycasts = false;
                 }
                 break;
+        }
+
+        // check if enough votes for restart
+        if (NetworkManager.Singleton.IsHost)
+        {
+            int restartVotes = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (playerStates[i] == 1) // if player is ready
+                {
+                    restartVotes++;
+                }
+            }
+
+            // if enough votes, restart game
+            if (restartVotes >= GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getNumStartingPlayers())
+            {
+                restartGameRPC();
+            }
         }
     }
 
@@ -170,12 +203,33 @@ public class FailureHandler : MonoBehaviour
     public void handleQuitButtonClick()
     {
         // change player state to 2 - "Left Lobby"
-        //playerStateChange(plrIndex, 2)
+        playerStateChangeRPC(GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex(), 2);
+        PlayerManager.leaveGame();
     }
 
     public void handleRestartButtonClick()
     {
         // change player state to 1 - "Ready"
-        //playerStateChange(plrIndex, 1)
+        playerStateChangeRPC(GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex(), 1);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void restartGameRPC()
+    {
+        // destroys everything except NetworkManager
+        PlayerManager.clearDontDestroyOnLoads();
+        // begin loading
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
+        // if host, finish reset of BridgeEnvironment to start the loop from the start
+        if (NetworkManager.Singleton.IsHost)
+        {
+            SceneSwapper.Instance.ChangeScene("BridgeEnvironment", 0);
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void playerStateChangeRPC(int plrIndex, int newState)
+    {
+        handlePlayerStateChange(plrIndex, newState);
     }
 }

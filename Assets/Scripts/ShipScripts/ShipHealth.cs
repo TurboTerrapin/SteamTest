@@ -28,6 +28,7 @@ public class ShipHealth : NetworkBehaviour
     private float[] health_areas = new float[4] { 100.0f, 100.0f, 100.0f, 100.0f }; //corresponds to forward, port, starboard, aft
     private float hull_integrity = 100.0f;
     private Coroutine damage_animation_coroutine = null;
+    private Coroutine dead_ship_coroutine = null;
 
     /*private void Start()
     {
@@ -119,7 +120,23 @@ public class ShipHealth : NetworkBehaviour
             yield return null;
         }
 
+        if (hull_integrity <= 0.0f)
+        {
+            if (dead_ship_coroutine == null)
+            {
+                dead_ship_coroutine = StartCoroutine(deadDelay());
+            }
+
+        }
+
         damage_animation_coroutine = null;
+    }
+
+    //just used to give a little bit of a wait before cutting to game over screen
+    IEnumerator deadDelay()
+    {
+        yield return new WaitForSeconds(2.0f);
+        GameObject.Find("ScenarioManager").GetComponent<ScenarioManager>().endScenario(ScenarioManager.EndCondition.ShipDestroyed);
     }
 
     //helper function that subtracts damage and rounds to nearest tenth
