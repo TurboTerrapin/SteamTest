@@ -40,16 +40,9 @@ public class ShipController : NetworkBehaviour
 
         pilotingSystem.UpdateInput();
         weaponsSystem.UpdateInput();
+
+        weaponsSystem.UpdateWeapons();
+        pilotingSystem.UpdateMovement(worldRoot.transform);
     }
 
-    private void FixedUpdate()
-    {
-        if (!shipReady) return;
-
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            weaponsSystem.UpdateWeapons();
-            pilotingSystem.UpdateMovement(worldRoot.transform);
-        }
-    }
 }

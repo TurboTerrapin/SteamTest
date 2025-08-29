@@ -17284,6 +17284,7 @@ GameObject:
   - component: {fileID: 191924465}
   - component: {fileID: 191924464}
   - component: {fileID: 191924463}
+  - component: {fileID: 191924466}
   m_Layer: 9
   m_Name: TestAsteroid (1)
   m_TagString: Asteroid
@@ -17380,6 +17381,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 191924460}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &191924466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 191924460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1079199999
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &192076210
 GameObject:
   m_ObjectHideFlags: 0
@@ -41940,7 +41962,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ASTEROID_DMG: 10
+  ASTEROID_DMG: 15
   spriteRendererPrefab: {fileID: 141232353397881479, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
   explosionSprites:
   - {fileID: 21300000, guid: aa28e3c0c5ab02340a92ad3e9ae30c4b, type: 3}
@@ -57350,6 +57372,7 @@ GameObject:
   - component: {fileID: 617167812}
   - component: {fileID: 617167811}
   - component: {fileID: 617167810}
+  - component: {fileID: 617167814}
   m_Layer: 9
   m_Name: TestAsteroid (2)
   m_TagString: Asteroid
@@ -57446,6 +57469,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &617167814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 617167808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1000448929
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &617556424
 GameObject:
   m_ObjectHideFlags: 0
@@ -60328,6 +60372,7 @@ GameObject:
   - component: {fileID: 655720832}
   - component: {fileID: 655720831}
   - component: {fileID: 655720830}
+  - component: {fileID: 655720833}
   m_Layer: 9
   m_Name: TestAsteroid (7)
   m_TagString: Asteroid
@@ -60424,6 +60469,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 655720827}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &655720833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655720827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 4014318658
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &656220284
 GameObject:
   m_ObjectHideFlags: 0
@@ -68442,7 +68508,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ASTEROID_DMG: 10
+  ASTEROID_DMG: 15
   spriteRendererPrefab: {fileID: 0}
   explosionSprites: []
   frameRate: 12
@@ -100103,6 +100169,7 @@ GameObject:
   - component: {fileID: 1091469490}
   - component: {fileID: 1091469489}
   - component: {fileID: 1091469488}
+  - component: {fileID: 1091469491}
   m_Layer: 9
   m_Name: TestAsteroid (9)
   m_TagString: Asteroid
@@ -100199,6 +100266,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1091469485}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1091469491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1091469485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 177891948
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1091793384
 GameObject:
   m_ObjectHideFlags: 0
@@ -102095,7 +102183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ASTEROID_DMG: 10
+  ASTEROID_DMG: 15
   spriteRendererPrefab: {fileID: 0}
   explosionSprites: []
   frameRate: 12
@@ -107702,7 +107790,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ASTEROID_DMG: 10
+  ASTEROID_DMG: 15
   spriteRendererPrefab: {fileID: 0}
   explosionSprites: []
   frameRate: 12
@@ -114441,6 +114529,7 @@ GameObject:
   - component: {fileID: 1264792277}
   - component: {fileID: 1264792276}
   - component: {fileID: 1264792275}
+  - component: {fileID: 1264792278}
   m_Layer: 9
   m_Name: TestAsteroid (5)
   m_TagString: Asteroid
@@ -114537,6 +114626,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1264792272}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1264792278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1264792272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 753678536
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1264921642
 GameObject:
   m_ObjectHideFlags: 0
@@ -120774,6 +120884,7 @@ GameObject:
   - component: {fileID: 1326593467}
   - component: {fileID: 1326593466}
   - component: {fileID: 1326593465}
+  - component: {fileID: 1326593468}
   m_Layer: 9
   m_Name: TestAsteroid (2)
   m_TagString: Asteroid
@@ -120870,6 +120981,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1326593462}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1326593468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326593462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2142048075
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1326745421
 GameObject:
   m_ObjectHideFlags: 0
@@ -121129,6 +121261,7 @@ GameObject:
   - component: {fileID: 1327919114}
   - component: {fileID: 1327919113}
   - component: {fileID: 1327919112}
+  - component: {fileID: 1327919116}
   m_Layer: 9
   m_Name: TestAsteroid (3)
   m_TagString: Asteroid
@@ -121225,6 +121358,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1645088838}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1327919116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327919110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2351899261
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1328133512
 GameObject:
   m_ObjectHideFlags: 0
@@ -125858,6 +126012,7 @@ GameObject:
   - component: {fileID: 1371625023}
   - component: {fileID: 1371625022}
   - component: {fileID: 1371625021}
+  - component: {fileID: 1371625024}
   m_Layer: 9
   m_Name: TestAsteroid (4)
   m_TagString: Asteroid
@@ -125954,6 +126109,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1371625018}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1371625024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1371625018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 613912392
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1371911268
 GameObject:
   m_ObjectHideFlags: 0
@@ -130972,6 +131148,7 @@ GameObject:
   - component: {fileID: 1425656164}
   - component: {fileID: 1425656163}
   - component: {fileID: 1425656162}
+  - component: {fileID: 1425656165}
   m_Layer: 9
   m_Name: TestAsteroid
   m_TagString: Asteroid
@@ -131068,6 +131245,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1425656159}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1425656165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1425656159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3230277976
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1426706802
 GameObject:
   m_ObjectHideFlags: 0
@@ -136928,6 +137126,7 @@ GameObject:
   - component: {fileID: 1515461207}
   - component: {fileID: 1515461206}
   - component: {fileID: 1515461205}
+  - component: {fileID: 1515461208}
   m_Layer: 9
   m_Name: TestAsteroid (4)
   m_TagString: Asteroid
@@ -137024,6 +137223,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1515461202}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1515461208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1515461202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2176590442
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1515533954
 GameObject:
   m_ObjectHideFlags: 0
@@ -138845,6 +139065,7 @@ GameObject:
   - component: {fileID: 1532579822}
   - component: {fileID: 1532579821}
   - component: {fileID: 1532579820}
+  - component: {fileID: 1532579823}
   m_Layer: 9
   m_Name: TestAsteroid (8)
   m_TagString: Asteroid
@@ -138941,6 +139162,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1532579817}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1532579823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1532579817}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3069243987
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1532839341
 GameObject:
   m_ObjectHideFlags: 0
@@ -179181,6 +179423,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1970632726}
+  - component: {fileID: 1970632727}
   m_Layer: 5
   m_Name: AltitudeSlider
   m_TagString: Untagged
@@ -179228,6 +179471,27 @@ RectTransform:
   m_AnchoredPosition: {x: -0.02, y: 0.0055}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1970632727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1970632725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2527598094
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 1
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1971018147
 GameObject:
   m_ObjectHideFlags: 0
@@ -193321,6 +193585,7 @@ GameObject:
   - component: {fileID: 2128465491}
   - component: {fileID: 2128465490}
   - component: {fileID: 2128465489}
+  - component: {fileID: 2128465492}
   m_Layer: 9
   m_Name: TestAsteroid (6)
   m_TagString: Asteroid
@@ -193417,6 +193682,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2128465486}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &2128465492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2128465486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 924066063
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &2129277229
 GameObject:
   m_ObjectHideFlags: 0
