@@ -2,7 +2,7 @@
     EnergyPatternManager.cs
     - Handles energy patterns for ship, probe, and tractor beam
     Contributor(s): Jake Schott
-    Last Updated: 8/17/2025
+    Last Updated: 8/28/2025
 */
 
 using System.Collections;
@@ -59,7 +59,10 @@ public class EnergyPatternManager : MonoBehaviour
         }
         else if (is_enabled == false && (corresponding_pattern_data[0] != null || corresponding_pattern_data[1] != null || corresponding_pattern_data[2] != null))
         {
-            alert_flasher_coroutine = StartCoroutine(alertFlasher());
+            if (alert_flasher_coroutine == null)
+            {
+                alert_flasher_coroutine = StartCoroutine(alertFlasher());
+            }
         }
         else
         {
@@ -70,6 +73,9 @@ public class EnergyPatternManager : MonoBehaviour
     //establishes the pattern and sets
     public void setPattern(int index, PatternData pd)
     {
+        //clear current pattern (if there is one
+        patterns[index].GetComponent<PatternVisualizer>().resetPattern();
+
         corresponding_pattern_data[index] = pd;
         patterns[index].GetComponent<PatternVisualizer>().displayPattern(corresponding_pattern_data[index]);
         updateSourceIndicators();
@@ -82,7 +88,16 @@ public class EnergyPatternManager : MonoBehaviour
         }
     }
 
-    //clears the pattern
+    //used to clear all patterns (ship, probe, and tractor beam)
+    public void clearAllPatterns()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            clearPattern(i);
+        }
+    }
+
+    //clears the pattern at given index (0 = ship, 1 = probe, 2 = tractor beam)
     public void clearPattern(int index)
     {
         patterns[index].transform.GetChild(0).gameObject.SetActive(false);
@@ -140,6 +155,7 @@ public class EnergyPatternManager : MonoBehaviour
         line.GetChild(1).localPosition = new Vector3(-0.002f - to_size_to, 0.0f, 0.0f);
     }
 
+    //handles the increasing/decreasing bar animation on the screen above the energy pattern viewer
     IEnumerator sourceIndicatorAnimator(int index)
     {
         int num_lines = pattern_source_indicators[index].transform.GetChild(1).childCount - 1;
@@ -194,6 +210,7 @@ public class EnergyPatternManager : MonoBehaviour
         source_indicator_coroutines[index] = null;
     }
 
+    //flashes the orange blinker
     IEnumerator alertFlasher()
     {
         while (true)
@@ -218,6 +235,7 @@ public class EnergyPatternManager : MonoBehaviour
         }
     }
 
+    //updates the blue increasing/decreasing bar animations
     private void updateSourceIndicators()
     {
         for (int i = 0; i < 3; i++)

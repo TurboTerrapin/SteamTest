@@ -26,6 +26,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     public GameObject forward_indicator;
     public GameObject reverse_indicator;
     private GameObject spaceship;
+    private CourseHeading course_heading;
 
     private bool is_powered = false;
     private bool in_reverse = false; //true means in reverse, false means forward
@@ -43,6 +44,8 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         hud_info.setButtons(BUTTONS);
 
         spaceship = GameObject.FindGameObjectWithTag("Spaceship");
+        course_heading = transform.GetComponent<CourseHeading>();
+
         forward_pos = lever.transform.localPosition;
     }
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -73,6 +76,9 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
 
         forward_indicator.SetActive(!in_reverse && is_powered);
         reverse_indicator.SetActive(in_reverse && is_powered);
+
+        //used to switch DECREASE/INCREASE to INCREASE/DECREASE when in reverse
+        course_heading.switchControlDescs(in_reverse);
     }
 
     private bool checkNeutralState()

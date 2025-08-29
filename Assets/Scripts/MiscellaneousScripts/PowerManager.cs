@@ -9,7 +9,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PowerManager : NetworkBehaviour, IPowerable
@@ -93,10 +92,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
     private void addEngineerModules()
     {
-        engineer_modules.Add(control_handler.GetComponent("PhaserFrequency"));
-        engineer_modules.Add(control_handler.GetComponent("EnergyPattern"));
-        engineer_modules.Add(this);
-        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager"));
+        engineer_modules.Add(control_handler.GetComponent("PhaserFrequency")); //1
+        engineer_modules.Add(control_handler.GetComponent("EnergyPattern")); //2
+        engineer_modules.Add(this); //3
+        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
     }
 
     private void addCaptainModules()

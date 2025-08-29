@@ -312,7 +312,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 337634139
+  GlobalObjectIdHash: 2715517859
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -347,7 +347,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1817782555}
   - component: {fileID: 1817782554}
-  - component: {fileID: 1817782553}
+  - component: {fileID: 1817782556}
   m_Layer: 0
   m_Name: ScenarioHandler
   m_TagString: ScenarioHandler
@@ -355,29 +355,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1817782553
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1817782552}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 78b34ef9ee32a4b61809f54d641c1f68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  center_texture: {fileID: 2800000, guid: d855eaa806a32f8478a7e49c1d567db3, type: 3}
-  center_speed: 50
-  texture_options:
-  - {fileID: 2800000, guid: 89a0f38dc301eea4ba5f514ef9cb101c, type: 3}
-  - {fileID: 2800000, guid: 08b80a7faac66f249abfbe20747e3c78, type: 3}
-  - {fileID: 2800000, guid: 3e9ace6b5b1234d4f84bb70ef33df41e, type: 3}
-  ring_speeds:
-  - 30
-  - 75
-  - 10
-  - 45
 --- !u!114 &1817782554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -390,7 +367,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 246764050
+  GlobalObjectIdHash: 1353344930
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -414,6 +391,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1817782556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817782552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dc0bb13dbe1c854da9082143e10a7ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cheeseball: {fileID: 7649349922924153039, guid: d1314be0e1a8f2a448d8dca96683d9be, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

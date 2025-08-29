@@ -3,7 +3,7 @@
     - Handles power-on/power-off procedure
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 8/28/2025
 */
 
 using System.Collections;

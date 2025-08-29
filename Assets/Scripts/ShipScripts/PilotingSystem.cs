@@ -334,7 +334,6 @@ public class PilotingSystem : NetworkBehaviour
             }
             if (insideBoundary == true)
             {
-
                 ShipBoundaryChangeRPC(false);
             }
             return;

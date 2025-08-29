@@ -1,8 +1,8 @@
 /*
     LoadHandler.cs
-    - Handles loading into BridgeEnvironment (at this time)
+    - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
     Contributor(s): Jake Schott
-    Last Updated: 8/25/2025
+    Last Updated: 8/28/2025
 */
 
 using System.Collections;
@@ -17,7 +17,7 @@ public class LoadHandler : NetworkBehaviour
 {
     //LOAD CIRCLE SETTINGS
     private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
-    private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 150.0f, 25.0f };
+    private static float[] SPIN_SPEEDS = new float[3] { 25.0f, 100.0f, 35.0f };
 
     private GameObject load_screen;
     private GameObject load_ring;
@@ -25,6 +25,7 @@ public class LoadHandler : NetworkBehaviour
 
     void Start()
     {
+        //used to ensure there is every only one LoadHandler
         transform.name = "TempLoadHandler";
         if (GameObject.Find("LoadHandler") != null)
         {
@@ -38,11 +39,13 @@ public class LoadHandler : NetworkBehaviour
         load_ring = load_screen.transform.GetChild(2).gameObject;
     }
 
+    //called by CampaignLobbyController and FriendJoinWithButton to ensure that handleSceneLoad() gets connected to the right NetworkManager
     public void connectNetworkManager()
     {
         StartCoroutine(yieldForNetworkSceneManager());
     }
 
+    //waits until NetworkManager's SceneManager is available, then links to handleSceneLoad on any scene being loaded (by NetworkManager)
     IEnumerator yieldForNetworkSceneManager()
     {
         while (NetworkManager.Singleton.SceneManager == null)
@@ -52,6 +55,7 @@ public class LoadHandler : NetworkBehaviour
         NetworkManager.Singleton.SceneManager.OnLoad += handleSceneLoad;
     }
 
+    //only called when NetworkManager.Singleton.SceneManager changes the scene
     private void handleSceneLoad(ulong clientId, string sceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
     {
         StopAllCoroutines();
@@ -65,7 +69,7 @@ public class LoadHandler : NetworkBehaviour
         }
     }
 
-    //currently only called by quit button in pause menu
+    //will begin the infinite loading screen (until terminated by endLoad() or the loading of a specific scene)
     public void startLoad()
     {
         StopAllCoroutines();
@@ -81,7 +85,7 @@ public class LoadHandler : NetworkBehaviour
         load_screen.SetActive(false);
     }
 
-    //randomizes the colors for the spinny load circle
+    //randomizes the colors for the load circle
     private void randomizeColors()
     {
         //only randomize colors if load screen hasn't been shown yet
@@ -98,6 +102,7 @@ public class LoadHandler : NetworkBehaviour
         }
     }
 
+    //helper method used to spin the rings on a single frame (yield return null)
     private void spinRings()
     {
         for (int i = 0; i < 3; i++)
@@ -107,6 +112,7 @@ public class LoadHandler : NetworkBehaviour
         }
     }
 
+    //default loading loop
     IEnumerator loadLoop()
     {
         while (true)
@@ -118,6 +124,7 @@ public class LoadHandler : NetworkBehaviour
 
     IEnumerator loadBridgeEnvironment(AsyncOperation load_operation)
     {
+        Debug.Log("BE");
         //find player
         string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
         GameObject player_prefab = GameObject.Find(player_prefab_name);
@@ -126,17 +133,20 @@ public class LoadHandler : NetworkBehaviour
             player_prefab = GameObject.Find(player_prefab_name);
             yield return null;
         }
+
         //enable load screen
         randomizeColors();
         load_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
         load_screen.SetActive(true);
+
         //switch cameras
         if (Camera.main != null)
         {
             Camera.main.gameObject.SetActive(false);
         }
         player_prefab.transform.GetChild(0).gameObject.SetActive(true);
-        //wait for scene to load
+
+        //wait for BridgeEnvironment to load
         while (load_operation.isDone == false)
         {
             //spin circles while waiting
@@ -144,12 +154,15 @@ public class LoadHandler : NetworkBehaviour
             yield return null;
         }
         GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
+
         //wait until PlayerManager interrupts load screen using endLoad()
-        load_coroutine = StartCoroutine(loadLoop());
+        load_coroutine = StartCoroutine(loadLoop()); //will eventually get interrupted by loadScenarioTransition()
     }
 
+    //called whenever the client loads into a scenario 
     IEnumerator loadScenarioTransition(AsyncOperation load_operation)
     {
+        Debug.Log("ST");
         PlayerManager player_manager = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>();
         GameObject transition_canvas = GameObject.Find("ScenarioTransitioner").GetComponent<TransitionHandler>().TransitionCanvas;
         bool scenario_loaded = false;
@@ -182,11 +195,13 @@ public class LoadHandler : NetworkBehaviour
         }
     }
 
+    //called by host when restarting a game or when engage is clicked
     public void startLoadForAllPlayers()
     {
-        allPlayersLoadRPC();
+        allPlayersLoadRPC(); //triggers below RPC
     }
 
+    //only called when loading into the start of a game (there is a waiting period when the host loads into BridgeEnvironment compared to clients)
     [Rpc(SendTo.Everyone)]
     private void allPlayersLoadRPC()
     {

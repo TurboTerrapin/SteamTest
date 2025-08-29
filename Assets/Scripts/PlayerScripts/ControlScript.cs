@@ -5,7 +5,7 @@
     - Manages the HUD display for control interaction
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     Contributor(s): Jake Schott
-    Last Updated: 8/26/2025
+    Last Updated: 8/28/2025
 */
 
 using UnityEngine;
@@ -30,7 +30,7 @@ public class ControlScript : MonoBehaviour
     public GameObject controls_menu; //in the pause menu, not the trapezoid/list
     public GameObject control_script_holder; //empty GameObject that contains all the control scripts as components
     public GameObject seat_script_holder; //empty GameObject that contains the seat script manager
-    public Camera my_camera; //player's camera
+    private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
 
     //CLASS VARIABLES
@@ -91,18 +91,11 @@ public class ControlScript : MonoBehaviour
     public void unlockPlayer(GameObject plr_prefab)
     {
         player_prefab = plr_prefab;
-        StartCoroutine(unlockPlayerHelper());
-    }
 
-    IEnumerator unlockPlayerHelper()
-    {
-        player_prefab.transform.GetChild(0).GetComponent<CameraMove>().initialize();
+        plr_camera = plr_prefab.transform.GetChild(0).GetComponent<Camera>();
+        player_prefab.transform.GetComponent<CameraMove>().initialize();
 
-        //wait for camera
-        while (my_camera == null)
-        {
-            yield return null;
-        }
+        Debug.Log("Got a camera!");
 
         //begin control interfacing
         unpause();
@@ -193,6 +186,7 @@ public class ControlScript : MonoBehaviour
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update
         }
     }
+
     public bool isPaused()
     {
         return paused;
@@ -221,9 +215,12 @@ public class ControlScript : MonoBehaviour
         settings_menu.SetActive(false);
         controls_menu.SetActive(false);
         paused = false;
-        if (HUD_setting != 3)
+        if (is_active == true)
         {
-            cursor.SetActive(true);
+            if (HUD_setting != 3)
+            {
+                cursor.SetActive(true);
+            }
         }
     }
 
@@ -247,7 +244,10 @@ public class ControlScript : MonoBehaviour
     {
         is_active = true;
         can_pause = true;
-        unpause();
+        if (paused == false)
+        {
+            unpause();
+        }
     }
 
     public bool isSitting()
@@ -331,7 +331,7 @@ public class ControlScript : MonoBehaviour
     //called by controlCheck() every frame
     private void checkForControlsAndInputs()
     {
-        if (my_camera != null)
+        if (plr_camera != null)
         {
             if (!paused && is_active)
             {
@@ -358,7 +358,7 @@ public class ControlScript : MonoBehaviour
                 }
                 
                 //else check controls
-                if (Physics.Raycast(new Ray(my_camera.transform.position, my_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE)) //cast ray
+                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE)) //cast ray
                 {
                     if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {

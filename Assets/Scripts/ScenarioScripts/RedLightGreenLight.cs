@@ -90,7 +90,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         return to_return;
     }
 
-    private void Start()
+    public void initiateScenario()
     {
         scenarioManager = GameObject.FindWithTag("ScenarioManager").GetComponent<ScenarioManager>();
 

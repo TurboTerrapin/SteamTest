@@ -20,7 +20,7 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
     private const float wheelFriction = 0.95f;
 
     private string CONTROL_NAME = "COURSE HEADING";
-    private List<string> CONTROL_DESCS = new List<string> { "TURN LEFT", "TURN RIGHT" };
+    private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
@@ -57,6 +57,23 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
 
     public float getSteeringValue() => steering_input;
 
+    //called by DirectionalShifter when switching ship direction
+    public void switchControlDescs(bool in_reverse)
+    {
+        if (in_reverse == true)
+        {
+            CONTROL_DESCS[0] = "INCREASE";
+            CONTROL_DESCS[1] = "DECREASE";
+        }
+        else
+        {
+            CONTROL_DESCS[0] = "DECREASE";
+            CONTROL_DESCS[1] = "INCREASE";
+        }
+        BUTTONS[0].updateDesc(CONTROL_DESCS[0]);
+        BUTTONS[1].updateDesc(CONTROL_DESCS[1]);
+    }
+
     private void displayAdjustment()
     {
         //adjust blue fill circle beneath steering wheel
@@ -64,7 +81,7 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
         fill_circle.GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Abs(wheel_angle / 2.0f);
 
         //point physical wheel in right direction
-        wheel.transform.localRotation = Quaternion.Euler(-113.0f, 0.0f, 450f * wheel_angle);
+        wheel.transform.localRotation = Quaternion.Euler(-113.0f, 0.0f, 450.0f * wheel_angle);
     }
 
     IEnumerator wheelSpinning()
@@ -181,6 +198,15 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
         wheel_spin_coroutine = null;
     }
 
+    public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
+    {
+        keys_down = inputs;
+        if (wheel_spin_coroutine == null && inputs.Count > 0)
+        {
+            wheel_spin_coroutine = StartCoroutine(wheelSpinning());
+        }
+    }
+
     public void powerOn(int position)
     {
         is_powered = true;
@@ -205,14 +231,5 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
         wheel_angle = wheel_ang;
         steering_input = steering_in;
         displayAdjustment();
-    }
-
-    public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
-    {
-        keys_down = inputs;
-        if (wheel_spin_coroutine == null && inputs.Count > 0)
-        {
-            wheel_spin_coroutine = StartCoroutine(wheelSpinning());
-        }
     }
 }

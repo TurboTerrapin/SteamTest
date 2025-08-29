@@ -3,7 +3,7 @@
     - Handles loading and managing of players
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 8/27/2025
+    Last Updated: 8/28/2025
 */
 
 using System.Collections;
@@ -34,6 +34,14 @@ public class PlayerManager : NetworkBehaviour
     private bool game_initialized = false;
     private int players_ready = 0;
 
+    private void Start()
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            num_starting_players = NetworkManager.ConnectedClients.Count;
+        }
+    }
+
     //called by LoadHandler after scene is loaded in
     public void addPlayer(GameObject this_player, LoadHandler lh)
     {
@@ -56,6 +64,7 @@ public class PlayerManager : NetworkBehaviour
         {
             minimum_players = NetworkManager.Singleton.ConnectedClients.Count;
         }
+
         //wait until MINIMUM_PLAYERS have loaded in
         while (players_ready < minimum_players)
         {
@@ -64,7 +73,8 @@ public class PlayerManager : NetworkBehaviour
 
         //ensure all players are on the same page
         //------------------------------------//
-        endLoadingRPC(player_steam_names[0], 
+        endBridgeEnvironmentLoadingRPC(
+                      player_steam_names[0], 
                       player_steam_ids[0],
                       player_steam_names[1],
                       player_steam_ids[1],
@@ -164,9 +174,6 @@ public class PlayerManager : NetworkBehaviour
         //record player prefab name (ex. EPICJAKEISCOOL_13590185091)
         player_prefab_names[plr_game_id] = plr_steam_name + "_" + plr_steam_id;
 
-        //set parent
-        GameObject.Find(player_prefab_names[plr_game_id]).transform.parent = GameObject.Find("Spaceship").transform;
-
         if (NetworkManager.Singleton.IsHost == true)
         {
             players_ready++;
@@ -175,7 +182,7 @@ public class PlayerManager : NetworkBehaviour
 
     //called by waitForOthers after minimum players have loaded in initially
     [Rpc(SendTo.Everyone)]
-    private void endLoadingRPC(string plr_a_steam_name, ulong plr_a_steam_id, string plr_b_steam_name, ulong plr_b_steam_id, string plr_c_steam_name, ulong plr_c_steam_id, string plr_d_steam_name, ulong plr_d_steam_id)
+    private void endBridgeEnvironmentLoadingRPC(string plr_a_steam_name, ulong plr_a_steam_id, string plr_b_steam_name, ulong plr_b_steam_id, string plr_c_steam_name, ulong plr_c_steam_id, string plr_d_steam_name, ulong plr_d_steam_id)
     {
         player_steam_names[0] = plr_a_steam_name;
         player_steam_ids[0] = plr_a_steam_id;
@@ -200,7 +207,10 @@ public class PlayerManager : NetworkBehaviour
                 int index = (int)plr_no.OwnerClientId;
                 if (index < 4)
                 {
-                    num_starting_players++;
+                    if (NetworkManager.Singleton.IsHost == true)
+                    {
+                        plr_no.TrySetParent(GameObject.FindGameObjectWithTag("Spaceship").transform, true);
+                    }
                     player_prefabs[index] = plr;
                     player_prefabs[index].name = player_prefab_names[index];
                     player_prefabs[index].transform.position = spawn_points.transform.GetChild(index).position;
@@ -216,6 +226,7 @@ public class PlayerManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void startScenarioRPC()
     {
+        //if host, begin the scenario
         if (NetworkManager.Singleton.IsHost == true)
         {
             GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
@@ -223,8 +234,9 @@ public class PlayerManager : NetworkBehaviour
         scenario_transitioner.GetComponent<TransitionHandler>().EndTransition();
         load_handler.endLoad();
         ControlScript.Instance.reactivate();
-        local_player.transform.GetChild(0).GetComponent<CameraMove>().reactivateCamera();
+        local_player.transform.GetComponent<CameraMove>().reactivateCamera();
         handleShipRepositioning();
+        GameObject.Find("AudioManager").GetComponent<AudioManager>().UnmuteAudio();
     }
 
     //fired when a client's AsyncOperation for loading a scene is complete
@@ -232,20 +244,23 @@ public class PlayerManager : NetworkBehaviour
     private void scenarioLoadedRPC()
     {
         players_ready++;
-
+        
         //if host, check if all players are ready
         if (NetworkManager.Singleton.IsHost == true)
         {
             if (players_ready >= num_starting_players)
             {
-                GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario();
+                resetPlayersReady();
+                GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario(game_initialized);
                 if (game_initialized == false)
                 {
+                    Debug.Log("A");
                     //wait LOAD_IN_DELAY
                     StartCoroutine(unlockPlayersDelay(true));
                 }
                 else
                 {
+                    Debug.Log("B");
                     //wait LOAD_IN_DELAY
                     StartCoroutine(unlockPlayersDelay(false));
                 }
@@ -281,7 +296,6 @@ public class PlayerManager : NetworkBehaviour
         {
             if (player_prefabs[i] != null)
             {
-                player_prefabs[i].transform.parent = GameObject.Find("Spaceship").transform;
                 player_prefabs[i].GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
                 player_prefabs[i].GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("None");
                 player_prefabs[i].GetComponent<Rigidbody>().useGravity = true;

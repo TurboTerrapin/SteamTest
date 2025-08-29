@@ -101,13 +101,28 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
-        SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-        return "RedLightGreenLight";
+        SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
+        return "Cheeseballs";
     }
 
-    public void prepScenario()
+    public void prepScenario(bool enable_stations)
     {
+        if (enable_stations == true)
+        {
+            PowerManager power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
+            PowerControl power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
+            for (int i = 0; i < 4; i++)
+            {
+                power_manager.powerStation(i);
+                power_control.turnDial(i, true);
+            }
+        }
         scenario_handler = GameObject.FindWithTag("ScenarioHandler");
+        IScenario scenario_script = getScenarioScript();
+        if (scenario_script != null)
+        {
+            scenario_script.initiateScenario();
+        }
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
         generatePaths();
     }
@@ -181,6 +196,23 @@ public class ScenarioManager : NetworkBehaviour
         }
     }
 
+    private IScenario getScenarioScript()
+    {
+        if (scenario_handler != null)
+        {
+            Component scenario_script_component = scenario_handler.GetComponentAtIndex(2);
+            if (scenario_script_component != null)
+            {
+                IScenario scenario_script = (IScenario)scenario_script_component;
+                if (scenario_script != null)
+                {
+                    return scenario_script;
+                }
+            }
+        }
+        return null;
+    }
+
     //called when a scenario ends by PilotingSystem, ShipHealth, a scenario, or this
     public void endScenario(EndCondition reason)
     {
@@ -190,16 +222,16 @@ public class ScenarioManager : NetworkBehaviour
             return; 
         }
 
+        //check if already did game over or reached endpoint
+        if (game_over == true || endpoint_reached == true)
+        {
+            return;
+        }
+
         if (reason == EndCondition.ReachedEndpoint) //only success condition is to reach endpoint
         {
             endpoint_reached = true;
             handleTransitionRPC(scenario_number);
-            return;
-        }
-
-        //check if already did game over or reached endpoint
-        if (game_over == true || endpoint_reached == true)
-        {
             return;
         }
 
@@ -218,14 +250,11 @@ public class ScenarioManager : NetworkBehaviour
         else if (reason == EndCondition.ShipDestroyed)
         {
             failure_report_message = "Stolen ship designated NCC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
-            Component scenario_script_component = scenario_handler.GetComponentAtIndex(2);
-            if (scenario_script_component != null)
+
+            IScenario scenario_script = getScenarioScript();
+            if (scenario_script != null)
             {
-                IScenario scenario_script = (IScenario)scenario_script_component;
-                if (scenario_script != null)
-                {
-                    failure_report_message = scenario_script.getDeathMessage();
-                }
+                failure_report_message = scenario_script.getDeathMessage();
             }
         }
 
@@ -286,6 +315,14 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
         ControlScript.Instance.deactivate(true, false);
         scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
+
+        //reset certain controls
+        GameObject.Find("SensorHandler").GetComponent<EnergyPatternManager>().clearAllPatterns();
+
+        foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))
+        {
+            probe.GetComponent<Probe>().damageProbe(9999.9f);
+        }
 
         if (NetworkManager.Singleton.IsHost == true)
         {

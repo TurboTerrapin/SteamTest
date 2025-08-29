@@ -67,7 +67,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
     }
 
     //used to ensure there is only one probe at a time
-    private void clearAllProbes()
+    public void clearAllProbes()
     {
         foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))
         {
@@ -91,6 +91,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
             BUTTON_LISTS[0][0].updateInteractable(true);
             BUTTON_LISTS[1][0].updateInteractable(false);
         }
+        resetProbeInfoScreens();
     }
 
     //spawns a probe, links probe to probe controls

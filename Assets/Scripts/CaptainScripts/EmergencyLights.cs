@@ -35,7 +35,6 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     private Vector3 final_pos = new Vector3(0.0334f, 0.01277f, 0.0f); //handle final position (enabled)
 
     private static HUDInfo hud_info = null;
-    private float start_imp;
 
     private void Start()
     {
@@ -136,6 +135,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     public void powerOff(int position, float time)
     {
         is_powered = false;
+        emergency_lights_enabled = false;
         BUTTONS[0].updateInteractable(false);
         BUTTONS[0].untoggle();
         BUTTONS[0].updateDesc(CONTROL_DESCS[0]);  

@@ -17,6 +17,7 @@ public class PauseMenuController : MonoBehaviour
     public void HandleResumeButtonClick()
     {
         PauseMenu.SetActive(false);
+        ControlScript.Instance.unpause();
     }
 
     public void HandleControlsButtonClick()

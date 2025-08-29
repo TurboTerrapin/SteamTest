@@ -90,7 +90,7 @@ public class PatternVisualizer : MonoBehaviour
         pattern_information.setRingColors(end_colors);
     }
 
-    //ring resize to small if true, big is false (runs for time_interval) 
+    //ringa resize to small if true, big is false (runs for time_interval) 
     IEnumerator patternSizeChange(bool contract, float time_interval)
     {
         float ring_start_size = 1.0f;
@@ -132,9 +132,9 @@ public class PatternVisualizer : MonoBehaviour
         //destroy all individual items
         for (int r = 0; r < rings.Count; r++)
         {
-            for (int x = 1; x < rings[r].transform.GetChild(0).childCount; x++)
+            for (int x = rings[r].transform.GetChild(0).childCount - 1; x > 1; x--)
             {
-                Destroy(rings[r].transform.GetChild(1).gameObject);
+                GameObject.Destroy(rings[r].transform.GetChild(0).GetChild(x).gameObject);
             }
         }
 

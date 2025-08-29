@@ -110,6 +110,7 @@ public class CampaignLobbyController : MonoBehaviour
         }
     }
 
+    //waits for lobby to exist and then updates lobby/friends list
     IEnumerator YieldForLobby()
     {
         while (GameNetworkManager.Instance.currentLobby == null)
@@ -122,19 +123,20 @@ public class CampaignLobbyController : MonoBehaviour
         YieldForLobbyCoroutine = null;
     }
 
+    //Clears friend invite entries and repopulates with friends not in a DSF lobby already
     private void UpdateFriendsList()
     {
-        //clear existing friend entries
+        //Clear existing friend entries
         foreach (GameObject friend in FriendObjects)
         {
             Destroy(friend.gameObject);
         }
         FriendObjects.Clear();
 
-        //get invitable friends
+        //Get invitable friends
         List<Friend> invitableFriends = CheckFriends.GetOnlineFriendsNotInAnyLobby();
 
-        //display invitable friends
+        //Display invitable friends
         foreach (Friend friend in invitableFriends)
         {
             GameObject friendObject = Instantiate<GameObject>(FriendUITemplate, FriendListBox.transform);
@@ -142,7 +144,7 @@ public class CampaignLobbyController : MonoBehaviour
             FriendObjects.Add(friendObject.gameObject);
         }
 
-        //if no friends, make it known
+        //If no friends, make it known
         NoFriendsOnlineLabel.SetActive(invitableFriends.Count == 0);
         FriendsLabel.GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
         if (invitableFriends.Count == 0)
@@ -151,13 +153,14 @@ public class CampaignLobbyController : MonoBehaviour
         }
     }
 
+    //Runs on changes to the lobby
     private void OnLobbyChange(NetworkManager manager, ConnectionEventData eventData)
     {
         UpdateFriendsList();
         UpdateLobbyList();
     }
 
-    //fires whenever SteamFriends detects a change in any friend's state (maybe?)
+    //Fires whenever SteamFriends detects a change in any friend's state (maybe?)
     private Action<Friend> OnFriendChange()
     {
         return handleFriendChange => {
@@ -166,6 +169,7 @@ public class CampaignLobbyController : MonoBehaviour
         };
     }
 
+    //Links to several events
     public void CheckForLobbyUpdates()
     {
         UpdateLobbyList();
@@ -174,6 +178,7 @@ public class CampaignLobbyController : MonoBehaviour
         SteamFriends.OnPersonaStateChange += OnFriendChange();
     }
 
+    //Unlinks several events
     public void HandleXButtonClick()
     {
         //Do not listen for future updates to the lobby
