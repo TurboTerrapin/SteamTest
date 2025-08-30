@@ -102,7 +102,7 @@ public class FailureHandler : NetworkBehaviour
     IEnumerator printTextCharbyChar(TMP_Text targetText, string fullText)
     {
         targetText.text = "";
-        targetText.color = Color.cyan;
+        targetText.color = Color.white;
         foreach (char c in fullText)
         {
             targetText.text += c;
