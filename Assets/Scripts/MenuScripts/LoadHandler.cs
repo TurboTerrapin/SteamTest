@@ -124,7 +124,6 @@ public class LoadHandler : NetworkBehaviour
 
     IEnumerator loadBridgeEnvironment(AsyncOperation load_operation)
     {
-        Debug.Log("BE");
         //find player
         string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
         GameObject player_prefab = GameObject.Find(player_prefab_name);
@@ -162,7 +161,6 @@ public class LoadHandler : NetworkBehaviour
     //called whenever the client loads into a scenario 
     IEnumerator loadScenarioTransition(AsyncOperation load_operation)
     {
-        Debug.Log("ST");
         PlayerManager player_manager = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>();
         GameObject transition_canvas = GameObject.Find("ScenarioTransitioner").GetComponent<TransitionHandler>().TransitionCanvas;
         bool scenario_loaded = false;

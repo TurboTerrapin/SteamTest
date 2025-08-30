@@ -90,7 +90,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         return to_return;
     }
 
-    public void initiateScenario()
+    private void Start()
     {
         scenarioManager = GameObject.FindWithTag("ScenarioManager").GetComponent<ScenarioManager>();
 
@@ -106,31 +106,36 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         string playerPrefabName = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
         PlayerPrefab = GameObject.Find(playerPrefabName);
         OriginalCameraPosition = PlayerPrefab.transform.GetChild(0).transform.localPosition;
+    }
 
-        //if host, begin scenario stuff
-        if (NetworkManager.Singleton.IsHost)
+    //only run by host
+    public void initiateScenario()
+    {
+        if (NetworkManager.Singleton.IsHost == false)
         {
-            //initialize pattern, randomize initial colors and textures
-            randomizeColors();
-
-            int[] ring_textures = new int[4];
-            for (int i = 0; i < 4; i++)
-            {
-                int random_texture = Random.Range(1, texture_options.Count);
-                //50-50 chance it's dotted
-                if (Random.Range(0, 2) == 0)
-                {
-                    random_texture = 0;
-                }
-                ring_textures[i] = random_texture;
-            }
-
-            string cc = DataConverter.arrayToString(curr_colors);
-            string rt = DataConverter.arrayToString(ring_textures);
-
-            patternInitializationRPC(cc, rt);
-            enterRedLightStateRPC();
+            return;
         }
+
+        //initialize pattern, randomize initial colors and textures
+        randomizeColors();
+
+        int[] ring_textures = new int[4];
+        for (int i = 0; i < 4; i++)
+        {
+            int random_texture = Random.Range(1, texture_options.Count);
+            //50-50 chance it's dotted
+            if (Random.Range(0, 2) == 0)
+            {
+                random_texture = 0;
+            }
+            ring_textures[i] = random_texture;
+        }
+
+        string cc = DataConverter.arrayToString(curr_colors);
+        string rt = DataConverter.arrayToString(ring_textures);
+
+        patternInitializationRPC(cc, rt);
+        enterRedLightStateRPC();
     }
     IEnumerator GreenLightState()
     {

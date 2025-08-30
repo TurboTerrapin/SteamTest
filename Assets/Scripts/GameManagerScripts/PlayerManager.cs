@@ -17,7 +17,7 @@ public class PlayerManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
     private static int MINIMUM_PLAYERS = -1; //if -1, will default to how many players are in the game
-    private static float LOAD_IN_DELAY = 1.0f; //how long it takes after all players have their scenes loaded to actually unlock them
+    private static float LOAD_IN_DELAY = 1.5f; //how long it takes after all players have their scenes loaded to actually unlock them
 
     public GameObject spawn_points;
     public GameObject audio_manager;
@@ -128,7 +128,22 @@ public class PlayerManager : NetworkBehaviour
     //returns the 0-3 index of the player with respect to the lobby (0 = host)
     public int getPlayerIndex()
     {
-        return (int)local_player.GetComponent<NetworkObject>().OwnerClientId;
+        if (local_player == null)
+        {
+            return -1;
+        }
+        if (local_player.GetComponent<NetworkObject>() != null)
+        {
+            return (int)local_player.GetComponent<NetworkObject>().OwnerClientId;
+        }
+        for (int i = 0; i < player_steam_names.Length; i++)
+        {
+            if (player_steam_names[i] == SteamClient.Name)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
     //returns the player prefab of the local client
@@ -217,6 +232,7 @@ public class PlayerManager : NetworkBehaviour
                 }
             }
         }
+        players_ready = 0;
         if (NetworkManager.Singleton.IsHost == true)
         {
             GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().loadNewScenario();
@@ -244,7 +260,7 @@ public class PlayerManager : NetworkBehaviour
     private void scenarioLoadedRPC()
     {
         players_ready++;
-        
+
         //if host, check if all players are ready
         if (NetworkManager.Singleton.IsHost == true)
         {
@@ -254,13 +270,11 @@ public class PlayerManager : NetworkBehaviour
                 GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario(game_initialized);
                 if (game_initialized == false)
                 {
-                    Debug.Log("A");
                     //wait LOAD_IN_DELAY
                     StartCoroutine(unlockPlayersDelay(true));
                 }
                 else
                 {
-                    Debug.Log("B");
                     //wait LOAD_IN_DELAY
                     StartCoroutine(unlockPlayersDelay(false));
                 }

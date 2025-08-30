@@ -3,15 +3,14 @@
     - Handles powering on/off each of the positions
     - Handles power consumption
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 8/29/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
 
-public class PowerManager : NetworkBehaviour, IPowerable
+public class PowerManager : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float POWER_ON_TIME = 1.0f; //how long it takes to power on a position

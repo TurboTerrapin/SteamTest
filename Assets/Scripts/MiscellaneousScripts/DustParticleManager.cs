@@ -47,6 +47,7 @@ public class DustParticleManager : MonoBehaviour
     {
         //get ship
         spaceship = GameObject.FindGameObjectWithTag("Spaceship");
+
         //initialize particles
         for (int i = 0; i < NUM_PARTICLES; i++)
         {
@@ -64,6 +65,10 @@ public class DustParticleManager : MonoBehaviour
         if (Camera.main == null)
         {
             return;
+        }
+        if (spaceship == null)
+        {
+            Destroy(this);
         }
         for (int i = 1; i <= NUM_PARTICLES; i++) 
         {

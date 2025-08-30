@@ -95,8 +95,6 @@ public class ControlScript : MonoBehaviour
         plr_camera = plr_prefab.transform.GetChild(0).GetComponent<Camera>();
         player_prefab.transform.GetComponent<CameraMove>().initialize();
 
-        Debug.Log("Got a camera!");
-
         //begin control interfacing
         unpause();
         control_info.SetActive(false); //hide UI indicator to start

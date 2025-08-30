@@ -30,8 +30,6 @@ public class FailureHandler : NetworkBehaviour
 
         // freeze players
         GameObject.Find("PlayerManager").GetComponent<PlayerManager>().freezeAllPlayers();
-        // reparent player
-        localPlayer.transform.parent = GameObject.Find("NetworkManager").transform.parent;
         // reset/freeze camera
         localPlayer.transform.GetComponent<CameraMove>().resetCamera();
         // reset/freeze player
@@ -202,14 +200,22 @@ public class FailureHandler : NetworkBehaviour
     public void handleQuitButtonClick()
     {
         // change player state to 2 - "Left Lobby"
-        playerStateChangeRPC(GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex(), 2);
+        int plrIndex = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex();
+        if (plrIndex >= 0 && NetworkManager.Singleton != null) // to avoid error
+        {
+            playerStateChangeRPC(plrIndex, 2);
+        }
         PlayerManager.leaveGame();
     }
 
     public void handleRestartButtonClick()
     {
         // change player state to 1 - "Ready"
-        playerStateChangeRPC(GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex(), 1);
+        int plrIndex = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex();
+        if (plrIndex >= 0 && NetworkManager.Singleton != null) // to avoid error
+        {
+            playerStateChangeRPC(plrIndex, 1);
+        }
     }
 
     [Rpc(SendTo.Everyone)]

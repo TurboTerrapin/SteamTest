@@ -49,6 +49,7 @@ public class Cheeseballs : NetworkBehaviour, IScenario
         return valid_location;
     }
 
+    //only run by the host
     public void initiateScenario()
     {
         if (NetworkManager.Singleton.IsHost == false)
@@ -62,11 +63,11 @@ public class Cheeseballs : NetworkBehaviour, IScenario
         for (int i = 0; i < CHEESEBALL_QUANTITY; i++)
         {
             GameObject curr_cheeseball = GameObject.Instantiate(cheeseball, world_root);
-            curr_cheeseball.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
-            curr_cheeseball.GetComponent<NetworkObject>().TrySetParent(world_root);
             curr_cheeseball.GetComponent<NetworkObject>().SynchronizeTransform = true;
             Vector3 spawn_location = getRandomSpawnLocation() + world_root_center;
             curr_cheeseball.transform.localPosition = spawn_location;
+            curr_cheeseball.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
+            curr_cheeseball.GetComponent<NetworkObject>().TrySetParent(world_root);
         }
     }
 

@@ -37,6 +37,15 @@ public class TransitionHandler : MonoBehaviour
             Color textColor = toHide.color;
             toHide.color = new Color(textColor.r, textColor.g, textColor.b, 0.0f);
         }
+
+        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
+
+        GameObject playerCamera = localPlayer.transform.GetChild(0).gameObject;
+        GameObject transitionCamera = transform.GetChild(0).gameObject;
+
+        // switch cameras
+        playerCamera.SetActive(true);
+        transitionCamera.SetActive(false);
     }
 
     IEnumerator StartTransition(int scenario)
@@ -204,15 +213,7 @@ public class TransitionHandler : MonoBehaviour
         }
 
         ScenarioTransitionCamera.transform.position = end.position;
-        TransitionCanvas.SetActive(false);
 
-        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
-
-        GameObject playerCamera = localPlayer.transform.GetChild(0).gameObject;
-        GameObject transitionCamera = transform.GetChild(0).gameObject;
-
-        // switch cameras
-        playerCamera.SetActive(true);
-        transitionCamera.SetActive(false);
+        EndTransition();
     }
 }

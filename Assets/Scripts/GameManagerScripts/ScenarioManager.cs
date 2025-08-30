@@ -9,6 +9,7 @@ using System.Collections;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ScenarioManager : NetworkBehaviour
 {
@@ -101,30 +102,32 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
-        SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
-        return "Cheeseballs";
+        if (SceneManager.GetActiveScene().name == "Cheeseballs")
+        {
+            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+            return "RedLightGreenLight";
+        }
+        else
+        {
+            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
+            return "Cheeseballs";
+        }
     }
 
     public void prepScenario(bool enable_stations)
     {
         if (enable_stations == true)
         {
-            PowerManager power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
-            PowerControl power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
-            for (int i = 0; i < 4; i++)
-            {
-                power_manager.powerStation(i);
-                power_control.turnDial(i, true);
-            }
+            powerAllStationsRPC();
         }
+        GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+        generatePaths();
         scenario_handler = GameObject.FindWithTag("ScenarioHandler");
         IScenario scenario_script = getScenarioScript();
         if (scenario_script != null)
         {
             scenario_script.initiateScenario();
         }
-        GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
-        generatePaths();
     }
 
     //only run by host
@@ -258,6 +261,12 @@ public class ScenarioManager : NetworkBehaviour
             }
         }
 
+        //reparent all players to prepare for reparenting later on should they restart
+        foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            plr.transform.parent = GameObject.Find("NetworkManager").transform.parent;
+        }
+
         handleFailureRPC(scenario_number, failure_report_message);
     }
 
@@ -328,6 +337,18 @@ public class ScenarioManager : NetworkBehaviour
         {
             loadNewScenario();
         } 
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void powerAllStationsRPC()
+    {
+        PowerManager power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
+        PowerControl power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
+        for (int i = 0; i < 4; i++)
+        {
+            power_manager.powerStation(i);
+            power_control.turnDial(i, true);
+        }
     }
 
     [Rpc(SendTo.Everyone)]
