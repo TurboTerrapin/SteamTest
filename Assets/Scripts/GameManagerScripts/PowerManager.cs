@@ -15,8 +15,10 @@ public class PowerManager : MonoBehaviour, IPowerable
     //CLASS CONSTANTS
     private static float POWER_ON_TIME = 1.0f; //how long it takes to power on a position
     private static float POWER_OFF_TIME = 1.0f; //how long it takes to power down a position
+    private static float POWER_UPDATE_TIME = 0.5f; //how often the power consumption displays update
 
-    public List<GameObject> power_displays = null;
+    public List<GameObject> position_power_displays = null;
+    public List<GameObject> engineer_power_displays = null;
     public List<GameObject> power_warnings = null;
 
     private GameObject control_handler;
@@ -28,7 +30,7 @@ public class PowerManager : MonoBehaviour, IPowerable
     private List<Component> captain_modules = new List<Component>();
 
     private bool[] powered_positions = new bool[] { false, false, false, false }; //corresponds to pilot, tactician, engineer, captain
-    private float[] power_levels = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
+    private float[] power_consumptions = new float[] { 1.0f, 0.4f, 0.8f, 0.1f }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null };
 
     private void Start()
@@ -40,6 +42,8 @@ public class PowerManager : MonoBehaviour, IPowerable
         addTacticianModules();
         addEngineerModules();
         addCaptainModules();
+
+        StartCoroutine(powerUpdater());
     }
 
     private void addPilotModules()
@@ -210,26 +214,91 @@ public class PowerManager : MonoBehaviour, IPowerable
         power_change_coroutines[position] = StartCoroutine(powerDownSequence(to_disable, position));
     }
 
-    //called by this script to display the power circles and the warning indicator only
+    //called by this script to display the position's power circles and the warning indicator only
     public void powerOn(int position)
     {
         if (position <= 1)
         {
-            if (power_displays[position].activeSelf == true)
+            if (position_power_displays[position].activeSelf == true)
             {
                 power_warnings[position].SetActive(true);
             }
         }
-        power_displays[position].SetActive(true);
+        position_power_displays[position].SetActive(true);
     }
 
-    //called by this script to hide the power circles and the warning indicator only
+    //called by this script to hide the position's power circles and the warning indicator only
     public void powerOff(int position, float time)
     {
         if (position <= 1)
         {
             power_warnings[position].SetActive(false);
         }
-        power_displays[position].SetActive(false);
+        position_power_displays[position].SetActive(false);
     }
+
+    private void powerIconHelper(GameObject to_change, float a)
+    {
+        Color icon_color = to_change.GetComponent<UnityEngine.UI.RawImage>().color;
+        to_change.GetComponent<UnityEngine.UI.RawImage>().color = new Color(icon_color.r, icon_color.g, icon_color.b, a);
+    }
+
+    private void animationProgressHelper(GameObject display, int power_level, float percent)
+    {
+        float tmp_prcnt = percent;
+        for (int i = 0; i < power_level; i++)
+        {
+            tmp_prcnt = percent - ((1.0f / power_level) * i);
+            float a = Mathf.Max(0.2f, tmp_prcnt / (1.0f / power_level));
+            powerIconHelper(display.transform.GetChild(i + 1).gameObject, a);
+        }
+    }
+
+    IEnumerator powerUpdater()
+    {
+        while (true)
+        {
+            int[] power_levels = new int[4] { 0, 0, 0, 0 };
+            for (int i = 0; i < 4; i++)
+            {
+                power_levels[i] = (int)Mathf.Floor(power_consumptions[i] * 10.0f);
+                for (int k = 1; k <= 10; k++)
+                {
+                    position_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
+                    powerIconHelper(position_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
+
+                    engineer_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
+                    powerIconHelper(engineer_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
+                }
+            }
+
+            float anim_time = POWER_UPDATE_TIME;
+            while (anim_time > 0.0f)
+            {
+                anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+                for (int i = 0; i < 4; i++)
+                {
+                    animationProgressHelper(position_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME));
+                    animationProgressHelper(engineer_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME));
+                }
+
+                yield return null;
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
