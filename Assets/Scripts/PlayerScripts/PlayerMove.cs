@@ -13,6 +13,7 @@ using System.Collections;
 using Steamworks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMove : NetworkBehaviour
 {
@@ -155,14 +156,29 @@ public class PlayerMove : NetworkBehaviour
         }
         else if (shift_index != 1) //in the middle
         {
-            if (shift_increasing == true)
+            if (pos != 2) //not engineer
             {
-                shift_index++;
+                if (shift_increasing == true)
+                {
+                    shift_index++;
+                }
+                else
+                {
+                    shift_index--;
+                }
             }
-            else
+            else if (pos == 2) //if engineer, decide shift direction based on whether looking right or left
             {
-                shift_index--;
+                if (transform.localRotation.eulerAngles.y < 135.0f)
+                {
+                    shift_index++;
+                }
+                else
+                {
+                    shift_index--;
+                }
             }
+
         }
         else //increasing, use default positions
         {

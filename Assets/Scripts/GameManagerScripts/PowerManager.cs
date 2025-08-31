@@ -243,13 +243,13 @@ public class PowerManager : MonoBehaviour, IPowerable
         to_change.GetComponent<UnityEngine.UI.RawImage>().color = new Color(icon_color.r, icon_color.g, icon_color.b, a);
     }
 
-    private void animationProgressHelper(GameObject display, int power_level, float percent)
+    private void animationProgressHelper(GameObject display, int power_level, float percent, float min_alpha)
     {
         float tmp_prcnt = percent;
         for (int i = 0; i < power_level; i++)
         {
             tmp_prcnt = percent - ((1.0f / power_level) * i);
-            float a = Mathf.Max(0.2f, tmp_prcnt / (1.0f / power_level));
+            float a = Mathf.Max(min_alpha, tmp_prcnt / (1.0f / power_level));
             powerIconHelper(display.transform.GetChild(i + 1).gameObject, a);
         }
     }
@@ -279,8 +279,8 @@ public class PowerManager : MonoBehaviour, IPowerable
 
                 for (int i = 0; i < 4; i++)
                 {
-                    animationProgressHelper(position_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME));
-                    animationProgressHelper(engineer_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME));
+                    animationProgressHelper(position_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME), 0.2f);
+                    animationProgressHelper(engineer_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME), 0.5f);
                 }
 
                 yield return null;

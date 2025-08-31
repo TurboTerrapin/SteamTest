@@ -3,7 +3,7 @@
     - Stores information for a button
     - Handles button, divider GUI
     Contributor(s): Jake Schott
-    Last Updated: 8/9/2025
+    Last Updated: 8/31/2025
 */
 
 /*
@@ -26,7 +26,9 @@
 
     LAYOUT 5: 3 BUTTONS, 1 SEPARATED ON LEFT, 2 TOUCHING ON RIGHT (ex. map options)
 
-    LAYOUT 6: 1 BUTTON, CENTERED, ENLONGATED (ex. tractor beam incinerator, used for extra long titles)
+    LAYOUT 6: 1 BUTTON, CENTERED, ELONGATED (ex. tractor beam incinerator, used for extra long titles)
+
+    LAYOUT 7: 2 TOUCHING BUTTONS, BOTH CENTERED, DIVIDED BY A DIVER, ELONGATED (ex. engineer power allocation)
 */
 
 using UnityEngine;
@@ -49,6 +51,7 @@ public class Button
         new Vector2(2300f, 250f),
         new Vector2(1600f, 350f),
         new Vector2(1600f, 250f),
+        new Vector2(1400f, 250f),
         new Vector2(1400f, 250f)
     };
 
@@ -60,7 +63,8 @@ public class Button
         700f,
         900f,
         700f,
-        1200f
+        1200f,
+        1150f
     };
 
     private static List<Vector2[]> button_positions = new List<Vector2[]>
@@ -71,7 +75,8 @@ public class Button
         new Vector2[] {new Vector2(-863f, -45f), new Vector2(-288f, -45f), new Vector2(288f, -45f), new Vector2(863f, -45f)},
         new Vector2[] {new Vector2(-315f, 15f), new Vector2(315f, 15f), new Vector2(-582f, -90f), new Vector2(-194f, -90f), new Vector2(194f, -90f), new Vector2(582f, -90f)},
         new Vector2[] {new Vector2(-510f, -45f), new Vector2(48f, -45f), new Vector2(536f, -45f)},
-        new Vector2[] {new Vector2(0f, -45f)}
+        new Vector2[] {new Vector2(0f, -45f)},
+        new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)}
     };
 
     private static List<int[]> button_templates = new List<int[]>
@@ -82,7 +87,8 @@ public class Button
         new int[] {0, 0, 0, 0},
         new int[] {0, 0, 1, 3, 3, 2},
         new int[] {0, 1, 2},
-        new int[] {0}
+        new int[] {0},
+        new int[] {1, 2}
     };
 
     private static List<Vector2[]> button_sizes = new List<Vector2[]>
@@ -93,7 +99,8 @@ public class Button
         new Vector2[] {new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f)},
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f)},
         new Vector2[] {new Vector2(450f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
-        new Vector2[] {new Vector2(600f, 80f)}
+        new Vector2[] {new Vector2(600f, 80f)},
+        new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f)}
     };
 
     private static List<Vector2[]> divider_positions = new List<Vector2[]>
@@ -104,7 +111,8 @@ public class Button
         new Vector2[] {},
         new Vector2[] {new Vector2(-388f, -90f), new Vector2(0f, -90f), new Vector2(388f, -90f)},
         new Vector2[] {new Vector2(292f, -45f)},
-        new Vector2[] {}
+        new Vector2[] {},
+        new Vector2[] {new Vector2(0f, -45f)}
     };
 
     //PRIVATE DATA MEMBERS
