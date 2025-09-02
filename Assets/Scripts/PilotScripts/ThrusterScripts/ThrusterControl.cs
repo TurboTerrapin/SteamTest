@@ -4,7 +4,7 @@
     - Handles physical buttons
     - Meant to be extended
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ public class ThrusterControl : NetworkBehaviour
     //CLASS CONSTANTS
     protected static float PUSH_SPEED = 4.0f; //how fast the physical button takes to be pushed relative to the bars
     protected static float MOVE_SPEED = 0.5f;
+    protected static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     public List<Transform> thruster_buttons;
     public GameObject thruster_display;
@@ -36,7 +37,10 @@ public class ThrusterControl : NetworkBehaviour
     protected void updateThrust()
     {
         thrust_direction = thruster_percentage[1] - thruster_percentage[0];
+        float greatest_thruster = Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, greatest_thruster * MAX_POWER_CONSUMPTION);
     }
+
     protected bool checkNeutralState()
     {
         bool neutral_state = true;

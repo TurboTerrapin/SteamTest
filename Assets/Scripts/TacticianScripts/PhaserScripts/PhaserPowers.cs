@@ -2,10 +2,9 @@
     PhaserPowers.cs
     - Determines whether phasers are enabled or not
     Contributor(s): Jake Schott
-    Last Updated: 8/21/2025
+    Last Updated: 9/1/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -16,6 +15,7 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.2f; //how long it takes for the switch to be flipped
     private static float ENABLE_TIME = 1.0f; //how long it takes for the phaser to charge/uncharge
+    private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles
 
     private List<string> CONTROL_NAMES = new List<string>() { "LONG-RANGE PHASER", "SHORT-RANGE LEFT PHASER", "SHORT-RANGE RIGHT PHASER" };
     private List<string> CONTROL_DESCS = new List<string> {"ENABLE", "DISABLE" };
@@ -63,9 +63,23 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
 
         return hud_info;
     }
+
     public bool[] getActivePhasers()
     {
         return phaser_is_enabled;
+    }
+
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 3; i++)
+        {
+            if (phaser_is_enabled[i] == true)
+            {
+                consumed_power += (MAX_POWER_CONSUMPTION / 3);
+            }
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
     }
 
     IEnumerator switchPhaser(int index)
@@ -77,6 +91,7 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
         {
             phaser_coverups[index].SetActive(true);
             phaser_is_enabled[index] = false;
+            handlePowerConsumptionChange();
             increasing = false;
             if (index == 0)
             {
@@ -125,6 +140,7 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
         {
             phaser_coverups[index].SetActive(false);
             phaser_is_enabled[index] = true;
+            handlePowerConsumptionChange();
             if (index == 0)
             {
                 phaser_temperatures.changeInPower(0, true);

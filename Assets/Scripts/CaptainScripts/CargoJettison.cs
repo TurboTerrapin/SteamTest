@@ -2,7 +2,7 @@
     CargoJettion.cs
     - Launches item loaded in cargo bay
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
     private static float ARM_TIME = 1.5f;
     private static float PUSH_TIME = 1.0f;
     private static float COOLDOWN_TIME = 3.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "CARGO JETTISON";
     private List<string> CONTROL_DESCS = new List<string>() { "EJECT", "ARM" };
@@ -100,6 +101,8 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
 
     IEnumerator ejectCargo()
     {
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+
         dial.transform.localPosition = initial_pos;
         dial.transform.localRotation =
             Quaternion.Euler(dial.transform.localEulerAngles.x,
@@ -122,6 +125,8 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
 
             yield return null;
         }
+
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
 
         //bring the dial back and unrotate
         float cooldown_time = COOLDOWN_TIME;

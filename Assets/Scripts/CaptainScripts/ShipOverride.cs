@@ -2,7 +2,7 @@
     ShipOverride.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     private static float SWITCH_TIME = 0.2f; //how long the switch takes to be flipped
     private static float COOLDOWN_TIME = 0.2f; //how long until it can be switched again after being switched
     private static string[] COLOR_NAMES = { "RED", "YELLOW", "DARK BLUE", "WHITE", "LIGHT BLUE", "GREEN", "PURPLE", "ORANGE" };
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "OVERRIDE SWITCH ";
    
@@ -49,6 +50,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
 
         hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -56,6 +58,19 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
         hud_info.setButtons(BUTTON_LISTS[index], 6);
 
         return hud_info;
+    }
+
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 8; i++)
+        {
+            if (enabled_overrides[i] == true)
+            {
+                consumed_power += (MAX_POWER_CONSUMPTION / 8);
+            }
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
     }
 
     private void displayAdjustment(int index)
@@ -77,6 +92,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
         if (disabling == true)
         {
             enabled_overrides[override_to_change] = false; //disable override
+            handlePowerConsumptionChange();
             displayAdjustment(override_to_change);
         }
 
@@ -104,6 +120,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
         if (disabling == false)
         {
             enabled_overrides[override_to_change] = true; //enable override
+            handlePowerConsumptionChange();
             displayAdjustment(override_to_change);
         }
 

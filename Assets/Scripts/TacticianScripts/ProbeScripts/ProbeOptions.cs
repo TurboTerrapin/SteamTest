@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
     private static float TURN_TIME = 1.0f;
     private static float CHARGE_TIME = 2.0f;
     private static float FUNCTION_TIME = 4.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };
     private List<string> CONTROL_DESCS = new List<string> { "ACTIVATE" };
@@ -57,6 +58,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
 
         hud_info.setButtons(BUTTON_LISTS[0]);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -92,6 +94,8 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
             BUTTON_LISTS[1][0].updateInteractable(false);
         }
         resetProbeInfoScreens();
+
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
     }
 
     //spawns a probe, links probe to probe controls
@@ -104,6 +108,8 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
         transform.GetComponent<ProbeLateralMovement>().linkProbe(current_probe);
         transform.GetComponent<ProbeVerticalMovement>().linkProbe(current_probe);
         transform.GetComponent<ProbeOrientation>().linkProbe(current_probe);
+
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
     }
 
     private void setChargeColor(Color new_color)
@@ -326,6 +332,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
         if (current_probe != null)
         {
             BUTTON_LISTS[1][0].updateInteractable(current_probe.GetComponent<Probe>().inRange());
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
         }
         else
         {

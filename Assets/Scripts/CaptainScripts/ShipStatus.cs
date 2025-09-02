@@ -3,7 +3,7 @@
     - Handles slider
     - Changes lights at highest status
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 9/2/2025
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     Color[] COLOR_OPTIONS = new Color[3] { new Color(0f, 0.84f, 1f), new Color(0.89f, 1f, 0.0f), new Color(1f, 0.01f, 0.0f)};
     private static float MOVE_TIME = 0.5f;
+    private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     private string CONTROL_NAME = "SHIP ALERT STATUS";
     private List<string> CONTROL_DESCS = new List<string> { "LOWER", "ELEVATE" };
@@ -106,6 +107,15 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
                             Mathf.Lerp(starting_pos.z, dest_pos.z, 1.0f - (animation_time / MOVE_TIME)));
 
             yield return null;
+        }
+
+        if (curr_status > 0)
+        {
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        }
+        else
+        {
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
         }
 
         displayAdjustment();

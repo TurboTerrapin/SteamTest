@@ -212,7 +212,7 @@ public class Button
         {
             if (visual_button.transform.childCount > 0) //ensures trapezoid format
             {
-                visual_button.transform.parent.GetComponent<ButtonHelper>().toggleHelper(this, toggle_length);
+                ControlScript.Instance.transform.GetComponent<ButtonHelper>().toggleHelper(this, toggle_length);
             }
         }
     }

@@ -3,7 +3,7 @@
     - Meant to temporarily jam signals
     - Does nothing
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
     private static Color BLUE = new Color(0.0f, 0.84f, 1.0f, 1.0f);
     private static Color RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "SIGNAL JAMMER";
     private List<string> CONTROL_DESCS = new List<string>() { "ACTIVATE" };
@@ -35,6 +36,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     public GameObject signal_indicators;
 
     private bool is_powered = false;
+    private float jam_time = 0.0f;
     private Coroutine signal_jam_coroutine = null;
     private Coroutine bars_animation_coroutine = null;
     private Vector3 button_initial_pos;
@@ -174,7 +176,9 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
             }
         }
 
-        float jam_time = JAM_TIME;
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
+
+        jam_time = JAM_TIME;
         while (jam_time > 0.0f)
         {
             float dt = Time.deltaTime;
@@ -201,6 +205,8 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         StopCoroutine(bars_animation_coroutine);
         bars_animation_coroutine = StartCoroutine(resetBars());
         colorChange(BLUE);
+
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, 0.0f);
 
         float reset_time = RESET_TIME;
         while (reset_time > 0.0f)
@@ -242,6 +248,13 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
             for (int i = 0; i < signal_indicators.transform.childCount; i++)
             {
                 signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = neon;
+            }
+        }
+        else
+        {
+            if (jam_time > 0.0f)
+            {
+                transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
             }
         }
     }

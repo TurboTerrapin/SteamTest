@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -11,12 +11,14 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 50.0f;
     private static float TRACTOR_BEAM_RANGE = 100.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string CONTROL_NAME = "TRACTOR BEAM";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
@@ -156,6 +158,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     private void transmitTractorBeamPowerAdjustmentRPC(float pwr)
     {
         power = pwr;
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, pwr * MAX_POWER_CONSUMPTION);
         displayAdjustment();
     }
 }

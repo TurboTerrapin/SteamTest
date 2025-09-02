@@ -21,7 +21,7 @@ public class PowerControl : NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>(){6};
     private List<Button>[] BUTTON_LISTS = new List<Button>[4];
 
-    public GameObject power_handler;
+    public PowerManager power_manager;
     public List<GameObject> dials = null;
     public List<GameObject> light_indicator_groups = null;
 
@@ -91,7 +91,7 @@ public class PowerControl : NetworkBehaviour, IControllable
         if (enabling == true)
         {
             changeIndicator(index, true);
-            power_handler.GetComponent<PowerManager>().powerStation(index);
+            power_manager.powerStation(index);
         }
 
         turn_coroutines[index] = null;
@@ -138,7 +138,7 @@ public class PowerControl : NetworkBehaviour, IControllable
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle(0.2f);
-                transmitPowerControlRPC(index, !power_handler.GetComponent<PowerManager>().getPowerEnabled(index));
+                transmitPowerControlRPC(index, !power_manager.getPowerEnabled(index));
             }
         }
     }
@@ -146,15 +146,15 @@ public class PowerControl : NetworkBehaviour, IControllable
     [Rpc(SendTo.Everyone)]
     private void transmitPowerControlRPC(int index, bool enabling)
     {
-        if (enabling == true && power_handler.GetComponent<PowerManager>().getPowerEnabled(index) == false)
+        if (enabling == true && power_manager.getPowerEnabled(index) == false)
         {
             disableDial(index);
             turnDial(index, true); //will call power_handler.GetComponent<PowerManager>().powerStation(index)
         }
-        else if (enabling == false && power_handler.GetComponent<PowerManager>().getPowerEnabled(index) == true)
+        else if (enabling == false && power_manager.getPowerEnabled(index) == true)
         {
             disableDial(index);
-            power_handler.GetComponent<PowerManager>().disableStation(index);
+            power_manager.disableStation(index);
         }
     }
 }

@@ -4,7 +4,7 @@
     - Moves slider
     - Enables/disables emergency lights
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.25f;
     private static float EMERGENCY_LIGHT_MAX_INTENSITY = 10.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "EMERGENCY LIGHTS";
     private List<string> CONTROL_DESCS = new List<string> { "ENABLE", "DISABLE" };
@@ -72,6 +73,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         if (enabling == false)
         {
             emergency_lights_enabled = false;
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
         }
 
         float anim_time = SWITCH_TIME;
@@ -99,6 +101,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         if (enabling == true)
         {
             emergency_lights_enabled = true;
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);
         }
         else

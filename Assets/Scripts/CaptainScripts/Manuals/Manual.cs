@@ -29,6 +29,7 @@ public class Manual : MonoBehaviour, IPowerable
     {
         return currently_enabled;
     }
+
     public bool getCurrentlyAnimating()
     {
         return (power_on_coroutine != null);
@@ -112,6 +113,7 @@ public class Manual : MonoBehaviour, IPowerable
     {
         return interactable_options;
     }
+
     public void back()
     {
         if (curr_screen.GetComponent<PanelInfo>().back_panel != null)

@@ -2,7 +2,7 @@
     Shields.cs
     - Handles enabling/disabling of shields
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 9/1/2025
 */
 
 using System;
@@ -16,6 +16,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.25f; //how long the switch takes to be flipped
     private static float CHANGE_TIME = 3.0f; //how long it takes for the shield adjustment to take place
+    private static float MAX_POWER_CONSUMPTION = 0.4f; //equates to 4 circles (1 per shield)
 
     private List<string> CONTROL_NAMES = new List<string>() { "FORWARD SHIELDS", "PORT SHIELDS", "STARBOARD SHIELDS", "AFT SHIELDS" };
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
@@ -59,6 +60,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
         Transform p_current_section = pilot_shield_display.transform.GetChild(shield_to_change); //pilot display
         Transform e_current_section = engineer_shield_display.transform.GetChild(shield_to_change); //engineer display
 
+        //pilot display
         for (int i = 0; i <= 3; i++)
         {
             bool is_visible = (current_percentage <= 0.25f * (3 - i));
@@ -74,6 +76,19 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 4; i++)
+        {
+            if (enabled_shields[i] == true)
+            {
+                consumed_power += (MAX_POWER_CONSUMPTION * 0.25f);
+            }
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
+    }
+
     IEnumerator shieldChange(int shield_to_change, bool to_change_to)
     {
         //start by flipping the switch
@@ -85,6 +100,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
             starting_rotation = 250.0f;
             desired_rotation = 335.0f;
             enabled_shields[shield_to_change] = false; //disable shields
+            handlePowerConsumptionChange();
         }
         while (anim_time > 0.0f)
         {
@@ -133,6 +149,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
         else
         {
             enabled_shields[shield_to_change] = true; //enable shields
+            handlePowerConsumptionChange();
             BUTTON_LISTS[shield_to_change][0].updateDesc(CONTROL_DESCS[1]);
         }
         BUTTON_LISTS[shield_to_change][0].updateInteractable(is_powered);

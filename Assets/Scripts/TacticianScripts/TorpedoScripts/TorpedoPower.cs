@@ -15,6 +15,7 @@ public class TorpedoPower : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.25f;
+    private static float MAX_POWER_CONSUMPTION = 0.4f; //0.4 means 4 circles
 
     private string[] CONTROL_NAMES = new string[] {"FORWARD TORPEDO POWER", "PORT TORPEDO POWER", "STARBOARD TORPEDO POWER", "AFT TORPEDO POWER"};
     private List<string> CONTROL_DESCS = new List<string> {"REDUCE", "ENERGIZE"};
@@ -64,6 +65,17 @@ public class TorpedoPower : NetworkBehaviour, IControllable, IPowerable
 
         return hud_info;
     }
+
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 4; i++)
+        {
+            consumed_power += (power_levels[i] * 0.25f * MAX_POWER_CONSUMPTION);
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+    }
+
     private void displayAdjustment(int index)
     {
         //move physical lever
@@ -211,6 +223,7 @@ public class TorpedoPower : NetworkBehaviour, IControllable, IPowerable
     private void transmitTorpedoPowerAdjustmentRPC(int index, float trpdo_percent)
     {
         power_levels[index] = trpdo_percent;
+        handlePowerConsumptionChange();
         displayAdjustment(index);
     }
 }

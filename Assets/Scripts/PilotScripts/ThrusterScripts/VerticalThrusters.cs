@@ -108,6 +108,7 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
     [Rpc(SendTo.Everyone)]
     private void transmitVerticalThrusterRPC(float down_thrust, float up_thrust, float down_button, float up_button)
     {
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, 0.0f);
         thruster_percentage[0] = down_thrust;
         thruster_percentage[1] = up_thrust;
         button_push_percentage[0] = down_button;

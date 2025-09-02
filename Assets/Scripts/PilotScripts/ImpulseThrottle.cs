@@ -11,11 +11,13 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 35.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string CONTROL_NAME = "IMPULSE THROTTLE";
     private List<string> CONTROL_DESCS = new List<string> {"DECREASE", "INCREASE"};
@@ -158,6 +160,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
     private void transmitImpulseAdjustmentRPC(float imp)
     {
         impulse = imp;
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, imp * MAX_POWER_CONSUMPTION);
         displayAdjustment();
     }
 }

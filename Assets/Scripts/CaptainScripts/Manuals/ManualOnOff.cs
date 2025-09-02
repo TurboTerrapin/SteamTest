@@ -14,6 +14,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
+    private static float MAX_POWER_CONSUMPTION = 0.6f; //6 circles, 3 per manual
 
     private string[] CONTROL_NAMES = new string[] { "SHIP MANUAL", "COMMUNICATIONS MANUAL" };
     private List<string> CONTROL_DESCS = new List<string> { "TURN ON", "TURN OFF" };
@@ -42,6 +43,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 
         hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -49,6 +51,21 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         hud_info.setButtons(BUTTON_LISTS[index], 6);
         return hud_info;
     }
+
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 2; i++)
+        {
+            Manual m = (Manual)manuals[i];
+            if (m.getCurrentlyEnabled() == true || m.getCurrentlyAnimating() == true)
+            {
+                consumed_power += (MAX_POWER_CONSUMPTION / 2);
+            }
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
+    }
+
     public void reactivate(int index)
     {
         Manual curr_manual = (Manual)manuals[index];
@@ -153,6 +170,8 @@ public class ManualOnOff : NetworkBehaviour, IControllable
             target_colliders[2].SetActive(!to_switch_to);
             target_colliders[3].SetActive(to_switch_to);
         }
+
+        handlePowerConsumptionChange();
 
         power_change_coroutine[manual_index] = null;
     }

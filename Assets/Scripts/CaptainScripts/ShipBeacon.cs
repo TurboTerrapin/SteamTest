@@ -17,6 +17,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f;
     private static float FLASH_TIME = 2.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "SHIP BEACON";
     private List<string> CONTROL_DESCS = new List<string> { "ENABLE", "DISABLE" };
@@ -53,6 +54,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     {
         return beacon_enabled;
     }
+
     private void displayAdjustment()
     {
         //update switch light
@@ -116,6 +118,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         if (enabling == false)
         {
             beacon_enabled = false;
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
             displayAdjustment();
         }
 
@@ -142,6 +145,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         if (enabling == true)
         {
             beacon_enabled = true;
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             displayAdjustment();
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);
         }

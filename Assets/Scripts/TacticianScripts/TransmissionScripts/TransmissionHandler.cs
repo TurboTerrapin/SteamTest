@@ -4,7 +4,7 @@
     - Switches waves
     - Updates frequency text
     Contributor(s): Jake Schott
-    Last Updated: 8/23/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float WAVE_SPEED = 0.05f;
+    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     public Material unlit_neon;
     public Material lit_neon;
@@ -183,6 +184,8 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
 
         yield return new WaitForSeconds(1.0f);
 
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+
         success_indicator.GetComponent<Renderer>().material = unlit_green;
         failure_indicator.GetComponent<Renderer>().material = unlit_red;
 
@@ -290,6 +293,8 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
             gameObject.GetComponent<ResetDisplay>().deactivate();
         }
         iot.deactivate();
+
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
 
         if (signal_transmission_coroutine != null)
         {

@@ -4,19 +4,21 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 8/19/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
+using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class Headlights : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.25f;
     private static float DELAY_TIME = 0.1f;
+    private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     private string CONTROL_NAME = "HEADLIGHTS";
     private List<string> CONTROL_DESCS = new List<string> {"DIM", "BRIGHTEN"};
@@ -207,6 +209,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     private void transmitTractorHeadlightAdjustmentRPC(int headlight_config)
     {
         headlight_configuration = headlight_config;
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, (headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
         if (headlight_shift_coroutine != null)
         {
             StopCoroutine(headlight_shift_coroutine);

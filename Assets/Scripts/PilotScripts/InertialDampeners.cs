@@ -4,7 +4,7 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
+    private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 per dampener)
 
     private string[] CONTROL_NAMES = new string[] { "PRIMARY INERTIAL DAMPENER", "SECONDARY INERTIAL DAMPENER", "TERTIARY INERTIAL DAMPENER" };
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
@@ -87,6 +88,19 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
         transform.GetComponent<VerticalThrusters>().adjustInertialDampenerModifier(modifier);
     }
 
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 3; i++)
+        {
+            if (dampener_is_enabled[i] == true)
+            {
+                consumed_power += (MAX_POWER_CONSUMPTION / 3.0f);
+            }
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
+    }
+
     IEnumerator adjustFillBar()
     {
         UnityEngine.UI.Image fill_bar = dampener_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
@@ -113,6 +127,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
         float desired_switch_rotation = 90.0f;
 
         dampener_is_enabled[index] = to_switch_to;
+        handlePowerConsumptionChange();
 
         if (to_switch_to == true)
         {

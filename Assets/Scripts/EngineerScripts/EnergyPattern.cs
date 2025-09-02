@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 8/27/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f; //how long it takes to turn on/off the energy pattern display
     private static float SHIFT_TIME = 0.5f; //how long it takes to shift between configurations
+    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER", "ENERGY PATTERN SHIFTER" };
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE", "SHIFT DOWN", "SHIFT UP" };
@@ -62,12 +63,25 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         energy_pattern_manager.updateDisplay(display_enabled, currently_viewing);
     }
 
+    private void handlePowerConsumptionChange()
+    {
+        if (display_enabled == true)
+        {
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        }
+        else
+        {
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
+        }
+    }
+
     IEnumerator powerChange()
     {
         bool enabling = !display_enabled;
         if (enabling == false)
         {
             display_enabled = false;
+            handlePowerConsumptionChange();
             displayAdjustment();
         }
 
@@ -91,9 +105,12 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
             yield return null;
         }
 
+        BUTTON_LISTS[0][0].untoggle();
+
         if (enabling == true)
         {
             display_enabled = true;
+            handlePowerConsumptionChange();
             displayAdjustment();
             BUTTON_LISTS[0][0].updateDesc(CONTROL_DESCS[1]);
             BUTTON_LISTS[1][0].updateInteractable(currently_viewing < 2);
@@ -125,8 +142,6 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
 
         displayAdjustment();
 
-        BUTTON_LISTS[1][0].untoggle();
-        BUTTON_LISTS[1][1].untoggle();
         BUTTON_LISTS[1][0].updateInteractable(currently_viewing < 2 && display_enabled);
         BUTTON_LISTS[1][1].updateInteractable(currently_viewing > 0 && display_enabled);
 
@@ -185,17 +200,18 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
                     if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && currently_viewing < 2)
                     {
                         BUTTON_LISTS[1][0].toggle();
+                        BUTTON_LISTS[1][1].updateInteractable(false);
                         transmitEnergyPatternShiftChangeRPC(currently_viewing + 1);
                     }
                     else if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs) && currently_viewing > 0)
                     {
                         BUTTON_LISTS[1][1].toggle();
+                        BUTTON_LISTS[1][0].updateInteractable(false);
                         transmitEnergyPatternShiftChangeRPC(currently_viewing - 1);
                     }
                 }
             }
         }
-
     }
 
     //used by powerOff

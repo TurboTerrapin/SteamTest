@@ -3,12 +3,11 @@
     - Moves phaser sliders
     - Adjusts phaser temperature screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,6 +15,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.25f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASER", "SHORT-RANGE PHASERS"};
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
@@ -55,6 +55,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
 
         hud_info.setButtons(BUTTON_LISTS[0]);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -87,6 +88,16 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 2; i++)
+        {
+            consumed_power += (phaser_temperatures[i] * 0.5f * MAX_POWER_CONSUMPTION);
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+    }
+
     private void displayAdjustment(int index)
     {
         //move physical slider
@@ -109,6 +120,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
             phaser_display_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(phaser_color.r, phaser_color.g, phaser_color.b, a);
         }
     }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         if (is_powered == false)
@@ -219,6 +231,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
     private void transmitPhaserTemperatureAdjustmentRPC(int index, float phsr_percent)
     {
         phaser_temperatures[index] = phsr_percent;
+        handlePowerConsumptionChange();
         displayAdjustment(index);
     }
 }
