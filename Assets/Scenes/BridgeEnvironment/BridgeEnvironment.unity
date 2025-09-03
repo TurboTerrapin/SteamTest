@@ -24557,6 +24557,7 @@ GameObject:
   - component: {fileID: 271686960}
   - component: {fileID: 271686959}
   - component: {fileID: 271686958}
+  - component: {fileID: 271686962}
   - component: {fileID: 271686961}
   m_Layer: 0
   m_Name: Spaceship
@@ -24742,6 +24743,27 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 1
+--- !u!114 &271686962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271686953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5141ad544209c504a9acbc222b804fae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ASTEROID_DMG: 15
+  spriteRendererPrefab: {fileID: 141232353397881479, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
+  explosionSprites:
+  - {fileID: 21300000, guid: aa28e3c0c5ab02340a92ad3e9ae30c4b, type: 3}
+  - {fileID: 21300000, guid: 91b16ad53c2cc554dadeb8d280ad8432, type: 3}
+  - {fileID: 21300000, guid: 8d7566d9193f18a408e82a2cf9219c7a, type: 3}
+  - {fileID: 21300000, guid: b5f92aff55df50a449997f3eacc99e59, type: 3}
+  - {fileID: 21300000, guid: 8ce33eb88691b4d459f39ee8dc76e1b2, type: 3}
+  frameRate: 30
 --- !u!1 &272429844
 GameObject:
   m_ObjectHideFlags: 0
@@ -41905,7 +41927,6 @@ GameObject:
   m_Component:
   - component: {fileID: 448718390}
   - component: {fileID: 448718391}
-  - component: {fileID: 448718392}
   m_Layer: 0
   m_Name: ForwardCollider
   m_TagString: Untagged
@@ -41950,27 +41971,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 20, y: 10, z: 20}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &448718392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448718389}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ASTEROID_DMG: 15
-  spriteRendererPrefab: {fileID: 141232353397881479, guid: 0b5fae3c652fccc4b977e6937be80dd8, type: 3}
-  explosionSprites:
-  - {fileID: 21300000, guid: aa28e3c0c5ab02340a92ad3e9ae30c4b, type: 3}
-  - {fileID: 21300000, guid: 91b16ad53c2cc554dadeb8d280ad8432, type: 3}
-  - {fileID: 21300000, guid: 8d7566d9193f18a408e82a2cf9219c7a, type: 3}
-  - {fileID: 21300000, guid: b5f92aff55df50a449997f3eacc99e59, type: 3}
-  - {fileID: 21300000, guid: 8ce33eb88691b4d459f39ee8dc76e1b2, type: 3}
-  frameRate: 12
 --- !u!1 &448841756
 GameObject:
   m_ObjectHideFlags: 0
@@ -68452,7 +68452,6 @@ GameObject:
   m_Component:
   - component: {fileID: 747785130}
   - component: {fileID: 747785131}
-  - component: {fileID: 747785132}
   m_Layer: 0
   m_Name: AftCollider
   m_TagString: Untagged
@@ -68496,22 +68495,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 40, y: 10, z: 20}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &747785132
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 747785129}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ASTEROID_DMG: 15
-  spriteRendererPrefab: {fileID: 0}
-  explosionSprites: []
-  frameRate: 12
 --- !u!1 &748758126
 GameObject:
   m_ObjectHideFlags: 0
@@ -102127,7 +102110,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1107993937}
   - component: {fileID: 1107993938}
-  - component: {fileID: 1107993939}
   m_Layer: 0
   m_Name: PortCollider
   m_TagString: Untagged
@@ -102171,22 +102153,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 20, y: 10, z: 20}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1107993939
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1107993936}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ASTEROID_DMG: 15
-  spriteRendererPrefab: {fileID: 0}
-  explosionSprites: []
-  frameRate: 12
 --- !u!1 &1108799315
 GameObject:
   m_ObjectHideFlags: 0
@@ -107734,7 +107700,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1175386002}
   - component: {fileID: 1175386003}
-  - component: {fileID: 1175386004}
   m_Layer: 0
   m_Name: StarboardCollider
   m_TagString: Untagged
@@ -107778,22 +107743,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 20, y: 10, z: 20}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1175386004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1175386001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35bbb73a5d073a34fbdbe3ec0d92a248, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ASTEROID_DMG: 15
-  spriteRendererPrefab: {fileID: 0}
-  explosionSprites: []
-  frameRate: 12
 --- !u!1 &1176343139
 GameObject:
   m_ObjectHideFlags: 0
