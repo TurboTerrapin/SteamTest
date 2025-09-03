@@ -22,6 +22,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
 
+    public PowerManager power_manager;
     public List<GameObject> allocation_dials;
     public List<GameObject> position_icon_displays;
     public List<GameObject> power_screen_displays; //the screen that shows the power allocation AND consumption
@@ -64,6 +65,11 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    public float getPowerAllocation(int position)
+    {
+        return (allocated_units[position] * 0.1f);
+    }
+
     //helper method used to deal with the blue power allocation circles
     private void circleChange(GameObject circle, bool enabled)
     {
@@ -72,7 +78,8 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         {
             a = 0.2f;
         }
-        circle.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        Color circle_color = circle.GetComponent<UnityEngine.UI.RawImage>().color;
+        circle.GetComponent<UnityEngine.UI.RawImage>().color = new Color(circle_color.r, circle_color.g, circle_color.b, a);
         circle.transform.GetChild(0).gameObject.SetActive(!enabled);
     }
 
@@ -101,7 +108,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     }
 
     //turns the dial and calls displayAdjustment()
-    IEnumerator handleAllocationChange(int index)
+    IEnumerator handleAllocationChange(int index, int new_allocation)
     {
         float initial_rotation = allocation_dials[index].transform.localRotation.eulerAngles.z;
         float destination_rotation = 359.9f * (allocated_units[index] / 10.0f);
@@ -109,6 +116,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         if (initial_rotation > destination_rotation)
         {
             displayAdjustment(index);
+            power_manager.allocationChange(index, new_allocation * 0.1f);
         }
 
         float anim_time = TURN_TIME;
@@ -125,6 +133,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         if (initial_rotation < destination_rotation)
         {
             displayAdjustment(index);
+            power_manager.allocationChange(index, new_allocation * 0.1f);
         }
 
         BUTTON_LISTS[index][0].untoggle();
@@ -197,6 +206,6 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         {
             StopCoroutine(allocation_adjustment_coroutines[index]);
         }
-        allocation_adjustment_coroutines[index] = StartCoroutine(handleAllocationChange(index));
+        allocation_adjustment_coroutines[index] = StartCoroutine(handleAllocationChange(index, new_allocation));
     }
 }

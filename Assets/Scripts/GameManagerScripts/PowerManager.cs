@@ -3,23 +3,28 @@
     - Handles powering on/off each of the positions
     - Handles power consumption
     Contributor(s): Jake Schott
-    Last Updated: 8/31/2025
+    Last Updated: 9/2/2025
 */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PowerManager : MonoBehaviour, IPowerable
+public class PowerManager : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float POWER_ON_TIME = 1.0f; //how long it takes to power on a position
     private static float POWER_OFF_TIME = 1.0f; //how long it takes to power down a position
     private static float POWER_UPDATE_TIME = 0.5f; //how often the power consumption displays update
+    private static float TIME_TO_POWER_LOSS = 3.0f; //once a position overconsumes power, how long until ship shutdown
 
     public List<GameObject> position_power_displays = null;
     public List<GameObject> engineer_power_displays = null;
     public List<GameObject> power_warnings = null;
+    public PowerAllocation power_allocation;
 
     private GameObject control_handler;
     private GameObject sensor_handler;
@@ -32,16 +37,17 @@ public class PowerManager : MonoBehaviour, IPowerable
     private bool[] powered_positions = new bool[] { false, false, false, false }; //corresponds to pilot, tactician, engineer, captain
     private float[] power_consumptions = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null };
+    private Coroutine[] overconsumption_coroutines = new Coroutine[] { null, null, null, null };
 
     private void Start()
     {
         control_handler = GameObject.FindGameObjectWithTag("ControlHandler");
         sensor_handler = GameObject.FindGameObjectWithTag("SensorHandler");
 
-        addPilotModules();
-        addTacticianModules();
-        addEngineerModules();
-        addCaptainModules();
+        addPilotModules(); //positional_modules[0]
+        addTacticianModules(); //positional_modules[1]
+        addEngineerModules(); //positional_modules[2]
+        addCaptainModules(); //positional_modules[3]
 
         linkPowerDistributions();
 
@@ -70,7 +76,7 @@ public class PowerManager : MonoBehaviour, IPowerable
                     power_distributions[1].Add(0.0f);
                     associated_controls[1].Add("TransmissionHandler");
                 }
-                else if (i == 3)
+                else if (i == 3) //exception for ManualOnOff since it's not covered by IPowerable
                 {
                     power_distributions[3].Add(0.0f);
                     associated_controls[3].Add("ManualOnOff");
@@ -126,7 +132,7 @@ public class PowerManager : MonoBehaviour, IPowerable
         }
 
         power_distributions[position][associated_controls[position].IndexOf(control_name)] = power_level;
-        power_consumptions[position] = getPowerConsumption(position);
+        powerConsumptionChangeRPC(position, getPowerConsumption(position));
     }
 
     //called by PowerControl
@@ -249,6 +255,113 @@ public class PowerManager : MonoBehaviour, IPowerable
 
                 yield return null;
             }
+        }
+    }
+
+    //used after the conclusion of a power overconsumption sequence
+    private void resetEngineerPositionDisplay(int position)
+    {
+        engineer_power_displays[position].transform.GetChild(0).gameObject.SetActive(false);
+
+        engineer_power_displays[position].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        engineer_power_displays[position].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+
+        int max_allocation = (int)(power_allocation.getPowerAllocation(position) * 10.0f);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            float circle_alpha = engineer_power_displays[position].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
+            Color corresponding_circle_color = position_power_displays[0].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color;
+            engineer_power_displays[position].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(corresponding_circle_color.r, corresponding_circle_color.g, corresponding_circle_color.b, circle_alpha);
+
+            float power_alpha = 0.2f;
+            if (i <= max_allocation)
+            {
+                power_alpha = 1.0f;
+            }
+            engineer_power_displays[position].transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, power_alpha);
+        }
+    }
+
+    IEnumerator imminentPowerLoss(int index)
+    {
+        GameObject power_loss_bar = engineer_power_displays[index].transform.GetChild(0).gameObject;
+        power_loss_bar.SetActive(true);
+
+        engineer_power_displays[index].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+        engineer_power_displays[index].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+
+        for (int i = 1; i <= 10; i++)
+        {
+            float a = engineer_power_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
+            engineer_power_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, a);
+            engineer_power_displays[index].transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+        }
+
+        float anim_time = TIME_TO_POWER_LOSS;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            power_loss_bar.GetComponent<UnityEngine.UI.Image>().fillAmount = (anim_time / TIME_TO_POWER_LOSS);
+
+            yield return null;
+        }
+    }
+
+
+
+    private void checkForOverConsumption(int position, float allocation)
+    {
+        if (power_consumptions[position] > allocation && overconsumption_coroutines[position] == null)
+        {
+            overconsumptionRPC(position);            
+        }
+        else if (power_consumptions[position] <= allocation && overconsumption_coroutines[position] != null)
+        {
+            abortOverconsumptionRPC(position);
+        }
+    }
+
+    public void allocationChange(int position, float allocation)
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            checkForOverConsumption(position, allocation);
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void overconsumptionRPC(int index)
+    {
+        if (overconsumption_coroutines[index] != null)
+        {
+            StopCoroutine(overconsumption_coroutines[index]);
+        }
+
+        overconsumption_coroutines[index] = StartCoroutine(imminentPowerLoss(index));
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void abortOverconsumptionRPC(int index)
+    {
+        if (overconsumption_coroutines[index] != null)
+        {
+            StopCoroutine(overconsumption_coroutines[index]);
+        }
+
+        overconsumption_coroutines[index] = null;
+        resetEngineerPositionDisplay(index);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void powerConsumptionChangeRPC(int position, float consumption)
+    {
+        power_consumptions[position] = consumption;
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            checkForOverConsumption(position, power_allocation.getPowerAllocation(position));
         }
     }
 

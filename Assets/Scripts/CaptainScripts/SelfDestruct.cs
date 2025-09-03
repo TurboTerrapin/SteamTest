@@ -59,6 +59,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
             sequence_initial_pos[i] = sequence_buttons[i].transform.localPosition;
         }
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -241,7 +242,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
         is_powered = true;
         destruct_display.SetActive(true);
         BUTTON_LISTS[0][0].updateInteractable(true);
-        BUTTON_LISTS[1][0].updateInteractable(true);
+        BUTTON_LISTS[0][1].updateInteractable(true);
         BUTTON_LISTS[1][0].updateInteractable(true);
         BUTTON_LISTS[1][1].updateInteractable(true);
     }
@@ -251,7 +252,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
         is_powered = false;
         destruct_display.SetActive(false);
         BUTTON_LISTS[0][0].updateInteractable(false);
-        BUTTON_LISTS[1][0].updateInteractable(false);
+        BUTTON_LISTS[0][1].updateInteractable(false);
         BUTTON_LISTS[1][0].updateInteractable(false);
         BUTTON_LISTS[1][1].updateInteractable(false);
     }
