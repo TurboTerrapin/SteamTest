@@ -2,21 +2,21 @@
     EngineerMap.cs
     - Handles engineer map
     Contributor(s): Jake Schott
-    Last Updated: 8/14/2025
+    Last Updated: 9/3/2025
 */
 
 using System.Collections;
 using TMPro;
 using UnityEngine;
 
-public class EngineerMap : MonoBehaviour
+public class EngineerMap : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float FLASH_SPEED = 0.5f;
     private static Color TMP_RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
     private static Color SPRITE_RED = new Color(0.96f, 0.25f, 0.28f, 1.0f); //sprite renderer shows color differently
 
-    public GameObject navigation_canvas;
+    public GameObject navigation_display;
     public GameObject navigation_information;
     public GameObject altitude_label;
 
@@ -77,8 +77,11 @@ public class EngineerMap : MonoBehaviour
 
     public void updateAltitudeWarning(bool active, string msg)
     {
-        navigation_canvas.transform.GetChild(3).GetChild(0).GetComponent<TMP_Text>().SetText("! " + msg + " ALTITUDE !");
-        navigation_canvas.transform.GetChild(3).GetChild(0).gameObject.SetActive(active);
+        //! INCREASE ALTITUDE ! or ! DECREASE ALTITUDE !
+        navigation_display.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().SetText("! " + msg + " ALTITUDE !");
+        navigation_display.transform.GetChild(2).GetChild(0).gameObject.SetActive(active);
+
+        //ALTITUDE: 0m
         if (active == true)
         {
             altitude_label.GetComponent<TMP_Text>().color = TMP_RED;
@@ -103,16 +106,16 @@ public class EngineerMap : MonoBehaviour
             //resize ship pointer
             ship_icon.transform.GetChild(0).localScale = new Vector3(0.01f, 0.01f, 1.0f);
             //color navigation label
-            navigation_canvas.transform.GetChild(1).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            navigation_display.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
             //color navigation bar
-            navigation_canvas.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            navigation_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
             //altitude/impulse bars
-            navigation_canvas.transform.GetChild(5).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-            navigation_canvas.transform.GetChild(5).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            navigation_display.transform.GetChild(4).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            navigation_display.transform.GetChild(4).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
             //hide countdown
             countdown.SetActive(false);
             //detection warnings
-            navigation_canvas.transform.GetChild(3).gameObject.SetActive(false);
+            navigation_display.transform.GetChild(2).gameObject.SetActive(false);
         }
         else
         {
@@ -123,16 +126,16 @@ public class EngineerMap : MonoBehaviour
             //resize ship pointer
             ship_icon.transform.GetChild(0).localScale = new Vector3(0.02f, 0.02f, 1.0f);
             //color navigation label
-            navigation_canvas.transform.GetChild(1).GetComponent<TMP_Text>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
+            navigation_display.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
             //color navigation bar
-            navigation_canvas.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
+            navigation_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
             //altitude/impulse bars
-            navigation_canvas.transform.GetChild(5).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
-            navigation_canvas.transform.GetChild(5).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
+            navigation_display.transform.GetChild(4).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
+            navigation_display.transform.GetChild(4).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
             //show countdown
             countdown.SetActive(true);
             //detection warnings
-            navigation_canvas.transform.GetChild(3).gameObject.SetActive(true);
+            navigation_display.transform.GetChild(2).gameObject.SetActive(true);
         }
     }
 
@@ -189,5 +192,15 @@ public class EngineerMap : MonoBehaviour
             rounded_altitude += ".0";
         }
         altitude_label.GetComponent<TMP_Text>().SetText("ALTITUDE: " + rounded_altitude + "m");
+    }
+
+    public void powerOn(int position)
+    {
+        navigation_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        navigation_display.SetActive(false);
     }
 }

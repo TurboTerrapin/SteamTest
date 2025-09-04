@@ -39,11 +39,11 @@ public class ScenarioManager : NetworkBehaviour
         Specific
     }
 
-    public GameObject countdown_canvas;
     public GameObject player_manager; 
     public GameObject scenario_transitioner;
     public GameObject failure_handler;
 
+    private EngineerScenarioCountdown scenario_countdown;
     private EngineerMap engineer_map;
     private Coroutine countdown_coroutine;
     private GameObject scenario_handler;
@@ -60,6 +60,7 @@ public class ScenarioManager : NetworkBehaviour
 
     private void Start()
     {
+        scenario_countdown = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerScenarioCountdown>();
         engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
     }
 
@@ -134,36 +135,6 @@ public class ScenarioManager : NetworkBehaviour
     public void startScenario()
     {
         enableScenarioTimer();
-    }
-
-    private void displayCountdownAdjustment(int total_seconds)
-    {
-        string to_display = "";
-        int minutes = total_seconds / 60;
-        int seconds = total_seconds % 60;
-        to_display += minutes.ToString() + ":";
-        if (seconds < 10)
-        {
-            to_display += "0" + seconds;
-        }
-        else
-        {
-            to_display += seconds.ToString();
-        }
-        countdown_canvas.transform.GetChild(2).GetComponent<TMP_Text>().SetText(to_display);
-        countdown_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = (1.0f * total_seconds / COUNTDOWN_TIME);
-        Color to_change_to = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-        if (total_seconds <= 60)
-        {
-            to_change_to = new Color(1.0f, 0.0f, 0.0f, 1.0f);
-        }
-        for (int i = 0; i < countdown_canvas.transform.GetChild(0).childCount; i++)
-        {
-            countdown_canvas.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.Image>().color = to_change_to;
-        }
-        countdown_canvas.transform.GetChild(1).GetComponent<TMP_Text>().color = to_change_to;
-        countdown_canvas.transform.GetChild(2).GetComponent<TMP_Text>().color = to_change_to;
-        countdown_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().color = to_change_to;
     }
 
     IEnumerator scenarioCountdown()
@@ -362,6 +333,6 @@ public class ScenarioManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void countdownUpdateRPC(int time_remaining)
     {
-        displayCountdownAdjustment(time_remaining);
+        scenario_countdown.displayCountdownAdjustment(time_remaining);
     }
 }

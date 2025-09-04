@@ -13,13 +13,16 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ShipHealth : NetworkBehaviour
+public class ShipHealth : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float UPDATE_TIME = 1.0f;
     private static Color MAX_HEALTH = new Color(0.34f, 1.0f, 0.0f, 0.21f);
     private static Color HALF_HEALTH = new Color(1.0f, 1.0f, 0.0f, 0.21f);
     private static Color ZERO_HEALTH = new Color(1.0f, 0.0f, 0.0f, 0.21f);
+
+    public GameObject hull_integrity_display;
+    public GameObject ship_overview_display;
 
     public List<GameObject> ship_health_indicators = null;
     public GameObject hull_integrity_visual;
@@ -195,5 +198,21 @@ public class ShipHealth : NetworkBehaviour
             StopCoroutine(damage_animation_coroutine);
         }
         damage_animation_coroutine = StartCoroutine(showDamageEffects(prev_hull_integrity));
+    }
+
+    public void powerOn(int position)
+    {
+        if (hull_integrity_display.activeSelf == false)
+        {
+            hull_integrity_display.SetActive(true);
+            return;
+        }
+        ship_overview_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        hull_integrity_display.SetActive(false);
+        ship_overview_display.SetActive(false);
     }
 }

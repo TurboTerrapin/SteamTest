@@ -25,7 +25,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
 
     public List<GameObject> shield_switches = null;
     public GameObject pilot_shield_display;
-    public GameObject engineer_shield_display;
+    public GameObject engineer_shields;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -58,7 +58,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
     private void displayShieldChange(int shield_to_change, float current_percentage)
     {
         Transform p_current_section = pilot_shield_display.transform.GetChild(shield_to_change); //pilot display
-        Transform e_current_section = engineer_shield_display.transform.GetChild(shield_to_change); //engineer display
+        Transform e_current_section = engineer_shields.transform.GetChild(shield_to_change); //engineer display
 
         //pilot display
         for (int i = 0; i <= 3; i++)

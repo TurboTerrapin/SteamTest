@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PowerManager : NetworkBehaviour, IPowerable
 {
@@ -25,9 +26,13 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public List<GameObject> engineer_power_displays = null;
     public List<GameObject> power_warnings = null;
     public PowerAllocation power_allocation;
+    public LightsManager lights_manager;
 
+    private GameObject engineer_power_breakdown_display;
     private GameObject control_handler;
     private GameObject sensor_handler;
+
+    private bool ship_has_power = true;
 
     //these three lists correspond to 0-3 pilot, tactician, engineer, captain
     private List<Component>[] positional_modules = new List<Component>[] { null, null, null, null }; //the powerable components
@@ -38,11 +43,13 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private float[] power_consumptions = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null };
     private Coroutine[] overconsumption_coroutines = new Coroutine[] { null, null, null, null };
+    private Coroutine power_updater_coroutine = null;
 
     private void Start()
     {
         control_handler = GameObject.FindGameObjectWithTag("ControlHandler");
         sensor_handler = GameObject.FindGameObjectWithTag("SensorHandler");
+        engineer_power_breakdown_display = engineer_power_displays[0].transform.parent.gameObject;
 
         addPilotModules(); //positional_modules[0]
         addTacticianModules(); //positional_modules[1]
@@ -51,7 +58,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         linkPowerDistributions();
 
-        StartCoroutine(powerUpdater());
+        power_updater_coroutine = StartCoroutine(powerUpdater());
     }
 
     private void linkPowerDistributions()
@@ -119,7 +126,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         yield return new WaitForSeconds(POWER_OFF_TIME);
 
-        control_handler.GetComponent<PowerControl>().enableDial(position, false);
+        if (ship_has_power == true)
+        {
+            control_handler.GetComponent<PowerControl>().enableDial(position, false);
+        }
         power_change_coroutines[position] = null;
     }
 
@@ -194,6 +204,14 @@ public class PowerManager : NetworkBehaviour, IPowerable
                 power_warnings[position].SetActive(true);
             }
         }
+        else if (position == 2)
+        {
+            if (engineer_power_breakdown_display.activeSelf == false)
+            {
+                engineer_power_breakdown_display.SetActive(true);
+                return;
+            }
+        }
         position_power_displays[position].SetActive(true);
     }
 
@@ -203,6 +221,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         if (position <= 1)
         {
             power_warnings[position].SetActive(false);
+        }
+        else if (position == 2)
+        {
+            engineer_power_breakdown_display.SetActive(false);
         }
         position_power_displays[position].SetActive(false);
     }
@@ -307,9 +329,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
             yield return null;
         }
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            totalShutdownRPC();
+        }
     }
-
-
 
     private void checkForOverConsumption(int position, float allocation)
     {
@@ -328,6 +353,32 @@ public class PowerManager : NetworkBehaviour, IPowerable
         if (NetworkManager.Singleton.IsHost == true)
         {
             checkForOverConsumption(position, allocation);
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void totalShutdownRPC()
+    {
+        ship_has_power = false;
+
+        lights_manager.disableDefaultLights();
+
+        if (power_updater_coroutine != null)
+        {
+            StopCoroutine(power_updater_coroutine);
+            power_updater_coroutine = null;
+        }
+
+        for (int i = 0; i < 4; i++)
+        {
+            control_handler.GetComponent<PowerControl>().disableDial(i);
+            disableStation(i);
+            if (overconsumption_coroutines[i] != null)
+            {
+                StopCoroutine(overconsumption_coroutines[i]);
+                overconsumption_coroutines[i] = null;
+                resetEngineerPositionDisplay(i);
+            }
         }
     }
 
@@ -420,11 +471,18 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private void addEngineerModules()
     {
         List<Component> engineer_modules = new List<Component>();
-        engineer_modules.Add(control_handler.GetComponent("PhaserFrequency")); //1
-        engineer_modules.Add(control_handler.GetComponent("EnergyPattern")); //2
-        engineer_modules.Add(control_handler.GetComponent("PowerAllocation")); //3
-        engineer_modules.Add(this); //4
-        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //5
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerMap")); //1
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerScenarioCountdown")); //2
+        engineer_modules.Add(control_handler.GetComponent("PhaserFrequency")); //3
+        engineer_modules.Add(control_handler.GetComponent("EnergyPattern")); //4
+        engineer_modules.Add(this); //5
+        engineer_modules.Add(control_handler.GetComponent("PowerAllocation")); //6
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerPhaserHeat")); //7
+        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //8
+        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //9
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerInventory")); //10
+        engineer_modules.Add(this); //11
+        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //12
         positional_modules[2] = engineer_modules;
     }
 

@@ -25,6 +25,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
 
     public GameObject energy_pattern_dial;
     public GameObject energy_pattern_slider;
+    public GameObject energy_pattern_selection_display;
     public GameObject energy_pattern_indicator_display;
 
     private EnergyPatternManager energy_pattern_manager;
@@ -105,8 +106,6 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
             yield return null;
         }
 
-        BUTTON_LISTS[0][0].untoggle();
-
         if (enabling == true)
         {
             display_enabled = true;
@@ -142,6 +141,8 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
 
         displayAdjustment();
 
+        BUTTON_LISTS[1][0].untoggle();
+        BUTTON_LISTS[1][1].untoggle();
         BUTTON_LISTS[1][0].updateInteractable(currently_viewing < 2 && display_enabled);
         BUTTON_LISTS[1][1].updateInteractable(currently_viewing > 0 && display_enabled);
 
@@ -237,6 +238,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     public void powerOn(int position)
     {
         is_powered = true;
+        energy_pattern_selection_display.SetActive(true);
         energy_pattern_indicator_display.SetActive(true);
         BUTTON_LISTS[0][0].updateInteractable(true);
         BUTTON_LISTS[1][0].updateInteractable(false);
@@ -246,6 +248,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     public void powerOff(int position, float time)
     {
         is_powered = false;
+        energy_pattern_selection_display.SetActive(false);
         energy_pattern_indicator_display.SetActive(false);
         display_enabled = false;
         displayAdjustment();

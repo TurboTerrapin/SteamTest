@@ -32,8 +32,8 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     private GameObject units_circle_collection;
 
     private bool is_powered = false;
-    private int available_units = 24;
-    private int[] allocated_units = new int[4] { 0, 0, 0, 0 };
+    private int available_units = 0;
+    private int[] allocated_units = new int[4] { 8, 6, 5, 5 };
     private Coroutine[] allocation_adjustment_coroutines = new Coroutine[4] { null, null, null, null };
 
     private List<string> ray_targets = new List<string> { "power_allocation_pilot", "power_allocation_tactician", "power_allocation_engineer", "power_allocation_captain" };
@@ -138,8 +138,11 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
 
         BUTTON_LISTS[index][0].untoggle();
         BUTTON_LISTS[index][1].untoggle();
-        BUTTON_LISTS[index][0].updateInteractable(allocated_units[index] > 0 && is_powered);
-        BUTTON_LISTS[index][1].updateInteractable(allocated_units[index] < 10 && available_units > 0 && is_powered);
+        for (int i = 0; i < 4; i++)
+        {
+            BUTTON_LISTS[i][0].updateInteractable(allocated_units[i] > 0 && is_powered);
+            BUTTON_LISTS[i][1].updateInteractable(allocated_units[i] < 10 && available_units > 0 && is_powered);
+        }
 
         allocation_adjustment_coroutines[index] = null;
     }
@@ -180,7 +183,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
             position_icon_displays[i].SetActive(true);
             allocation_circle_displays[i].SetActive(true);
             BUTTON_LISTS[i][0].updateInteractable(allocated_units[i] > 0);
-            BUTTON_LISTS[i][1].updateInteractable(allocated_units[i] < 10);
+            BUTTON_LISTS[i][1].updateInteractable(allocated_units[i] < 10 && available_units > 0);
         }
     }
 
