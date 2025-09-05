@@ -27,7 +27,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     public List<GameObject> position_warnings = null;
     public List<GameObject> indicators = null;
     public GameObject selector_lever;
-    public GameObject lights;
+    public LightsManager lights_manager;
     private Vector3 initial_pos;
     private Vector3 final_pos = new Vector3(0.3821f, -0.5888f, 13.6847f);
     private int curr_status = 0;
@@ -71,18 +71,13 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         }
 
         //change lights
-        Color light_color = new Color(0.41f, 0.82f, 0.95f);
-        float intensity = 15.0f;
         if (curr_status == 2)
         {
-            light_color = new Color(1.0f, 0.0f, 0.0f);
-            intensity = 7.5f;
+            lights_manager.enableRedAlert();
         }
-
-        for (int i = 0; i < lights.transform.childCount; i++)
+        else
         {
-            lights.transform.GetChild(i).gameObject.GetComponent<UnityEngine.Light>().color = light_color;
-            lights.transform.GetChild(i).gameObject.GetComponent<UnityEngine.Light>().intensity = intensity;
+            lights_manager.disableRedAlert();
         }
     }
 
