@@ -1,10 +1,9 @@
-using Unity.Netcode; 
+using Unity.Netcode;
 using UnityEngine;
 
 [RequireComponent(typeof(PilotingSystem))]
 [RequireComponent(typeof(WeaponsSystem))]
 [RequireComponent(typeof(CollisionSystem))]
-
 public class ShipController : NetworkBehaviour
 {
     private PilotingSystem pilotingSystem;
@@ -14,7 +13,7 @@ public class ShipController : NetworkBehaviour
     private GameObject controlHandler;
     private bool shipReady = false;
 
-    public GameObject worldRoot;
+    private GameObject worldRoot = null;
 
     private void Awake()
     {
@@ -26,17 +25,19 @@ public class ShipController : NetworkBehaviour
     void Start()
     {
         controlHandler = GameObject.FindGameObjectWithTag("ControlHandler");
-        worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
 
-        if (controlHandler != null &&
-                worldRoot != null &&
-                    pilotingSystem.AssignControlReferences(controlHandler) &&
-                        weaponsSystem.AssignControlReferences(controlHandler)) 
+        if (controlHandler != null && pilotingSystem.AssignControlReferences(controlHandler)
+            && weaponsSystem.AssignControlReferences(controlHandler))
         {
             shipReady = true;
         }
 
         transform.position = Vector3.zero;
+    }
+
+    public void assignWorldRoot(GameObject wr)
+    {
+        worldRoot = wr;
     }
 
     void Update()
@@ -47,7 +48,16 @@ public class ShipController : NetworkBehaviour
         weaponsSystem.UpdateInput();
 
         weaponsSystem.UpdateWeapons();
-        pilotingSystem.UpdateMovement(worldRoot.transform);
-    }
 
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+
+            if (worldRoot == null)
+            {
+                return;
+            }
+
+            pilotingSystem.UpdateMovement(worldRoot.transform);
+        }
+    }
 }

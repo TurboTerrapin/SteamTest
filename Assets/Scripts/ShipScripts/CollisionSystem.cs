@@ -43,7 +43,7 @@ public class CollisionSystem : NetworkBehaviour
                 CollisionForwarder forwarder = collider.gameObject.AddComponent<CollisionForwarder>();
                 forwarder.parentDetection = this;
                 
-                Debug.Log($"Registered collider: {collider.gameObject.name}");
+                //Debug.Log($"Registered collider: {collider.gameObject.name}");
             }
         }
 
@@ -53,7 +53,7 @@ public class CollisionSystem : NetworkBehaviour
         }
         else
         {
-            Debug.Log($"Found {shipColliders.Count} ship colliders");
+            //Debug.Log($"Found {shipColliders.Count} ship colliders");
         }
     }
 
