@@ -14,22 +14,23 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using Steamworks;
 
-public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
+public class RedLightGreenLight : NetworkBehaviour, IUniversalCommunicable
 {
     //CLASS CONSTANTS
     private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
-    private static string DEATH_MESSAGE = "Stolen ship NCC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
+    private static float ENDPOINT_RANGE = 25.0f;
 
     private GameObject PlayerPrefab;
     Vector3 OriginalCameraPosition;
     bool ScenarioEndpointReached = false;
     private ScenarioManager scenarioManager;
     private ImpulseThrottle impulse;
-    private EnergyPatternManager energyPatternManager;
+    private ScanWaveManager scanWaveManager;
     private ShipHealth shipHealth;
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
@@ -37,12 +38,12 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     private GameObject spaceship;
 
-    //--ENERGY PATTERN INFORMATION--//
-    //CENTER OF PATTERN
+    //--SCAN WAVE INFORMATION--//
+    //CENTER OF WAVE
     public Texture center_texture;
     public float center_speed = 50.0f;
 
-    //RINGS OF PATTERN
+    //WAVE RINGS
     public List<Texture> texture_options = null;
     public List<float> ring_speeds = null;
 
@@ -98,7 +99,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         impulse = controlHandler.GetComponent<ImpulseThrottle>();
 
         GameObject sensorHandler = GameObject.FindWithTag("SensorHandler");
-        energyPatternManager = sensorHandler.GetComponent<EnergyPatternManager>();
+        scanWaveManager = sensorHandler.GetComponent<ScanWaveManager>();
 
         spaceship = GameObject.FindWithTag("Spaceship");
         shipHealth = spaceship.GetComponent<ShipHealth>();
@@ -106,41 +107,45 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         string playerPrefabName = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
         PlayerPrefab = GameObject.Find(playerPrefabName);
         OriginalCameraPosition = PlayerPrefab.transform.GetChild(0).transform.localPosition;
-    }
 
-    //only run by host
-    public void initiateScenario()
-    {
-        if (NetworkManager.Singleton.IsHost == false)
+        //if host, begin scenario stuff
+        if (NetworkManager.Singleton.IsHost)
         {
-            return;
-        }
+            //initialize wave, randomize initial colors and textures
+            randomizeColors();
 
-        //initialize pattern, randomize initial colors and textures
-        randomizeColors();
-
-        int[] ring_textures = new int[4];
-        for (int i = 0; i < 4; i++)
-        {
-            int random_texture = Random.Range(1, texture_options.Count);
-            //50-50 chance it's dotted
-            if (Random.Range(0, 2) == 0)
+            int[] ring_textures = new int[4];
+            for (int i = 0; i < 4; i++)
             {
-                random_texture = 0;
+                int random_texture = Random.Range(1, texture_options.Count);
+                //50-50 chance it's dotted
+                if (Random.Range(0, 2) == 0)
+                {
+                    random_texture = 0;
+                }
+                ring_textures[i] = random_texture;
             }
-            ring_textures[i] = random_texture;
+
+            string cc = "";
+            for (int i = 0; i < 5; i++)
+            {
+                cc += curr_colors[i].ToString();
+            }
+
+            string rt = "";
+            for (int i = 0; i < 4; i++)
+            {
+                rt += ring_textures[i].ToString();
+            }
+
+            waveInitializationRPC(cc, rt);
+            enterRedLightStateRPC();
         }
-
-        string cc = DataConverter.arrayToString(curr_colors);
-        string rt = DataConverter.arrayToString(ring_textures);
-
-        patternInitializationRPC(cc, rt);
-        enterRedLightStateRPC();
     }
     IEnumerator GreenLightState()
     {
-        //contract energy pattern
-        energyPatternManager.resizePattern(0, true, 0.5f);
+        //contract energy wave
+        scanWaveManager.resizeWave(0, true, 0.5f);
         if (NetworkManager.Singleton.IsHost)
         {
             yield return new WaitForSeconds(Random.Range(15.0f, 30.0f));
@@ -150,8 +155,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     IEnumerator EndGreenLight(float end_time)
     {
-        //expand energy pattern
-        energyPatternManager.resizePattern(0, false, end_time);
+        //expand energy wave
+        scanWaveManager.resizeWave(0, false, end_time);
         yield return new WaitForSeconds(end_time);
         if (NetworkManager.Singleton.IsHost && ScenarioEndpointReached == false)
         {
@@ -168,9 +173,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         if (NetworkManager.Singleton.IsHost)
         {
-            while (true)
+            while (shipHealth.getHullIntegrity() > 0.0f && scenarioManager.getDistanceToEndpoint() > ENDPOINT_RANGE)
             {
-                //if the ship is moving
+                // if the ship is moving
                 if (impulse.getCurrentImpulse() > 0.0f)
                 {
                     float time_before_damage_is_inflicted = 1.0f;
@@ -181,13 +186,30 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
                     }
                     if (impulse.getCurrentImpulse() > 0.0f)
                     {
-                     //   shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
+                        float[] damages = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f };
+                        float damage = 10.0f * impulse.getCurrentImpulse();
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (damages[i] == 0.0f || damages[i] != damage)
+                            {
+                                damages[i] = Random.Range(0.0f, damage);
+                            }
+                        }
+                        shipHealth.damageMultipleSections(damages);
                     }
                 }
                 else
                 {
                     yield return null;
                 }
+            }
+            if (shipHealth.getHullIntegrity() <= 0.0f)
+            {
+                scenarioManager.endScenario(false);
+            }
+            else
+            {
+                scenarioManager.endScenario(true);
             }
         }
     }
@@ -201,9 +223,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             {
                 float intensity = impulse.getCurrentImpulse() * 0.025f;
                 Vector3 Shake = Random.insideUnitSphere * intensity;
-               // PlayerPrefab.transform.GetChild(0).transform.localPosition = OriginalCameraPosition + Shake;
+                PlayerPrefab.transform.GetChild(0).transform.localPosition = OriginalCameraPosition + Shake;
             }
-            yield return new WaitForSeconds(0.05f);
+            yield return null;
         }
     }
     
@@ -303,23 +325,23 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         cameraShakeCoroutine = null;
     }
 
-    public string getDeathMessage()
-    {
-        return DEATH_MESSAGE;
-    }
-
     [Rpc(SendTo.Everyone)]
-    private void patternInitializationRPC(string s_ring_colors, string s_ring_textures)
+    private void waveInitializationRPC(string s_ring_colors, string s_ring_textures)
     {
-        int[] temp_curr_colors = DataConverter.stringToArray(s_ring_colors);
-        int[] temp_textures = DataConverter.stringToArray(s_ring_textures);
+        int[] temp_curr_colors = s_ring_colors.ToIntArray();
+        int[] temp_textures = s_ring_textures.ToIntArray();
 
+        for (int i = 0; i < 5; i++)
+        {
+            curr_colors[i] = temp_curr_colors[i] - 48;
+        }
         setColorInfo();
 
         List<bool> ring_is_solid = new List<bool>();
         List<Texture> ring_textures = new List<Texture>();
         for (int i = 0; i < 4; i++)
         {
+            temp_textures[i] = temp_textures[i] - 48;
             ring_is_solid.Add(temp_textures[i] != 0);
             if (temp_textures[i] == 0)
             {
@@ -328,11 +350,11 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             ring_textures.Add(texture_options[temp_textures[i]]);
         }
 
-        PatternData RLGLpattern = new PatternData();
-        RLGLpattern.setCenter(center_texture, COLOR_OPTIONS[curr_colors[4]], center_speed);
-        RLGLpattern.setRings(4, getColorsAsColor(), ring_textures, ring_is_solid, ring_speeds);
+        WaveInfo RLGLwave = new WaveInfo();
+        RLGLwave.setCenter(center_texture, COLOR_OPTIONS[curr_colors[4]], center_speed);
+        RLGLwave.setRings(4, getColorsAsColor(), ring_textures, ring_is_solid, ring_speeds);
 
-        energyPatternManager.setPattern(0, RLGLpattern);
+        scanWaveManager.initializeWave(0, RLGLwave);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -345,11 +367,15 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     [Rpc(SendTo.Everyone)]
     private void enterGreenLightStateRPC(string s_new_colors)
     {
-        int[] temp_curr_colors = DataConverter.stringToArray(s_new_colors);
+        int[] temp_curr_colors = s_new_colors.ToIntArray();
 
+        for (int i = 0; i < 5; i++)
+        {
+            curr_colors[i] = temp_curr_colors[i] - 48;
+        }
         setColorInfo();
 
-        energyPatternManager.updateColors(0, getColorsAsColor(), 1.0f);
+        scanWaveManager.updateColors(0, getColorsAsColor(), 1.0f);
 
         resetCoroutines();
         greenLightCoroutine = StartCoroutine(GreenLightState());
