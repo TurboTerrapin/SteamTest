@@ -16,8 +16,10 @@ public class AudioManager : MonoBehaviour
         foreach (GameObject audioSource in audioSources)
         {
             startingVolumes.Add(audioSource.GetComponent<AudioSource>().volume);
-            audioSource.transform.GetComponent<AudioSource>().Play();
         }
+
+        audioSources[0].GetComponent<AudioSource>().Play(); //play ambient noise
+        audioSources[1].GetComponent<AudioSource>().Play(); //play ship beeps
     }
 
     public void SetMasterVolume(float volume)

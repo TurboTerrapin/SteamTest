@@ -1,18 +1,17 @@
 /*
     PowerManager.cs
     - Handles powering on/off each of the positions
-    - Handles power consumption
+    - Records changes in power consumption (as called by the individual controls)
+    - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 9/2/2025
+    Last Updated: 9/6/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class PowerManager : NetworkBehaviour, IPowerable
 {
@@ -25,8 +24,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public List<GameObject> position_power_displays = null;
     public List<GameObject> engineer_power_displays = null;
     public List<GameObject> power_warnings = null;
+
     public PowerAllocation power_allocation;
     public LightsManager lights_manager;
+
+    //sounds
+    public AudioSource overconsumption_warning_sound;
+    public AudioSource ship_beeps_sound;
+    public AudioSource power_off_sound;
+    public AudioSource power_on_sound;
 
     private GameObject engineer_power_breakdown_display;
     private GameObject control_handler;
@@ -41,8 +47,8 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
     private bool[] powered_positions = new bool[] { false, false, false, false }; //corresponds to pilot, tactician, engineer, captain
     private float[] power_consumptions = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
-    private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null };
-    private Coroutine[] overconsumption_coroutines = new Coroutine[] { null, null, null, null };
+    private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
+    private Coroutine[] overconsumption_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine power_updater_coroutine = null;
 
     private void Start()
@@ -61,6 +67,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_updater_coroutine = StartCoroutine(powerUpdater());
     }
 
+    //called only once by Start() to initialize the tracking of each control's potential power consumption
     private void linkPowerDistributions()
     {
         for (int i = 0; i < 4; i++)
@@ -78,12 +85,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
                         associated_controls[i].Add(control_name);
                     }
                 }
-                if (i == 1) //exception for TransmissionHandler since it's not a "control" per se
+                if (i == 1) //tactician exception for TransmissionHandler since it's not a "control" per se
                 {
                     power_distributions[1].Add(0.0f);
                     associated_controls[1].Add("TransmissionHandler");
                 }
-                else if (i == 3) //exception for ManualOnOff since it's not covered by IPowerable
+                else if (i == 3) //captain exception for ManualOnOff since it's not covered by IPowerable
                 {
                     power_distributions[3].Add(0.0f);
                     associated_controls[3].Add("ManualOnOff");
@@ -92,6 +99,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
+    //returns the power consumption of a specific position (0 = pilot, 1 = tactician, 2 = engineer, 3 = captain) 
     private float getPowerConsumption(int position)
     {
         float total_power = 0.0f;
@@ -102,6 +110,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         return Mathf.Min(1.05f, total_power);
     }
 
+    //powers every control in a given position in POWER_ON_TIME seconds
     IEnumerator modulePowerSequence(List<Component> to_power_on, int position)
     {
         for (int i = 0; i < to_power_on.Count; i++)
@@ -115,6 +124,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_change_coroutines[position] = null;
     }
 
+    //powers down every control instantly, finishes in POWER_OFF_TIME (throttles return to 0 position in POWER_OFF_TIME)
     IEnumerator powerDownSequence(List<Component> to_disable, int position)
     {
         control_handler.GetComponent<PowerControl>().turnDial(position, false);
@@ -151,7 +161,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         return powered_positions[position];
     }
 
-    //called by PowerControl
+    //called by PowerControl and ScenarioManager when at the start of a scenario
     public void powerStation(int position)
     {
         if (powered_positions[position] == true)
@@ -169,7 +179,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_change_coroutines[position] = StartCoroutine(modulePowerSequence(to_enable, position));
     }
 
-    //called by PowerControl
+    //called by PowerControl (and ScenarioManager at the end of a scenario as a way of resetting every control)
     public void disableStation(int position)
     {
         if (powered_positions[position] == false)
@@ -197,14 +207,14 @@ public class PowerManager : NetworkBehaviour, IPowerable
     //called by this script to display the position's power circles and the warning indicator only
     public void powerOn(int position)
     {
-        if (position <= 1)
+        if (position <= 1) //pilot, tactician
         {
             if (position_power_displays[position].activeSelf == true) //second pass
             {
                 power_warnings[position].SetActive(true);
             }
         }
-        else if (position == 2)
+        else if (position == 2) //engineer
         {
             if (engineer_power_breakdown_display.activeSelf == false)
             {
@@ -218,23 +228,25 @@ public class PowerManager : NetworkBehaviour, IPowerable
     //called by this script to hide the position's power circles and the warning indicator only
     public void powerOff(int position, float time)
     {
-        if (position <= 1)
+        if (position <= 1) //pilot, tactician
         {
             power_warnings[position].SetActive(false);
         }
-        else if (position == 2)
+        else if (position == 2) //engineer
         {
             engineer_power_breakdown_display.SetActive(false);
         }
         position_power_displays[position].SetActive(false);
     }
 
+    //helper method used to set the color of a power icon, called by powerUpdater() and animationProgressHelper()
     private void powerIconHelper(GameObject to_change, float a)
     {
         Color icon_color = to_change.GetComponent<UnityEngine.UI.RawImage>().color;
         to_change.GetComponent<UnityEngine.UI.RawImage>().color = new Color(icon_color.r, icon_color.g, icon_color.b, a);
     }
 
+    //helper method used to set the alphas of each of the green-to-red circles based on a given power level (0-10)
     private void animationProgressHelper(GameObject display, int power_level, float percent, float min_alpha)
     {
         float tmp_prcnt = percent;
@@ -246,10 +258,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
+    //runs on an infinite loop, updates the green-to-red power consumption screens for all positions
     IEnumerator powerUpdater()
     {
         while (true)
         {
+            //start at minimum transparency (0.2f)
             int[] power_levels = new int[4] { 0, 0, 0, 0 };
             for (int i = 0; i < 4; i++)
             {
@@ -264,6 +278,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
                 }
             }
 
+            //increase alphas based on how power consumption over the course of POWER_UPDATE_TIME
             float anim_time = POWER_UPDATE_TIME;
             while (anim_time > 0.0f)
             {
@@ -280,22 +295,28 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
-    //used after the conclusion of a power overconsumption sequence
+    //used after the conclusion of a power overconsumption sequence (power shutdown)
     private void resetEngineerPositionDisplay(int position)
     {
+        //hide warning bar
         engineer_power_displays[position].transform.GetChild(0).gameObject.SetActive(false);
 
+        //change colors of position icon and label to blue
         engineer_power_displays[position].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         engineer_power_displays[position].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
 
+        //get power allocation for that position
         int max_allocation = (int)(power_allocation.getPowerAllocation(position) * 10.0f);
 
+        //recolor circles from red to their actual color
         for (int i = 1; i <= 10; i++)
         {
+            //recolor circle
             float circle_alpha = engineer_power_displays[position].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
-            Color corresponding_circle_color = position_power_displays[0].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color;
+            Color corresponding_circle_color = position_power_displays[0].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color; //use pilot position as a reference
             engineer_power_displays[position].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(corresponding_circle_color.r, corresponding_circle_color.g, corresponding_circle_color.b, circle_alpha);
 
+            //recolor power allocation circle
             float power_alpha = 0.2f;
             if (i <= max_allocation)
             {
@@ -305,14 +326,24 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
+    //used when a position's power consumption exceeds their allocation
     IEnumerator imminentPowerLoss(int index)
     {
+        //play warning sound if not playing already
+        if (overconsumption_warning_sound.isPlaying == false)
+        {
+            overconsumption_warning_sound.Play();
+        }
+
+        //show red warning bar
         GameObject power_loss_bar = engineer_power_displays[index].transform.GetChild(0).gameObject;
         power_loss_bar.SetActive(true);
 
+        //change colors of position icon and label to red
         engineer_power_displays[index].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
         engineer_power_displays[index].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 
+        //change colors of each circle to red
         for (int i = 1; i <= 10; i++)
         {
             float a = engineer_power_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
@@ -320,6 +351,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
             engineer_power_displays[index].transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
         }
 
+        //animate the progress bar based on TIME_TO_POWER_LOSS
         float anim_time = TIME_TO_POWER_LOSS;
         while (anim_time > 0.0f)
         {
@@ -330,12 +362,14 @@ public class PowerManager : NetworkBehaviour, IPowerable
             yield return null;
         }
 
+        //if time runs out, then power shutdown (if host)
         if (NetworkManager.Singleton.IsHost == true)
         {
             totalShutdownRPC();
         }
     }
 
+    //calls overconsumptionRPC() or abortOverconsumptionRPC() if applicable
     private void checkForOverConsumption(int position, float allocation)
     {
         if (power_consumptions[position] > allocation && overconsumption_coroutines[position] == null)
@@ -348,6 +382,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
+    //calls checkForOverConsumption()
     public void allocationChange(int position, float allocation)
     {
         if (NetworkManager.Singleton.IsHost == true)
@@ -359,16 +394,23 @@ public class PowerManager : NetworkBehaviour, IPowerable
     [Rpc(SendTo.Everyone)]
     private void totalShutdownRPC()
     {
+        //kill power
         ship_has_power = false;
 
+        //handle shutdown effects (lights, sounds)
         lights_manager.disableDefaultLights();
+        power_off_sound.Play();
+        ship_beeps_sound.Stop();
+        overconsumption_warning_sound.Stop();
 
+        //stop updating power consumption
         if (power_updater_coroutine != null)
         {
             StopCoroutine(power_updater_coroutine);
             power_updater_coroutine = null;
         }
 
+        //power down all stations
         for (int i = 0; i < 4; i++)
         {
             control_handler.GetComponent<PowerControl>().disableDial(i);
@@ -380,6 +422,50 @@ public class PowerManager : NetworkBehaviour, IPowerable
                 resetEngineerPositionDisplay(i);
             }
         }
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            StartCoroutine(testPowerRestart());
+        }
+    }
+
+    IEnumerator testPowerRestart()
+    {
+        yield return new WaitForSeconds(10.0f);
+        powerRestartRPC();
+    }
+
+    IEnumerator restartPower()
+    {
+        //play sound but wait a delay
+        power_on_sound.Play();
+
+        yield return new WaitForSeconds(3.0f);
+        
+        //bring back power
+        ship_has_power = true;
+
+        //handle restart effects (lights, sounds)
+        lights_manager.enableDefaultLights();
+        ship_beeps_sound.Play();
+
+        //start updating power consumption
+        if (power_updater_coroutine == null)
+        {
+            power_updater_coroutine = StartCoroutine(powerUpdater());
+        }
+
+        //unlock the ability to power on all stations
+        for (int i = 0; i < 4; i++)
+        {
+            control_handler.GetComponent<PowerControl>().enableDial(i, false);
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void powerRestartRPC()
+    {
+        StartCoroutine(restartPower());
     }
 
     [Rpc(SendTo.Everyone)]
@@ -396,6 +482,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
     [Rpc(SendTo.Everyone)]
     private void abortOverconsumptionRPC(int index)
     {
+        if (overconsumption_warning_sound.isPlaying == true)
+        {
+            overconsumption_warning_sound.Stop();
+        }
+
         if (overconsumption_coroutines[index] != null)
         {
             StopCoroutine(overconsumption_coroutines[index]);
