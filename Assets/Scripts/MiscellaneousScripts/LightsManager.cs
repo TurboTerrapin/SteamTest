@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott
-    Last Updated: 9/4/2025
+    Last Updated: 9/7/2025
 */
 
 using System.Collections;
@@ -43,8 +43,21 @@ public class LightsManager : MonoBehaviour
         }
     }
 
+    //used to set the lights to their default color and material, called by ScenarioManager.Reset
+    public void resetLights()
+    {
+        if (default_light_change_coroutine != null)
+        {
+            StopCoroutine(default_light_change_coroutine);
+            default_light_change_coroutine = null;
+        }
+
+        changeAllDefaultLights(DEFAULT_LIGHT_COLOR, DEFAULT_LIGHT_INTENSITY);
+        changeAllDefaultLightsMaterial(lit_neon);
+    }
+
     //helper method that changes every default light's color and intensity
-    private void changeAllDefaultLights(Color light_color, float light_intensity, Material physical_light_material)
+    private void changeAllDefaultLights(Color light_color, float light_intensity)
     {
         foreach (Transform light in default_lights.transform) //iterate through every default light
         {
@@ -121,11 +134,13 @@ public class LightsManager : MonoBehaviour
 
     public void enableRedAlert()
     {
-        changeAllDefaultLights(RED_ALERT_LIGHT_COLOR, RED_ALERT_LIGHT_INTENSITY, lit_red);
+        changeAllDefaultLights(RED_ALERT_LIGHT_COLOR, RED_ALERT_LIGHT_INTENSITY);
+        changeAllDefaultLightsMaterial(lit_red);
     }
 
     public void disableRedAlert()
     {
-        changeAllDefaultLights(DEFAULT_LIGHT_COLOR, DEFAULT_LIGHT_INTENSITY, lit_neon); //same as enableDefaultLights for the moment
+        changeAllDefaultLights(DEFAULT_LIGHT_COLOR, DEFAULT_LIGHT_INTENSITY);
+        changeAllDefaultLightsMaterial(lit_neon);
     }
 }

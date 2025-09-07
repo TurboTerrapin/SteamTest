@@ -3,9 +3,10 @@
     - Handles inputs for power allocation
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 8/31/2025
+    Last Updated: 9/7/2025
 */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -16,6 +17,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float TURN_TIME = 0.2f; //how long it takes to move the dial in either direction
+    private static int MAX_ALLOCATION_UNITS = 24; //don't change this number
 
     private string[] CONTROL_NAMES = new string[] { "PILOT", "TACTICIAN", "ENGINEER", "CAPTAIN" };
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
@@ -32,8 +34,8 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     private GameObject units_circle_collection;
 
     private bool is_powered = false;
-    private int available_units = 0;
-    private int[] allocated_units = new int[4] { 8, 6, 5, 5 };
+    private int available_units = MAX_ALLOCATION_UNITS;
+    private int[] allocated_units = new int[4] { 0, 0, 0, 0 };
     private Coroutine[] allocation_adjustment_coroutines = new Coroutine[4] { null, null, null, null };
 
     private List<string> ray_targets = new List<string> { "power_allocation_pilot", "power_allocation_tactician", "power_allocation_engineer", "power_allocation_captain" };
@@ -68,6 +70,51 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     public float getPowerAllocation(int position)
     {
         return (allocated_units[position] * 0.1f);
+    }
+
+    //called by ScenarioManager.controlResetHelper()
+    public void resetToDefaultAllocation(int[] allocation_values)
+    {
+        if (allocation_values.Length != 4)
+        {
+            return;
+        }
+
+        int total_units = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            if (allocation_values[i] < 0 || allocation_values[i] > 10)
+            {
+                Debug.Log("ATTEMPTED TO ASSIGN MORE THAN 10 UNITS OR LESS THAN 0 TO A POSITION");
+                return;
+            }
+            total_units += allocation_values[i];
+        }
+
+        if (total_units > 24)
+        {
+            Debug.Log("ATTEMPTED TO ASSIGN MORE THAN AVAILABLE UNITS!");
+            return;
+        }
+
+        available_units = 24 - total_units;
+
+        //display new values
+        for (int i = 0; i < 4; i++)
+        {
+            //stop adjustment if currently happening
+            if (allocation_adjustment_coroutines[i] != null)
+            {
+                StopCoroutine(allocation_adjustment_coroutines[i]);
+                allocation_adjustment_coroutines[i] = null;
+            }
+
+            //display new value
+            allocated_units[i] = allocation_values[i];
+            allocation_dials[i].transform.localRotation =
+                Quaternion.Euler(-54.0f, -45.0f, 359.9f * (allocation_values[i] / 10.0f));
+            displayAdjustment(i);
+        }
     }
 
     //helper method used to deal with the blue power allocation circles

@@ -2,11 +2,10 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/27/2025
+    Last Updated: 9/6/2025
 */
 
 using System.Collections;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -32,11 +31,11 @@ public class ScenarioManager : NetworkBehaviour
 
     private enum Difficulty
     {
-        Random,
-        Easy,
-        Medium,
-        Hard,
-        Specific
+        Random = 0,
+        Easy = 1,
+        Medium = 2,
+        Hard = 3,
+        Specific = 4
     }
 
     public GameObject player_manager; 
@@ -45,6 +44,9 @@ public class ScenarioManager : NetworkBehaviour
 
     private EngineerScenarioCountdown scenario_countdown;
     private EngineerMap engineer_map;
+    private PowerManager power_manager;
+    private PowerControl power_control;
+    private LightsManager lights_manager;
     private Coroutine countdown_coroutine;
     private GameObject scenario_handler;
 
@@ -62,6 +64,9 @@ public class ScenarioManager : NetworkBehaviour
     {
         scenario_countdown = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerScenarioCountdown>();
         engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
+        power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
+        power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
+        lights_manager = GameObject.Find("Lights").GetComponent<LightsManager>();
     }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
@@ -99,30 +104,40 @@ public class ScenarioManager : NetworkBehaviour
         setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
     }
 
+    //called when start of scenario transition
     public string loadNewScenario()
     {
         endpoint_reached = false;
         scenario_number += 1;
-        if (SceneManager.GetActiveScene().name == "Cheeseballs")
-        {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-            return "RedLightGreenLight";
-        }
-        else
+        if (SceneManager.GetActiveScene().name == "RedLightGreenLight")
         {
             SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
             return "Cheeseballs";
         }
+        else
+        {
+            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+            return "RedLightGreenLight";
+        }
     }
 
+    //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
     public void prepScenario(bool enable_stations)
     {
+
+        //power on all stations (unless it's the first scenario)
         if (enable_stations == true)
         {
             powerAllStationsRPC();
         }
+
+        //assign the piloting system the new World Root
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+        
+        //generate new entrance/exit path locations and angles
         generatePaths();
+
+        //check for a scenario script and handle any sort of scenario prep (ex. starting an energy pattern, spawning cheeseballs)
         scenario_handler = GameObject.FindWithTag("ScenarioHandler");
         IScenario scenario_script = getScenarioScript();
         if (scenario_script != null)
@@ -131,7 +146,7 @@ public class ScenarioManager : NetworkBehaviour
         }
     }
 
-    //only run by host
+    //only run by host, called by PlayerManager.startScenarioRPC()
     public void startScenario()
     {
         enableScenarioTimer();
@@ -170,6 +185,7 @@ public class ScenarioManager : NetworkBehaviour
         }
     }
 
+    //returns the IScenario script component attached to ScenarioHandler as the first component beneath NetworkObject (if it exists)
     private IScenario getScenarioScript()
     {
         if (scenario_handler != null)
@@ -241,30 +257,7 @@ public class ScenarioManager : NetworkBehaviour
         handleFailureRPC(scenario_number, failure_report_message);
     }
 
-
-    /*
-     *         if (difficulty == Difficulty.Random)
-        {
-            SceneSwapper.Instance.ChangeSceneRandom();
-        }
-        else if (difficulty == Difficulty.Easy)
-        {
-            SceneSwapper.Instance.ChangeScenarioEasy();
-        }
-        else if (difficulty == Difficulty.Medium)
-        {
-            SceneSwapper.Instance.ChangeScenarioMedium();
-        }
-        else if (difficulty == Difficulty.Hard)
-        {
-            SceneSwapper.Instance.ChangeScenarioHard();
-        }
-        else if (difficulty == Difficulty.Specific)
-        {
-            SceneSwapper.Instance.ChangeScene(specificSceneName, specificSceneNum);
-        }
-    */
-
+    //ensures every player has the same entrance/exit path locations and rotations
     [Rpc(SendTo.Everyone)]
     private void setNewPathsRPC(Vector2 ent_pos, float ent_rot, Vector2 exit_pos, float exit_rot)
     {
@@ -273,12 +266,39 @@ public class ScenarioManager : NetworkBehaviour
         exit_position = exit_pos;
         exit_rotation = exit_rot;
 
+        engineer_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
+
+        //if host, position the ship to entrance position and let the network sync the transform
         if (NetworkManager.Singleton.IsHost == true)
         {
             GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
             GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
         }
-        engineer_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
+    }
+
+    //called by handleTransitionRPC(), used to reset certain controls for next scenario
+    private void controlResetHelper()
+    {
+        //resets PowerManager and PowerAllocation
+        power_manager.resetPowerManager();
+
+        //power down all stations
+        for (int i = 0; i < 4; i++)
+        {
+            power_manager.disableStation(i);
+        }
+
+        //reset lights
+        lights_manager.resetLights();
+
+        //reset certain controls
+        GameObject.Find("SensorHandler").GetComponent<EnergyPatternManager>().clearAllPatterns();
+
+        //destroy probe (if exists)
+        foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))
+        {
+            probe.GetComponent<Probe>().damageProbe(9999.9f);
+        }
     }
 
     [Rpc(SendTo.Everyone)]
@@ -287,23 +307,19 @@ public class ScenarioManager : NetworkBehaviour
         //prepare to load next scenario
         GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().resetPlayersReady();
 
-        //power down all stations
-        for (int i = 0; i < 4; i++)
-        {
-            GameObject.Find("PowerHandler").GetComponent<PowerManager>().disableStation(i);
-        }
+        //power down all stations and reset certain controls (power will be restored later)
+        controlResetHelper();
+
+        //mute audio during scene transition
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+
+        //stop checking for controls/seats
         ControlScript.Instance.deactivate(true, false);
+
+        //show transition
         scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
 
-        //reset certain controls
-        GameObject.Find("SensorHandler").GetComponent<EnergyPatternManager>().clearAllPatterns();
-
-        foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))
-        {
-            probe.GetComponent<Probe>().damageProbe(9999.9f);
-        }
-
+        //if host, begin to load the next scenario
         if (NetworkManager.Singleton.IsHost == true)
         {
             loadNewScenario();
@@ -313,8 +329,6 @@ public class ScenarioManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void powerAllStationsRPC()
     {
-        PowerManager power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
-        PowerControl power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
         for (int i = 0; i < 4; i++)
         {
             power_manager.powerStation(i);
@@ -325,11 +339,17 @@ public class ScenarioManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void handleFailureRPC(int sn, string frm)
     {
+        //mute audio
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+
+        //stop checking for controls/seats
         ControlScript.Instance.deactivate(false, true);
+
+        //display death screen using scenario number sn and death message frm
         failure_handler.GetComponent<FailureHandler>().displayDeathScreen(player_manager.GetComponent<PlayerManager>().getPlayerNames(), sn, frm);
     }
 
+    //used to update the boundary expiration timer in engineer position
     [Rpc(SendTo.Everyone)]
     private void countdownUpdateRPC(int time_remaining)
     {

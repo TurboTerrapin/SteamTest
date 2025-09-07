@@ -20,6 +20,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private static float POWER_OFF_TIME = 1.0f; //how long it takes to power down a position
     private static float POWER_UPDATE_TIME = 0.5f; //how often the power consumption displays update
     private static float TIME_TO_POWER_LOSS = 3.0f; //once a position overconsumes power, how long until ship shutdown
+    private static int[] DEFAULT_POWER_ALLOCATIONS = new int[] { 8, 6, 5, 5 }; //communicated to PowerAllocation
 
     public List<GameObject> position_power_displays = null;
     public List<GameObject> engineer_power_displays = null;
@@ -49,6 +50,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private float[] power_consumptions = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] overconsumption_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
+    private Coroutine power_restart_coroutine = null;
     private Coroutine power_updater_coroutine = null;
 
     private void Start()
@@ -65,6 +67,59 @@ public class PowerManager : NetworkBehaviour, IPowerable
         linkPowerDistributions();
 
         power_updater_coroutine = StartCoroutine(powerUpdater());
+        power_allocation.resetToDefaultAllocation(DEFAULT_POWER_ALLOCATIONS);
+    }
+
+    //called by ScenarioManager as part of the BridgeEnvironment reset process prior to starting a new scenario
+    public void resetPowerManager()
+    {
+        //stop any ongoing coroutines
+        for (int i = 0; i < 4; i++)
+        {
+            if (power_change_coroutines[i] != null)
+            {
+                StopCoroutine(power_change_coroutines[i]);
+                power_change_coroutines[i] = null;
+            }
+
+            if (overconsumption_coroutines[i] != null)
+            {
+                StopCoroutine(overconsumption_coroutines[i]);
+                overconsumption_coroutines[i] = null;
+            }
+        }
+
+        if (power_restart_coroutine != null)
+        {
+            StopCoroutine(power_restart_coroutine);
+            power_restart_coroutine = null;
+        }
+
+        //stop power loss/restart sounds
+        overconsumption_warning_sound.Stop();
+        power_on_sound.Stop();
+        power_off_sound.Stop();
+
+        //resume beeping sound
+        if (ship_beeps_sound.isPlaying == false)
+        {
+            ship_beeps_sound.Play();
+        }
+
+        //if power updater is disabled, reenable
+        if (power_updater_coroutine == null)
+        {
+            power_updater_coroutine = StartCoroutine(powerUpdater());
+        }
+
+        //set power allocation to default
+        power_allocation.resetToDefaultAllocation(DEFAULT_POWER_ALLOCATIONS);
+
+        //reset display
+        for (int i = 0; i < 4; i++)
+        {
+            resetEngineerPositionDisplay(i);
+        }
     }
 
     //called only once by Start() to initialize the tracking of each control's potential power consumption
@@ -422,17 +477,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
                 resetEngineerPositionDisplay(i);
             }
         }
-
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            StartCoroutine(testPowerRestart());
-        }
-    }
-
-    IEnumerator testPowerRestart()
-    {
-        yield return new WaitForSeconds(10.0f);
-        powerRestartRPC();
     }
 
     IEnumerator restartPower()
@@ -460,12 +504,17 @@ public class PowerManager : NetworkBehaviour, IPowerable
         {
             control_handler.GetComponent<PowerControl>().enableDial(i, false);
         }
+
+        power_restart_coroutine = null;
     }
 
     [Rpc(SendTo.Everyone)]
     private void powerRestartRPC()
     {
-        StartCoroutine(restartPower());
+        if (power_restart_coroutine == null)
+        {
+            power_restart_coroutine = StartCoroutine(restartPower());
+        }
     }
 
     [Rpc(SendTo.Everyone)]

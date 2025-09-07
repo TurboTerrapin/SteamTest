@@ -3,7 +3,7 @@
     - Handles loading and managing of players
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 8/28/2025
+    Last Updated: 9/6/2025
 */
 
 using System.Collections;
@@ -25,7 +25,7 @@ public class PlayerManager : NetworkBehaviour
 
     private GameObject local_player;
     private LoadHandler load_handler;
-    private int num_starting_players = 0; //how many players are at the start of the game (should always be 4 but for testing purposes may be less than that number)
+    private int num_starting_players = 0; //how many players are at the start of the game
     private string[] player_prefab_names = new string[4] { "", "", "", "" };
     private string[] player_steam_names = new string[4] { "", "", "", "" };
     private ulong[] player_steam_ids = new ulong[4];
@@ -33,6 +33,10 @@ public class PlayerManager : NetworkBehaviour
 
     private bool game_initialized = false;
     private int players_ready = 0;
+
+    //---------------------------------------------------------------------------------------//
+    //----------------------------------INITIAL LOAD-IN--------------------------------------//
+    //---------------------------------------------------------------------------------------//
 
     private void Start()
     {
@@ -42,13 +46,13 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    //called by LoadHandler after scene is loaded in
+    //called by LoadHandler after BridgeEnvironment is loaded in
     public void addPlayer(GameObject this_player, LoadHandler lh)
     {
         local_player = this_player;
         load_handler = lh;
 
-        doneLoadingRPC(SteamClient.Name, SteamClient.SteamId, local_player.GetComponent<NetworkObject>().OwnerClientId);
+        individualBridgeEnvironmentLoadedRPC(SteamClient.Name, SteamClient.SteamId, local_player.GetComponent<NetworkObject>().OwnerClientId);
 
         if (NetworkManager.Singleton.IsHost == true)
         {
@@ -73,7 +77,7 @@ public class PlayerManager : NetworkBehaviour
 
         //ensure all players are on the same page
         //------------------------------------//
-        endBridgeEnvironmentLoadingRPC(
+        collectiveBridgeEnvironmentLoadedRPC(
                       player_steam_names[0], 
                       player_steam_ids[0],
                       player_steam_names[1],
@@ -85,102 +89,9 @@ public class PlayerManager : NetworkBehaviour
                       );
     }
 
-    public static void clearDontDestroyOnLoads()
-    {
-        List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas" };
-        foreach (string d in to_destroy)
-        {
-            GameObject.Destroy(GameObject.Find(d));
-        }
-    }
-
-    //called by PauseMenuController and FailureHandler
-    public static void leaveGame()
-    {
-        GameNetworkManager.Instance.currentLobby.Value.Leave();
-        GameObject.Destroy(GameObject.Find("NetworkManager"));
-        clearDontDestroyOnLoads();
-        SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
-        SceneData.targetUI = "MainMenu";
-        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
-    }
-
-    //called by FailureHandler
-    public void freezeAllPlayers()
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            if (player_prefabs[i] != null)
-            {
-                player_prefabs[i].transform.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("Everything");
-                player_prefabs[i].transform.GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("Everything");
-                player_prefabs[i].transform.GetComponent<Rigidbody>().useGravity = false;
-            }
-        }
-    }
-
-    //returns how many players there were at the start of the game (ideally should always be 4)
-    public int getNumStartingPlayers()
-    {
-        return num_starting_players;
-    }
-
-    //returns the 0-3 index of the player with respect to the lobby (0 = host)
-    public int getPlayerIndex()
-    {
-        if (local_player == null)
-        {
-            return -1;
-        }
-        if (local_player.GetComponent<NetworkObject>() != null)
-        {
-            return (int)local_player.GetComponent<NetworkObject>().OwnerClientId;
-        }
-        for (int i = 0; i < player_steam_names.Length; i++)
-        {
-            if (player_steam_names[i] == SteamClient.Name)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    //returns the player prefab of the local client
-    public GameObject getLocalPlayer()
-    {
-        return local_player;
-    }
-
-    //returns a string table of the player Steam usernames corresponding to their order of when they joined (0 = host)
-    public string[] getPlayerNames()
-    {
-        return player_steam_names;
-    }
-
-    //called by ScenarioManager
-    public void resetPlayersReady()
-    {
-        players_ready = 0;
-    }
-
-    //called by LoadHandler
-    public void signifyScenarioLoaded()
-    {
-        scenarioLoadedRPC();
-    }
-
-    public void handleShipRepositioning()
-    {
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateAltimeterScreen();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateCourseHeadingScreen();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateAltitude();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipLocation();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipOrientation();
-    }
-
+    //called when ONE player is done loading into BridgeEnvironment for the first time
     [Rpc(SendTo.Everyone)]
-    private void doneLoadingRPC(string plr_steam_name, ulong plr_steam_id, ulong plr_game_id)
+    private void individualBridgeEnvironmentLoadedRPC(string plr_steam_name, ulong plr_steam_id, ulong plr_game_id)
     {
         //record Steam name (ex. EPICJAKEISCOOL)
         player_steam_names[plr_game_id] = plr_steam_name;
@@ -195,9 +106,9 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    //called by waitForOthers after minimum players have loaded in initially
+    //called when EVERYONE in the lobby is done loading into BridgeEnvironment for the first time
     [Rpc(SendTo.Everyone)]
-    private void endBridgeEnvironmentLoadingRPC(string plr_a_steam_name, ulong plr_a_steam_id, string plr_b_steam_name, ulong plr_b_steam_id, string plr_c_steam_name, ulong plr_c_steam_id, string plr_d_steam_name, ulong plr_d_steam_id)
+    private void collectiveBridgeEnvironmentLoadedRPC(string plr_a_steam_name, ulong plr_a_steam_id, string plr_b_steam_name, ulong plr_b_steam_id, string plr_c_steam_name, ulong plr_c_steam_id, string plr_d_steam_name, ulong plr_d_steam_id)
     {
         player_steam_names[0] = plr_a_steam_name;
         player_steam_ids[0] = plr_a_steam_id;
@@ -239,19 +150,161 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
+    //called only at the start of the game
+    [Rpc(SendTo.Everyone)]
+    private void unlockPlayersRPC()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (player_prefabs[i] != null)
+            {
+                player_prefabs[i].GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
+                player_prefabs[i].GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("None");
+                player_prefabs[i].GetComponent<Rigidbody>().useGravity = true;
+            }
+        }
+        ControlScript.Instance.unlockPlayer(local_player);
+        load_handler.endLoad();
+        audio_manager.GetComponent<AudioManager>().InitializeAudio();
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            startScenarioRPC();
+        }
+        handleShipRepositioning();
+    }
+
+    //---------------------------------------------------------------------------------------//
+    //--------------------------------RESTART/QUIT HANDLING----------------------------------//
+    //---------------------------------------------------------------------------------------//
+
+    public static void clearDontDestroyOnLoads()
+    {
+        List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas" };
+        foreach (string d in to_destroy)
+        {
+            GameObject.Destroy(GameObject.Find(d));
+        }
+    }
+
+    //called by PauseMenuController and FailureHandler
+    public static void leaveGame()
+    {
+        GameNetworkManager.Instance.currentLobby.Value.Leave();
+        GameObject.Destroy(GameObject.Find("NetworkManager"));
+        clearDontDestroyOnLoads();
+        SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
+        SceneData.targetUI = "MainMenu";
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
+    }
+
+    //called by FailureHandler
+    public void freezeAllPlayers()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (player_prefabs[i] != null)
+            {
+                player_prefabs[i].transform.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("Everything");
+                player_prefabs[i].transform.GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("Everything");
+                player_prefabs[i].transform.GetComponent<Rigidbody>().useGravity = false;
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------------------//
+    //----------------------------------USEFUL INFORMATION-----------------------------------//
+    //---------------------------------------------------------------------------------------//
+
+    //returns how many players there were at the start of the game (ideally should always be 4)
+    public int getNumStartingPlayers()
+    {
+        return num_starting_players;
+    }
+
+    //returns the 0-3 index of the player with respect to the lobby (0 = host)
+    public int getPlayerIndex()
+    {
+        if (local_player == null)
+        {
+            return -1;
+        }
+        if (local_player.GetComponent<NetworkObject>() != null)
+        {
+            return (int)local_player.GetComponent<NetworkObject>().OwnerClientId;
+        }
+        for (int i = 0; i < player_steam_names.Length; i++)
+        {
+            if (player_steam_names[i] == SteamClient.Name)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    //returns the player prefab of the local client
+    public GameObject getLocalPlayer()
+    {
+        return local_player;
+    }
+
+    //returns a string table of the player Steam usernames corresponding to their order of when they joined (0 = host)
+    public string[] getPlayerNames()
+    {
+        return player_steam_names;
+    }
+
+    //---------------------------------------------------------------------------------------//
+    //------------------------------------SCENARIO LOADING-----------------------------------//
+    //---------------------------------------------------------------------------------------//
+
+    //called by ScenarioManager
+    public void resetPlayersReady()
+    {
+        players_ready = 0;
+    }
+
+    //called by LoadHandler
+    public void signifyScenarioLoaded()
+    {
+        scenarioLoadedRPC();
+    }
+
+    //when paths are generated, ship is relocated into entrance path, thus requiring an update to ship screens
+    public void handleShipRepositioning()
+    {
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateAltimeterScreen();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateCourseHeadingScreen();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateAltitude();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipLocation();
+        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipOrientation();
+    }
+
     [Rpc(SendTo.Everyone)]
     private void startScenarioRPC()
     {
-        //if host, begin the scenario
+        //if host, begin the scenario (timer)
         if (NetworkManager.Singleton.IsHost == true)
         {
             GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
         }
+
+        //end transition (whether looking at the cinematic shot or load screen)
         scenario_transitioner.GetComponent<TransitionHandler>().EndTransition();
+
+        //end load (whether looking at the cinematic shot or load screen)
         load_handler.endLoad();
+
+        //reactivate control/seat checking
         ControlScript.Instance.reactivate();
+
+        //reactivate camera
         local_player.transform.GetComponent<CameraMove>().reactivateCamera();
+        
+        //update screens to account for ship's new location/rotation in newly-generated entrance path
         handleShipRepositioning();
+
+        //unmute audio that was muted during scenario transition
         GameObject.Find("AudioManager").GetComponent<AudioManager>().UnmuteAudio();
     }
 
@@ -289,39 +342,16 @@ public class PlayerManager : NetworkBehaviour
         if (initial_load == true)
         {
             game_initialized = true;
-            unlockPlayersRPC(); //only run once
+            unlockPlayersRPC(); //only run once at the start of the game
         }
         else
         {
             GameObject transition_canvas = scenario_transitioner.GetComponent<TransitionHandler>().TransitionCanvas;
-            while (transition_canvas.activeSelf == true)
+            while (transition_canvas.activeSelf == true) //ensure that host's transition is done before starting new scenario
             {
                 yield return null;
             }
             startScenarioRPC();
         }
-    }
-
-    //called only at the start of the game
-    [Rpc(SendTo.Everyone)]
-    private void unlockPlayersRPC()
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            if (player_prefabs[i] != null)
-            {
-                player_prefabs[i].GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
-                player_prefabs[i].GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("None");
-                player_prefabs[i].GetComponent<Rigidbody>().useGravity = true;
-            }
-        }
-        ControlScript.Instance.unlockPlayer(local_player);
-        load_handler.endLoad();
-        audio_manager.GetComponent<AudioManager>().InitializeAudio();
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            startScenarioRPC();
-        }
-        handleShipRepositioning();
     }
 }

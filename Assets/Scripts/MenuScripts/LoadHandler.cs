@@ -2,7 +2,7 @@
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
     Contributor(s): Jake Schott
-    Last Updated: 8/28/2025
+    Last Updated: 9/6/2025
 */
 
 using System.Collections;
@@ -17,15 +17,15 @@ public class LoadHandler : NetworkBehaviour
 {
     //LOAD CIRCLE SETTINGS
     private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
-    private static float[] SPIN_SPEEDS = new float[3] { 25.0f, 100.0f, 35.0f };
+    private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 200.0f, 70.0f };
 
     private GameObject load_screen;
     private GameObject load_ring;
-    private Coroutine load_coroutine = null;
+    private List<Coroutine> load_coroutines = new List<Coroutine>();
 
     void Start()
     {
-        //used to ensure there is every only one LoadHandler
+        //used to ensure there is ever only one LoadHandler
         transform.name = "TempLoadHandler";
         if (GameObject.Find("LoadHandler") != null)
         {
@@ -55,33 +55,43 @@ public class LoadHandler : NetworkBehaviour
         NetworkManager.Singleton.SceneManager.OnLoad += handleSceneLoad;
     }
 
+    //stops all coroutines
+    private void resetAllCoroutines()
+    {
+        foreach (Coroutine c in load_coroutines)
+        {
+            StopCoroutine(c);
+        }
+        load_coroutines.Clear();
+    }
+
     //only called when NetworkManager.Singleton.SceneManager changes the scene
     private void handleSceneLoad(ulong clientId, string sceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
     {
-        StopAllCoroutines();
+        resetAllCoroutines();
         if (sceneName == "BridgeEnvironment") //BridgeEnvironment load-in
         {
-            load_coroutine = StartCoroutine(loadBridgeEnvironment(asyncOperation));
+            load_coroutines.Add(StartCoroutine(loadBridgeEnvironment(asyncOperation)));
         }
         else //scenario transition
         {
-            load_coroutine = StartCoroutine(loadScenarioTransition(asyncOperation));
+            load_coroutines.Add(StartCoroutine(loadScenarioTransition(asyncOperation)));
         }
     }
 
     //will begin the infinite loading screen (until terminated by endLoad() or the loading of a specific scene)
     public void startLoad()
     {
-        StopAllCoroutines();
+        resetAllCoroutines();
         randomizeColors();
-        load_coroutine = StartCoroutine(loadLoop());
+        load_coroutines.Add(StartCoroutine(loadLoop()));
         load_screen.SetActive(true);
     }
 
     //terminates the loading screen
     public void endLoad()
     {
-        StopAllCoroutines();
+        resetAllCoroutines();
         load_screen.SetActive(false);
     }
 
@@ -155,7 +165,11 @@ public class LoadHandler : NetworkBehaviour
         GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
 
         //wait until PlayerManager interrupts load screen using endLoad()
-        load_coroutine = StartCoroutine(loadLoop()); //will eventually get interrupted by loadScenarioTransition()
+        while (true)
+        {
+            spinRings();
+            yield return null;
+        }
     }
 
     //called whenever the client loads into a scenario 
@@ -171,24 +185,32 @@ public class LoadHandler : NetworkBehaviour
             {
                 if (load_operation.isDone == true)
                 {
+                    //tell PlayerManager that the new scenario is loaded
                     player_manager.signifyScenarioLoaded();
                     scenario_loaded = true;
                 }
             }
+
+            //if transition canvas gets deleted then stop
             if (transition_canvas == null)
             {
                 break;
             }
+
+            //if transition is over and we haven't switched to load screen yet, then switch
             if (transition_canvas.activeSelf == false && switched_to_load_screen == false)
             {
                 switched_to_load_screen = true;
                 randomizeColors();
                 load_screen.SetActive(true);
             }
+            
+            //spin rings if on load screen instead of transition screen
             if (switched_to_load_screen == true)
             {
                 spinRings();
             }
+
             yield return null;
         }
     }
@@ -203,6 +225,9 @@ public class LoadHandler : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void allPlayersLoadRPC()
     {
-        startLoad();
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            startLoad();
+        }
     }
 }
