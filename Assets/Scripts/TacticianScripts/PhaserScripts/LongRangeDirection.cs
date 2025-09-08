@@ -2,7 +2,7 @@
     LongRangeDirection.cs
     - Handles inputs for long-range phaser direction
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 9/8/2025
 */
 
 using System.Collections.Generic;
@@ -26,6 +26,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
     private float long_range_angle = 0.0f;
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -33,10 +34,12 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
     public float getPhaserDirectionAngle()
     {
         return long_range_angle;
@@ -47,6 +50,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
         long_range_direction_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, long_range_angle);
         long_range_lever.transform.localRotation = Quaternion.Euler(-69.4f, 180f, 270f + long_range_angle);
     }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         if (is_powered == false)
@@ -83,6 +87,12 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
             }
             transmitLongRangePhaserAngleAdjustmentRPC(long_range_angle);
         }
+    }
+
+    public void resetToDefault()
+    {
+        long_range_angle = 0.0f;
+        displayAdjustment();
     }
 
     public void powerOn(int position)

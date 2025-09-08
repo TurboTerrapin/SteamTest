@@ -3,7 +3,7 @@
     - Updates SCA reset bar
     - Updates SCA circular screen
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 9/7/2025
 */
 
 using System.Collections;
@@ -16,6 +16,8 @@ public class PilotSCA : NetworkBehaviour, IPowerable
     //CLASS CONSTANTS
     private static float RESET_TIMER = 10.0f; //seconds
     private static float PARTICLE_ROTATION_SPEED = 25.0f;
+    private static List<int> DEFAULT_MOLECULES = new List<int>() { 0 };
+    private static List<int> DEFAULT_MOLECULE_QUANTITIES = new List<int>() { 49 };
 
     public GameObject reset_bar;
     public GameObject SCA_display;
@@ -25,6 +27,36 @@ public class PilotSCA : NetworkBehaviour, IPowerable
     private List<int> molecule_quantities = new List<int>(); //corresponds by index to current_molecules
 
     private Coroutine reset_bar_coroutine = null;
+
+    private void Start()
+    {
+        resetToDefault();
+    }
+
+    //sets SCA to whatever is in DEFAULT_MOLECULES and DEFAULT_MOLECULE_QUANTITIES
+    public void resetToDefault()
+    {
+        current_molecules.Clear();
+        molecule_quantities.Clear();
+
+        for (int i = 0; i < DEFAULT_MOLECULES.Count; i++)
+        {
+            current_molecules.Add(DEFAULT_MOLECULES[i]);
+            molecule_quantities.Add(DEFAULT_MOLECULE_QUANTITIES[i]);
+        }
+
+        if (reset_bar_coroutine != null)
+        {
+            StopCoroutine(reset_bar_coroutine);
+            reset_bar_coroutine = null;
+        }
+
+        if (NetworkManager.Singleton.IsHost && is_powered == true)
+        {
+            generateNewMolecules();
+            transmitNewLoopRPC();
+        }
+    }
 
     private void displaySCA(float canvas_rotation, int[] mol_i, int[] mol_l, int[] mol_r)
     {
@@ -131,17 +163,6 @@ public class PilotSCA : NetworkBehaviour, IPowerable
         if (NetworkManager.Singleton.IsHost)
         {
             generateNewMolecules();
-        }
-    }
-
-    private void Start()
-    {
-        current_molecules.Add(0);
-        molecule_quantities.Add(49);
-        if (NetworkManager.Singleton.IsHost && is_powered == true)
-        {
-            generateNewMolecules();
-            transmitNewLoopRPC();
         }
     }
 

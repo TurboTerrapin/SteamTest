@@ -3,7 +3,7 @@
     - Handles torpedo slider
     - Updates arrow screen
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 9/8/2025
 */
 
 using System.Collections;
@@ -42,6 +42,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 
         initial_pos = selector_lever.transform.localPosition;
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
@@ -77,8 +78,8 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 
         selector_display.transform.GetChild(torpedo_option + 4).gameObject.SetActive(true);
 
-        BUTTONS[0].updateInteractable(torpedo_option > 0);
-        BUTTONS[1].updateInteractable(torpedo_option < 3);
+        BUTTONS[0].updateInteractable(torpedo_option > 0 && is_powered == true);
+        BUTTONS[1].updateInteractable(torpedo_option < 3 && is_powered == true);
         BUTTONS[0].untoggle();
         BUTTONS[1].untoggle();
 
@@ -121,6 +122,17 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
                 }
             }
         }
+    }
+
+    public void resetToDefault()
+    {
+        torpedo_option = 0;
+        selector_lever.transform.localPosition = initial_pos;
+        for (int i = 4; i <= 7; i++)
+        {
+            selector_display.transform.GetChild(i).gameObject.SetActive(false);
+        }
+        selector_display.transform.GetChild(torpedo_option + 4).gameObject.SetActive(true);
     }
 
     public void powerOn(int position)

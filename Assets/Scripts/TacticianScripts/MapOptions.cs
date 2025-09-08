@@ -97,12 +97,7 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
             //switch map config
             if (i == 0)
             {
-                for (int z = 0; z <= 2; z++)
-                {
-                    config_display.transform.GetChild(z).GetChild(0).gameObject.SetActive(z != map_config);
-                }
-                map_display.transform.GetChild(2).gameObject.SetActive(map_config == 0);
-                map_display.transform.GetChild(3).gameObject.SetActive(map_config != 0);
+                displayMapConfigAdjustment();
             }
         }
         
@@ -131,6 +126,16 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
             new Vector3(Mathf.Lerp(slider_initial_pos.x, slider_final_pos.x, 1.0f - zoom),
                         Mathf.Lerp(slider_initial_pos.y, slider_final_pos.y, 1.0f - zoom),
                         Mathf.Lerp(slider_initial_pos.z, slider_final_pos.z, 1.0f - zoom));
+    }
+
+    private void displayMapConfigAdjustment()
+    {
+        for (int z = 0; z <= 2; z++)
+        {
+            config_display.transform.GetChild(z).GetChild(0).gameObject.SetActive(z != map_config);
+        }
+        map_display.transform.GetChild(2).gameObject.SetActive(map_config == 0);
+        map_display.transform.GetChild(3).gameObject.SetActive(map_config != 0);
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -181,6 +186,14 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    public void resetToDefault()
+    {
+        map_config = 0;
+        zoom = 1.0f;
+        slider.transform.localPosition = slider_initial_pos;
+        displayZoomAdjustment();
+        displayMapConfigAdjustment();
+    }
     public void powerOn(int position)
     {
         is_powered = true;

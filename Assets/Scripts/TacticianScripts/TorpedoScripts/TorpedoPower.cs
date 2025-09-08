@@ -173,7 +173,6 @@ public class TorpedoPower : NetworkBehaviour, IControllable, IPowerable
         power_loss_coroutine = null;
     }
 
-
     public void powerOn(int position)
     {
         is_powered = true;

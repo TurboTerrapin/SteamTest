@@ -48,6 +48,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
 
         forward_pos = lever.transform.localPosition;
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         if (shift_adjuster_coroutine == null)
@@ -56,6 +57,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         }
         return hud_info;
     }
+
     private void displayAdjustment()
     {
         float percent_to_top = Mathf.Min(1.0f, Mathf.Max(0.0f, (shift_percentage - 0.4f) / 0.2f));
@@ -85,6 +87,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     {
         return (shift_percentage == 0.0f || shift_percentage == 1.0f);
     }
+
     IEnumerator shiftAdjuster()
     {
         while (keys_down.Count > 0 || !checkNeutralState())
@@ -152,6 +155,13 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         }
 
         shift_adjuster_coroutine = null;
+    }
+
+    public void resetToDefault()
+    {
+        in_reverse = false;
+        shift_percentage = 1.0f;
+        displayAdjustment();
     }
 
     public void powerOn(int position)

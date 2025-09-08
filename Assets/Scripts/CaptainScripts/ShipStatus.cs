@@ -3,7 +3,7 @@
     - Handles slider
     - Changes lights at highest status
     Contributor(s): Jake Schott
-    Last Updated: 9/2/2025
+    Last Updated: 9/8/2025
 */
 
 using System.Collections;
@@ -24,6 +24,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     private List<Button> BUTTONS = new List<Button>();
 
     private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
     public List<GameObject> position_warnings = null;
     public List<GameObject> indicators = null;
     public GameObject selector_lever;
@@ -161,9 +162,26 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        Vector3 start_pos = selector_lever.transform.localPosition;
+        float anim_time = power_off_time;
+        curr_status = 0;
+        displayAdjustment();
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            selector_lever.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, 1.0f - (anim_time / power_off_time));
+            yield return null;
+        }
+
+        power_loss_coroutine = null;
+    }
+
     public void powerOn(int position)
     {
-        if (position < 2)
+        if (position <= 1) //pilot, tactician
         {
             position_warnings[position].SetActive(true);
         }
@@ -183,11 +201,11 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 
     public void powerOff(int position, float time)
     {
-        if (position <= 1)
+        if (position <= 1) //pilot, tactician
         {
             position_warnings[position].SetActive(false);
         }
-        if (position == 3)
+        if (position == 3) //captain
         {
             is_powered = false;
             for (int i = 0; i < 3; i++)
@@ -196,6 +214,13 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             }
             BUTTONS[0].updateInteractable(false);
             BUTTONS[1].updateInteractable(false);
+
+            //return to normal status
+            if (power_loss_coroutine != null)
+            {
+                StopCoroutine(power_loss_coroutine);
+            }
+            power_loss_coroutine = StartCoroutine(returnToZero(time));
         }
     }
 

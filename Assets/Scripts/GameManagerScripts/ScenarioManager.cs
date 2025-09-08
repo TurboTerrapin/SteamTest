@@ -293,6 +293,13 @@ public class ScenarioManager : NetworkBehaviour
 
         //reset certain controls
         GameObject.Find("SensorHandler").GetComponent<EnergyPatternManager>().clearAllPatterns();
+        GameObject.Find("SensorHandler").GetComponent<PilotSCA>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<DirectionalShifter>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<MapOptions>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<LongRangeDirection>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<TorpedoSelector>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<PhaserFrequency>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<EnergyPattern>().resetToDefault();
 
         //destroy probe (if exists)
         foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))

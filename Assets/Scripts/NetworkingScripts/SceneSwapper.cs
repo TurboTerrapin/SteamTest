@@ -44,10 +44,22 @@ public class SceneSwapper : MonoBehaviour
         NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
     }
 
+    /* 
+    if (difficulty == Difficulty.Random){
+        SceneSwapper.Instance.ChangeSceneRandom();}
+    else if (difficulty == Difficulty.Easy){
+        SceneSwapper.Instance.ChangeScenarioEasy();}
+    else if (difficulty == Difficulty.Medium){
+        SceneSwapper.Instance.ChangeScenarioMedium();}
+    else if (difficulty == Difficulty.Hard){
+        SceneSwapper.Instance.ChangeScenarioHard();}
+    else if (difficulty == Difficulty.Specific){
+        SceneSwapper.Instance.ChangeScene(specificSceneName, specificSceneNum);}
+    */
+
     public void ChangeSceneRandom()
     {
         if (!NetworkManager.Singleton.IsServer) return;
-        
 
         if (currentScene != 0)
         {

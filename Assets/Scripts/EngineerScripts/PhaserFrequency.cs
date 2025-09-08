@@ -173,6 +173,19 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    public void resetToDefault()
+    {
+        phaser_frequency_slider.transform.localPosition = phaser_freq_slider_initial_pos;
+        phaser_to_adjust = 0;
+        dial_rotation = 0.0f;
+        frequency_update[0] = 0.5f;
+        frequency_update[1] = 0.5f;
+        phaser_frequencies[0] = MIN_FREQUENCIES[0];
+        phaser_frequencies[1] = MIN_FREQUENCIES[1];
+        displayFrequencyAdjustment();
+        displaySwitchAdjustment();
+    }
+
     public void powerOn(int position)
     {
         is_powered = true;

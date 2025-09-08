@@ -215,6 +215,13 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    public void resetToDefault()
+    {
+        currently_viewing = 0;
+        energy_pattern_slider.transform.localPosition = energy_pattern_slider_initial_pos;
+        displayAdjustment();
+    }
+
     //used by powerOff
     IEnumerator returnToZero(float power_off_time)
     {
