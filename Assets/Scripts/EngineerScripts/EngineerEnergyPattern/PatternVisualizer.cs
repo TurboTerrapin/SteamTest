@@ -132,7 +132,7 @@ public class PatternVisualizer : MonoBehaviour
         //destroy all individual items
         for (int r = 0; r < rings.Count; r++)
         {
-            for (int x = rings[r].transform.GetChild(0).childCount - 1; x > 1; x--)
+            for (int x = rings[r].transform.GetChild(0).childCount - 1; x >= 1; x--)
             {
                 GameObject.Destroy(rings[r].transform.GetChild(0).GetChild(x).gameObject);
             }
