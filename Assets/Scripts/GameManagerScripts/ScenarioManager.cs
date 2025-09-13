@@ -124,7 +124,6 @@ public class ScenarioManager : NetworkBehaviour
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
     public void prepScenario(bool enable_stations)
     {
-
         //power on all stations (unless it's the first scenario)
         if (enable_stations == true)
         {
@@ -150,6 +149,7 @@ public class ScenarioManager : NetworkBehaviour
     public void startScenario()
     {
         enableScenarioTimer();
+        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().initializePowerRegulator();
     }
 
     IEnumerator scenarioCountdown()

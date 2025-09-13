@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott
-    Last Updated: 9/7/2025
+    Last Updated: 9/12/2025
 */
 
 using System.Collections;
@@ -10,31 +10,42 @@ using UnityEngine;
 
 public class LightsManager : MonoBehaviour
 {
-    //CLASS CONSTANTS
-    private static float LIGHT_CHANGE_TIME = 0.5f; //half a second
-    private const float DEFAULT_LIGHT_INTENSITY = 20.0f;
-    private static Color DEFAULT_LIGHT_COLOR = new Color(0.22f, 0.80f, 0.97f);
-    private const float RED_ALERT_LIGHT_INTENSITY = 5.0f;
-    private static Color RED_ALERT_LIGHT_COLOR = new Color(1.0f, 0.0f, 0.0f);
+    //CLASS CONSTANTS (0 IS DEFAULT, 1 IS EMERGENCY LIGHTS)
+    private static float[] LIGHT_CHANGE_TIME = new float[2] { 0.5f, 0.5f };
+    private static float[] DEFAULT_LIGHT_INTENSITY = new float[2] { 20.0f, 10.0f };
+    private static Color[] DEFAULT_LIGHT_COLOR = new Color[] { new Color(0.22f, 0.80f, 0.97f), new Color(0.59f, 0.86f, 0.96f)};
+    private static Material[] DEFAULT_LIGHT_MATERIAL = new Material[2] { null, null };
+    private static float[] RED_ALERT_LIGHT_INTENSITY = new float[2] { 5.0f, 10.0f };
+    private static Color[] RED_ALERT_LIGHT_COLOR = new Color[] { new Color(1.0f, 0.0f, 0.0f), new Color(0.8f, 0.02f, 0.0f)};
 
     public Material lit_neon;
     public Material unlit_neon;
+    public Material lit_off_white;
     public Material lit_red;
 
-    private GameObject default_lights;
-    private GameObject emergency_lights; //ignore for now
+    private GameObject[] light_groups = new GameObject[2] { null, null };
+    private ShipStatus ship_status;
 
-    private Coroutine default_light_change_coroutine = null;
+    private bool[] enabled_lights = new bool[2] { true, false };
+    private Coroutine[] light_change_coroutines = new Coroutine[2] { null, null };
 
     private void Start()
     {
-        default_lights = transform.GetChild(0).gameObject;
-        emergency_lights = transform.GetChild(1).gameObject;
+        light_groups[0] = transform.GetChild(0).gameObject;
+        light_groups[1] = transform.GetChild(1).gameObject;
+
+        DEFAULT_LIGHT_MATERIAL[0] = lit_neon;
+        DEFAULT_LIGHT_MATERIAL[1] = lit_off_white;
+
+        ship_status = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ShipStatus>();
     }
 
-    private void changeAllDefaultLightsMaterial(Material physical_light_material)
+    //helper method that changes the intensity of 
+
+    //helper method that changes the materials of every physical .FBX parented to a light source
+    private void changeMaterials(Transform light_group, Material physical_light_material)
     {
-        foreach (Transform light in default_lights.transform) //iterate through every (potential) FBX model
+        foreach (Transform light in light_group) //iterate through every (potential) FBX model
         {
             foreach (Transform physical_light in light.transform)
             {
@@ -43,29 +54,46 @@ public class LightsManager : MonoBehaviour
         }
     }
 
-    //used to set the lights to their default color and material, called by ScenarioManager.Reset
+    //used to set the lights to their default color and material, called by ScenarioManager.controlResetHelper()
     public void resetLights()
     {
-        if (default_light_change_coroutine != null)
+        for (int i = 0; i < 2; i++)
         {
-            StopCoroutine(default_light_change_coroutine);
-            default_light_change_coroutine = null;
+            if (light_change_coroutines[i] != null)
+            {
+                StopCoroutine(light_change_coroutines[i]);
+                light_change_coroutines[i] = null;
+            }
+
+            changeLightColors(light_groups[i].transform, DEFAULT_LIGHT_COLOR[i]);
+            changeLightIntensities(light_groups[i].transform, DEFAULT_LIGHT_INTENSITY[i]);
+            changeMaterials(light_groups[i].transform, lit_neon);
         }
 
-        changeAllDefaultLights(DEFAULT_LIGHT_COLOR, DEFAULT_LIGHT_INTENSITY);
-        changeAllDefaultLightsMaterial(lit_neon);
+        //default lights enabled to start, emergency lights disabled to start
+        enabled_lights[0] = true;
+        enabled_lights[1] = false;
     }
 
-    //helper method that changes every default light's color and intensity
-    private void changeAllDefaultLights(Color light_color, float light_intensity)
+    //helper method that changes every light's color in light_group
+    private void changeLightColors(Transform light_group, Color light_color)
     {
-        foreach (Transform light in default_lights.transform) //iterate through every default light
+        foreach (Transform light in light_group) //iterate through every light
         {
             light.GetComponent<Light>().color = light_color;
+        }
+    }
+
+    //helper method that changes every light's color and intensity in light_group
+    private void changeLightIntensities(Transform light_group, float light_intensity)
+    {
+        foreach (Transform light in light_group) //iterate through every light
+        {
             light.GetComponent<Light>().intensity = light_intensity;
         }
     }
 
+    //used to dim/brighten a set of lights (does not affect their materials)
     IEnumerator lightIntensityChange(Light[] lights_to_adjust, float time, float to_change_to)
     {
         float anim_time = time;
@@ -89,58 +117,99 @@ public class LightsManager : MonoBehaviour
         }
     }
 
-    IEnumerator allDefaultLightsChange(float intensity)
+    //used to enable/disable a set of lights (calls lightIntensityChange() and changeMaterials)
+    IEnumerator lightsChange(int index, float desired_intensity)
     {
-        if (intensity > 0.0f)
+        Transform light_group = light_groups[index].transform;
+
+        if (desired_intensity > 0.0f)
         {
-            changeAllDefaultLightsMaterial(lit_neon);
+            if (ship_status.getCurrColor() != 2)
+            {
+                changeMaterials(light_group, DEFAULT_LIGHT_MATERIAL[index]);
+            }
+            else
+            {
+                changeMaterials(light_group, lit_red);
+            }
         }
 
-        Light[] lights_to_adjust = new Light[default_lights.transform.childCount];
+        Light[] lights_to_adjust = new Light[light_group.transform.childCount];
         for (int i = 0; i < lights_to_adjust.Length; i++)
         {
-            lights_to_adjust[i] = default_lights.transform.GetChild(i).GetComponent<Light>();
+            lights_to_adjust[i] = light_group.transform.GetChild(i).GetComponent<Light>();
         }
-        yield return lightIntensityChange(lights_to_adjust, LIGHT_CHANGE_TIME, intensity);
+        yield return lightIntensityChange(lights_to_adjust, LIGHT_CHANGE_TIME[index], desired_intensity);
 
-        if (intensity == 0.0f)
+        if (desired_intensity == 0.0f)
         {
-            changeAllDefaultLightsMaterial(unlit_neon);
+            changeMaterials(light_group, unlit_neon);
         }
 
-        default_light_change_coroutine = null;
+        light_change_coroutines[index] = null;
+    }
+
+    private void resetLightChangeCoroutine(int index)
+    {
+        if (light_change_coroutines[index] != null)
+        {
+            StopCoroutine(light_change_coroutines[index]);
+        }
+    }
+
+    public void enableEmergencyLights()
+    {
+        resetLightChangeCoroutine(1);
+        enabled_lights[1] = true;
+        light_change_coroutines[1] = StartCoroutine(lightsChange(1, DEFAULT_LIGHT_INTENSITY[1]));
+    }
+
+    public void disableEmergencyLights()
+    {
+        resetLightChangeCoroutine(1);
+        enabled_lights[1] = false;
+        light_change_coroutines[1] = StartCoroutine(lightsChange(1, 0.0f));
     }
 
     public void enableDefaultLights()
     {
-        if (default_light_change_coroutine != null)
-        {
-            StopCoroutine(default_light_change_coroutine);
-        }
-
-        default_light_change_coroutine = StartCoroutine(allDefaultLightsChange(DEFAULT_LIGHT_INTENSITY));
+        resetLightChangeCoroutine(0);
+        enabled_lights[0] = true;
+        light_change_coroutines[0] = StartCoroutine(lightsChange(0, DEFAULT_LIGHT_INTENSITY[0]));
     }  
 
     public void disableDefaultLights()
     {
-        if (default_light_change_coroutine != null)
-        {
-            StopCoroutine(default_light_change_coroutine);
-
-        }
-
-        default_light_change_coroutine = StartCoroutine(allDefaultLightsChange(0.0f));
+        resetLightChangeCoroutine(0);
+        enabled_lights[0] = false;
+        light_change_coroutines[0] = StartCoroutine(lightsChange(0, 0.0f));
     }
 
     public void enableRedAlert()
     {
-        changeAllDefaultLights(RED_ALERT_LIGHT_COLOR, RED_ALERT_LIGHT_INTENSITY);
-        changeAllDefaultLightsMaterial(lit_red);
+        for (int i = 0; i < 2; i++)
+        {
+            if (enabled_lights[i] == true)
+            {
+                resetLightChangeCoroutine(i);
+                changeMaterials(light_groups[i].transform, lit_red);
+                changeLightIntensities(light_groups[i].transform, RED_ALERT_LIGHT_INTENSITY[i]);
+            }
+            changeLightColors(light_groups[i].transform, RED_ALERT_LIGHT_COLOR[i]);
+        }
     }
 
     public void disableRedAlert()
     {
-        changeAllDefaultLights(DEFAULT_LIGHT_COLOR, DEFAULT_LIGHT_INTENSITY);
-        changeAllDefaultLightsMaterial(lit_neon);
+        for (int i = 0; i < 2; i++)
+        {
+            if (enabled_lights[i] == true)
+            {
+                resetLightChangeCoroutine(i);
+                changeMaterials(light_groups[i].transform, DEFAULT_LIGHT_MATERIAL[i]);
+                changeLightIntensities(light_groups[i].transform, DEFAULT_LIGHT_INTENSITY[i]);
+            }
+            changeLightColors(light_groups[i].transform, DEFAULT_LIGHT_COLOR[i]);
+        }
     }
 }

@@ -72,13 +72,16 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         }
 
         //change lights
-        if (curr_status == 2)
+        if (GameObject.Find("PowerHandler").GetComponent<PowerManager>().getShipHasPower() == true)
         {
-            lights_manager.enableRedAlert();
-        }
-        else
-        {
-            lights_manager.disableRedAlert();
+            if (curr_status == 2)
+            {
+                lights_manager.enableRedAlert();
+            }
+            else
+            {
+                lights_manager.disableRedAlert();
+            }
         }
     }
 

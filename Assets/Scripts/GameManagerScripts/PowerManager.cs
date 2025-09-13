@@ -154,6 +154,19 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
+    //returns true if there is at least one overconsumption warning in effect
+    private bool checkIfOverconsuming()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (overconsumption_coroutines[i] != null)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     //returns the power consumption of a specific position (0 = pilot, 1 = tactician, 2 = engineer, 3 = captain) 
     private float getPowerConsumption(int position)
     {
@@ -208,6 +221,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         power_distributions[position][associated_controls[position].IndexOf(control_name)] = power_level;
         powerConsumptionChangeRPC(position, getPowerConsumption(position));
+    }
+
+    //returns whether the ship as a whole has power or not
+    public bool getShipHasPower()
+    {
+        return ship_has_power;
     }
 
     //called by PowerControl
@@ -424,6 +443,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
+    //called by PowerRegulator.terminateDepletionRPC()
+    public void totalShutdown()
+    {
+        if (ship_has_power == true)
+        {
+            totalShutdownRPC();
+        }
+    }
+
     //calls overconsumptionRPC() or abortOverconsumptionRPC() if applicable
     private void checkForOverConsumption(int position, float allocation)
     {
@@ -454,6 +482,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         //handle shutdown effects (lights, sounds)
         lights_manager.disableDefaultLights();
+        lights_manager.disableEmergencyLights();
         power_off_sound.Play();
         ship_beeps_sound.Stop();
         overconsumption_warning_sound.Stop();
@@ -531,17 +560,17 @@ public class PowerManager : NetworkBehaviour, IPowerable
     [Rpc(SendTo.Everyone)]
     private void abortOverconsumptionRPC(int index)
     {
-        if (overconsumption_warning_sound.isPlaying == true)
-        {
-            overconsumption_warning_sound.Stop();
-        }
-
         if (overconsumption_coroutines[index] != null)
         {
             StopCoroutine(overconsumption_coroutines[index]);
         }
-
         overconsumption_coroutines[index] = null;
+        
+        if (overconsumption_warning_sound.isPlaying == true && checkIfOverconsuming() == false)
+        {
+            overconsumption_warning_sound.Stop();
+        }
+
         resetEngineerPositionDisplay(index);
     }
 

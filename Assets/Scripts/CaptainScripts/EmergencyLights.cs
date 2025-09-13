@@ -2,9 +2,9 @@
     EmergencyLights.cs
     - Handles inputs for emergency lights
     - Moves slider
-    - Enables/disables emergency lights
+    - Enables/disables emergency lights using LightsManager
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 9/12/2025
 */
 
 using System.Collections;
@@ -16,7 +16,6 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.25f;
-    private static float EMERGENCY_LIGHT_MAX_INTENSITY = 10.0f;
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "EMERGENCY LIGHTS";
@@ -26,7 +25,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
 
     public GameObject slider;
     public GameObject display_canvas; //used to display the bars beneath the handle
-    public GameObject emergency_lights;
+    public LightsManager lights_manager;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -59,12 +58,6 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     {
         //update screen
         display_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = fill_percentage;
-
-        //update emergency lights
-        for (int i = 0; i < emergency_lights.transform.childCount; i++)
-        {
-            emergency_lights.transform.GetChild(i).GetComponent<Light>().intensity = EMERGENCY_LIGHT_MAX_INTENSITY * fill_percentage;
-        }
     }
 
     IEnumerator lightSwitch()
@@ -181,6 +174,15 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         if (emergency_lights_switch_coroutine != null)
         {
             StopCoroutine(emergency_lights_switch_coroutine);
+        }
+
+        if (emergency_lights_enabled == false)
+        {
+            lights_manager.enableEmergencyLights();
+        }
+        else
+        {
+            lights_manager.disableEmergencyLights();
         }
 
         emergency_lights_switch_coroutine = StartCoroutine(lightSwitch());
