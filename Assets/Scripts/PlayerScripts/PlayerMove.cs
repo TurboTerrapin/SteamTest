@@ -29,9 +29,13 @@ public class PlayerMove : NetworkBehaviour
     private bool is_left = false; //used for shifting
     private SeatManager seat_manager = null;
 
+    [SerializeField]
+    private Animator animator = null;
+
     void Start()
     {
         DontDestroyOnLoad(gameObject);
+        //animator = GetComponent<Animator>();
     }
 
     public void initialize()
@@ -46,6 +50,8 @@ public class PlayerMove : NetworkBehaviour
 
     public void sitDown(int pos)
     {
+        animator.SetBool("Sitting", true);
+
         if (move_coroutine != null)
         {
             StopCoroutine(move_coroutine);
@@ -79,6 +85,9 @@ public class PlayerMove : NetworkBehaviour
 
     public void getUp(int pos)
     {
+
+        animator.SetBool("Sitting", false);
+
         if (move_coroutine != null)
         {
             StopCoroutine(move_coroutine);
@@ -183,6 +192,9 @@ public class PlayerMove : NetworkBehaviour
     void Move()
     {
         Vector3 movement; //= Vector3.zero;
+
+        animator.SetFloat("Movement", moveDir.magnitude);
+        animator.SetFloat("Forward", moveDir.y);
 
         if (transform.parent != null) //local movement
         {

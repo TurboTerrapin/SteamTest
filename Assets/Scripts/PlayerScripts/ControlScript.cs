@@ -35,6 +35,10 @@ public class ControlScript : MonoBehaviour
     public Camera my_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
 
+    private GameObject myPlayer = null;
+    private Animator playerAnimator = null;
+    private IKController playerIK = null;
+
     //CLASS VARIABLES
     private HUDInfo current_info;
     private int curr_pos = -1; //0 is Pilot, 1 is Tactician, 2 is Engineer, 3 is Captain
@@ -81,6 +85,22 @@ public class ControlScript : MonoBehaviour
     void Start()
     {
         StartCoroutine(yieldForLoad());
+
+        //playerIK = FindAnyObjectByType<IKController>();
+        //Animator[] animators = FindObjectsByType<Animator>(FindObjectsSortMode.None);
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach(GameObject player in players)
+        {
+            if(player.GetComponent<PlayerMove>().IsOwner)
+            {
+                myPlayer = player;
+                playerAnimator = myPlayer.transform.GetChild(1).GetComponent<Animator>();
+                playerIK = myPlayer.transform.GetChild(1).GetComponent<IKController>();
+                break;
+                
+            }
+        }
+
     }
 
     IEnumerator yieldForLoad()
@@ -261,6 +281,9 @@ public class ControlScript : MonoBehaviour
             int closest_seat = seat_script_holder.GetComponent<SeatManager>().checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
             {
+                
+                myPlayer.transform.GetChild(1).localPosition = new Vector3(0, -0.3f, 0);
+
                 if (HUD_setting == 0)
                 {
                     seat_title.GetComponent<TMP_Text>().SetText(POSITION_NAMES[closest_seat] + " POSITION");
@@ -289,6 +312,10 @@ public class ControlScript : MonoBehaviour
                     control_info.transform.GetChild(1).GetChild(0).gameObject.SetActive(false);
 
                     player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
+
+                    playerAnimator.SetInteger("Seat", closest_seat);
+                    Vector3 playerPos = myPlayer.transform.GetChild(1).localPosition;
+
 
                     control_check_coroutine = StartCoroutine(controlCheck());
                 }
@@ -320,6 +347,12 @@ public class ControlScript : MonoBehaviour
                 //check if trying to unseat
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up
                 {
+                    playerIK.ikActive = false;
+                    playerIK.ikRightArm = false;
+                    playerIK.ikLeftArm = false;
+                    myPlayer.transform.GetChild(1).localPosition = new Vector3(0, 0.16f, 0);
+
+
                     is_sitting = !seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
                     if (is_sitting == false)
                     {
@@ -344,6 +377,11 @@ public class ControlScript : MonoBehaviour
                 {
                     if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
+
+                        playerIK.ikActive = true;
+                        playerIK.ikRightArm = true;
+                        playerIK.rightHandObj.position = hit.collider.transform.position;
+
                         IControllable target_control =
                             (IControllable)control_script_holder.GetComponent(hit.collider.transform.GetChild(0).name); //get corresponding class
 
@@ -406,6 +444,9 @@ public class ControlScript : MonoBehaviour
                     }
                 }
             }
+            playerIK.ikActive = false;
+            playerIK.ikRightArm = false;
+            playerIK.ikLeftArm = false;
             control_info.SetActive(false); //hide UI indicator if not looking at a control
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update if not looking at a control
         }

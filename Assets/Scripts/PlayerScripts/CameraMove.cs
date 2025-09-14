@@ -17,6 +17,8 @@ public class CameraMove : MonoBehaviour
     private Vector2 mouseMove = new Vector2();
     private Vector2 prevPos = new Vector2(0f, 0);
     private Rigidbody rb = null;
+    [SerializeField]
+    private GameObject playerObject = null;
 
     private float mouseSensitivity = 1f;
     public Camera my_camera;
@@ -24,7 +26,7 @@ public class CameraMove : MonoBehaviour
 
     public void Start()
     {
-        if (transform.parent.gameObject.GetComponent<PlayerMove>().IsOwner) //keep the camera
+        if (playerObject.GetComponent<PlayerMove>().IsOwner) //keep the camera
         {
             //USERNAME_STEAMID
             transform.parent.name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
@@ -67,7 +69,7 @@ public class CameraMove : MonoBehaviour
     private void updateCamera()
     {
         //make sure we are the owner
-        if (!transform.parent.gameObject.GetComponent<PlayerMove>().IsOwner) return;
+        if (!playerObject.GetComponent<PlayerMove>().IsOwner) return;
 
         //handle pause/unpause
         if (Input.GetKeyDown(KeyCode.Escape))
