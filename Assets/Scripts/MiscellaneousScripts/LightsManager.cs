@@ -164,6 +164,13 @@ public class LightsManager : MonoBehaviour
         light_change_coroutines[1] = StartCoroutine(lightsChange(1, DEFAULT_LIGHT_INTENSITY[1]));
     }
 
+    public void enableEmergencyLights(float intensity_percentage)
+    {
+        resetLightChangeCoroutine(1);
+        enabled_lights[1] = true;
+        light_change_coroutines[1] = StartCoroutine(lightsChange(1, DEFAULT_LIGHT_INTENSITY[1] * intensity_percentage));
+    }
+
     public void disableEmergencyLights()
     {
         resetLightChangeCoroutine(1);

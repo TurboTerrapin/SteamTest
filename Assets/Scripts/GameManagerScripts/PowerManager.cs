@@ -50,6 +50,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private float[] power_consumptions = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
     private Coroutine[] overconsumption_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
+    private Coroutine shutdown_coroutine = null;
     private Coroutine power_restart_coroutine = null;
     private Coroutine power_updater_coroutine = null;
 
@@ -443,12 +444,60 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
+    IEnumerator shutdownProcess()
+    {
+        //handle shutdown effects (lights, sounds)
+        lights_manager.disableDefaultLights();
+        lights_manager.disableEmergencyLights();
+        power_off_sound.Play();
+        ship_beeps_sound.Stop();
+        overconsumption_warning_sound.Stop();
+
+        //stop updating power consumption
+        if (power_updater_coroutine != null)
+        {
+            StopCoroutine(power_updater_coroutine);
+            power_updater_coroutine = null;
+        }
+
+        //power down all stations
+        for (int i = 0; i < 4; i++)
+        {
+            control_handler.GetComponent<PowerControl>().disableDial(i);
+            disableStation(i);
+            if (overconsumption_coroutines[i] != null)
+            {
+                StopCoroutine(overconsumption_coroutines[i]);
+                overconsumption_coroutines[i] = null;
+                resetEngineerPositionDisplay(i);
+            }
+        }
+
+        //clear out all power sources
+        transform.GetComponent<PowerRegulator>().disableAllPowerSources();
+
+        yield return new WaitForSeconds(2.0f);
+
+        lights_manager.enableEmergencyLights(0.5f);
+
+        shutdown_coroutine = null;
+    }
+
     //called by PowerRegulator.terminateDepletionRPC()
     public void totalShutdown()
     {
         if (ship_has_power == true)
         {
             totalShutdownRPC();
+        }
+    }
+
+    //called by PowerRegular.moduleCompleted()
+    public void restorePower()
+    {
+        if (ship_has_power == false)
+        {
+            powerRestartRPC();
         }
     }
 
@@ -480,31 +529,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //kill power
         ship_has_power = false;
 
-        //handle shutdown effects (lights, sounds)
-        lights_manager.disableDefaultLights();
-        lights_manager.disableEmergencyLights();
-        power_off_sound.Play();
-        ship_beeps_sound.Stop();
-        overconsumption_warning_sound.Stop();
-
-        //stop updating power consumption
-        if (power_updater_coroutine != null)
+        if (shutdown_coroutine == null)
         {
-            StopCoroutine(power_updater_coroutine);
-            power_updater_coroutine = null;
-        }
-
-        //power down all stations
-        for (int i = 0; i < 4; i++)
-        {
-            control_handler.GetComponent<PowerControl>().disableDial(i);
-            disableStation(i);
-            if (overconsumption_coroutines[i] != null)
-            {
-                StopCoroutine(overconsumption_coroutines[i]);
-                overconsumption_coroutines[i] = null;
-                resetEngineerPositionDisplay(i);
-            }
+            shutdown_coroutine = StartCoroutine(shutdownProcess());
         }
     }
 

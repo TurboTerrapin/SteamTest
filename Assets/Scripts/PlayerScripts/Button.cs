@@ -60,7 +60,7 @@ public class Button
         700f,
         700f,
         700f,
-        700f,
+        1000f,
         900f,
         700f,
         1200f,

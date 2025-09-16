@@ -42,7 +42,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IPowerable
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
-        hud_info.setButtons(BUTTONS);
+        hud_info.setButtons(BUTTONS, 7);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
