@@ -3,25 +3,37 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 9/13/2025
+    Last Updated: 9/17/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
 public class PowerRegulator : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static float DEPLETION_TIME = 20.0f; //how long it takes for a single control to go from enabled to disabled
-    private static float NEUTRAL_TIME = 15.0f; //randomizes between this number and 5 seconds less
+    private static float DEPLETION_TIME = 25.0f; //how long it takes for a single control to go from enabled to disabled
+    private static float NEUTRAL_TIME = 20.0f; //randomizes between this number and 5 seconds less
     private static float POWER_BAR_UPDATE_SPEED = 1.0f; //how fast the power bars update
     private static float DEPLETION_WARNING_FLASH_SPEED = 0.25f; //how often the warning light flashes
+    private static Color[] POWER_STATUS_COLORS = new Color[3]{ new Color(0.0f, 0.84f, 1.0f), new Color(0.84f, 0.62f, 0.0f), new Color(1.0f, 0.0f, 0.0f) };
+    private static string[] POWER_STATUS_MESSAGES = new string[3]{ "NOMINAL", "CRITICAL", "OFFLINE" };
 
-    public GameObject power_bars_display;
+    public GameObject power_status;
     public List<GameObject> power_regulation_modules = null;
 
+    //power status screen UI components
+    private GameObject power_bars;
+    private UnityEngine.UI.RawImage power_status_divider_bar;
+    private GameObject power_restoration_message;
+    private TMP_Text power_status_label;
+    private TMP_Text power_status_message;
+    private UnityEngine.UI.RawImage power_status_box_outline;
+
+    //power regulation module UI components
     private List<UnityEngine.UI.Image> time_bars = new List<UnityEngine.UI.Image>();
     private List<UnityEngine.UI.RawImage> warning_dots = new List<UnityEngine.UI.RawImage>();
 
@@ -35,6 +47,13 @@ public class PowerRegulator : NetworkBehaviour
 
     private void Start()
     {
+        power_status_divider_bar = power_status.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
+        power_status_label = power_status.transform.GetChild(1).GetComponent<TMP_Text>();
+        power_status_message = power_status.transform.GetChild(2).GetComponent<TMP_Text>();
+        power_restoration_message = power_status.transform.GetChild(3).gameObject;
+        power_status_box_outline = power_status.transform.GetChild(4).GetComponent<UnityEngine.UI.RawImage>();
+        power_bars = power_status.transform.GetChild(5).gameObject;
+
         restartPowerBarUpdater();
     
         for (int i = 0; i < 6; i++)
@@ -49,11 +68,14 @@ public class PowerRegulator : NetworkBehaviour
     //resets enabled_power_sources to all true and begins the depletion process
     public void initializePowerRegulator()
     {
+        //enable all power sources, reset all modules to default (unplayable) state
         for (int i = 0; i < 6; i++)
         {
             enabled_power_sources[i] = true;
+            power_regulation_components[i].resetToDefault();
         }
 
+        //if host, begin "neutral state"
         if (NetworkManager.Singleton.IsHost == true)
         {
             if (neutral_state_coroutine != null)
@@ -64,9 +86,51 @@ public class PowerRegulator : NetworkBehaviour
         }
     }
 
+    //resets all modules and freezes depletion (called by PowerManager on scenario completion)
+    public void resetPowerRegulator()
+    {
+        //stop neutral state depletion delay
+        if (neutral_state_coroutine != null)
+        {
+            StopCoroutine(neutral_state_coroutine);
+            neutral_state_coroutine = null;
+        }
+
+        //stop warning flasher
+        if (depletion_warning_flasher_coroutine != null)
+        {
+            StopCoroutine(depletion_warning_flasher_coroutine);
+            depletion_warning_flasher_coroutine = null;
+        }
+
+        //reset each module
+        for (int i = 0; i < 6; i++)
+        {
+            //stop depletion coroutines
+            if (power_source_depletion_coroutines[i] != null)
+            {
+                StopCoroutine(power_source_depletion_coroutines[i]);
+                power_source_depletion_coroutines[i] = null;
+            }
+
+            //adjust blue/orange UI
+            time_bars[i].fillAmount = 1.0f;
+            time_bars[i].color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            warning_dots[i].color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+
+            enabled_power_sources[i] = true;
+
+            power_regulation_components[i].resetToDefault();
+        }
+
+        //update power status screen
+        updatePowerStatus();
+    }
+
     //resets all non-depleted power sources (called by PowerManager)
     public void disableAllPowerSources()
     {
+        //disable power sources, stop depletion timers, and reset bars to zero progress
         for (int i = 0; i < 6; i++)
         {
             if (power_source_depletion_coroutines[i] != null)
@@ -82,21 +146,36 @@ public class PowerRegulator : NetworkBehaviour
             enabled_power_sources[i] = false;
         }
 
+        //reset neutral state
         if (neutral_state_coroutine != null)
         {
             StopCoroutine(neutral_state_coroutine);
             neutral_state_coroutine = null;
         }
 
+        //begin orange flashing (if not already started)
         if (depletion_warning_flasher_coroutine == null)
         {
             depletion_warning_flasher_coroutine = StartCoroutine(depletionWarningFlasher());
         }
+
+        //change state to offline
+        restartPowerBarUpdater();
+        updatePowerStatus();
     }
 
-    //called when a power regulation module "mini-game" has been completed
+    //display power restoration
+    public void displayPowerRestoration()
+    {
+        //change state to online
+        restartPowerBarUpdater();
+        updatePowerStatus();
+    }
+
+    //called when a power regulation module "minigame" has been completed
     public void moduleCompleted(string module_completed)
     {
+        //get the corresponding minigame
         int module_index = power_regulation_component_names.IndexOf(module_completed);
 
         if (power_source_depletion_coroutines[module_index] != null)
@@ -105,6 +184,7 @@ public class PowerRegulator : NetworkBehaviour
             power_source_depletion_coroutines[module_index] = null;
         }
 
+        //enable and reset flasher/progress bar
         enabled_power_sources[module_index] = true;
         time_bars[module_index].fillAmount = 1.0f;
         time_bars[module_index].color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
@@ -112,19 +192,37 @@ public class PowerRegulator : NetworkBehaviour
 
         power_regulation_components[module_index].resetToDefault();
 
+        restartPowerBarUpdater();
+        updatePowerStatus();
+
+        //check if power is off and at least three modules have been powered (if so, restore power)
         if (NetworkManager.Singleton.IsHost == true)
         {
+            //restore power if three sources enabled and power is disabled
             if (transform.GetComponent<PowerManager>().getShipHasPower() == false && getPowerSourcesEnabled() >= 3)
             {
                 transform.GetComponent<PowerManager>().restorePower();
-            }
-            if (getPowerSourcesEnabled() > 0 && transform.GetComponent<PowerManager>().getShipHasPower() == true)
-            {
                 if (neutral_state_coroutine != null)
                 {
                     StopCoroutine(neutral_state_coroutine);
                 }
                 neutral_state_coroutine = StartCoroutine(neutralState());
+            }
+
+            //if power enabled, check to see what to do next
+            if (getPowerSourcesEnabled() > 0 && transform.GetComponent<PowerManager>().getShipHasPower() == true)
+            {
+                //stop neutral state no matter what
+                if (neutral_state_coroutine != null)
+                {
+                    StopCoroutine(neutral_state_coroutine);
+                }
+
+                //if no sources depleting, then trigger neutral state
+                if (getPowerSourcesDepleting() == 0)
+                {
+                    neutral_state_coroutine = StartCoroutine(neutralState());
+                }
             }
         }
     }
@@ -165,12 +263,37 @@ public class PowerRegulator : NetworkBehaviour
         return sources_enabled;
     }
 
+    //returns how many power sources are currently depleting
+    public int getPowerSourcesDepleting()
+    {
+        int sources_depleting = 0;
+        for (int i = 0; i < 6; i++)
+        {
+            if (power_source_depletion_coroutines[i] != null)
+            {
+                sources_depleting += 1;
+            }
+        }
+        return sources_depleting;
+    }
+
+    //waits a random amount of time (NEUTRAL_TIME - 5 seconds to NEUTRAL_TIME) to deplete a random power source
     IEnumerator neutralState()
     {
         yield return new WaitForSeconds(Random.Range(NEUTRAL_TIME - 5.0f, NEUTRAL_TIME));
-        initiateDepletionRPC(getRandomPowerSourceForDepletion());
+
+        //begin depleting a new power source
+        if (getPowerSourcesEnabled() > 0)
+        {
+            initiateDepletionRPC(getRandomPowerSourceForDepletion());
+        }
+        else //if all depleted, stop
+        {
+            neutral_state_coroutine = null;
+        }
     }
 
+    //flashes the orange lights for all power sources that are depleted/depleting
     IEnumerator depletionWarningFlasher()
     {
         while (true)
@@ -199,6 +322,7 @@ public class PowerRegulator : NetworkBehaviour
         }
     }
 
+    //updates the power bars for all power sources
     IEnumerator powerBarsUpdater()
     {
         while (true)
@@ -207,7 +331,7 @@ public class PowerRegulator : NetworkBehaviour
             List<float> desired_fill_amounts = new List<float>();
             for (int i = 0; i < 6; i++)
             {
-                starting_fill_amounts.Add(power_bars_display.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().fillAmount);
+                starting_fill_amounts.Add(power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().fillAmount);
                 float desired_fill_amount = Random.Range(0.9f, 1.0f);
 
                 if (enabled_power_sources[i] == false)
@@ -224,13 +348,14 @@ public class PowerRegulator : NetworkBehaviour
 
                 for (int i = 0; i < 6; i++)
                 {
-                    power_bars_display.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill_amounts[i], desired_fill_amounts[i], 1.0f - (anim_time / POWER_BAR_UPDATE_SPEED));
+                    power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill_amounts[i], desired_fill_amounts[i], 1.0f - (anim_time / POWER_BAR_UPDATE_SPEED));
                 }
                 yield return null;
             }
         }
     }
 
+    //reduces the time bar and handles what happens at expiration
     IEnumerator powerDepletion(int source_index)
     {
         UnityEngine.UI.Image time_bar = power_regulation_modules[source_index].transform.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>();
@@ -253,6 +378,60 @@ public class PowerRegulator : NetworkBehaviour
         }
     }
 
+    //purely visual update to the power status screen in the engineer position
+    private void updatePowerStatus()
+    {
+        //determine power status state
+        int state = 0;
+        if (transform.GetComponent<PowerManager>().getShipHasPower() == false)
+        {
+            state = 2;
+        }
+        else
+        {
+            if (getPowerSourcesEnabled() < 4)
+            {
+                state = 1;
+            }
+            else
+            {
+                state = 0;
+            }
+        }
+
+        //change color of divider bar, POWER STATUS label
+        if (state == 2)
+        {
+            power_status_divider_bar.color = POWER_STATUS_COLORS[2]; 
+            power_status_label.color = POWER_STATUS_COLORS[2];
+        }
+        else
+        {
+            power_status_divider_bar.color = POWER_STATUS_COLORS[0];
+            power_status_label.color = POWER_STATUS_COLORS[0];
+        }
+
+        //update status text
+        power_status_message.color = POWER_STATUS_COLORS[state];
+        power_status_message.text = "STATUS: " + POWER_STATUS_MESSAGES[state];
+
+        //change color of power bars box outline
+        power_status_box_outline.color = POWER_STATUS_COLORS[state];
+
+        //update power bars color
+        for (int i = 0; i < 6; i++)
+        {
+            power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().color = POWER_STATUS_COLORS[state];
+        }
+
+        //show/hide power restoration message
+        power_restoration_message.SetActive(state == 2);
+        if (state == 2)
+        {
+            power_restoration_message.GetComponent<TMP_Text>().text = "RESTORATION PROGRESS: " + getPowerSourcesEnabled() + "/3";
+        }
+    }
+
     //called by initiateDepletionRPC() and terminateDepletionRPC()
     private void restartPowerBarUpdater()
     {
@@ -266,11 +445,6 @@ public class PowerRegulator : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void initiateDepletionRPC(int to_deplete)
     {
-        if (to_deplete < 0 || to_deplete > 5)
-        {
-            return;
-        }
-
         if (power_source_depletion_coroutines[to_deplete] != null)
         {
             StopCoroutine(power_source_depletion_coroutines[to_deplete]);
@@ -297,13 +471,19 @@ public class PowerRegulator : NetworkBehaviour
         }
 
         enabled_power_sources[to_terminate] = enabled;
+
+        updatePowerStatus();
         restartPowerBarUpdater();
 
         if (NetworkManager.Singleton.IsHost == true)
         {
+            //if no sources left
             if (getPowerSourcesEnabled() == 0)
             {
-                transform.GetComponent<PowerManager>().totalShutdown();
+                if (transform.GetComponent<PowerManager>().getShipHasPower() == true)
+                {
+                    transform.GetComponent<PowerManager>().totalShutdown();
+                }
             }
             else
             {

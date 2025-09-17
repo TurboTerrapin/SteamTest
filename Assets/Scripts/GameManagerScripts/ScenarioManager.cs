@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 9/6/2025
+    Last Updated: 9/17/2025
 */
 
 using System.Collections;
@@ -279,7 +279,7 @@ public class ScenarioManager : NetworkBehaviour
     //called by handleTransitionRPC(), used to reset certain controls for next scenario
     private void controlResetHelper()
     {
-        //resets PowerManager and PowerAllocation
+        //resets PowerManager, PowerAllocation, and PowerRegulator
         power_manager.resetPowerManager();
 
         //power down all stations

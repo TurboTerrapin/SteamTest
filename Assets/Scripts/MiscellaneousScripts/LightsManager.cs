@@ -64,11 +64,17 @@ public class LightsManager : MonoBehaviour
                 StopCoroutine(light_change_coroutines[i]);
                 light_change_coroutines[i] = null;
             }
-
-            changeLightColors(light_groups[i].transform, DEFAULT_LIGHT_COLOR[i]);
-            changeLightIntensities(light_groups[i].transform, DEFAULT_LIGHT_INTENSITY[i]);
-            changeMaterials(light_groups[i].transform, lit_neon);
         }
+
+        //enable default lights
+        changeLightColors(light_groups[0].transform, DEFAULT_LIGHT_COLOR[0]);
+        changeLightIntensities(light_groups[0].transform, DEFAULT_LIGHT_INTENSITY[0]);
+        changeMaterials(light_groups[0].transform, lit_neon);
+
+        //disable emergency lights
+        changeLightColors(light_groups[1].transform, DEFAULT_LIGHT_COLOR[1]);
+        changeLightIntensities(light_groups[1].transform, 0.0f);
+        changeMaterials(light_groups[1].transform, unlit_neon);
 
         //default lights enabled to start, emergency lights disabled to start
         enabled_lights[0] = true;
@@ -162,13 +168,6 @@ public class LightsManager : MonoBehaviour
         resetLightChangeCoroutine(1);
         enabled_lights[1] = true;
         light_change_coroutines[1] = StartCoroutine(lightsChange(1, DEFAULT_LIGHT_INTENSITY[1]));
-    }
-
-    public void enableEmergencyLights(float intensity_percentage)
-    {
-        resetLightChangeCoroutine(1);
-        enabled_lights[1] = true;
-        light_change_coroutines[1] = StartCoroutine(lightsChange(1, DEFAULT_LIGHT_INTENSITY[1] * intensity_percentage));
     }
 
     public void disableEmergencyLights()

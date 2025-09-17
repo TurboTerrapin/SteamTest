@@ -125,10 +125,12 @@ public class ManualOnOff : NetworkBehaviour, IControllable
             switch_time = Mathf.Max(0.0f, switch_time - dt);
 
             power_switches[index].transform.localRotation =
-                Quaternion.Euler(Mathf.Lerp(starting_rotation, 295f, 1.0f - (switch_time / time)), 0f, 90f);
+                Quaternion.Euler(Mathf.Lerp(starting_rotation, 295.0f, 1.0f - (switch_time / time)), 0f, 90f);
 
             yield return null;
         }
+
+        power_switch_angles[index] = 295.0f;
 
         power_change_coroutine[index] = null;
     }

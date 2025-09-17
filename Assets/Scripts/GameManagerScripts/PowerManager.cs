@@ -116,6 +116,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //set power allocation to default
         power_allocation.resetToDefaultAllocation(DEFAULT_POWER_ALLOCATIONS);
 
+        //set power to true
+        ship_has_power = true;
+
+        //pause regulation
+        transform.GetComponent<PowerRegulator>().resetPowerRegulator();
+
         //reset display
         for (int i = 0; i < 4; i++)
         {
@@ -478,7 +484,8 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         yield return new WaitForSeconds(2.0f);
 
-        lights_manager.enableEmergencyLights(0.5f);
+        lights_manager.disableRedAlert();
+        lights_manager.enableEmergencyLights();
 
         shutdown_coroutine = null;
     }
@@ -492,9 +499,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
-    //called by PowerRegular.moduleCompleted()
+    //called by PowerRegulator.moduleCompleted()
     public void restorePower()
     {
+        if (shutdown_coroutine != null)
+        {
+            StopCoroutine(shutdown_coroutine);
+            shutdown_coroutine = null;
+        }
+
         if (ship_has_power == false)
         {
             powerRestartRPC();
@@ -529,6 +542,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //kill power
         ship_has_power = false;
 
+        if (power_restart_coroutine != null)
+        {
+            StopCoroutine(power_restart_coroutine);
+            power_restart_coroutine = null;
+        }
+
         if (shutdown_coroutine == null)
         {
             shutdown_coroutine = StartCoroutine(shutdownProcess());
@@ -545,8 +564,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //bring back power
         ship_has_power = true;
 
+        //show power enabled on power status screen in engineer position
+        transform.GetComponent<PowerRegulator>().displayPowerRestoration();
+
         //handle restart effects (lights, sounds)
         lights_manager.enableDefaultLights();
+        lights_manager.disableEmergencyLights();
         ship_beeps_sound.Play();
 
         //start updating power consumption
