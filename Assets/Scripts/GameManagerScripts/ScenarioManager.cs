@@ -300,6 +300,7 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("ControlHandler").GetComponent<TorpedoSelector>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<PhaserFrequency>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<EnergyPattern>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
 
         //destroy probe (if exists)
         foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))

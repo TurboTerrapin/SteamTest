@@ -37,6 +37,9 @@ public class PowerRegulator : NetworkBehaviour
     private List<UnityEngine.UI.Image> time_bars = new List<UnityEngine.UI.Image>();
     private List<UnityEngine.UI.RawImage> warning_dots = new List<UnityEngine.UI.RawImage>();
 
+    //auxiliary power
+    private AuxiliaryPower auxiliary_power;
+
     private bool[] enabled_power_sources = new bool[6] { true, true, true, true, true, true };
     private IPowerRegulable[] power_regulation_components = new IPowerRegulable[6] { null, null, null, null, null, null };
     private List<string> power_regulation_component_names = new List<string>() { "PowerRegulationModuleA", "PowerRegulationModuleB", "PowerRegulationModuleC", "PowerRegulationModuleD", "PowerRegulationModuleE", "PowerRegulationModuleF" };
@@ -53,6 +56,8 @@ public class PowerRegulator : NetworkBehaviour
         power_restoration_message = power_status.transform.GetChild(3).gameObject;
         power_status_box_outline = power_status.transform.GetChild(4).GetComponent<UnityEngine.UI.RawImage>();
         power_bars = power_status.transform.GetChild(5).gameObject;
+
+        auxiliary_power = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<AuxiliaryPower>();
 
         restartPowerBarUpdater();
     
@@ -162,6 +167,21 @@ public class PowerRegulator : NetworkBehaviour
         //change state to offline
         restartPowerBarUpdater();
         updatePowerStatus();
+
+        auxiliary_power.activate();
+    }
+
+    //enables all depleted power sources (and stops depletion on all depleting sources), restores power
+    public void useAuxiliaryPower()
+    {
+        resetPowerRegulator();
+        restartPowerBarUpdater();
+        neutral_state_coroutine = StartCoroutine(neutralState());
+
+        if (transform.GetComponent<PowerManager>().getShipHasPower() == false)
+        {
+            transform.GetComponent<PowerManager>().restorePower();
+        }
     }
 
     //display power restoration
@@ -194,6 +214,15 @@ public class PowerRegulator : NetworkBehaviour
 
         restartPowerBarUpdater();
         updatePowerStatus();
+
+        if (getPowerSourcesEnabled() < 6)
+        {
+            auxiliary_power.activate();
+        }
+        else
+        {
+            auxiliary_power.deactivate();
+        }
 
         //check if power is off and at least three modules have been powered (if so, restore power)
         if (NetworkManager.Singleton.IsHost == true)
@@ -428,7 +457,7 @@ public class PowerRegulator : NetworkBehaviour
         power_restoration_message.SetActive(state == 2);
         if (state == 2)
         {
-            power_restoration_message.GetComponent<TMP_Text>().text = "RESTORATION PROGRESS: " + getPowerSourcesEnabled() + "/3";
+            power_restoration_message.GetComponent<TMP_Text>().text = "RESTORATION PROGRESS: " + Mathf.Min(3, getPowerSourcesEnabled()) + "/3";
         }
     }
 
@@ -445,6 +474,8 @@ public class PowerRegulator : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void initiateDepletionRPC(int to_deplete)
     {
+        auxiliary_power.activate();
+
         if (power_source_depletion_coroutines[to_deplete] != null)
         {
             StopCoroutine(power_source_depletion_coroutines[to_deplete]);
@@ -471,6 +502,15 @@ public class PowerRegulator : NetworkBehaviour
         }
 
         enabled_power_sources[to_terminate] = enabled;
+
+        if (getPowerSourcesEnabled() < 6)
+        {
+            auxiliary_power.activate();
+        }
+        else
+        {
+            auxiliary_power.deactivate();
+        }
 
         updatePowerStatus();
         restartPowerBarUpdater();
