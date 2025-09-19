@@ -1,6 +1,6 @@
 /*
     PowerRegulationModuleE.cs
-    - Handles the memorization switch mini-game in the engineer position
+    - Handles the memorization switch minigame in the engineer position
     Contributor(s): Jake Schott
     Last Updated: 9/15/2025
 */
@@ -194,16 +194,16 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
             {
                 if (currently_active == true)
                 {
-                    if (correct_code[stage] == to_switch)
+                    if (correct_code[stage] == to_switch) //right code
                     {
-                        if (stage >= 4)
+                        if (stage >= 4) //last digit
                         {
                             if (NetworkManager.Singleton.IsHost == true)
                             {
                                 transmitModuleCompletionRPC();
                             }
                         }
-                        else
+                        else //not last digit
                         {
                             stage += 1;
                             if (NetworkManager.Singleton.IsHost == true)
@@ -212,7 +212,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
                             }
                         }
                     }
-                    else
+                    else //wrong code
                     {
                         stage = 0;
                         if (NetworkManager.Singleton.IsHost == true)
