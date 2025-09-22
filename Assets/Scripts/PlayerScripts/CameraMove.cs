@@ -37,6 +37,7 @@ public class CameraMove : MonoBehaviour
         {
             transform.parent.name = "OTHER_CLIENT";
             Destroy(gameObject);
+            //gameObject.transform.GetChild(0).GetComponent<Camera>().enabled = false;
         }
     }
 
