@@ -32,9 +32,12 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField]
     private Animator animator = null;
 
+    AnimationController myAnimationController = null;
+
     void Start()
     {
         DontDestroyOnLoad(gameObject);
+        myAnimationController = GetComponent<AnimationController>();
         //animator = GetComponent<Animator>();
     }
 
@@ -51,6 +54,25 @@ public class PlayerMove : NetworkBehaviour
     public void sitDown(int pos)
     {
         animator.SetBool("Sitting", true);
+        myAnimationController.setPlayerRotationLock(true);
+        
+        //Sets the rotation of the player to forward
+        myAnimationController.setPlayerForwardRotation();
+        //myAnimationController.setCharacterPosition(new Vector3(-0.63f, -0.3f, 0));
+        myAnimationController.setCharacterPosition(new Vector3(0, -0.3f, 0));
+
+        //Sets the specific rotation of the player to 135 degrees from forward, to fit with the direction of the engineer position
+        if (pos == 2)
+        {
+            myAnimationController.setPlayerForwardRotation(Quaternion.AngleAxis(135, Vector3.up));
+        }
+
+        if (pos == 3)
+        {
+            myAnimationController.setCharacterPosition(new Vector3(0, -0.3f, 0));
+            //myAnimationController.setPlayerForwardRotation(Quaternion.AngleAxis(180, Vector3.up));
+
+        }
 
         if (move_coroutine != null)
         {
@@ -85,7 +107,7 @@ public class PlayerMove : NetworkBehaviour
 
     public void getUp(int pos)
     {
-
+        myAnimationController.setPlayerRotationLock(false);
         animator.SetBool("Sitting", false);
 
         if (move_coroutine != null)
@@ -198,7 +220,7 @@ public class PlayerMove : NetworkBehaviour
 
         if (transform.parent != null) //local movement
         {
-            Quaternion combinedRotation = transform.parent.rotation * transform.localRotation;
+            Quaternion combinedRotation = transform.localRotation;
             Vector3 localMovement = new Vector3(moveDir.x, 0, moveDir.y) * MOVE_SPEED * Time.deltaTime;
             movement = combinedRotation * localMovement;
             transform.position += movement;

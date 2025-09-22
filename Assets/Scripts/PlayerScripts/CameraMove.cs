@@ -20,6 +20,8 @@ public class CameraMove : MonoBehaviour
     [SerializeField]
     private GameObject playerObject = null;
 
+
+    public bool parentRotationLock = false;
     private float mouseSensitivity = 1f;
     public Camera my_camera;
     private float zoom_FOV = 40f;
@@ -114,8 +116,17 @@ public class CameraMove : MonoBehaviour
 
         prevPos.y -= mouseMove.y;
         prevPos.x += mouseMove.x;
-        transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
-        transform.parent.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up);
+        
+        if(!parentRotationLock)
+        {
+            transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
+            transform.parent.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up);
+        }
+        else
+        {
+            prevPos.x = Mathf.Clamp(prevPos.x, -120f, 120f);
+            transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
+        }
     }
 
     //used by settings

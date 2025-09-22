@@ -7,18 +7,61 @@ public class IKController : MonoBehaviour
 {
 
     protected Animator animator;
-
-    public bool ikActive = false;
-    public bool ikRightArm = false;
-    public bool ikLeftArm = false;
-    public Transform rightHandObj = null;
-    public Transform leftHandObj = null;
-    public Transform lookObj = null;
+    
+    [SerializeField]
+    private bool ikActive = true;
+    [SerializeField]
+    private bool ikHead = true;
+    [SerializeField]
+    private bool ikRightArm = false;
+    [SerializeField]
+    private bool ikLeftArm = false;
+    [SerializeField]
+    private Transform rightHandObj = null;
+    [SerializeField]
+    private Transform leftHandObj = null;
+    [SerializeField]
+    private Transform lookObj = null;
 
     void Start()
     {
         animator = GetComponent<Animator>();
     }
+
+
+    public void setIKActive(bool value)
+    {
+        ikActive = value;
+    }
+    public void setIKHead(bool value)
+    {
+        ikHead = value;
+    }
+    public void setIKRightArm(bool value)
+    {
+        ikRightArm = value;
+    }
+    public void setIKLeftArm(bool value)
+    {
+        ikLeftArm = value;
+    }
+    public void setRightArmIKPosition(Vector3 pos)
+    {
+        rightHandObj.position = pos;
+    }
+    public void setLeftArmIKPosition(Vector3 pos)
+    {
+        leftHandObj.position = pos;
+    }
+    public void setHeadIKPosition(Vector3 pos)
+    {
+        lookObj.position = pos;
+    }
+
+
+
+
+
 
     //a callback for calculating IK
     void OnAnimatorIK()
@@ -28,14 +71,19 @@ public class IKController : MonoBehaviour
         //if the IK is active, set the position and rotation directly to the goal.
         if (!ikActive) return;
 
-
-        // Set the look target position, if one has been assigned
-        if (lookObj != null)
+        if (ikHead)
         {
-            animator.SetLookAtWeight(1);
-            animator.SetLookAtPosition(lookObj.position);
+            // Set the look target position, if one has been assigned
+            if (lookObj != null)
+            {
+                animator.SetLookAtWeight(1);
+                animator.SetLookAtPosition(lookObj.position);
+            }
         }
-
+        else
+        {
+            animator.SetLookAtWeight(0);
+        }
 
         if (ikRightArm)
         {
@@ -48,12 +96,11 @@ public class IKController : MonoBehaviour
                 animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
             }
         }
-        //if the IK is not active, set the position and rotation of the hand and head back to the original position
+        //if the IK is not active, set the position and rotation of the hand back to the original position
         else
         {
             animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
             animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
-            animator.SetLookAtWeight(0);
         }
 
 
@@ -67,12 +114,11 @@ public class IKController : MonoBehaviour
                 animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHandObj.rotation);
             }
         }
-        //if the IK is not active, set the position and rotation of the hand and head back to the original position
+        //if the IK is not active, set the position and rotation of the hand back to the original position
         else
         {
             animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
             animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
-            animator.SetLookAtWeight(0);
         }
     }
     
