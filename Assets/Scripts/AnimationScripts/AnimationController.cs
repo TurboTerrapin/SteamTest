@@ -1,3 +1,4 @@
+//using Unity.Netcode;
 using UnityEngine;
 
 public class AnimationController : MonoBehaviour
@@ -82,9 +83,13 @@ public class AnimationController : MonoBehaviour
 
 
 
+    /*
+    [Rpc(SendTo.Server)]
+    public void SendPlayerData()
+    {
 
-
-
+    }
+    */
 
 
 }
