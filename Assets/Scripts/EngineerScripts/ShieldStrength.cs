@@ -98,7 +98,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
     }
 
     //turns the dial and calls displayAdjustment()
-    IEnumerator handleShieldStrengthChange(int index, int new_allocation, bool increase)
+    IEnumerator handleShieldStrengthChange(int index, bool increase)
     {
         float destination_rotation = -74.0f;
         if (increase == false)
@@ -156,14 +156,14 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && shield_strengths[target_index] > 0) //decrease
             {
-                BUTTON_LISTS[target_index][0].toggle(ADJUST_TIME);
+                BUTTON_LISTS[target_index][0].toggle();
                 BUTTON_LISTS[target_index][1].updateInteractable(false);
                 available_units += 1;
                 transmitShieldStrengthChangeRPC(target_index, shield_strengths[target_index] - 1, available_units);
             }
             else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && shield_strengths[target_index] < 10 && available_units > 0) //increase
             {
-                BUTTON_LISTS[target_index][1].toggle(ADJUST_TIME);
+                BUTTON_LISTS[target_index][1].toggle();
                 BUTTON_LISTS[target_index][0].updateInteractable(false);
                 available_units -= 1;
                 transmitShieldStrengthChangeRPC(target_index, shield_strengths[target_index] + 1, available_units);
@@ -204,6 +204,6 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         {
             StopCoroutine(shield_strength_adjustment_coroutines[index]);
         }
-        shield_strength_adjustment_coroutines[index] = StartCoroutine(handleShieldStrengthChange(index, new_allocation, is_increasing));
+        shield_strength_adjustment_coroutines[index] = StartCoroutine(handleShieldStrengthChange(index, is_increasing));
     }
 }
