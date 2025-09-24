@@ -150,6 +150,7 @@ public class ScenarioManager : NetworkBehaviour
     {
         enableScenarioTimer();
         GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().initializePowerRegulator();
+        GameObject.Find("ControlHandler").GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
     }
 
     IEnumerator scenarioCountdown()
@@ -301,6 +302,7 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("ControlHandler").GetComponent<PhaserFrequency>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<EnergyPattern>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
+        GameObject.Find("ControlHandler").GetComponent<EngineCoolantSupply>().resetEngineTemperatureIncreaser();
 
         //destroy probe (if exists)
         foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))

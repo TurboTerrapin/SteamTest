@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
 {

@@ -50,6 +50,7 @@ public class PilotingSystem : NetworkBehaviour
     public float forwardSpeed;
     public Vector3 currentVelocity;
 
+    public float impulseSpeedAdjustmentFactor = 1.0f;
     public float currentImpulseSpeed = 0f;
     public float currentHorizontalSpeed = 0f;
     public float currentVerticalSpeed = 0f;
@@ -64,6 +65,7 @@ public class PilotingSystem : NetworkBehaviour
     private bool insideBoundary = true;
     private bool insideAltitudeBoundary = true; //used for altitude boundary display in EngineerMap
     private Coroutine boundaryCountdownCoroutine = null;
+
     public bool AssignControlReferences(GameObject controlHandler)
     {
         impulseThrottle = controlHandler.GetComponent<ImpulseThrottle>();
@@ -79,6 +81,13 @@ public class PilotingSystem : NetworkBehaviour
                horizontalThrusters && verticalThrusters;
     }
 
+    //called by EngineCoolantSupply
+    public void AdjustMaxImpulseSpeed(float factor)
+    {
+        impulseSpeedAdjustmentFactor = factor;
+    }
+
+    //called by DirectionalShifter
     public void ShiftDirection(bool newDirection)
     {
         inReverse = newDirection;
@@ -214,6 +223,8 @@ public class PilotingSystem : NetworkBehaviour
         {
             currentImpulseSpeed = currentImpulse * -maxImpulseReverseSpeed;
         }
+
+        currentImpulseSpeed *= impulseSpeedAdjustmentFactor;
 
         currentHorizontalSpeed = maxThrusterSpeed * horizontalThrust;
         currentVerticalSpeed = maxThrusterSpeed * verticalThrust;

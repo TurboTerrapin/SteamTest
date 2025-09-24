@@ -701,9 +701,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //9
         engineer_modules.Add(control_handler.GetComponent("ShieldStrength")); //10
         engineer_modules.Add(control_handler.GetComponent("TorpedoLoader")); //11
-        engineer_modules.Add(sensor_handler.GetComponent("EngineerInventory")); //12
-        engineer_modules.Add(this); //13
-        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //14
+        engineer_modules.Add(control_handler.GetComponent("EngineCoolantSupply")); //12
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerInventory")); //13
+        engineer_modules.Add(this); //14
+        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //15
         positional_modules[2] = engineer_modules;
     }
 
