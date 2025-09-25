@@ -17,7 +17,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float TURN_SPEED = 0.1f;
     private static float IMPULSE_SPEED_CHANGE_FACTOR = 4.0f; //goes 1/4 as fast when engines are overheated
-    private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.04f;
+    private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.025f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
