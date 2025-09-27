@@ -43,8 +43,8 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
                 //determine whether to fade or not based on there being at least one item
                 float a = 1.0f;
                 Color curr_color = item_indicators[i].transform.GetChild(c).GetComponent<TMP_Text>().color;
-                if (current_quantities[i][c] <= 0) 
-                { 
+                if (current_quantities[i][c] <= 0)
+                {
                     a = 0.2f;
                 }
 
@@ -112,7 +112,7 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
     }
 
     //returns the image of the item based on string input
-    public Texture getItemTexture(string item_name) 
+    public Texture getItemTexture(string item_name)
     {
         int item_category = getItemCategoryFromName(item_name);
         int item_index = getItemIndexFromName(item_name);
@@ -162,10 +162,16 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
         return getColorFromCategoryAndIndex(item_category, item_index);
     }
 
-    //returns the number of torpedo types
-    public int getNumberOfTorpedoTypes()
+    //returns the number of item variations in a given category
+    public int getNumberOfItemVariations(int item_category)
     {
-        return torpedo_names.Count;
+        if (item_category < 0 || item_category > 1)
+        {
+            return -1;
+        }
+
+        List<string>[] possible_items = new List<string>[] { item_names, torpedo_names };
+        return possible_items[item_category].Count; 
     }
 
     //adds the item (if the name is valid)

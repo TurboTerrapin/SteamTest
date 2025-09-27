@@ -703,8 +703,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_modules.Add(control_handler.GetComponent("TorpedoLoader")); //11
         engineer_modules.Add(control_handler.GetComponent("EngineCoolantSupply")); //12
         engineer_modules.Add(sensor_handler.GetComponent("EngineerInventory")); //13
-        engineer_modules.Add(this); //14
-        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //15
+        engineer_modules.Add(control_handler.GetComponent("CargoEjectLoader")); //14
+        engineer_modules.Add(control_handler.GetComponent("ComputerRegulator")); //15
+        engineer_modules.Add(this); //16
+        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //17
         positional_modules[2] = engineer_modules;
     }
 

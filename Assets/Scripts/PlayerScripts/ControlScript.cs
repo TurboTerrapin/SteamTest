@@ -80,7 +80,7 @@ public class ControlScript : MonoBehaviour
 
     void Start()
     {
-        //make an instance so can be referenced by CameraMove
+        //make an instance so can be referenced
         if (Instance != null)
         {
             Destroy(this);
@@ -112,7 +112,7 @@ public class ControlScript : MonoBehaviour
     private void clearButtons()
     {
         //clear trapezoid buttons
-        for (int i = control_info.transform.GetChild(0).GetChild(4).childCount - 1; i >= 3; i--)
+        for (int i = control_info.transform.GetChild(0).GetChild(4).childCount - 1; i >= 2; i--)
         {
             GameObject to_destroy = control_info.transform.GetChild(0).GetChild(4).GetChild(i).gameObject;
             UnityEngine.Object.Destroy(to_destroy);

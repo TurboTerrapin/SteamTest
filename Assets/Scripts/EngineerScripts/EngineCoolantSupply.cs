@@ -35,7 +35,6 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
-
     private float coolant_flow = 0.0f;
     private float engine_temperature = 0.05f;
     private float impulse_speed_modifier = 1.0f;
@@ -66,7 +65,12 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 
         //update screen wheel
         engine_coolant_supply_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
-        engine_coolant_supply_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 0.05f + (0.95f * coolant_flow));
+        float a = 1.0f;
+        if (coolant_flow < 0.4f)
+        {
+            a = 0.2f;
+        }
+        engine_coolant_supply_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, a);
     }
 
     private void displayEngineTemperatureAdjustment()

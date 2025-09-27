@@ -265,7 +265,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     {
         float destination_rotation = 90.0f;
 
-        setAllButtonsToUninteractable();
+        deactivateButtons();
         displayTorpedoSelectionAdjustment();
 
         float anim_time = LOAD_CONFIRMATION_TIME;
@@ -340,7 +340,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
                     current_torpedo_selection -= 1;
                     if (current_torpedo_selection < 0)
                     {
-                        current_torpedo_selection = engineer_inventory.getNumberOfTorpedoTypes() - 1;
+                        current_torpedo_selection = engineer_inventory.getNumberOfItemVariations(1) - 1;
                     }
                     transmitTorpedoSelectionAdjustmentRPC(current_torpedo_selection, true);
                 }
@@ -349,7 +349,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
                     BUTTON_LISTS[0][1].toggle();
                     BUTTON_LISTS[0][0].updateInteractable(false);
                     current_torpedo_selection += 1;
-                    if (current_torpedo_selection > engineer_inventory.getNumberOfTorpedoTypes() - 1)
+                    if (current_torpedo_selection > engineer_inventory.getNumberOfItemVariations(1) - 1)
                     {
                         current_torpedo_selection = 0;
                     }
@@ -411,7 +411,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         torpedo_direction_display.SetActive(true);
     }
 
-    private void setAllButtonsToUninteractable()
+    private void deactivateButtons()
     {
         for (int i = 0; i < 2; i++)
         {
@@ -428,7 +428,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
 
-        setAllButtonsToUninteractable();
+        deactivateButtons();
 
         torpedo_selection_display.SetActive(false);
         torpedo_direction_display.SetActive(false);
