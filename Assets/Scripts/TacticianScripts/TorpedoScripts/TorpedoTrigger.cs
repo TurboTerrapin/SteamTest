@@ -198,7 +198,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
         }
         else
         {
-            if (trigger_percentage >= 1.0f)
+            if (trigger_percentage >= 1.0f && torpedo_fire_coroutine == null)
             {
                 if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
                 {

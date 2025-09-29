@@ -3,7 +3,7 @@
     - Handles power-on/power-off procedure
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 8/28/2025
+    Last Updated: 9/28/2025
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ public class PowerControl : NetworkBehaviour, IControllable
     //CLASS CONSTANTS
     private static float TURN_TIME = 1.0f;
 
-    private string CONTROL_NAME = "POWER CONTROL";
+    private string CONTROL_NAME = "POSITION POWER";
     private List<string> CONTROL_DESCS = new List<string>{ "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>(){6};
     private List<Button>[] BUTTON_LISTS = new List<Button>[4];

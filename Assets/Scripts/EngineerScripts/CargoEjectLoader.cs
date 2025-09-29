@@ -18,7 +18,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     private static float ITEM_TYPE_ADJUSTMENT_TIME = 0.5f;
     private static float LOAD_CONFIRMATION_TIME = 1.0f;
 
-    private string[] CONTROL_NAMES = new string[] { "ITEM TYPE SELECTOR", "ITEM VARIATION SELECTOR", "CARGO EJECT LOADER" };
+    private string[] CONTROL_NAMES = new string[] { "CARGO EJECT ITEM TYPE SELECTOR", "CARGO EJECT ITEM VARIATION", "CARGO EJECT LOADER" };
     private List<string> CONTROL_DESCS = new List<string> { "SWITCH", "SELECT LEFT", "SELECT RIGHT", "LOAD", "UNLOAD" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 4, 5, 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
