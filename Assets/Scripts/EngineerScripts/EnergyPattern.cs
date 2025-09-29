@@ -56,7 +56,22 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[1], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[3], CONTROL_INDEXES[2], false, true));
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+
+        hud_info.setTitle(CONTROL_NAMES[index]);
+        hud_info.setButtons(BUTTON_LISTS[1], 7);
+
+        if (index == 0)
+        {
+            hud_info.setButtons(BUTTON_LISTS[0], 6);
+        }
+
+        return hud_info;
     }
 
     private void displayAdjustment()
@@ -157,21 +172,6 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     public int getCurrentlyViewing()
     {
         return currently_viewing;
-    }
-
-    public HUDInfo getHUDinfo(GameObject current_target)
-    {
-        int index = ray_targets.IndexOf(current_target.name);
-
-        hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[1]);
-
-        if (index == 0)
-        {
-            hud_info.setButtons(BUTTON_LISTS[0]);
-        }
-
-        return hud_info;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)

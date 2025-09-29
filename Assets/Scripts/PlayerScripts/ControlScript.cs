@@ -354,7 +354,7 @@ public class ControlScript : MonoBehaviour
                         return;
                     }
                 }
-                
+
                 //else check controls
                 if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE)) //cast ray
                 {
