@@ -40,7 +40,7 @@ public class SceneSwapOnTriggerEnter : MonoBehaviour
         }
         else if (difficulty == Difficulty.Specific)
         {
-            SceneSwapper.Instance.ChangeSceneRPC(specificSceneName, specificSceneNum);
+            SceneSwapper.Instance.ChangeScene(specificSceneName, specificSceneNum);
         }
     }
 }

@@ -85,6 +85,9 @@ public class PlayerMove : NetworkBehaviour
 
         move_coroutine = null;
 
+
+
+
         //figure out which shift point the player is closer to
         int closest_index = -1;
         float closest_dist = 9999;
