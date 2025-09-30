@@ -7,6 +7,7 @@
     Last Updated: 8/28/2025
 */
 
+using Steamworks;
 using System.Collections;
 using UnityEngine;
 
@@ -22,6 +23,8 @@ public class CameraMove : MonoBehaviour
     private Transform camera_transform;
     private float zoomFOV = 40f;
     private Coroutine cameraUpdateCoroutine = null;
+
+    public bool parentRotationLock = false;
 
     private void Start()
     {
@@ -169,8 +172,16 @@ public class CameraMove : MonoBehaviour
         prevPos.y -= mouseMove.y;
         prevPos.x += mouseMove.x;
 
-        transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up);
-        camera_transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
+        if (!parentRotationLock)
+        {
+            camera_transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
+            transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up);
+        }
+        else
+        {
+            prevPos.x = Mathf.Clamp(prevPos.x, -120f, 120f);
+            camera_transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
+        }
     }
 
     //used by settings

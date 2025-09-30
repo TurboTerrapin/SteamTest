@@ -69,7 +69,7 @@ public class AnimationController : MonoBehaviour
 
     public void setPlayerRotationLock(bool value)
     {
-        //transform.GetChild(0).GetComponent<CameraMove>().parentRotationLock = value;
+        GetComponent<CameraMove>().parentRotationLock = value;
     }
 
     public void setPlayerForwardRotation()

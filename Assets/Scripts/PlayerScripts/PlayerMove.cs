@@ -34,9 +34,16 @@ public class PlayerMove : NetworkBehaviour
     private bool shift_increasing = false; //used for shifting
     private SeatManager seat_manager = null;
 
+    [SerializeField]
+    private Animator animator = null;
+
+    AnimationController myAnimationController = null;
+
     void Start()
     { 
         DontDestroyOnLoad(gameObject);
+
+        myAnimationController = GetComponent<AnimationController>();
 
         if (transform.gameObject.GetComponent<NetworkObject>().IsOwner == true)
         {
@@ -85,7 +92,26 @@ public class PlayerMove : NetworkBehaviour
 
         move_coroutine = null;
 
+        animator.SetBool("Sitting", true);
+        myAnimationController.setPlayerRotationLock(true);
 
+        //Sets the rotation of the player to forward
+        myAnimationController.setPlayerForwardRotation();
+        //myAnimationController.setCharacterPosition(new Vector3(-0.63f, -0.3f, 0));
+        myAnimationController.setCharacterPosition(new Vector3(0, -0.3f, 0));
+
+        //Sets the specific rotation of the player to 135 degrees from forward, to fit with the direction of the engineer position
+        if (pos == 2)
+        {
+            myAnimationController.setPlayerForwardRotation(Quaternion.AngleAxis(135, Vector3.up));
+        }
+
+        if (pos == 3)
+        {
+            myAnimationController.setCharacterPosition(new Vector3(0, -0.3f, 0));
+            //myAnimationController.setPlayerForwardRotation(Quaternion.AngleAxis(180, Vector3.up));
+
+        }
 
 
         //figure out which shift point the player is closer to
@@ -120,6 +146,10 @@ public class PlayerMove : NetworkBehaviour
 
     public void getUp(int pos)
     {
+
+        myAnimationController.setPlayerRotationLock(false);
+        animator.SetBool("Sitting", false);
+
         if (move_coroutine != null)
         {
             StopCoroutine(move_coroutine);
@@ -258,6 +288,10 @@ public class PlayerMove : NetworkBehaviour
     void Move()
     {
         Vector3 movement; //= Vector3.zero;
+
+        animator.SetFloat("Movement", moveDir.magnitude);
+        animator.SetFloat("Forward", moveDir.y);
+
 
         if (transform.parent != null) //local movement
         {
