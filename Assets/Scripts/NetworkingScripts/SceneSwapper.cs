@@ -1,9 +1,6 @@
 
-using Netcode.Transports.Facepunch;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-//using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -40,19 +37,29 @@ public class SceneSwapper : MonoBehaviour
         }
     }
 
-
-    [Rpc(SendTo.Everyone)]
-    public void ChangeSceneRPC(string sceneName, int newScene)
+    public void ChangeScene(string sceneName, int newScene)
     {
         currentScene = newScene;
-        Debug.Log("Scene num for " + sceneName + " is " + currentScene + " in sceneNames list");
+        //Debug.Log("Scene num for " + sceneName + " is " + currentScene + " in sceneNames list");
         NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
     }
+
+    /* 
+    if (difficulty == Difficulty.Random){
+        SceneSwapper.Instance.ChangeSceneRandom();}
+    else if (difficulty == Difficulty.Easy){
+        SceneSwapper.Instance.ChangeScenarioEasy();}
+    else if (difficulty == Difficulty.Medium){
+        SceneSwapper.Instance.ChangeScenarioMedium();}
+    else if (difficulty == Difficulty.Hard){
+        SceneSwapper.Instance.ChangeScenarioHard();}
+    else if (difficulty == Difficulty.Specific){
+        SceneSwapper.Instance.ChangeScene(specificSceneName, specificSceneNum);}
+    */
 
     public void ChangeSceneRandom()
     {
         if (!NetworkManager.Singleton.IsServer) return;
-        
 
         if (currentScene != 0)
         {
@@ -61,7 +68,7 @@ public class SceneSwapper : MonoBehaviour
 
         int scene = FindSceneByList(sceneNames);
         
-        ChangeSceneRPC(sceneNames[scene], scene);
+        ChangeScene(sceneNames[scene], scene);
     }
 
     public void ChangeScenarioEasy()
@@ -81,7 +88,7 @@ public class SceneSwapper : MonoBehaviour
 
         if (scene == -1)
         {
-            ChangeSceneRPC(sceneNames[0], 0);
+            ChangeScene(sceneNames[0], 0);
             return;
         }
 
@@ -101,7 +108,7 @@ public class SceneSwapper : MonoBehaviour
             }
         }
 
-        ChangeSceneRPC(sceneName, currentScene);
+        ChangeScene(sceneName, currentScene);
     }
 
 
@@ -132,7 +139,7 @@ public class SceneSwapper : MonoBehaviour
             }
         }
 
-        ChangeSceneRPC(sceneName, currentScene);
+        ChangeScene(sceneName, currentScene);
     }
 
 
@@ -163,7 +170,7 @@ public class SceneSwapper : MonoBehaviour
             }
         }
 
-        ChangeSceneRPC(sceneName, currentScene);
+        ChangeScene(sceneName, currentScene);
     }
 
 

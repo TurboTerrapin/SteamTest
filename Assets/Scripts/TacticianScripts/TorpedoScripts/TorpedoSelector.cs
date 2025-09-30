@@ -3,7 +3,7 @@
     - Handles torpedo slider
     - Updates arrow screen
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2025
+    Last Updated: 9/8/2025
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class TorpedoSelector : NetworkBehaviour, IControllable
+public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.5f;
@@ -22,11 +22,12 @@ public class TorpedoSelector : NetworkBehaviour, IControllable
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject selector_lever;
-    public GameObject selector_canvas;
+    public GameObject selector_display;
+
+    private bool is_powered = false;
     private Vector3 initial_pos;
     private Vector3 final_pos = new Vector3(-3.0967f, 8.7417f, 3.7712f);
     private int torpedo_option = 0;
-
     private Coroutine torpedo_shift_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -36,11 +37,12 @@ public class TorpedoSelector : NetworkBehaviour, IControllable
     {
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);
 
         initial_pos = selector_lever.transform.localPosition;
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
@@ -48,9 +50,9 @@ public class TorpedoSelector : NetworkBehaviour, IControllable
 
     IEnumerator selectorShift()
     {
-        for (int i = 5; i <= 8; i++)
+        for (int i = 4; i <= 7; i++)
         {
-            selector_canvas.transform.GetChild(i).gameObject.SetActive(false);
+            selector_display.transform.GetChild(i).gameObject.SetActive(false);
         }
 
         float animation_time = MOVE_TIME;
@@ -74,10 +76,10 @@ public class TorpedoSelector : NetworkBehaviour, IControllable
             yield return null;
         }
 
-        selector_canvas.transform.GetChild(torpedo_option + 5).gameObject.SetActive(true);
+        selector_display.transform.GetChild(torpedo_option + 4).gameObject.SetActive(true);
 
-        BUTTONS[0].updateInteractable(torpedo_option > 0);
-        BUTTONS[1].updateInteractable(torpedo_option < 3);
+        BUTTONS[0].updateInteractable(torpedo_option > 0 && is_powered == true);
+        BUTTONS[1].updateInteractable(torpedo_option < 3 && is_powered == true);
         BUTTONS[0].untoggle();
         BUTTONS[1].untoggle();
 
@@ -86,6 +88,11 @@ public class TorpedoSelector : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         if (torpedo_shift_coroutine == null)
         {
@@ -115,6 +122,33 @@ public class TorpedoSelector : NetworkBehaviour, IControllable
                 }
             }
         }
+    }
+
+    public void resetToDefault()
+    {
+        torpedo_option = 0;
+        selector_lever.transform.localPosition = initial_pos;
+        for (int i = 4; i <= 7; i++)
+        {
+            selector_display.transform.GetChild(i).gameObject.SetActive(false);
+        }
+        selector_display.transform.GetChild(torpedo_option + 4).gameObject.SetActive(true);
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        selector_display.SetActive(true);
+        BUTTONS[0].updateInteractable(torpedo_option > 0);
+        BUTTONS[1].updateInteractable(torpedo_option < 3);   
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        selector_display.SetActive(false);
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
     }
 
     [Rpc(SendTo.Everyone)]

@@ -1,192 +1,185 @@
 /*
     SignalOptions.cs
-    - Sends or receives a transmission
+    - Handles the controls that send/receive transmissions
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2025
+    Last Updated: 8/23/2025
 */
 
-using Unity.Netcode;
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
 
 public class SignalOptions : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float PUSH_TIME = 0.5f;
-    private static int FLASHES = 20;
-    private static float FLASH_DELAY = 0.1f;
-    private static float GREEN_DELAY = 1.0f;
+    private static float TURN_TIME = 0.75f;
 
     private string CONTROL_NAME = "SIGNAL OPTIONS";
-    private List<string> CONTROL_DESCS = new List<string> { "RECEIVE", "BROADCAST" };
-    private List<int> CONTROL_INDEXES = new List<int>() { 2, 0 };
-    private List<Button> BUTTONS = new List<Button>();
+    private List<string> CONTROL_DESCS = new List<string>{"RECEIVE", "BROADCAST"};
+    private List<int> CONTROL_INDEXES = new List<int>(){6};
+    private List<Button>[] BUTTON_LISTS = new List<Button>[2]{new List<Button>(), new List<Button>()};
 
-    public List<GameObject> signal_buttons = null;
-    public List<GameObject> signal_list = null;
-    public GameObject success_light;
-    public GameObject fail_light;
+    public List<GameObject> dials = null;
 
-    public Material unlit_blue;
-    public Material neon;
-    public Material lit_red;
-    public Material unlit_red;
-    public Material lit_green;
-    public Material unlit_green;
+    private TransmissionHandler transmission_handler;
+    private Coroutine dial_turn_coroutine = null;
+    private float[] dial_turn_percentages = { 0.0f, 0.0f };
 
-    private Vector3[] initial_pos = new Vector3[2];
-    private Vector3 push_direction = new Vector3(0.0019f, -0.0053f, 0f);
-
-    private Coroutine signal_transmission_coroutine = null;
-    private Coroutine button_push_coroutine = null;
+    private List<KeyCode> keys_down = new List<KeyCode>();
+    private List<string> ray_targets = new List<string> { "transmission_receive", "transmission_broadcast" };
+    private int ray_target_index = -1;
 
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, true));
-        hud_info.setButtons(BUTTONS);
+        transmission_handler = transform.GetComponent<TransmissionHandler>();
 
-        //set initial positions
-        for (int i = 0; i <= 1; i++)
-        {
-            initial_pos[i] = signal_buttons[i].transform.localPosition;
-        }
+        hud_info = new HUDInfo(CONTROL_NAME);
+
+        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
+        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[0], false, false));
+
+        hud_info.setButtons(BUTTON_LISTS[0]);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
+        int index = ray_targets.IndexOf(current_target.name);
+        hud_info.setButtons(BUTTON_LISTS[index]);
         return hud_info;
     }
 
-    IEnumerator buttonPush(int index)
+    private void displayDialTurn(int index)
     {
-        //set buttons to initial positions
-        for (int i = 0; i <= 1; i++)
-        {
-            signal_buttons[i].transform.localPosition = initial_pos[i];
-        }
-
-        Vector3 final_pos = initial_pos[index] + push_direction;
-
-        for (int i = 0; i <= 1; i++)
-        {
-            float half_time = PUSH_TIME * 0.5f;
-            float push_time = half_time;
-
-            while (push_time > 0.0f)
-            {
-                float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-                push_time = Mathf.Max(0.0f, push_time - dt);
-
-                float push_percentage = 1.0f - (push_time / half_time);
-                if (i == 1)
-                {
-                    push_percentage = (push_time / half_time);
-                }
-
-                signal_buttons[index].transform.localPosition =
-                    new Vector3(Mathf.Lerp(initial_pos[i].x, final_pos.x, push_percentage),
-                                Mathf.Lerp(initial_pos[i].y, final_pos.y, push_percentage),
-                                Mathf.Lerp(initial_pos[i].z, final_pos.z, push_percentage));
-
-                yield return null;
-            }
-        }
-
-        button_push_coroutine = null;
+        dials[index].transform.localRotation =
+            Quaternion.Euler(dials[index].transform.localEulerAngles.x,
+                             dials[index].transform.localEulerAngles.y,
+                             Mathf.Lerp(180.0f, 90.0f, dial_turn_percentages[index]));
     }
 
-    IEnumerator signalTransmission(int index)
+    private bool checkNeutralState()
     {
-        if (button_push_coroutine != null)
+        for (int i = 0; i < 2; i++)
         {
-            StopCoroutine(button_push_coroutine);
+            if (dial_turn_percentages[i] > 0.0f)
+            {
+                return false;
+            }
         }
-        button_push_coroutine = StartCoroutine(buttonPush(index));
+        return true;
+    }
 
-        //wait for button to pushed
-        while (button_push_coroutine != null)
+    IEnumerator dialReturn()
+    {
+        while (dial_turn_percentages[0] > 0.0f || dial_turn_percentages[1] > 0.0f)
         {
+            float dt = Time.deltaTime;
+            for (int i = 0; i < 2; i++)
+            {
+                dial_turn_percentages[i] = Mathf.Max(0.0f, dial_turn_percentages[i] - (dt / TURN_TIME));
+                displayDialTurn(i);
+            }
             yield return null;
         }
 
-        for (int i = 0; i < FLASHES; i++)
+        dial_turn_coroutine = null;
+    }
+
+    public void returnDials()
+    {
+        if (dial_turn_coroutine != null)
         {
-            for (int x = 0; x < signal_list.Count; x++)
+            StopCoroutine(dial_turn_coroutine);
+        }
+        dial_turn_coroutine = StartCoroutine(dialReturn());
+    }
+
+    IEnumerator dialTurn()
+    {
+        while (keys_down.Count > 0 || checkNeutralState() == false)
+        {
+            float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
+
+            if (ray_target_index >= 0)
             {
-                if (UnityEngine.Random.Range(0,3) != 0)
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && transmission_handler.getIsPowered() == true)
                 {
-                    signal_list[x].GetComponent<Renderer>().material = unlit_blue;
+                    dial_turn_percentages[ray_target_index] = Mathf.Min(1.0f, dial_turn_percentages[ray_target_index] + (dt / TURN_TIME));
+                    if (dial_turn_percentages[ray_target_index] >= 1.0f)
+                    {
+                        if (transmission_handler.isTransmitting() == false)
+                        {
+                            transmission_handler.transmitSignal(ray_target_index); //handles the transmission stuff
+                        }
+                    }
                 }
                 else
                 {
-                    signal_list[x].GetComponent<Renderer>().material = neon;
+                    dial_turn_percentages[ray_target_index] = Mathf.Max(0.0f, dial_turn_percentages[ray_target_index] - (dt / TURN_TIME));
                 }
             }
-            yield return new WaitForSeconds(FLASH_DELAY);
+
+            for (int i = 0; i < 2; i++)
+            {
+                if (i != ray_target_index)
+                {
+                    dial_turn_percentages[i] = Mathf.Max(0.0f, dial_turn_percentages[i] - (dt / TURN_TIME));
+                }
+            }
+
+            transmitDialArmRPC(dial_turn_percentages[0], dial_turn_percentages[1]);
+
+            keys_down.Clear();
+            ray_target_index = -1;
+            yield return null;
         }
 
-        for (int x = 0; x < signal_list.Count; x++)
-        {
-            signal_list[x].GetComponent<Renderer>().material = unlit_blue;
-        }
+        dial_turn_coroutine = null;
+    }
 
-        success_light.GetComponent<Renderer>().material = lit_green;
+    public void activate()
+    {
+        BUTTON_LISTS[0][0].updateInteractable(true);
+        BUTTON_LISTS[1][0].updateInteractable(true);
+    }
 
-        yield return new WaitForSeconds(GREEN_DELAY);
-
-        success_light.GetComponent<Renderer>().material = unlit_green;
-
-        BUTTONS[0].updateInteractable(true);
-        BUTTONS[1].updateInteractable(true);
-
-        signal_transmission_coroutine = null;
+    public void deactivate()
+    {
+        BUTTON_LISTS[0][0].updateInteractable(false);
+        BUTTON_LISTS[1][0].updateInteractable(false);
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        //make sure transmit not active
-        if (signal_transmission_coroutine == null)
+        if (transmission_handler.getIsPowered() == false || transmission_handler.isTransmitting() == true)
         {
-            for (int i = 0; i < CONTROL_INDEXES.Count; i++)
+            return;
+        }
+
+        keys_down = inputs;
+        ray_target_index = ray_targets.IndexOf(current_target.name);
+
+        if (dial_turn_percentages[ray_target_index] == 0.0f )
+        {
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (dial_turn_coroutine == null)
                 {
-                    BUTTONS[i].toggle(0.2f);
-                    BUTTONS[i % 1].updateInteractable(false);
-                    transmitSignalTransmissionRPC(i);
-                    return;
+                    dial_turn_coroutine = StartCoroutine(dialTurn());
                 }
             }
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitSignalTransmissionRPC(int index)
+    private void transmitDialArmRPC(float dp_receive, float dp_broadcast)
     {
-        UniversalCommunicator uc = gameObject.GetComponent<UniversalCommunicator>();
-        GameObject scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
-        if (scenario_handler != null)
-        {
-            Component[] scenario_handler_components = scenario_handler.GetComponents<Component>();
-            for (int i = 0; i < scenario_handler_components.Length; i++)
-            {
-                IUniversalCommunicable transmission_receiver = scenario_handler_components[i] as IUniversalCommunicable;
-                if (transmission_receiver != null)
-                {
-                    transmission_receiver.handleTransmission(uc.getCodeIndexes(), uc.getCodeColors(), uc.getCodeIsNumeric());
-                    break;
-                }
-            }
-        }
-        uc.resetDisplay();
+        dial_turn_percentages[0] = dp_receive;
+        dial_turn_percentages[1] = dp_broadcast;
 
-        if (signal_transmission_coroutine != null)
+        for (int i = 0; i < 2; i++)
         {
-            StopCoroutine(signal_transmission_coroutine);
+            displayDialTurn(i);
         }
-        signal_transmission_coroutine = StartCoroutine(signalTransmission(index));
     }
 }

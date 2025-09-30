@@ -19,7 +19,7 @@ public class CommunicationsManual : Manual
         manual_index = 1;
     }
 
-    IEnumerator powerOn()
+    IEnumerator activateManual()
     {
         welcome_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
         welcome_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
@@ -59,7 +59,7 @@ public class CommunicationsManual : Manual
             {
                 StopCoroutine(power_on_coroutine);
             }
-            power_on_coroutine = StartCoroutine(powerOn());
+            power_on_coroutine = StartCoroutine(activateManual());
         }
         else
         {

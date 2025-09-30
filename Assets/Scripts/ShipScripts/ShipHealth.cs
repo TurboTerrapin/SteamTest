@@ -13,13 +13,16 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ShipHealth : NetworkBehaviour
+public class ShipHealth : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float UPDATE_TIME = 1.0f;
     private static Color MAX_HEALTH = new Color(0.34f, 1.0f, 0.0f, 0.21f);
     private static Color HALF_HEALTH = new Color(1.0f, 1.0f, 0.0f, 0.21f);
     private static Color ZERO_HEALTH = new Color(1.0f, 0.0f, 0.0f, 0.21f);
+
+    public GameObject hull_integrity_display;
+    public GameObject ship_overview_display;
 
     public List<GameObject> ship_health_indicators = null;
     public GameObject hull_integrity_visual;
@@ -28,6 +31,7 @@ public class ShipHealth : NetworkBehaviour
     private float[] health_areas = new float[4] { 100.0f, 100.0f, 100.0f, 100.0f }; //corresponds to forward, port, starboard, aft
     private float hull_integrity = 100.0f;
     private Coroutine damage_animation_coroutine = null;
+    private Coroutine dead_ship_coroutine = null;
 
     /*private void Start()
     {
@@ -119,7 +123,23 @@ public class ShipHealth : NetworkBehaviour
             yield return null;
         }
 
+        if (hull_integrity <= 0.0f)
+        {
+            if (dead_ship_coroutine == null)
+            {
+                dead_ship_coroutine = StartCoroutine(deadDelay());
+            }
+
+        }
+
         damage_animation_coroutine = null;
+    }
+
+    //just used to give a little bit of a wait before cutting to game over screen
+    IEnumerator deadDelay()
+    {
+        yield return new WaitForSeconds(2.0f);
+        GameObject.Find("ScenarioManager").GetComponent<ScenarioManager>().endScenario(ScenarioManager.EndCondition.ShipDestroyed);
     }
 
     //helper function that subtracts damage and rounds to nearest tenth
@@ -136,18 +156,21 @@ public class ShipHealth : NetworkBehaviour
         transmitHealthChangeRPC(health_areas[0], health_areas[1], health_areas[2], health_areas[3]);
     }
 
-    //will damage every section randomly between 0.0 and full damage but ensure that one is damaged as much as inputted parameter
-    public void damageAllSections(float damage)
+    // Aplies a specific amount of damage to each of the four sections 
+    public void damageMultipleSections(float[] damages)
     {
-        int most_damaged_area = Random.Range(0, 4);
-        updateHealth(damage, most_damaged_area);
+        Debug.Log($" Multiple sections damaged [ShipHealth] Forward: " +
+            $"{health_areas[0]}%, " +
+            $"Port: {health_areas[1]}%, " +
+            $"Starboard: {health_areas[2]}%, " +
+            $"Aft: {health_areas[3]}%, " +
+            $"Hull Integrity: {hull_integrity}%");
+
         for (int i = 0; i < 4; i++)
         {
-            if (i != most_damaged_area)
-            {
-                updateHealth(Random.Range(0.0f, damage), i);
-            }
+            updateHealth(damages[i], i);
         }
+
         transmitHealthChangeRPC(health_areas[0], health_areas[1], health_areas[2], health_areas[3]);
     }
 
@@ -178,5 +201,21 @@ public class ShipHealth : NetworkBehaviour
             StopCoroutine(damage_animation_coroutine);
         }
         damage_animation_coroutine = StartCoroutine(showDamageEffects(prev_hull_integrity));
+    }
+
+    public void powerOn(int position)
+    {
+        if (hull_integrity_display.activeSelf == false)
+        {
+            hull_integrity_display.SetActive(true);
+            return;
+        }
+        ship_overview_display.SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        hull_integrity_display.SetActive(false);
+        ship_overview_display.SetActive(false);
     }
 }

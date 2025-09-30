@@ -4,17 +4,16 @@
     - Adjusts screen
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 8/22/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 
-public class ProbeVerticalMovement : NetworkBehaviour, IControllable
+public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float LEVER_SPEED = 100.0f;
@@ -26,11 +25,13 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject vertical_lever;
-    public GameObject vertical_canvas;
-    public GameObject probe;
+    public GameObject vertical_display;
+    public GameObject vertical_probe_icon_display;
 
+    private bool is_powered = false;
+    private GameObject probe;
     private float vertical_lever_angle = 0.0f;
-    private Vector3 probe_position;
+    private Vector3 probe_position = new Vector3(0.0f, 0.0f, 0.0f);
     private Coroutine vertical_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -41,9 +42,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
-        hud_info.setButtons(BUTTONS);
-
-        probe_position = probe.transform.localPosition;
+        hud_info.setButtons(BUTTONS, 7);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
@@ -52,34 +51,30 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 
     public void updateAltimeterScreen()
     {
-        GameObject altimeter = vertical_canvas.transform.GetChild(1).GetChild(2).gameObject;
+        GameObject altimeter = vertical_display.transform.GetChild(0).GetChild(2).gameObject;
 
-        //get current altitude (remember, is inverse, so - is positive and + is negative)
-        float current_altitude = -probe.transform.position.y;
+        //get current altitude
+        float current_altitude = probe.transform.position.y;
 
-        //define which markers display text
-        int smallest_number = (((int)(current_altitude * -1.0f)) / 10) * 10;
+        //get number markers
+        int smallest_number = (((int)(current_altitude)) / 10) * 10;
         int next_number = smallest_number + 10;
-        if (current_altitude > 0.0f)
+        if (current_altitude < 0.0f)
         {
             next_number = smallest_number - 10;
         }
-        //set text for text markers
-        altimeter.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
-        altimeter.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
+
+        //define order of markers
         List<GameObject> bars = new List<GameObject>();
         int[] marker_indices = new int[4];
         int[] corresponding_markers = new int[4];
-        int marker_index = 18 - (int)(Mathf.Abs((current_altitude - 50000.0f) % 5.0f) / 1.0f);
-        if (current_altitude > 0.0f)
-        {
-            marker_index--;
-        }
-        for (int i = 0; i < 4; i++)
+        int marker_index = 18 - (int)((current_altitude % 5.0f) / 1.0f); //defines top marker
+
+        for (int i = 0; i < 4; i++) //define other markers (every 5th marker)
         {
             marker_indices[i] = marker_index - (i * 5);
         }
-        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f))
+        if ((Mathf.Abs(current_altitude) % 10.0f < 5.0f)) //swap between number/midpoint halfway
         {
             corresponding_markers[0] = 0;
             corresponding_markers[1] = 1;
@@ -92,42 +87,44 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
             corresponding_markers[1] = 0;
             corresponding_markers[2] = 3;
             corresponding_markers[3] = 2;
-        }
-        //if negative altitude then switch the markers around
-        if (current_altitude > 0.0f)
-        {
-            for (int x = 0; x < 2; x++)
+            //if negative, switch numbers
+            if (current_altitude < 0.0f)
             {
-                int temp = corresponding_markers[3 - x];
-                corresponding_markers[3 - x] = corresponding_markers[x];
-                corresponding_markers[x] = temp;
+                int temp = smallest_number;
+                smallest_number = next_number;
+                next_number = temp;
             }
         }
+
+        //set text for text markers
+        altimeter.transform.GetChild(0).transform.GetChild(0).GetComponent<TMP_Text>().SetText(next_number.ToString() + "m");
+        altimeter.transform.GetChild(2).transform.GetChild(0).GetComponent<TMP_Text>().SetText(smallest_number.ToString() + "m");
+
         //define order of markers
         for (int i = 0; i < 17; i++)
-        {
-            bool marked = false;
-            for (int x = 0; x < 4; x++)
             {
-                if (i == marker_indices[x])
+                bool marked = false;
+                for (int x = 0; x < 4; x++)
                 {
-                    bars.Add(altimeter.transform.GetChild(corresponding_markers[x]).gameObject);
-                    marked = true;
-                    break;
+                    if (i == marker_indices[x])
+                    {
+                        bars.Add(altimeter.transform.GetChild(corresponding_markers[x]).gameObject);
+                        marked = true;
+                        break;
+                    }
+                }
+                if (marked == false)
+                {
+                    bars.Add(altimeter.transform.GetChild(i + 4).gameObject);
                 }
             }
-            if (marked == false)
-            {
-                bars.Add(altimeter.transform.GetChild(i + 4).gameObject);
-            }
-        }
-        //hide all markers
+        //hide all markers to start
         for (int i = 0; i < 21; i++)
         {
             altimeter.transform.GetChild(i).gameObject.SetActive(false);
         }
         //set positions and active state of each marker
-        float shift = ((current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
+        float shift = ((-current_altitude % 1.0f) / 1.0f) * 0.01f; //0.01 in distance between markers equals 1 meter
         for (int i = 0; i < 17; i++)
         {
             bars[i].SetActive(true);
@@ -159,7 +156,8 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
             BUTTONS[i].updateInteractable(true);
         }
         updateAltimeterScreen();
-        vertical_canvas.transform.GetChild(1).gameObject.SetActive(true);
+        vertical_display.transform.GetChild(0).gameObject.SetActive(is_powered);
+        vertical_probe_icon_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
     }
 
     public void unlinkProbe()
@@ -169,7 +167,8 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         {
             BUTTONS[i].updateInteractable(false);
         }
-        vertical_canvas.transform.GetChild(1).gameObject.SetActive(false);
+        vertical_display.transform.GetChild(0).gameObject.SetActive(false);
+        vertical_probe_icon_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
     }
 
     private bool isNeutralState()
@@ -190,13 +189,16 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 
             int vertical_direction = 0;
 
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
+            if (is_powered == true)
             {
-                vertical_direction += 1;
-            }
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
-            {
-                vertical_direction -= 1;
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
+                {
+                    vertical_direction += 1;
+                }
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
+                {
+                    vertical_direction -= 1;
+                }
             }
 
             if (vertical_direction != 0)
@@ -239,8 +241,31 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         vertical_adjustment_coroutine = null;
     }
 
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        vertical_display.SetActive(true);
+        vertical_probe_icon_display.SetActive(true);
+        BUTTONS[0].updateInteractable(probe != null);
+        BUTTONS[1].updateInteractable(probe != null);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        vertical_display.SetActive(false);
+        vertical_probe_icon_display.SetActive(false);
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+    }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         if (vertical_adjustment_coroutine == null)
         {

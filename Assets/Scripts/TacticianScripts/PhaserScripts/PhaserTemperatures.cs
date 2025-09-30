@@ -3,26 +3,30 @@
     - Moves phaser sliders
     - Adjusts phaser temperature screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 7/23/2025
+    Last Updated: 9/1/2025
 */
 
+using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
 
-public class PhaserTemperatures : NetworkBehaviour, IControllable
+public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float MOVE_SPEED = 0.1f;
+    private static float MOVE_SPEED = 0.25f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASER", "SHORT-RANGE PHASERS"};
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>()};
 
-    public List<GameObject> phaser_display_canvases = null;
+    public List<GameObject> phaser_display_displays = null;
     public List<GameObject> phaser_sliders = null;
+
+    private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
     private PhaserPowers phaser_powers;
     private float[] phaser_temperatures = new float[2] { 0.0f, 0.0f };
     private Vector3[] phaser_slider_initial_positions = new Vector3[2];
@@ -51,6 +55,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable
 
         hud_info.setButtons(BUTTON_LISTS[0]);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -83,6 +88,16 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable
         }
     }
 
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 2; i++)
+        {
+            consumed_power += (phaser_temperatures[i] * 0.5f * MAX_POWER_CONSUMPTION);
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+    }
+
     private void displayAdjustment(int index)
     {
         //move physical slider
@@ -102,11 +117,17 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable
         {
             tmp_pwr = phaser_temperatures[index] - (0.05f * i);
             float a = tmp_pwr / 0.05f;
-            phaser_display_canvases[index].transform.GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(phaser_color.r, phaser_color.g, phaser_color.b, a);
+            phaser_display_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(phaser_color.r, phaser_color.g, phaser_color.b, a);
         }
     }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         int index = ray_targets.IndexOf(current_target.name);
 
         //make sure phaser is currently active
@@ -153,10 +174,64 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable
         }
     }
 
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        float[] start_temps = new float[2] { 0.0f, 0.0f };
+        for (int i = 0; i < 2; i++)
+        {
+            start_temps[i] = phaser_temperatures[i];
+        }
+
+        float anim_time = power_off_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            for (int i = 0; i < 2; i++)
+            {
+                phaser_temperatures[i] = Mathf.Lerp(start_temps[i], 0.0f, 1.0f - (anim_time / power_off_time));
+                displayAdjustment(i);
+            }
+            yield return null;
+        }
+
+        power_loss_coroutine = null;
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        for (int i = 0; i < 2; i++)
+        {
+            phaser_display_displays[i].SetActive(true);
+            BUTTON_LISTS[i][0].updateInteractable(false);
+            BUTTON_LISTS[i][1].updateInteractable(false);
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        for (int i = 0; i < 2; i++)
+        {
+            phaser_display_displays[i].SetActive(false);
+            BUTTON_LISTS[i][0].updateInteractable(false);
+            BUTTON_LISTS[i][1].updateInteractable(false);
+        }
+
+        //return temperatures to 0
+        if (power_loss_coroutine != null)
+        {
+            StopCoroutine(power_loss_coroutine);
+        }
+        power_loss_coroutine = StartCoroutine(returnToZero(time));
+    }
+
     [Rpc(SendTo.Everyone)]
     private void transmitPhaserTemperatureAdjustmentRPC(int index, float phsr_percent)
     {
         phaser_temperatures[index] = phsr_percent;
+        handlePowerConsumptionChange();
         displayAdjustment(index);
     }
 }

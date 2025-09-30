@@ -2,7 +2,7 @@
     DustParticleManager.cs
     - Handles spawning in and manipulating exterior dust particles
     Contributor(s): Jake Schott
-    Last Updated: 6/25/2025
+    Last Updated: 8/9/2025
 */
 
 using System.Collections;
@@ -47,6 +47,7 @@ public class DustParticleManager : MonoBehaviour
     {
         //get ship
         spaceship = GameObject.FindGameObjectWithTag("Spaceship");
+
         //initialize particles
         for (int i = 0; i < NUM_PARTICLES; i++)
         {
@@ -57,10 +58,18 @@ public class DustParticleManager : MonoBehaviour
             new_star.SetActive(true);
         }
     }
-    void LateUpdate()
+    private void LateUpdate()
     {
         //face particles towards camera
         //if greater than max distance, replace particle
+        if (Camera.main == null)
+        {
+            return;
+        }
+        if (spaceship == null)
+        {
+            Destroy(this);
+        }
         for (int i = 1; i <= NUM_PARTICLES; i++) 
         {
             transform.GetChild(i).LookAt(Camera.main.transform.position);

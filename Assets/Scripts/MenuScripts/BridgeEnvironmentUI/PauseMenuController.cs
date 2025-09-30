@@ -17,6 +17,7 @@ public class PauseMenuController : MonoBehaviour
     public void HandleResumeButtonClick()
     {
         PauseMenu.SetActive(false);
+        ControlScript.Instance.unpause();
     }
 
     public void HandleControlsButtonClick()
@@ -31,10 +32,7 @@ public class PauseMenuController : MonoBehaviour
 
     public void HandleQuitButtonClick()
     {
-        //added by Jake to avoid an error
-        SceneSwapper.Instance.ChangeSceneRPC("TitleScreen", 0);
-        GameNetworkManager.Instance.Disconnect();
-        SceneData.targetUI = "MainMenu";
+        PlayerManager.leaveGame();
     }
 
     private void SwitchTo(GameObject target)

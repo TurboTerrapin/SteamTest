@@ -3,7 +3,7 @@
     - Handles arming and firing of torpedoes
     - Moves base and lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2025
+    Last Updated: 8/22/2025
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class TorpedoTrigger : NetworkBehaviour, IControllable
+public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float ARM_TIME = 2.0f;
@@ -32,6 +32,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable
     public GameObject trigger_green_light;
     public GameObject trigger_red_light;
 
+    private bool is_powered = false;
     private float trigger_percentage = 0.0f;
     private Vector3 trigger_base_initial_pos;
     private Vector3 trigger_base_final_pos = new Vector3(-3.1877f, 8.7244f, 3.7303f);
@@ -46,7 +47,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable
     {
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
 
         trigger_base_initial_pos = trigger_base.transform.localPosition;
@@ -66,15 +67,19 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable
         float trigger_lever_rotation = Mathf.Max(0.0f, (trigger_percentage - 0.5f) / 0.5f);
         trigger_base.transform.GetChild(0).localRotation = Quaternion.Euler(-200f + (trigger_lever_rotation * -15f), 180f, 90f);
 
-        if (trigger_percentage >= 1.0f)
+        //update lit indicators
+        if (is_powered == true)
         {
-            trigger_green_light.GetComponent<Renderer>().material = lit_green;
-            trigger_red_light.GetComponent<Renderer>().material = unlit_red;
-        }
-        else
-        {
-            trigger_green_light.GetComponent<Renderer>().material = unlit_green;
-            trigger_red_light.GetComponent<Renderer>().material = lit_red;
+            if (trigger_percentage >= 1.0f)
+            {
+                trigger_green_light.GetComponent<Renderer>().material = lit_green;
+                trigger_red_light.GetComponent<Renderer>().material = unlit_red;
+            }
+            else
+            {
+                trigger_green_light.GetComponent<Renderer>().material = unlit_green;
+                trigger_red_light.GetComponent<Renderer>().material = lit_red;
+            }
         }
     }
 
@@ -138,7 +143,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable
             yield return null;
         }
 
-        BUTTONS[1].updateInteractable(true);
+        BUTTONS[1].updateInteractable(is_powered);
         trigger_percentage = 0.0f;
 
         torpedo_fire_coroutine = null;
@@ -153,7 +158,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable
             float before_trigger_percentage = trigger_percentage;
 
             bool arming = ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down);
-            if (arming == true)
+            if (arming == true && is_powered == true)
             {
                 trigger_percentage = Mathf.Min(1.0f, ((trigger_percentage * ARM_TIME) + dt) / ARM_TIME);
             }
@@ -178,6 +183,11 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         if (trigger_arm_coroutine == null && torpedo_fire_coroutine == null)
         {
@@ -198,6 +208,23 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable
                 }
             }
         }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(true);
+        trigger_green_light.GetComponent<Renderer>().material = unlit_green;
+        trigger_red_light.GetComponent<Renderer>().material = lit_red;
+    }
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+        trigger_green_light.GetComponent<Renderer>().material = unlit_green;
+        trigger_red_light.GetComponent<Renderer>().material = unlit_red;
     }
 
     [Rpc(SendTo.Everyone)]

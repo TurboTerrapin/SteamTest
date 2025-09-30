@@ -3,35 +3,41 @@ using UnityEngine;
 
 [RequireComponent(typeof(PilotingSystem))]
 [RequireComponent(typeof(WeaponsSystem))]
+[RequireComponent(typeof(CollisionSystem))]
 public class ShipController : NetworkBehaviour
 {
     private PilotingSystem pilotingSystem;
     private WeaponsSystem weaponsSystem;
+    private CollisionSystem collisionSystem;
 
     private GameObject controlHandler;
     private bool shipReady = false;
 
-    public GameObject worldRoot; 
+    private GameObject worldRoot = null;
 
     private void Awake()
     {
         pilotingSystem = GetComponent<PilotingSystem>();
         weaponsSystem = GetComponent<WeaponsSystem>();
-
+        //collisionSystem = GetComponent<CollisionSystem>();
     }
 
     void Start()
     {
         controlHandler = GameObject.FindGameObjectWithTag("ControlHandler");
-        worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
 
-        if (controlHandler != null && worldRoot != null && pilotingSystem.AssignControlReferences(controlHandler)
+        if (controlHandler != null && pilotingSystem.AssignControlReferences(controlHandler)
             && weaponsSystem.AssignControlReferences(controlHandler))
         {
             shipReady = true;
         }
 
         transform.position = Vector3.zero;
+    }
+
+    public void assignWorldRoot(GameObject wr)
+    {
+        worldRoot = wr;
     }
 
     void Update()
@@ -46,13 +52,10 @@ public class ShipController : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost == true)
         {
 
-
             if (worldRoot == null)
             {
-                worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
                 return;
             }
-
 
             pilotingSystem.UpdateMovement(worldRoot.transform);
         }

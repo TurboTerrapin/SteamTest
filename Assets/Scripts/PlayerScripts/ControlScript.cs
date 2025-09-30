@@ -5,15 +5,13 @@
     - Manages the HUD display for control interaction
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     Contributor(s): Jake Schott
-    Last Updated: 7/7/2025
+    Last Updated: 8/28/2025
 */
 
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine.SceneManagement;
-using Steamworks;
 
 public class ControlScript : MonoBehaviour
 {
@@ -32,13 +30,8 @@ public class ControlScript : MonoBehaviour
     public GameObject controls_menu; //in the pause menu, not the trapezoid/list
     public GameObject control_script_holder; //empty GameObject that contains all the control scripts as components
     public GameObject seat_script_holder; //empty GameObject that contains the seat script manager
-    public Camera my_camera; //player's camera
+    private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
-
-    private GameObject myPlayer = null;
-    private AnimationController myAnimationController = null;
-    private Animator playerAnimator = null;
-    private IKController playerIK = null;
 
     //CLASS VARIABLES
     private HUDInfo current_info;
@@ -49,7 +42,9 @@ public class ControlScript : MonoBehaviour
 
     //SETTINGS
     private int HUD_setting = 0; //0 is Default, 1 is Minimized, 2 is Cursor Only, 3 is None
+    private bool can_pause = false;
     private bool paused = false;
+    private bool is_active = false;
 
     //INPUT INFO
     public static List<KeyCode[]> input_options = new List<KeyCode[]>{ 
@@ -59,7 +54,7 @@ public class ControlScript : MonoBehaviour
         new KeyCode[] {KeyCode.D, KeyCode.RightArrow},
         new KeyCode[] {KeyCode.Q, KeyCode.LeftArrow},
         new KeyCode[] {KeyCode.E, KeyCode.RightArrow},
-        new KeyCode[] {KeyCode.Mouse0, KeyCode.KeypadEnter},
+        new KeyCode[] {KeyCode.Mouse0, KeyCode.KeypadEnter, KeyCode.Return},
         new KeyCode[] {KeyCode.Alpha1, KeyCode.Keypad1},
         new KeyCode[] {KeyCode.Alpha2, KeyCode.Keypad2},
         new KeyCode[] {KeyCode.Alpha3, KeyCode.Keypad3},
@@ -85,56 +80,20 @@ public class ControlScript : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(yieldForLoad());
-
-        //playerIK = FindAnyObjectByType<IKController>();
-        //Animator[] animators = FindObjectsByType<Animator>(FindObjectsSortMode.None);
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        foreach(GameObject player in players)
-        {
-            if(player.GetComponent<PlayerMove>().IsOwner)
-            {
-                myPlayer = player;
-                myAnimationController = player.GetComponent<AnimationController>();
-                playerAnimator = myPlayer.transform.GetChild(1).GetComponent<Animator>();
-                playerIK = myPlayer.transform.GetChild(1).GetComponent<IKController>();
-                break;
-                
-            }
-        }
-
-    }
-
-    IEnumerator yieldForLoad()
-    {
-        //wait to be in BridgeEnvironment scene
-        while (SceneManager.GetActiveScene().name != "BridgeEnvironment")
-        {
-            yield return null;
-        }
-
-        //make an instance so can be referenced by CameraMove
+        //make an instance so can be referenced
         if (Instance != null)
         {
             Destroy(this);
         }
         Instance = this;
+    }
 
-        //find player, set player, free camera
-        string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
-        player_prefab = GameObject.Find(player_prefab_name);
-        while (player_prefab == null)
-        {
-            player_prefab = GameObject.Find(player_prefab_name);
-            yield return null;
-        }
-        player_prefab.transform.GetChild(0).GetComponent<CameraMove>().initialize();
+    public void unlockPlayer(GameObject plr_prefab)
+    {
+        player_prefab = plr_prefab;
 
-        //wait for camera
-        while (my_camera == null)
-        {
-            yield return null;
-        }
+        plr_camera = plr_prefab.transform.GetChild(0).GetComponent<Camera>();
+        player_prefab.transform.GetComponent<CameraMove>().initialize();
 
         //begin control interfacing
         unpause();
@@ -143,18 +102,17 @@ public class ControlScript : MonoBehaviour
         seat_script_holder = GameObject.FindWithTag("SeatHandler");
 
         //free player movement, start checking to sit down, begin the scenario
+        is_active = true;
+        can_pause = true;
         player_prefab.GetComponent<PlayerMove>().initialize();
         seat_check_coroutine = StartCoroutine(seatCheck());
-
-        GameObject scenario_manager = GameObject.FindWithTag("ScenarioManager");
-        scenario_manager.GetComponent<ScenarioManager>().initializeScenarioManager();
     }
 
     //used to clear buttons and minimized list entries
     private void clearButtons()
     {
         //clear trapezoid buttons
-        for (int i = control_info.transform.GetChild(0).GetChild(4).childCount - 1; i >= 3; i--)
+        for (int i = control_info.transform.GetChild(0).GetChild(4).childCount - 1; i >= 2; i--)
         {
             GameObject to_destroy = control_info.transform.GetChild(0).GetChild(4).GetChild(i).gameObject;
             UnityEngine.Object.Destroy(to_destroy);
@@ -226,10 +184,17 @@ public class ControlScript : MonoBehaviour
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update
         }
     }
+
     public bool isPaused()
     {
         return paused;
     }
+
+    public bool canPause()
+    {
+        return can_pause;
+    }
+
     public void pause()
     {
         UnityEngine.Cursor.visible = true;
@@ -248,9 +213,38 @@ public class ControlScript : MonoBehaviour
         settings_menu.SetActive(false);
         controls_menu.SetActive(false);
         paused = false;
-        if (HUD_setting != 3)
+        if (is_active == true)
         {
-            cursor.SetActive(true);
+            if (HUD_setting != 3)
+            {
+                cursor.SetActive(true);
+            }
+        }
+    }
+
+    public void deactivate(bool allow_pausing, bool free_cursor)
+    {
+        is_active = false;
+        can_pause = allow_pausing;
+        if (allow_pausing == false && paused == true)
+        {
+            unpause();
+        }
+        if (free_cursor == true)
+        {
+            UnityEngine.Cursor.visible = true;
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
+        }
+        cursor.SetActive(false);
+    }
+
+    public void reactivate()
+    {
+        is_active = true;
+        can_pause = true;
+        if (paused == false)
+        {
+            unpause();
         }
     }
 
@@ -278,14 +272,11 @@ public class ControlScript : MonoBehaviour
 
     private void checkForSeats()
     {
-        if (!paused)
+        if (!paused && is_active)
         {
             int closest_seat = seat_script_holder.GetComponent<SeatManager>().checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
             {
-
-                
-
                 if (HUD_setting == 0)
                 {
                     seat_title.GetComponent<TMP_Text>().SetText(POSITION_NAMES[closest_seat] + " POSITION");
@@ -315,10 +306,6 @@ public class ControlScript : MonoBehaviour
 
                     player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
 
-                    playerAnimator.SetInteger("Seat", closest_seat);
-                    Vector3 playerPos = myPlayer.transform.GetChild(1).localPosition;
-
-
                     control_check_coroutine = StartCoroutine(controlCheck());
                 }
             }
@@ -342,18 +329,13 @@ public class ControlScript : MonoBehaviour
     //called by controlCheck() every frame
     private void checkForControlsAndInputs()
     {
-        if (my_camera != null)
+        if (plr_camera != null)
         {
-            if (!paused)
+            if (!paused && is_active)
             {
                 //check if trying to unseat
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up
                 {
-                    //playerIK.ikActive = false;
-                    playerIK.setIKRightArm(false);
-                    playerIK.setIKLeftArm(false);
-                    myAnimationController.setCharacterPosition(new Vector3(0, 0.16f, 0));
-
                     is_sitting = !seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
                     if (is_sitting == false)
                     {
@@ -374,15 +356,10 @@ public class ControlScript : MonoBehaviour
                 }
                 
                 //else check controls
-                if (Physics.Raycast(new Ray(my_camera.transform.position, my_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE)) //cast ray
+                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE)) //cast ray
                 {
                     if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
-                        
-                        //playerIK.ikActive = true;
-                        playerIK.setIKRightArm(true);
-                        playerIK.setRightArmIKPosition(hit.collider.transform.position);
-
                         IControllable target_control =
                             (IControllable)control_script_holder.GetComponent(hit.collider.transform.GetChild(0).name); //get corresponding class
 
@@ -445,13 +422,6 @@ public class ControlScript : MonoBehaviour
                     }
                 }
             }
-            //playerIK.ikActive = false;
-            playerIK.setIKRightArm(false);
-            playerIK.setIKLeftArm(false);
-
-
-
-
             control_info.SetActive(false); //hide UI indicator if not looking at a control
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update if not looking at a control
         }

@@ -1,30 +1,54 @@
 using UnityEngine;
 using TMPro;
-using Steamworks;
-
+using Steamworks.Data;
 
 public class FriendJoinWithButton : MonoBehaviour
 {
     [SerializeField]
-    private Friend friend;
+    private Lobby lobby;
     [SerializeField]
-    private TextMeshProUGUI friendName;
+    private TextMeshProUGUI ownerName;
     [SerializeField]
     private TextMeshProUGUI players;
+    [SerializeField]
+    private GameObject joinButton;
 
-    public void SetFriend(Friend f)
+    private JoinCampaignMenuController joinCampaignMenuController;
+
+    private void DeactivateJoinButton()
     {
-        friend = f;
-        friendName.text = friend.Name;
-        players.text = GetPlayers().ToString();
+        //Make button uninteractable
+        joinButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
+        //Fade button
+        UnityEngine.Color buttonColor = joinButton.GetComponent<UnityEngine.UI.Image>().color;
+        joinButton.GetComponent<UnityEngine.UI.Image>().color = new UnityEngine.Color(buttonColor.r, buttonColor.g, buttonColor.b, 0.2f);
+        //Fade button text (JOIN)
+        joinButton.transform.GetChild(1).GetComponent<TMP_Text>().color = new UnityEngine.Color(1.0f, 1.0f, 1.0f, 0.2f);
+        //Fade button border
+        UnityEngine.Color borderColor = joinButton.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color;
+        joinButton.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new UnityEngine.Color(borderColor.r, borderColor.g, borderColor.b, 0.2f);
+    }
+
+    public void SetLobby(Lobby l, JoinCampaignMenuController jcmc)
+    {
+        lobby = l;
+        joinCampaignMenuController = jcmc;
+        ownerName.text = l.Owner.Name;
+        players.text = GetPlayers().ToString() + "/4";
+        if (GetPlayers() >= 4)
+        {
+            DeactivateJoinButton();
+        }
     }
 
     public void JoinFriendLobby()
     {
-        if (friend.GameInfo.Value.Lobby.HasValue)
+        if (GetPlayers() < 4)
         {
-            Debug.Log(friend.GameInfo.Value.Lobby.Value.Id);
-            GameNetworkManager.Instance.JoinWithButton(friend.GameInfo.Value.Lobby.Value);
+            joinCampaignMenuController.ConnectToLobby();
+            //used for loading
+            GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
+            GameNetworkManager.Instance.JoinWithButton(lobby);
         }
     }
 
@@ -35,7 +59,6 @@ public class FriendJoinWithButton : MonoBehaviour
 
     private int GetPlayers()
     {
-        if(friend.GameInfo.Value.Lobby.HasValue) return friend.GameInfo.Value.Lobby.Value.MemberCount;
-        return -1;
+        return Mathf.Max(1, lobby.MemberCount);
     }
 }

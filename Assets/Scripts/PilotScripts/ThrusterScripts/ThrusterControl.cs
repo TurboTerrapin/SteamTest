@@ -4,7 +4,7 @@
     - Handles physical buttons
     - Meant to be extended
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections.Generic;
@@ -16,23 +16,18 @@ public class ThrusterControl : NetworkBehaviour
     //CLASS CONSTANTS
     protected static float PUSH_SPEED = 4.0f; //how fast the physical button takes to be pushed relative to the bars
     protected static float MOVE_SPEED = 0.5f;
+    protected static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     public List<Transform> thruster_buttons;
-    public GameObject display_canvas;
+    public GameObject thruster_display;
 
     protected float[] thruster_percentage = new float[2]{0.0f, 0.0f};
     protected float[] button_push_percentage = new float[2]{0.0f, 0.0f};
     protected Vector3 button_initial_pos;
     protected Vector3 button_final_pos;
-    protected float inertial_dampener_modifier = 1.0f;
+    protected float inertial_dampener_modifier = 0.0f;
     protected float thrust_direction = 0;
     protected Coroutine thruster_coroutine;
-
-    private void Start()
-    {
-        button_initial_pos = thruster_buttons[0].transform.localPosition;
-        button_final_pos = new Vector3(0.2816f, -1.3473f, 19.1217f);
-    }
 
     public void adjustInertialDampenerModifier(float new_modifier)
     {
@@ -42,7 +37,10 @@ public class ThrusterControl : NetworkBehaviour
     protected void updateThrust()
     {
         thrust_direction = thruster_percentage[1] - thruster_percentage[0];
+        float greatest_thruster = Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, greatest_thruster * MAX_POWER_CONSUMPTION);
     }
+
     protected bool checkNeutralState()
     {
         bool neutral_state = true;
@@ -71,18 +69,18 @@ public class ThrusterControl : NetworkBehaviour
                         Mathf.Lerp(button_initial_pos.z, button_final_pos.z, button_push_percentage[button_index]));
 
         //handle thruster bars
-        int starting_bar = 10 - (button_index * 10);
+        int starting_bar = 11 - (button_index * 10);
         //hide all to start
-        for (int i = starting_bar + 1; i < starting_bar + 12; i++)
+        for (int i = starting_bar; i < starting_bar + 10; i++)
         {
-            display_canvas.transform.GetChild(i).gameObject.SetActive(false);
+            thruster_display.transform.GetChild(i).gameObject.SetActive(false);
         }
         int thruster_as_int = (int)(thruster_percentage[button_index] * 100.0f);
-        for (int i = starting_bar + 1; i < starting_bar + 12; i++)
+        for (int i = starting_bar; i < starting_bar + 10; i++)
         {
-            if (thruster_as_int >= (i - starting_bar - 1) * 10)
+            if (thruster_as_int >= (i - starting_bar + 1) * 10)
             {
-                display_canvas.transform.GetChild(i).gameObject.SetActive(true);
+                thruster_display.transform.GetChild(i).gameObject.SetActive(true);
             }
         }
     }

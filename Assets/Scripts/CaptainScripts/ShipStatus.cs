@@ -3,7 +3,7 @@
     - Handles slider
     - Changes lights at highest status
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2025
+    Last Updated: 9/8/2025
 */
 
 using System.Collections;
@@ -11,20 +11,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class ShipStatus: NetworkBehaviour, IControllable
+public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     Color[] COLOR_OPTIONS = new Color[3] { new Color(0f, 0.84f, 1f), new Color(0.89f, 1f, 0.0f), new Color(1f, 0.01f, 0.0f)};
     private static float MOVE_TIME = 0.5f;
+    private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     private string CONTROL_NAME = "SHIP ALERT STATUS";
     private List<string> CONTROL_DESCS = new List<string> { "LOWER", "ELEVATE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
+    private bool is_powered = false;
+    private Coroutine power_loss_coroutine = null;
+    public List<GameObject> position_warnings = null;
     public List<GameObject> indicators = null;
     public GameObject selector_lever;
-    public GameObject lights;
+    public LightsManager lights_manager;
     private Vector3 initial_pos;
     private Vector3 final_pos = new Vector3(0.3821f, -0.5888f, 13.6847f);
     private int curr_status = 0;
@@ -38,7 +42,7 @@ public class ShipStatus: NetworkBehaviour, IControllable
     {
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);
 
         initial_pos = selector_lever.transform.localPosition;
@@ -68,18 +72,16 @@ public class ShipStatus: NetworkBehaviour, IControllable
         }
 
         //change lights
-        Color light_color = new Color(0.41f, 0.82f, 0.95f);
-        float intensity = 15.0f;
-        if (curr_status == 2)
+        if (GameObject.Find("PowerHandler").GetComponent<PowerManager>().getShipHasPower() == true)
         {
-            light_color = new Color(1.0f, 0.0f, 0.0f);
-            intensity = 7.5f;
-        }
-
-        for (int i = 0; i < lights.transform.childCount; i++)
-        {
-            lights.transform.GetChild(i).gameObject.GetComponent<UnityEngine.Light>().color = light_color;
-            lights.transform.GetChild(i).gameObject.GetComponent<UnityEngine.Light>().intensity = intensity;
+            if (curr_status == 2)
+            {
+                lights_manager.enableRedAlert();
+            }
+            else
+            {
+                lights_manager.disableRedAlert();
+            }
         }
     }
 
@@ -106,6 +108,15 @@ public class ShipStatus: NetworkBehaviour, IControllable
             yield return null;
         }
 
+        if (curr_status > 0)
+        {
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        }
+        else
+        {
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
+        }
+
         displayAdjustment();
 
         BUTTONS[0].updateInteractable(curr_status > 0);
@@ -118,6 +129,11 @@ public class ShipStatus: NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         if (status_shift_coroutine == null)
         {
@@ -146,6 +162,68 @@ public class ShipStatus: NetworkBehaviour, IControllable
                     }
                 }
             }
+        }
+    }
+
+    //used by powerOff
+    IEnumerator returnToZero(float power_off_time)
+    {
+        Vector3 start_pos = selector_lever.transform.localPosition;
+        float anim_time = power_off_time;
+        curr_status = 0;
+        displayAdjustment();
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            selector_lever.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, 1.0f - (anim_time / power_off_time));
+            yield return null;
+        }
+
+        power_loss_coroutine = null;
+    }
+
+    public void powerOn(int position)
+    {
+        if (position <= 1) //pilot, tactician
+        {
+            position_warnings[position].SetActive(true);
+        }
+        else if (position == 3)
+        {
+            is_powered = true;
+            for (int i = 0; i <= curr_status; i++)
+            {
+                indicators[i].SetActive(true);
+            }
+            BUTTONS[0].updateInteractable(curr_status > 0);
+            BUTTONS[1].updateInteractable(curr_status < 2);
+            BUTTONS[0].untoggle();
+            BUTTONS[1].untoggle();
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        if (position <= 1) //pilot, tactician
+        {
+            position_warnings[position].SetActive(false);
+        }
+        if (position == 3) //captain
+        {
+            is_powered = false;
+            for (int i = 0; i < 3; i++)
+            {
+                indicators[i].SetActive(false);
+            }
+            BUTTONS[0].updateInteractable(false);
+            BUTTONS[1].updateInteractable(false);
+
+            //return to normal status
+            if (power_loss_coroutine != null)
+            {
+                StopCoroutine(power_loss_coroutine);
+            }
+            power_loss_coroutine = StartCoroutine(returnToZero(time));
         }
     }
 

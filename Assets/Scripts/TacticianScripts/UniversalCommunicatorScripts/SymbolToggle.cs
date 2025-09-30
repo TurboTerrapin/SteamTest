@@ -2,7 +2,7 @@
     SymbolToggle.cs
     - Slider that switches between symbols and numbers
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2025
+    Last Updated: 7/29/2025
 */
 
 using System.Collections;
@@ -20,11 +20,12 @@ public class SymbolToggle : NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>() {6};
     private List<Button> BUTTONS = new List<Button>();
 
-    public List<GameObject> character_displays = null;
+    public GameObject input_glasses;
     public GameObject numeric_selector = null;
     public GameObject numeric_indicator_display = null;
 
     private bool symbol_mode = false;
+    private bool is_active = true;
     private Vector3 initial_pos;
     private Vector3 final_pos = new Vector3(-3.1493f, 8.7417f, 3.7713f);
     private Coroutine numer_selector_coroutine = null;
@@ -33,7 +34,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTONS);
 
@@ -44,15 +45,33 @@ public class SymbolToggle : NetworkBehaviour, IControllable
         return hud_info;
     }
 
+    public void activate()
+    {
+        is_active = true;
+        BUTTONS[0].updateInteractable(true);
+    }
+
+    public void deactivate()
+    {
+        is_active = false;
+        BUTTONS[0].updateInteractable(false);
+    }
+
+    private GameObject getCharacterDisplay(int index)
+    {
+        return input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
+    }
+
     private void displayAdjustment()
     {
         for (int i = 0; i < 12; i++)
         {
-            character_displays[i].transform.GetChild(1).gameObject.SetActive(symbol_mode);
-            character_displays[i].transform.GetChild(2).gameObject.SetActive(!symbol_mode);
+            GameObject cd = getCharacterDisplay(i);
+            cd.transform.GetChild(0).gameObject.SetActive(symbol_mode);
+            cd.transform.GetChild(1).gameObject.SetActive(!symbol_mode);
         }
-        numeric_indicator_display.transform.GetChild(1).gameObject.SetActive(symbol_mode);
-        numeric_indicator_display.transform.GetChild(2).gameObject.SetActive(!symbol_mode);
+        numeric_indicator_display.transform.GetChild(0).gameObject.SetActive(symbol_mode);
+        numeric_indicator_display.transform.GetChild(1).gameObject.SetActive(!symbol_mode);
     }
 
     public int getIsNumeric()
@@ -92,14 +111,14 @@ public class SymbolToggle : NetworkBehaviour, IControllable
 
         symbol_mode = !symbol_mode;
 
-        BUTTONS[0].updateInteractable(true);
+        BUTTONS[0].updateInteractable(is_active);
 
         numer_selector_coroutine = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (numer_selector_coroutine == null)
+        if (numer_selector_coroutine == null && is_active == true && transform.GetComponent<UniversalCommunicator>().getIsPowered() == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {

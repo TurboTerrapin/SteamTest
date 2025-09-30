@@ -2,7 +2,7 @@
     ShipManualSelector.cs
     - Sends inputs to ShipManual and CommunicationsManual (directional, selection, and back)
     Contributor(s): Jake Schott
-    Last Updated: 5/22/2025
+    Last Updated: 8/24/2025
 */
 
 using Unity.Netcode;
@@ -21,8 +21,8 @@ public class ManualSelector : NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 12, 0, 2, 1, 3 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
-    public List<GameObject> buttons;
-    public Component[] manuals = new Component[2];
+    public List<GameObject> button_holders;
+    private Component[] manuals = new Component[2];
 
     private Vector3[] initial_pos = new Vector3[12];
     private Vector3[] push_direction = { new Vector3(-0.003f, -0.0074f, 0f), new Vector3(0.003f, -0.0074f, 0f) };
@@ -52,9 +52,12 @@ public class ManualSelector : NetworkBehaviour, IControllable
         hud_info.setButtons(BUTTON_LISTS[0], 4);
 
         //set initial positions
-        for (int i = 0; i < buttons.Count; i++)
+        for (int i = 0; i < button_holders.Count; i++)
         {
-            initial_pos[i] = buttons[i].transform.localPosition;
+            for (int b = 0; b < button_holders[i].transform.childCount; b++)
+            {
+                initial_pos[b + (i * 6)] = button_holders[i].transform.GetChild(b).localPosition;
+            }
         }
     }
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -95,13 +98,12 @@ public class ManualSelector : NetworkBehaviour, IControllable
     IEnumerator manualInput(int button, int manual_index)
     {
         //set buttons to initial positions
-        int start_i = manual_index * 6;
-        for (int i = start_i; i < start_i + 6; i++)
+        for (int b = 0; b < 6; b++)
         {
-            buttons[i].transform.localPosition = initial_pos[i];
+            button_holders[manual_index].transform.GetChild(b).localPosition = initial_pos[b + (manual_index * 6)];
         }
 
-        Vector3 final_pos = initial_pos[button + start_i] + push_direction[manual_index];
+        Vector3 final_pos = initial_pos[button + (manual_index * 6)] + push_direction[manual_index];
 
         for (int i = 0; i <= 1; i++)
         {
@@ -119,28 +121,32 @@ public class ManualSelector : NetworkBehaviour, IControllable
                     push_percentage = (push_time / half_time);
                 }
 
-                buttons[button + start_i].transform.localPosition =
-                    new Vector3(Mathf.Lerp(initial_pos[button + start_i].x, final_pos.x, push_percentage),
-                                Mathf.Lerp(initial_pos[button + start_i].y, final_pos.y, push_percentage),
-                                Mathf.Lerp(initial_pos[button + start_i].z, final_pos.z, push_percentage));
+                button_holders[manual_index].transform.GetChild(button).transform.localPosition =
+                    new Vector3(Mathf.Lerp(initial_pos[button + (manual_index * 6)].x, final_pos.x, push_percentage),
+                                Mathf.Lerp(initial_pos[button + (manual_index * 6)].y, final_pos.y, push_percentage),
+                                Mathf.Lerp(initial_pos[button + (manual_index * 6)].z, final_pos.z, push_percentage));
 
                 yield return null;
             }
 
             Manual curr_manual = (Manual)manuals[manual_index];
-            if (i == 0)
+
+            if (curr_manual.getIsPowered() == true)
             {
-                if (button == 0)
+                if (i == 0)
                 {
-                    curr_manual.forward();
-                }
-                else if (button == 1)
-                {
-                    curr_manual.back();
-                }
-                else
-                {
-                    curr_manual.switchButtons(button - 2);
+                    if (button == 0)
+                    {
+                        curr_manual.forward();
+                    }
+                    else if (button == 1)
+                    {
+                        curr_manual.back();
+                    }
+                    else
+                    {
+                        curr_manual.switchButtons(button - 2);
+                    }
                 }
             }
         }
@@ -156,6 +162,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
     {
         int manual_index = ray_targets.IndexOf(current_target.name);
         Manual curr_manual = (Manual)manuals[manual_index];
+
         if (manual_input_coroutine[manual_index] == null && is_active[manual_index] == true)
         {
             for (int i = 0; i <= 5; i++)

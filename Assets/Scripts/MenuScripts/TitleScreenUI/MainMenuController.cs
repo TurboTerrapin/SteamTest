@@ -7,6 +7,15 @@ public class MainMenuController : MonoBehaviour
     //public GameObject LogsScreen;
     public GameObject SettingsMenu;
 
+    private void Start()
+    {
+        GameObject LoadHandler = GameObject.Find("LoadHandler");
+        if (LoadHandler != null)
+        {
+            LoadHandler.GetComponent<LoadHandler>().endLoad();
+        }
+    }
+
     public void HandleCampaignButtonClick()
     {
         SwitchTo(CampaignMenu);

@@ -3,7 +3,7 @@
     - Handles inputs for steering wheel
     - Moves wheel accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 6/30/2025
+    Last Updated: 8/19/2025
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class CourseHeading : NetworkBehaviour, IControllable
+public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
 {
     private const float maxAngularVelocity = 1.2f;
     private const float accelerationRate = 1.5f;
@@ -20,35 +20,59 @@ public class CourseHeading : NetworkBehaviour, IControllable
     private const float wheelFriction = 0.95f;
 
     private string CONTROL_NAME = "COURSE HEADING";
-    private List<string> CONTROL_DESCS = new List<string> { "TURN LEFT", "TURN RIGHT" };
+    private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
+    public Material lit_neon;
+    public Material unlit_neon;
+
     public GameObject wheel;
+    public GameObject wheel_light;
     public GameObject fill_circle;
-    public GameObject heading_text;
-    public GameObject compass;
 
     // State variables
     private float angularVelocity = 0f;
     public float wheel_angle = 0.0f; // Normalized wheel angle (-1, 1), visual wheel position 
     public float steering_input; // True steering input (Does not register spring oscillations beyond neutral)
 
+    private bool is_powered = false;
     private Coroutine wheel_spin_coroutine = null;
     private List<KeyCode> keys_down = new List<KeyCode>();
-    private static HUDInfo hud_info = null;
+    
+    private HUDInfo hud_info = null;
 
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
     }
 
-    public HUDInfo getHUDinfo(GameObject current_target) => hud_info;
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return hud_info;
+    }
 
     public float getSteeringValue() => steering_input;
+
+    //called by DirectionalShifter when switching ship direction
+    public void switchControlDescs(bool in_reverse)
+    {
+        if (in_reverse == true)
+        {
+            CONTROL_DESCS[0] = "INCREASE";
+            CONTROL_DESCS[1] = "DECREASE";
+        }
+        else
+        {
+            CONTROL_DESCS[0] = "DECREASE";
+            CONTROL_DESCS[1] = "INCREASE";
+        }
+        BUTTONS[0].updateDesc(CONTROL_DESCS[0]);
+        BUTTONS[1].updateDesc(CONTROL_DESCS[1]);
+    }
 
     private void displayAdjustment()
     {
@@ -57,7 +81,7 @@ public class CourseHeading : NetworkBehaviour, IControllable
         fill_circle.GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Abs(wheel_angle / 2.0f);
 
         //point physical wheel in right direction
-        wheel.transform.localRotation = Quaternion.Euler(-113.0f, 0.0f, 450f * wheel_angle);
+        wheel.transform.localRotation = Quaternion.Euler(-113.0f, 0.0f, 450.0f * wheel_angle);
     }
 
     IEnumerator wheelSpinning()
@@ -74,15 +98,18 @@ public class CourseHeading : NetworkBehaviour, IControllable
 
             if (!(ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)))
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //E
+                if (is_powered == true)
                 {
-                    inputDirection = 1;
-                    isPlayerInputActive = true;
-                }
-                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //Q
-                {
-                    inputDirection = -1;
-                    isPlayerInputActive = true;
+                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //E
+                    {
+                        inputDirection = 1;
+                        isPlayerInputActive = true;
+                    }
+                    else if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //Q
+                    {
+                        inputDirection = -1;
+                        isPlayerInputActive = true;
+                    }
                 }
 
                 if (isPlayerInputActive)
@@ -171,14 +198,6 @@ public class CourseHeading : NetworkBehaviour, IControllable
         wheel_spin_coroutine = null;
     }
 
-    [Rpc(SendTo.Everyone)]
-    private void transmitWheelAngleRPC(float wheel_ang, float steering_in)
-    {
-        wheel_angle = wheel_ang;
-        steering_input = steering_in;
-        displayAdjustment();
-    }
-
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
@@ -186,5 +205,31 @@ public class CourseHeading : NetworkBehaviour, IControllable
         {
             wheel_spin_coroutine = StartCoroutine(wheelSpinning());
         }
+    }
+
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        BUTTONS[0].updateInteractable(true);
+        BUTTONS[1].updateInteractable(true);
+        fill_circle.SetActive(true);
+        wheel_light.GetComponent<Renderer>().material = lit_neon;
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+        fill_circle.SetActive(false);
+        wheel_light.GetComponent<Renderer>().material = unlit_neon;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void transmitWheelAngleRPC(float wheel_ang, float steering_in)
+    {
+        wheel_angle = wheel_ang;
+        steering_input = steering_in;
+        displayAdjustment();
     }
 }

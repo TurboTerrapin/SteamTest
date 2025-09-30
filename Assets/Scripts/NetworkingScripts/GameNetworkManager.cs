@@ -31,7 +31,6 @@ public class GameNetworkManager : MonoBehaviour
     {
         transport = GetComponent<FacepunchTransport>();
 
-
         SteamMatchmaking.OnLobbyCreated += SteamMatchmaking_OnLobbyCreated;
         SteamMatchmaking.OnLobbyEntered += SteamMatchmaking_OnLobbyEntered;
         SteamMatchmaking.OnLobbyMemberJoined += SteamMatchmaking_OnLobbyMemberJoined;
@@ -39,7 +38,6 @@ public class GameNetworkManager : MonoBehaviour
         SteamMatchmaking.OnLobbyInvite += SteamMatchmaking_OnLobbyInvite;
         SteamMatchmaking.OnLobbyGameCreated += SteamMatchmaking_OnLobbyGameCreated;
         SteamFriends.OnGameLobbyJoinRequested += SteamFriends_OnGameLobbyJoinRequested;
-
     }
     private void OnDestroy()
     {
@@ -194,7 +192,7 @@ public class GameNetworkManager : MonoBehaviour
 
     private void Singleton_OnClientConnectedCallback(ulong obj)
     {
-        throw new System.NotImplementedException();
+        Debug.Log("Client connected");
     }
 
     private void Singleton_OnServerStarted()

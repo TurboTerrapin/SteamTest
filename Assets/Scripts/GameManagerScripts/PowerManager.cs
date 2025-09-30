@@ -1,0 +1,728 @@
+/*
+    PowerManager.cs
+    - Handles powering on/off each of the positions
+    - Records changes in power consumption (as called by the individual controls)
+    - Handles overconsumption and complete shutdown
+    Contributor(s): Jake Schott
+    Last Updated: 9/6/2025
+*/
+
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using Unity.Netcode;
+using UnityEngine;
+
+public class PowerManager : NetworkBehaviour, IPowerable
+{
+    //CLASS CONSTANTS
+    private static float POWER_ON_TIME = 1.0f; //how long it takes to power on a position
+    private static float POWER_OFF_TIME = 1.0f; //how long it takes to power down a position
+    private static float POWER_UPDATE_TIME = 0.5f; //how often the power consumption displays update
+    private static float TIME_TO_POWER_LOSS = 3.0f; //once a position overconsumes power, how long until ship shutdown
+    private static int[] DEFAULT_POWER_ALLOCATIONS = new int[] { 8, 6, 5, 5 }; //communicated to PowerAllocation
+
+    public List<GameObject> position_power_displays = null;
+    public List<GameObject> engineer_power_displays = null;
+    public List<GameObject> power_warnings = null;
+
+    public PowerAllocation power_allocation;
+    public LightsManager lights_manager;
+
+    //sounds
+    public AudioSource overconsumption_warning_sound;
+    public AudioSource ship_beeps_sound;
+    public AudioSource power_off_sound;
+    public AudioSource power_on_sound;
+
+    private GameObject engineer_power_breakdown_display;
+    private GameObject control_handler;
+    private GameObject sensor_handler;
+
+    private bool ship_has_power = true;
+
+    //these three lists correspond to 0-3 pilot, tactician, engineer, captain
+    private List<Component>[] positional_modules = new List<Component>[] { null, null, null, null }; //the powerable components
+    private List<float>[] power_distributions = new List<float>[] { new List<float>(), new List<float>(), new List<float>(), new List<float>() };
+    private List<string>[] associated_controls = new List<string>[] { new List<string>(), new List<string>(), new List<string>(), new List<string>() };
+
+    private bool[] powered_positions = new bool[] { false, false, false, false }; //corresponds to pilot, tactician, engineer, captain
+    private float[] power_consumptions = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
+    private Coroutine[] power_change_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
+    private Coroutine[] overconsumption_coroutines = new Coroutine[] { null, null, null, null }; //corresponds to pilot, tactician, engineer, captain
+    private Coroutine shutdown_coroutine = null;
+    private Coroutine power_restart_coroutine = null;
+    private Coroutine power_updater_coroutine = null;
+
+    private void Start()
+    {
+        control_handler = GameObject.FindGameObjectWithTag("ControlHandler");
+        sensor_handler = GameObject.FindGameObjectWithTag("SensorHandler");
+        engineer_power_breakdown_display = engineer_power_displays[0].transform.parent.gameObject;
+
+        addPilotModules(); //positional_modules[0]
+        addTacticianModules(); //positional_modules[1]
+        addEngineerModules(); //positional_modules[2]
+        addCaptainModules(); //positional_modules[3]
+
+        linkPowerDistributions();
+
+        power_updater_coroutine = StartCoroutine(powerUpdater());
+        power_allocation.resetToDefaultAllocation(DEFAULT_POWER_ALLOCATIONS);
+    }
+
+    //called by ScenarioManager as part of the BridgeEnvironment reset process prior to starting a new scenario
+    public void resetPowerManager()
+    {
+        //stop any ongoing coroutines
+        for (int i = 0; i < 4; i++)
+        {
+            if (power_change_coroutines[i] != null)
+            {
+                StopCoroutine(power_change_coroutines[i]);
+                power_change_coroutines[i] = null;
+            }
+
+            if (overconsumption_coroutines[i] != null)
+            {
+                StopCoroutine(overconsumption_coroutines[i]);
+                overconsumption_coroutines[i] = null;
+            }
+        }
+
+        if (power_restart_coroutine != null)
+        {
+            StopCoroutine(power_restart_coroutine);
+            power_restart_coroutine = null;
+        }
+
+        //stop power loss/restart sounds
+        overconsumption_warning_sound.Stop();
+        power_on_sound.Stop();
+        power_off_sound.Stop();
+
+        //resume beeping sound
+        if (ship_beeps_sound.isPlaying == false)
+        {
+            ship_beeps_sound.Play();
+        }
+
+        //if power updater is disabled, reenable
+        if (power_updater_coroutine == null)
+        {
+            power_updater_coroutine = StartCoroutine(powerUpdater());
+        }
+
+        //set power allocation to default
+        power_allocation.resetToDefaultAllocation(DEFAULT_POWER_ALLOCATIONS);
+
+        //set power to true
+        ship_has_power = true;
+
+        //pause regulation
+        transform.GetComponent<PowerRegulator>().resetPowerRegulator();
+
+        //reset display
+        for (int i = 0; i < 4; i++)
+        {
+            resetEngineerPositionDisplay(i);
+        }
+    }
+
+    //called only once by Start() to initialize the tracking of each control's potential power consumption
+    private void linkPowerDistributions()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            for (int m = 0; m < positional_modules[i].Count; m++)
+            {
+                IControllable control_test = positional_modules[i][m] as IControllable;
+                if (control_test != null)
+                {
+                    string control_name = positional_modules[i][m].GetType().Name;
+
+                    if (associated_controls[i].Contains(control_name) == false)
+                    {
+                        power_distributions[i].Add(0.0f);
+                        associated_controls[i].Add(control_name);
+                    }
+                }
+                if (i == 1) //tactician exception for TransmissionHandler since it's not a "control" per se
+                {
+                    power_distributions[1].Add(0.0f);
+                    associated_controls[1].Add("TransmissionHandler");
+                }
+                else if (i == 3) //captain exception for ManualOnOff since it's not covered by IPowerable
+                {
+                    power_distributions[3].Add(0.0f);
+                    associated_controls[3].Add("ManualOnOff");
+                }
+            }
+        }
+    }
+
+    //returns true if there is at least one overconsumption warning in effect
+    private bool checkIfOverconsuming()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (overconsumption_coroutines[i] != null)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //returns the power consumption of a specific position (0 = pilot, 1 = tactician, 2 = engineer, 3 = captain) 
+    private float getPowerConsumption(int position)
+    {
+        float total_power = 0.0f;
+        for (int p = 0; p < power_distributions[position].Count; p++)
+        {
+            total_power += power_distributions[position][p];
+        }
+        return Mathf.Min(1.05f, total_power);
+    }
+
+    //powers every control in a given position in POWER_ON_TIME seconds
+    IEnumerator modulePowerSequence(List<Component> to_power_on, int position)
+    {
+        for (int i = 0; i < to_power_on.Count; i++)
+        {
+            IPowerable current_module = (IPowerable)to_power_on[i];
+            current_module.powerOn(position);
+            yield return new WaitForSeconds(POWER_ON_TIME / to_power_on.Count);
+        }
+
+        control_handler.GetComponent<PowerControl>().enableDial(position, true);
+        power_change_coroutines[position] = null;
+    }
+
+    //powers down every control instantly, finishes in POWER_OFF_TIME (throttles return to 0 position in POWER_OFF_TIME)
+    IEnumerator powerDownSequence(List<Component> to_disable, int position)
+    {
+        control_handler.GetComponent<PowerControl>().turnDial(position, false);
+        for (int i = 0; i < to_disable.Count; i++)
+        {
+            IPowerable current_module = (IPowerable)to_disable[i];
+            current_module.powerOff(position, POWER_OFF_TIME);
+        }
+
+        yield return new WaitForSeconds(POWER_OFF_TIME);
+
+        if (ship_has_power == true)
+        {
+            control_handler.GetComponent<PowerControl>().enableDial(position, false);
+        }
+        power_change_coroutines[position] = null;
+    }
+
+    //called by IControllables attached to ControlHandler
+    public void controlPowerChange(int position, string control_name, float power_level)
+    {
+        if (associated_controls[position].Contains(control_name) == false)
+        {
+            return;
+        }
+
+        power_distributions[position][associated_controls[position].IndexOf(control_name)] = power_level;
+        powerConsumptionChangeRPC(position, getPowerConsumption(position));
+    }
+
+    //returns whether the ship as a whole has power or not
+    public bool getShipHasPower()
+    {
+        return ship_has_power;
+    }
+
+    //called by PowerControl
+    public bool getPowerEnabled(int position)
+    {
+        return powered_positions[position];
+    }
+
+    //called by PowerControl and ScenarioManager when at the start of a scenario
+    public void powerStation(int position)
+    {
+        if (powered_positions[position] == true)
+        {
+            return;
+        }
+        powered_positions[position] = true;
+
+        List<Component> to_enable = positional_modules[position];
+
+        if (power_change_coroutines[position] != null)
+        {
+            StopCoroutine(power_change_coroutines[position]);
+        }
+        power_change_coroutines[position] = StartCoroutine(modulePowerSequence(to_enable, position));
+    }
+
+    //called by PowerControl (and ScenarioManager at the end of a scenario as a way of resetting every control)
+    public void disableStation(int position)
+    {
+        if (powered_positions[position] == false)
+        {
+            return;
+        }
+        if (power_change_coroutines[position] != null)
+        {
+            StopCoroutine(power_change_coroutines[position]);
+            power_change_coroutines[position] = null;
+        }
+        powered_positions[position] = false;
+        
+        for (int i = 0; i < power_distributions[position].Count; i++)
+        {
+            power_distributions[position][i] = 0.0f;
+        }
+        power_consumptions[position] = getPowerConsumption(position);
+
+        List<Component> to_disable = positional_modules[position];
+        
+        power_change_coroutines[position] = StartCoroutine(powerDownSequence(to_disable, position));
+    }
+
+    //called by this script to display the position's power circles and the warning indicator only
+    public void powerOn(int position)
+    {
+        if (position <= 1) //pilot, tactician
+        {
+            if (position_power_displays[position].activeSelf == true) //second pass
+            {
+                power_warnings[position].SetActive(true);
+            }
+        }
+        else if (position == 2) //engineer
+        {
+            if (engineer_power_breakdown_display.activeSelf == false)
+            {
+                engineer_power_breakdown_display.SetActive(true);
+                return;
+            }
+        }
+        position_power_displays[position].SetActive(true);
+    }
+
+    //called by this script to hide the position's power circles and the warning indicator only
+    public void powerOff(int position, float time)
+    {
+        if (position <= 1) //pilot, tactician
+        {
+            power_warnings[position].SetActive(false);
+        }
+        else if (position == 2) //engineer
+        {
+            engineer_power_breakdown_display.SetActive(false);
+        }
+        position_power_displays[position].SetActive(false);
+    }
+
+    //helper method used to set the color of a power icon, called by powerUpdater() and animationProgressHelper()
+    private void powerIconHelper(GameObject to_change, float a)
+    {
+        Color icon_color = to_change.GetComponent<UnityEngine.UI.RawImage>().color;
+        to_change.GetComponent<UnityEngine.UI.RawImage>().color = new Color(icon_color.r, icon_color.g, icon_color.b, a);
+    }
+
+    //helper method used to set the alphas of each of the green-to-red circles based on a given power level (0-10)
+    private void animationProgressHelper(GameObject display, int power_level, float percent, float min_alpha)
+    {
+        float tmp_prcnt = percent;
+        for (int i = 0; i < power_level; i++)
+        {
+            tmp_prcnt = percent - ((1.0f / power_level) * i);
+            float a = Mathf.Max(min_alpha, tmp_prcnt / (1.0f / power_level));
+            powerIconHelper(display.transform.GetChild(i + 1).gameObject, a);
+        }
+    }
+
+    //runs on an infinite loop, updates the green-to-red power consumption screens for all positions
+    IEnumerator powerUpdater()
+    {
+        while (true)
+        {
+            //start at minimum transparency (0.2f)
+            int[] power_levels = new int[4] { 0, 0, 0, 0 };
+            for (int i = 0; i < 4; i++)
+            {
+                power_levels[i] = (int)Mathf.Floor(power_consumptions[i] * 10.0f);
+                for (int k = 1; k <= 10; k++)
+                {
+                    position_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
+                    powerIconHelper(position_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
+
+                    engineer_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
+                    powerIconHelper(engineer_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
+                }
+            }
+
+            //increase alphas based on how power consumption over the course of POWER_UPDATE_TIME
+            float anim_time = POWER_UPDATE_TIME;
+            while (anim_time > 0.0f)
+            {
+                anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+                for (int i = 0; i < 4; i++)
+                {
+                    animationProgressHelper(position_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME), 0.2f);
+                    animationProgressHelper(engineer_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME), 0.5f);
+                }
+
+                yield return null;
+            }
+        }
+    }
+
+    //used after the conclusion of a power overconsumption sequence (power shutdown)
+    private void resetEngineerPositionDisplay(int position)
+    {
+        //hide warning bar
+        engineer_power_displays[position].transform.GetChild(0).gameObject.SetActive(false);
+
+        //change colors of position icon and label to blue
+        engineer_power_displays[position].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        engineer_power_displays[position].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+
+        //get power allocation for that position
+        int max_allocation = (int)(power_allocation.getPowerAllocation(position) * 10.0f);
+
+        //recolor circles from red to their actual color
+        for (int i = 1; i <= 10; i++)
+        {
+            //recolor circle
+            float circle_alpha = engineer_power_displays[position].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
+            Color corresponding_circle_color = position_power_displays[0].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color; //use pilot position as a reference
+            engineer_power_displays[position].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(corresponding_circle_color.r, corresponding_circle_color.g, corresponding_circle_color.b, circle_alpha);
+
+            //recolor power allocation circle
+            float power_alpha = 0.2f;
+            if (i <= max_allocation)
+            {
+                power_alpha = 1.0f;
+            }
+            engineer_power_displays[position].transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, power_alpha);
+        }
+    }
+
+    //used when a position's power consumption exceeds their allocation
+    IEnumerator imminentPowerLoss(int index)
+    {
+        //play warning sound if not playing already
+        if (overconsumption_warning_sound.isPlaying == false)
+        {
+            overconsumption_warning_sound.Play();
+        }
+
+        //show red warning bar
+        GameObject power_loss_bar = engineer_power_displays[index].transform.GetChild(0).gameObject;
+        power_loss_bar.SetActive(true);
+
+        //change colors of position icon and label to red
+        engineer_power_displays[index].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+        engineer_power_displays[index].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+
+        //change colors of each circle to red
+        for (int i = 1; i <= 10; i++)
+        {
+            float a = engineer_power_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
+            engineer_power_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, a);
+            engineer_power_displays[index].transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+        }
+
+        //animate the progress bar based on TIME_TO_POWER_LOSS
+        float anim_time = TIME_TO_POWER_LOSS;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            power_loss_bar.GetComponent<UnityEngine.UI.Image>().fillAmount = (anim_time / TIME_TO_POWER_LOSS);
+
+            yield return null;
+        }
+
+        //if time runs out, then power shutdown (if host)
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            totalShutdownRPC();
+        }
+    }
+
+    IEnumerator shutdownProcess()
+    {
+        //handle shutdown effects (lights, sounds)
+        lights_manager.disableDefaultLights();
+        lights_manager.disableEmergencyLights();
+        power_off_sound.Play();
+        ship_beeps_sound.Stop();
+        overconsumption_warning_sound.Stop();
+
+        //stop updating power consumption
+        if (power_updater_coroutine != null)
+        {
+            StopCoroutine(power_updater_coroutine);
+            power_updater_coroutine = null;
+        }
+
+        //power down all stations
+        for (int i = 0; i < 4; i++)
+        {
+            control_handler.GetComponent<PowerControl>().disableDial(i);
+            disableStation(i);
+            if (overconsumption_coroutines[i] != null)
+            {
+                StopCoroutine(overconsumption_coroutines[i]);
+                overconsumption_coroutines[i] = null;
+                resetEngineerPositionDisplay(i);
+            }
+        }
+
+        //clear out all power sources
+        transform.GetComponent<PowerRegulator>().disableAllPowerSources();
+
+        yield return new WaitForSeconds(2.0f);
+
+        lights_manager.disableRedAlert();
+        lights_manager.enableEmergencyLights();
+
+        shutdown_coroutine = null;
+    }
+
+    //called by PowerRegulator.terminateDepletionRPC()
+    public void totalShutdown()
+    {
+        if (ship_has_power == true)
+        {
+            totalShutdownRPC();
+        }
+    }
+
+    //called by PowerRegulator.moduleCompleted()
+    public void restorePower()
+    {
+        if (shutdown_coroutine != null)
+        {
+            StopCoroutine(shutdown_coroutine);
+            shutdown_coroutine = null;
+        }
+
+        if (ship_has_power == false)
+        {
+            powerRestartRPC();
+        }
+    }
+
+    //calls overconsumptionRPC() or abortOverconsumptionRPC() if applicable
+    private void checkForOverConsumption(int position, float allocation)
+    {
+        if (power_consumptions[position] > allocation && overconsumption_coroutines[position] == null)
+        {
+            overconsumptionRPC(position);            
+        }
+        else if (power_consumptions[position] <= allocation && overconsumption_coroutines[position] != null)
+        {
+            abortOverconsumptionRPC(position);
+        }
+    }
+
+    //calls checkForOverConsumption()
+    public void allocationChange(int position, float allocation)
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            checkForOverConsumption(position, allocation);
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void totalShutdownRPC()
+    {
+        //kill power
+        ship_has_power = false;
+
+        if (power_restart_coroutine != null)
+        {
+            StopCoroutine(power_restart_coroutine);
+            power_restart_coroutine = null;
+        }
+
+        if (shutdown_coroutine == null)
+        {
+            shutdown_coroutine = StartCoroutine(shutdownProcess());
+        }
+    }
+
+    IEnumerator restartPower()
+    {
+        //play sound but wait a delay
+        power_on_sound.Play();
+
+        yield return new WaitForSeconds(3.0f);
+        
+        //bring back power
+        ship_has_power = true;
+
+        //show power enabled on power status screen in engineer position
+        transform.GetComponent<PowerRegulator>().displayPowerRestoration();
+
+        //handle restart effects (lights, sounds)
+        lights_manager.enableDefaultLights();
+        lights_manager.disableEmergencyLights();
+        ship_beeps_sound.Play();
+
+        //start updating power consumption
+        if (power_updater_coroutine == null)
+        {
+            power_updater_coroutine = StartCoroutine(powerUpdater());
+        }
+
+        //unlock the ability to power on all stations
+        for (int i = 0; i < 4; i++)
+        {
+            control_handler.GetComponent<PowerControl>().enableDial(i, false);
+        }
+
+        power_restart_coroutine = null;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void powerRestartRPC()
+    {
+        if (power_restart_coroutine == null)
+        {
+            power_restart_coroutine = StartCoroutine(restartPower());
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void overconsumptionRPC(int index)
+    {
+        if (overconsumption_coroutines[index] != null)
+        {
+            StopCoroutine(overconsumption_coroutines[index]);
+        }
+
+        overconsumption_coroutines[index] = StartCoroutine(imminentPowerLoss(index));
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void abortOverconsumptionRPC(int index)
+    {
+        if (overconsumption_coroutines[index] != null)
+        {
+            StopCoroutine(overconsumption_coroutines[index]);
+        }
+        overconsumption_coroutines[index] = null;
+        
+        if (overconsumption_warning_sound.isPlaying == true && checkIfOverconsuming() == false)
+        {
+            overconsumption_warning_sound.Stop();
+        }
+
+        resetEngineerPositionDisplay(index);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void powerConsumptionChangeRPC(int position, float consumption)
+    {
+        power_consumptions[position] = consumption;
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            checkForOverConsumption(position, power_allocation.getPowerAllocation(position));
+        }
+    }
+
+    //CONTROL LINKING AND ORDER (for power-on/power-off purposes)
+    private void addPilotModules()
+    {
+        List<Component> pilot_modules = new List<Component>();
+        pilot_modules.Add(control_handler.GetComponent("SignalJammer")); //1
+        pilot_modules.Add(this); //2
+        pilot_modules.Add(control_handler.GetComponent("Shields")); //3
+        pilot_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
+        pilot_modules.Add(control_handler.GetComponent("DirectionalShifter")); //5
+        pilot_modules.Add(control_handler.GetComponent("TractorBeamOptions")); //6
+        pilot_modules.Add(sensor_handler.GetComponent("PilotTractorBeamProgress")); //7
+        pilot_modules.Add(sensor_handler.GetComponent("PilotSCA")); //8
+        pilot_modules.Add(control_handler.GetComponent("ShipStatus")); //9
+        pilot_modules.Add(this); //10
+        pilot_modules.Add(control_handler.GetComponent("TractorBeamPower")); //11
+        pilot_modules.Add(control_handler.GetComponent("InertialDampeners")); //12
+        pilot_modules.Add(control_handler.GetComponent("Headlights")); //13
+        pilot_modules.Add(control_handler.GetComponent("Warp")); //14
+        pilot_modules.Add(control_handler.GetComponent("VerticalThrusters")); //15
+        pilot_modules.Add(sensor_handler.GetComponent("PilotNavigation")); //16
+        pilot_modules.Add(control_handler.GetComponent("CourseHeading")); //17
+        pilot_modules.Add(control_handler.GetComponent("HorizontalThrusters")); //18
+        pilot_modules.Add(sensor_handler.GetComponent("PilotNavigation")); //19
+        pilot_modules.Add(control_handler.GetComponent("ImpulseThrottle")); //20
+        positional_modules[0] = pilot_modules;
+    }
+
+    private void addTacticianModules()
+    {
+        List<Component> tactician_modules = new List<Component>();
+        tactician_modules.Add(control_handler.GetComponent("TorpedoPower")); //1
+        tactician_modules.Add(this); //2
+        tactician_modules.Add(control_handler.GetComponent("ProbeOrientation")); //3
+        tactician_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
+        tactician_modules.Add(control_handler.GetComponent("TransmissionHandler")); //5
+        tactician_modules.Add(sensor_handler.GetComponent("TacticianProbeInfo")); //6
+        tactician_modules.Add(control_handler.GetComponent("ShipStatus")); //7
+        tactician_modules.Add(this); //8
+        tactician_modules.Add(control_handler.GetComponent("ProbeVerticalMovement")); //9
+        tactician_modules.Add(control_handler.GetComponent("ProbeLateralMovement")); //10
+        tactician_modules.Add(control_handler.GetComponent("PhaserTemperatures")); //11
+        tactician_modules.Add(control_handler.GetComponent("UniversalCommunicator")); //12
+        tactician_modules.Add(control_handler.GetComponent("LongRangeDirection")); //13
+        tactician_modules.Add(control_handler.GetComponent("TorpedoSelector")); //14
+        tactician_modules.Add(sensor_handler.GetComponent("TacticianMap")); //15
+        tactician_modules.Add(control_handler.GetComponent("MapOptions")); //16
+        tactician_modules.Add(control_handler.GetComponent("TorpedoTrigger")); //17
+        tactician_modules.Add(control_handler.GetComponent("ProbeOptions")); //18
+        tactician_modules.Add(control_handler.GetComponent("PhaserPowers")); //19
+        positional_modules[1] = tactician_modules;
+    }
+
+    private void addEngineerModules()
+    {
+        List<Component> engineer_modules = new List<Component>();
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerMap")); //1
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerScenarioCountdown")); //2
+        engineer_modules.Add(control_handler.GetComponent("PhaserFrequency")); //3
+        engineer_modules.Add(control_handler.GetComponent("EnergyPattern")); //4
+        engineer_modules.Add(this); //5
+        engineer_modules.Add(control_handler.GetComponent("PowerAllocation")); //6
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerPhaserHeat")); //7
+        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //8
+        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //9
+        engineer_modules.Add(control_handler.GetComponent("ShieldStrength")); //10
+        engineer_modules.Add(control_handler.GetComponent("TorpedoLoader")); //11
+        engineer_modules.Add(control_handler.GetComponent("EngineCoolantSupply")); //12
+        engineer_modules.Add(sensor_handler.GetComponent("EngineerInventory")); //13
+        engineer_modules.Add(control_handler.GetComponent("CargoEjectLoader")); //14
+        engineer_modules.Add(control_handler.GetComponent("ComputerRegulator")); //15
+        engineer_modules.Add(this); //16
+        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //17
+        positional_modules[2] = engineer_modules;
+    }
+
+    private void addCaptainModules()
+    {
+        List<Component> captain_modules = new List<Component>();
+        captain_modules.Add(control_handler.GetComponent("ShipStatus")); //1
+        captain_modules.Add(control_handler.GetComponent("SelfDestruct")); //2
+        captain_modules.Add(control_handler.GetComponent("ShipManual")); //3
+        captain_modules.Add(this); //4
+        captain_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //5
+        captain_modules.Add(control_handler.GetComponent("CommunicationsManual")); //6
+        captain_modules.Add(control_handler.GetComponent("CargoJettison")); //7
+        captain_modules.Add(control_handler.GetComponent("ShipBeacon")); //8
+        captain_modules.Add(control_handler.GetComponent("ShipOverride")); //9
+        captain_modules.Add(control_handler.GetComponent("EmergencyLights")); //10
+        positional_modules[3] = captain_modules;
+    }
+}

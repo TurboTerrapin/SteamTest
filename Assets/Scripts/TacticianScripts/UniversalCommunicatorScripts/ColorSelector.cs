@@ -3,7 +3,7 @@
     - Handles color slider
     - Updates characters
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2025
+    Last Updated: 7/29/2025
 */
 
 using System.Collections;
@@ -23,12 +23,13 @@ public class ColorSelector : NetworkBehaviour, IControllable
     private List<int> CONTROL_INDEXES = new List<int>() {4, 5};
     private List<Button> BUTTONS = new List<Button>();
 
-    public List<GameObject> character_displays = null;
+    public GameObject input_glasses;
     public GameObject selector_lever;
     public GameObject selector_canvas;
     private Vector3 initial_pos;
     private Vector3 final_pos = new Vector3(-2.684f, 8.7417f, 3.7713f);
     private int curr_color = 0;
+    private bool is_active = true;
 
     private Coroutine color_shift_coroutine = null;
 
@@ -39,26 +40,48 @@ public class ColorSelector : NetworkBehaviour, IControllable
     {
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);
 
         initial_pos = selector_lever.transform.localPosition;
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
+    public void activate()
+    {
+        is_active = true;
+        BUTTONS[0].updateInteractable(curr_color > 0);
+        BUTTONS[1].updateInteractable(curr_color < 3);
+    }
+
+    public void deactivate()
+    {
+        is_active = false;
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+    }
+
     public int getCurrColor()
     {
         return curr_color;
+    }
+
+    private GameObject getCharacterDisplay(int index)
+    {
+        return input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
     }
 
     private void displayAdjustment()
     {
         for (int i = 0; i < 12; i++)
         {
-            character_displays[i].transform.GetChild(1).gameObject.GetComponent<TMP_Text>().color = COLOR_OPTIONS[curr_color];
-            character_displays[i].transform.GetChild(2).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[curr_color];
+            GameObject cd = getCharacterDisplay(i);
+            cd.transform.GetChild(0).gameObject.GetComponent<TMP_Text>().color = COLOR_OPTIONS[curr_color];
+            cd.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[curr_color];
         }
     }
 
@@ -87,8 +110,11 @@ public class ColorSelector : NetworkBehaviour, IControllable
 
         displayAdjustment();
 
-        BUTTONS[0].updateInteractable(curr_color > 0);
-        BUTTONS[1].updateInteractable(curr_color < 3);
+        if (is_active == true)
+        {
+            BUTTONS[0].updateInteractable(curr_color > 0);
+            BUTTONS[1].updateInteractable(curr_color < 3);
+        }
         BUTTONS[0].untoggle();
         BUTTONS[1].untoggle();
 
@@ -98,7 +124,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        if (color_shift_coroutine == null)
+        if (color_shift_coroutine == null && is_active == true && transform.GetComponent<UniversalCommunicator>().getIsPowered() == true)
         {
             bool shifted = false;
             if (curr_color < 3)

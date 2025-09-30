@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -11,12 +11,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class ProbeOptions : NetworkBehaviour, IControllable
+public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float TURN_TIME = 1.5f;
-    private static float CHARGE_TIME = 3.0f;
+    private static float TURN_TIME = 1.0f;
+    private static float CHARGE_TIME = 2.0f;
     private static float FUNCTION_TIME = 4.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };
     private List<string> CONTROL_DESCS = new List<string> { "ACTIVATE" };
@@ -24,12 +25,13 @@ public class ProbeOptions : NetworkBehaviour, IControllable
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
     public List<GameObject> dials = null;
-    public GameObject probe_options_canvas;
-    public GameObject probe_feed_canvas;
-    public GameObject probe_range_canvas;
-    public GameObject probe_health_canvas;
+    public GameObject probe_options_display;
+    public GameObject probe_feed_display;
+    public GameObject probe_range_display;
+    public GameObject probe_health_display;
     public GameObject probe_prefab;
 
+    private bool is_powered = false;
     private bool[] active_dials = new bool[2] { true, false };
     private Coroutine dial_turn_coroutine = null;
     private Coroutine dial_activation_coroutine = null;
@@ -51,11 +53,12 @@ public class ProbeOptions : NetworkBehaviour, IControllable
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
 
-        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, false));
+        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
 
         hud_info.setButtons(BUTTON_LISTS[0]);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -66,7 +69,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
     }
 
     //used to ensure there is only one probe at a time
-    private void clearAllProbes()
+    public void clearAllProbes()
     {
         foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))
         {
@@ -90,24 +93,30 @@ public class ProbeOptions : NetworkBehaviour, IControllable
             BUTTON_LISTS[0][0].updateInteractable(true);
             BUTTON_LISTS[1][0].updateInteractable(false);
         }
+        resetProbeInfoScreens();
+
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
     }
 
     //spawns a probe, links probe to probe controls
     private void spawnProbe()
     {
+        Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
         current_probe = GameObject.Instantiate(probe_prefab, GameObject.FindGameObjectWithTag("WorldRoot").transform);
-        current_probe.transform.position = new Vector3(0, -12.5f, 0);
-        current_probe.transform.rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation;
+        current_probe.transform.position = new Vector3(spaceship.position.x, spaceship.position.y - 10.0f, spaceship.position.z);
+        current_probe.transform.rotation = spaceship.rotation;
         transform.GetComponent<ProbeLateralMovement>().linkProbe(current_probe);
         transform.GetComponent<ProbeVerticalMovement>().linkProbe(current_probe);
         transform.GetComponent<ProbeOrientation>().linkProbe(current_probe);
+
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
     }
 
     private void setChargeColor(Color new_color)
     {
-        for (int i = 1; i <= 3; i++)
+        for (int i = 0; i <= 2; i++)
         {
-            probe_options_canvas.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().color = new_color;
+            probe_options_display.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().color = new_color;
         }
     }
 
@@ -128,7 +137,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         if (index == 0)
         {
             setChargeColor(new Color(0.0f, 0.84f, 1.0f, 1.0f));
-            probe_options_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = function_charge_percentage;
+            probe_options_display.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = function_charge_percentage;
         }
         else
         {
@@ -140,7 +149,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable
             {
                 setChargeColor(new Color(0.0f, 0.84f, 1.0f, 1.0f));
             }
-            probe_options_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - function_charge_percentage;
+            probe_options_display.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - function_charge_percentage;
         }
     }
 
@@ -159,6 +168,22 @@ public class ProbeOptions : NetworkBehaviour, IControllable
     private bool checkNeutralState()
     {
         return (dial_turn_percentage <= 0.0f && function_charge_percentage <= 0.0f);
+    }
+
+    //resets probe info display (probe feed, range, and health)
+    private void resetProbeInfoScreens()
+    {
+        tactician_probe_info.GetComponent<TacticianProbeInfo>().disconnectProbe();
+        tactician_probe_info.GetComponent<TacticianProbeInfo>().displayRange(0.0f);
+        probe_feed_display.transform.GetChild(0).gameObject.SetActive(false);
+        probe_feed_display.transform.GetChild(1).gameObject.SetActive(false);
+        probe_feed_display.transform.GetChild(2).transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
+        probe_feed_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.196f);
+        probe_feed_display.transform.GetChild(2).gameObject.SetActive(true);
+        probe_feed_display.transform.GetChild(3).gameObject.SetActive(false);
+        probe_feed_display.transform.GetChild(4).gameObject.SetActive(false);
+        probe_options_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        probe_feed_display.transform.GetChild(2).localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
     }
 
     //initial charging
@@ -228,8 +253,8 @@ public class ProbeOptions : NetworkBehaviour, IControllable
 
         if (index == 0) //launch probe
         {
-            probe_health_canvas.transform.GetChild(1).gameObject.SetActive(true);
-            probe_feed_canvas.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            probe_health_display.transform.GetChild(0).gameObject.SetActive(true);
+            probe_feed_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
             float anim_time = FUNCTION_TIME;
             while (anim_time > 0.0f)
             {
@@ -237,37 +262,37 @@ public class ProbeOptions : NetworkBehaviour, IControllable
                 anim_time = Mathf.Max(0.0f, anim_time - dt);
 
                 //rotate probe icon on probe options screen
-                probe_options_canvas.transform.GetChild(1).localRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f * (anim_time % 1.0f));
+                probe_options_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f * (anim_time % 1.0f));
 
                 //highlight, rotate, and shift up probe icon on probe feed screen
-                probe_feed_canvas.transform.GetChild(3).localRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f * (anim_time % 1.0f));
-                probe_feed_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Lerp(1.0f, 0.196f, anim_time / FUNCTION_TIME));
-                probe_feed_canvas.transform.GetChild(3).localPosition = new Vector3(0.0f, Mathf.Lerp(0.02f, 0.0f, Mathf.Max(0.0f, anim_time - FUNCTION_TIME - 1.0f) / 1.0f), 0.0f);
+                probe_feed_display.transform.GetChild(2).localRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f * (anim_time % 1.0f));
+                probe_feed_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Lerp(1.0f, 0.196f, anim_time / FUNCTION_TIME));
+                probe_feed_display.transform.GetChild(2).localPosition = new Vector3(0.0f, Mathf.Lerp(0.02f, 0.0f, Mathf.Max(0.0f, anim_time - FUNCTION_TIME - 1.0f) / 1.0f), 0.0f);
 
                 //move probe feed progress bar
-                probe_feed_canvas.transform.GetChild(4).gameObject.SetActive(anim_time < (FUNCTION_TIME - 1.0f));
-                probe_feed_canvas.transform.GetChild(4).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - (anim_time / (FUNCTION_TIME - 1.0f));
+                probe_feed_display.transform.GetChild(3).gameObject.SetActive(anim_time < (FUNCTION_TIME - 1.0f));
+                probe_feed_display.transform.GetChild(3).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - (anim_time / (FUNCTION_TIME - 1.0f));
 
                 //highlight the different scan waves for the probe distance screen
                 tactician_probe_info.displayRange(1.0f - (anim_time / FUNCTION_TIME));
 
                 //increase probe health and highlight the border
                 tactician_probe_info.displayHealth(100.0f - (100.0f * anim_time / FUNCTION_TIME));
-                probe_health_canvas.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Lerp(1.0f, 0.196f, anim_time / FUNCTION_TIME));
+                probe_health_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Lerp(1.0f, 0.196f, anim_time / FUNCTION_TIME));
 
                 yield return null;
             }
-            probe_range_canvas.transform.GetChild(12).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            probe_range_display.transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
 
             yield return new WaitForSeconds(0.5f);
 
             clearAllProbes();
             spawnProbe();
 
-            probe_feed_canvas.transform.GetChild(1).gameObject.SetActive(true);
-            probe_feed_canvas.transform.GetChild(2).gameObject.SetActive(true);
-            probe_feed_canvas.transform.GetChild(3).gameObject.SetActive(false);
-            probe_feed_canvas.transform.GetChild(4).gameObject.SetActive(false);
+            probe_feed_display.transform.GetChild(0).gameObject.SetActive(true);
+            probe_feed_display.transform.GetChild(1).gameObject.SetActive(true);
+            probe_feed_display.transform.GetChild(2).gameObject.SetActive(false);
+            probe_feed_display.transform.GetChild(3).gameObject.SetActive(false);
         }
         else //destroy probe
         {
@@ -276,16 +301,11 @@ public class ProbeOptions : NetworkBehaviour, IControllable
             {
                 //kills probe
                 current_probe.GetComponent<Probe>().damageProbe(150.0f);
+                current_probe = null;
             }
             setChargeColor(new Color(0.0f, 0.84f, 1.0f, 1.0f));
             yield return new WaitForSeconds(1.5f);
-            probe_feed_canvas.transform.GetChild(1).gameObject.SetActive(false);
-            probe_feed_canvas.transform.GetChild(2).gameObject.SetActive(false);
-            probe_feed_canvas.transform.GetChild(3).transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
-            probe_feed_canvas.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.196f);
-            probe_feed_canvas.transform.GetChild(3).gameObject.SetActive(true);
-            probe_feed_canvas.transform.GetChild(4).gameObject.SetActive(false);
-            probe_feed_canvas.transform.GetChild(5).gameObject.SetActive(false);
+            resetProbeInfoScreens();
         }
 
         for (int i = 0; i <= 1; i++)
@@ -305,8 +325,54 @@ public class ProbeOptions : NetworkBehaviour, IControllable
         dial_activation_coroutine = null;
     }
 
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        probe_options_display.SetActive(true);
+        if (current_probe != null)
+        {
+            BUTTON_LISTS[1][0].updateInteractable(current_probe.GetComponent<Probe>().inRange());
+            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        }
+        else
+        {
+            BUTTON_LISTS[0][0].updateInteractable(true);
+            BUTTON_LISTS[1][0].updateInteractable(false);
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        probe_options_display.SetActive(false);
+        BUTTON_LISTS[0][0].updateInteractable(false);
+        BUTTON_LISTS[1][0].updateInteractable(false);
+        
+        if (dial_activation_coroutine != null)
+        {
+            StopCoroutine(dial_activation_coroutine);
+            dial_activation_coroutine = null;
+        }
+
+        if (current_probe == null)
+        {
+            function_charge_percentage = 0.0f;
+            displayScreenAdjustment(0);
+            resetProbeInfoScreens();
+        }
+        else
+        {
+            displayScreenAdjustment(1);
+        }
+    }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
+
         keys_down = inputs;
         ray_target_index = ray_targets.IndexOf(current_target.name);
 

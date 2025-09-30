@@ -22,13 +22,13 @@ public class NetworkSpawner : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    /*void Update()
     {
         if(Input.GetKeyDown(KeyCode.H))
         {
             SpawnObjectServerRPC(pref);
         }
-    }
+    }*/
 
     [ServerRpc]
     public void SpawnObjectServerRPC(GameObject obj)
@@ -71,7 +71,4 @@ public class NetworkSpawner : MonoBehaviour
         }
         Instantiate<GameObject>(obj, location, Quaternion.identity);
     }
-
-
-
 }

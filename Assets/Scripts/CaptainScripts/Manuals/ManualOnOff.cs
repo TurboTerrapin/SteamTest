@@ -2,7 +2,7 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 5/22/2025
+    Last Updated: 8/9/2025
 */
 
 using Unity.Netcode;
@@ -14,14 +14,17 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
+    private static float MAX_POWER_CONSUMPTION = 0.6f; //6 circles, 3 per manual
 
     private string[] CONTROL_NAMES = new string[] { "SHIP MANUAL", "COMMUNICATIONS MANUAL" };
     private List<string> CONTROL_DESCS = new List<string> { "TURN ON", "TURN OFF" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
+    public List<GameObject> target_colliders = null; //goes ship_manual_on_off, ship_manual_selector, communications_manual_on_off, communications_manual_selector
     public List<GameObject> power_switches = null;
-    public Component[] manuals = new Component[2];
+    private float[] power_switch_angles = new float[2] { 295.0f, 295.0f };
+    private Component[] manuals = new Component[2];
 
     private Coroutine[] power_change_coroutine = new Coroutine[] { null, null };
 
@@ -35,18 +38,34 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
 
-        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
-        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[index]);
+        hud_info.setButtons(BUTTON_LISTS[index], 6);
         return hud_info;
     }
+
+    private void handlePowerConsumptionChange()
+    {
+        float consumed_power = 0.0f;
+        for (int i = 0; i < 2; i++)
+        {
+            Manual m = (Manual)manuals[i];
+            if (m.getCurrentlyEnabled() == true || m.getCurrentlyAnimating() == true)
+            {
+                consumed_power += (MAX_POWER_CONSUMPTION / 2);
+            }
+        }
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
+    }
+
     public void reactivate(int index)
     {
         Manual curr_manual = (Manual)manuals[index];
@@ -60,7 +79,60 @@ public class ManualOnOff : NetworkBehaviour, IControllable
             BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[0]);
         }
 
-        BUTTON_LISTS[index][0].updateInteractable(true);
+        BUTTON_LISTS[index][0].updateInteractable(curr_manual.getIsPowered());
+    }
+
+    //called by ShipManual, CommunicationsManual
+    public void disableManual(int index, float time)
+    {
+        if (power_change_coroutine[index] != null)
+        {
+            StopCoroutine(power_change_coroutine[index]);
+            power_change_coroutine[index] = null;
+        }
+
+        power_change_coroutine[index] = StartCoroutine(switchReturn(index, time));
+
+        BUTTON_LISTS[index][0].updateInteractable(false);
+        BUTTON_LISTS[index][0].untoggle();
+        BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[0]);
+
+        if (index == 0)
+        {
+            transform.GetComponent<ShipManual>().powerSwitch(false, 0);
+            target_colliders[0].SetActive(true);
+            target_colliders[1].SetActive(false);
+
+        }
+        else
+        {
+            transform.GetComponent<CommunicationsManual>().powerSwitch(false);
+            target_colliders[2].SetActive(true);
+            target_colliders[3].SetActive(false);
+        }
+    }
+
+    //called by disableManual, returns switch to default position
+    IEnumerator switchReturn(int index, float time)
+    {
+        float switch_time = time;
+        float starting_rotation = power_switch_angles[index];
+
+        //flip switch
+        while (switch_time > 0)
+        {
+            float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
+            switch_time = Mathf.Max(0.0f, switch_time - dt);
+
+            power_switches[index].transform.localRotation =
+                Quaternion.Euler(Mathf.Lerp(starting_rotation, 295.0f, 1.0f - (switch_time / time)), 0f, 90f);
+
+            yield return null;
+        }
+
+        power_switch_angles[index] = 295.0f;
+
+        power_change_coroutine[index] = null;
     }
 
     IEnumerator powerChangeAdjustment(bool to_switch_to, int msg, int manual_index)
@@ -73,15 +145,17 @@ public class ManualOnOff : NetworkBehaviour, IControllable
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             switch_time = Mathf.Max(0.0f, switch_time - dt);
 
-            float lever_angle = Mathf.Lerp(-65f, -115f, switch_time / SWITCH_TIME);
+            float lever_angle = Mathf.Lerp(295f, 245f, switch_time / SWITCH_TIME);
 
             if (to_switch_to == true)
             {
-                lever_angle = Mathf.Lerp(-65f, -115f, 1.0f - (switch_time / SWITCH_TIME));
+                lever_angle = Mathf.Lerp(295f, 245f, 1.0f - (switch_time / SWITCH_TIME));
             }
 
+            power_switch_angles[manual_index] = lever_angle;
             power_switches[manual_index].transform.localRotation =
                 Quaternion.Euler(lever_angle, 0f, 90f);
+
 
             yield return null;
         }
@@ -89,11 +163,17 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         if (manual_index == 0) //ShipManual
         {
             transform.GetComponent<ShipManual>().powerSwitch(to_switch_to, msg);
+            target_colliders[0].SetActive(!to_switch_to);
+            target_colliders[1].SetActive(to_switch_to);
         }
         else //CommunicationsManual
         {
             transform.GetComponent<CommunicationsManual>().powerSwitch(to_switch_to);
+            target_colliders[2].SetActive(!to_switch_to);
+            target_colliders[3].SetActive(to_switch_to);
         }
+
+        handlePowerConsumptionChange();
 
         power_change_coroutine[manual_index] = null;
     }
@@ -105,6 +185,12 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         if (power_change_coroutine[manual_index] == null)
         {
             Manual curr_manual = (Manual)manuals[manual_index];
+            
+            if (curr_manual.getIsPowered() == false)
+            {
+                return;
+            }
+
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && curr_manual.getCurrentlyAnimating() == false)
             {
                 BUTTON_LISTS[manual_index][0].toggle(0.2f);

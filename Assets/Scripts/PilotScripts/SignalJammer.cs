@@ -3,7 +3,7 @@
     - Meant to temporarily jam signals
     - Does nothing
     Contributor(s): Jake Schott
-    Last Updated: 7/19/2025
+    Last Updated: 9/1/2025
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class SignalJammer : NetworkBehaviour, IControllable
+public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float JAM_TIME = 10.0f; //seconds
@@ -20,6 +20,7 @@ public class SignalJammer : NetworkBehaviour, IControllable
     private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
     private static Color BLUE = new Color(0.0f, 0.84f, 1.0f, 1.0f);
     private static Color RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "SIGNAL JAMMER";
     private List<string> CONTROL_DESCS = new List<string>() { "ACTIVATE" };
@@ -34,6 +35,8 @@ public class SignalJammer : NetworkBehaviour, IControllable
     public GameObject signal_jam_display;
     public GameObject signal_indicators;
 
+    private bool is_powered = false;
+    private float jam_time = 0.0f;
     private Coroutine signal_jam_coroutine = null;
     private Coroutine bars_animation_coroutine = null;
     private Vector3 button_initial_pos;
@@ -45,7 +48,7 @@ public class SignalJammer : NetworkBehaviour, IControllable
         button_initial_pos = signal_jam_button.transform.localPosition;
 
         hud_info = new HUDInfo(CONTROL_NAME);
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTONS);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -56,8 +59,8 @@ public class SignalJammer : NetworkBehaviour, IControllable
     //changes the colors of the screen's border and lines
     private void colorChange(Color to_change_to)
     {
-        GameObject border = signal_jam_display.transform.GetChild(1).gameObject;
-        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        GameObject border = signal_jam_display.transform.GetChild(0).gameObject;
+        GameObject lines = signal_jam_display.transform.GetChild(1).gameObject;
         border.GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
         for (int i = 0; i < lines.transform.childCount; i++)
         {
@@ -71,7 +74,7 @@ public class SignalJammer : NetworkBehaviour, IControllable
     //sizes the bar at the index to the to_size_to input
     private void resizeBar(int index, float to_size_to)
     {
-        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        GameObject lines = signal_jam_display.transform.GetChild(1).gameObject;
         lines.transform.GetChild(index).GetComponent<RectTransform>().sizeDelta = new Vector2(0.003f + to_size_to * 2, 0.005f);
         lines.transform.GetChild(index).GetChild(0).localPosition = new Vector3(0.0015f + to_size_to, 0.0f, 0.0f);
         lines.transform.GetChild(index).GetChild(1).localPosition = new Vector3(-0.0015f - to_size_to, 0.0f, 0.0f);
@@ -79,7 +82,7 @@ public class SignalJammer : NetworkBehaviour, IControllable
 
     IEnumerator barAnimation()
     {
-        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        GameObject lines = signal_jam_display.transform.GetChild(1).gameObject;
         while (true)
         {
             float anim_time = BAR_ANIMATION_TIME;
@@ -106,7 +109,7 @@ public class SignalJammer : NetworkBehaviour, IControllable
 
     IEnumerator resetBars()
     {
-        GameObject lines = signal_jam_display.transform.GetChild(2).gameObject;
+        GameObject lines = signal_jam_display.transform.GetChild(1).gameObject;
         float anim_time = BAR_ANIMATION_TIME;
         float[] starting_sizes = new float[lines.transform.childCount];
         float[] sizes = new float[lines.transform.childCount];
@@ -165,26 +168,34 @@ public class SignalJammer : NetworkBehaviour, IControllable
         bars_animation_coroutine = StartCoroutine(barAnimation());
 
         colorChange(RED);
-        for (int i = 0; i < signal_indicators.transform.childCount; i++)
+        if (is_powered == true)
         {
-            signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+            for (int i = 0; i < signal_indicators.transform.childCount; i++)
+            {
+                signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+            }
         }
 
-        float jam_time = JAM_TIME;
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
+
+        jam_time = JAM_TIME;
         while (jam_time > 0.0f)
         {
             float dt = Time.deltaTime;
             jam_time = Mathf.Max(0.0f, jam_time - dt);
 
-            for (int i = 0; i < signal_indicators.transform.childCount; i++)
+            if (is_powered == true)
             {
-                if ((jam_time / JAM_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
+                for (int i = 0; i < signal_indicators.transform.childCount; i++)
                 {
-                    signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = unlit_blue;
-                }
-                else
-                {
-                    signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+                    if ((jam_time / JAM_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
+                    {
+                        signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = unlit_blue;
+                    }
+                    else
+                    {
+                        signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+                    }
                 }
             }
 
@@ -195,36 +206,73 @@ public class SignalJammer : NetworkBehaviour, IControllable
         bars_animation_coroutine = StartCoroutine(resetBars());
         colorChange(BLUE);
 
+        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, 0.0f);
+
         float reset_time = RESET_TIME;
         while (reset_time > 0.0f)
         {
             float dt = Time.deltaTime;
             reset_time = Mathf.Max(0.0f, reset_time - dt);
 
-            for (int i = 0; i < signal_indicators.transform.childCount; i++)
+            if (is_powered == true)
             {
-                if ((reset_time / RESET_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
+                for (int i = 0; i < signal_indicators.transform.childCount; i++)
                 {
-                    signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = neon;
-                }
-                else
-                {
-                    signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = unlit_blue;
+                    if ((reset_time / RESET_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
+                    {
+                        signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = neon;
+                    }
+                    else
+                    {
+                        signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = unlit_blue;
+                    }
                 }
             }
 
             yield return null;
         }
 
-        BUTTONS[0].updateInteractable(true);
+        BUTTONS[0].updateInteractable(is_powered);
 
         bars_animation_coroutine = null;
         signal_jam_coroutine = null;
     }
 
+    public void powerOn(int position)
+    {
+        is_powered = true;
+        signal_jam_display.SetActive(true);
+        if (signal_jam_coroutine == null)
+        {
+            BUTTONS[0].updateInteractable(true);
+            for (int i = 0; i < signal_indicators.transform.childCount; i++)
+            {
+                signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = neon;
+            }
+        }
+        else
+        {
+            if (jam_time > 0.0f)
+            {
+                transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            }
+        }
+    }
+
+    public void powerOff(int position, float time)
+    {
+        is_powered = false;
+        signal_jam_display.SetActive(false);
+        BUTTONS[0].updateInteractable(false);
+        for (int i = 0; i < signal_indicators.transform.childCount; i++)
+        {
+            signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = unlit_blue;
+        }
+    }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (signal_jam_coroutine == null)
+        if (signal_jam_coroutine == null && is_powered == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
