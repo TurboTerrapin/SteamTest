@@ -8,10 +8,12 @@
     Last Updated: 8/28/2025
 */
 
-using UnityEngine;
+using Steamworks;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ControlScript : MonoBehaviour
 {
@@ -64,6 +66,14 @@ public class ControlScript : MonoBehaviour
         new KeyCode[] {KeyCode.V}
     };
 
+    //public Camera my_camera; //player's camera
+
+
+    private GameObject myPlayer = null;
+    private AnimationController myAnimationController = null;
+
+
+
     public static bool checkInputIndex(int input_index, List<KeyCode> inputs_to_check)
     {
         for (int i = 0; i < input_options[input_index].Length; i++)
@@ -86,6 +96,20 @@ public class ControlScript : MonoBehaviour
             Destroy(this);
         }
         Instance = this;
+
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject player in players)
+        {
+            if (player.GetComponent<PlayerMove>().IsOwner)
+            {
+                myPlayer = player;
+                myAnimationController = player.GetComponent<AnimationController>();
+                //playerAnimator = myPlayer.transform.GetChild(1).GetComponent<Animator>();
+                //playerIK = myPlayer.transform.GetChild(1).GetComponent<IKController>();
+                break;
+
+            }
+        }
     }
 
     public void unlockPlayer(GameObject plr_prefab)
@@ -336,6 +360,10 @@ public class ControlScript : MonoBehaviour
                 //check if trying to unseat
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up
                 {
+                    myAnimationController.setIKRightArm(false);
+                    myAnimationController.setIKLeftArm(false);
+                    myAnimationController.setCharacterPosition(new Vector3(0, 0.16f, 0));
+
                     is_sitting = !seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
                     if (is_sitting == false)
                     {
@@ -360,6 +388,9 @@ public class ControlScript : MonoBehaviour
                 {
                     if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
+                        myAnimationController.setIKRightArm(true);
+                        myAnimationController.setRightArmIKPosition(hit.collider.transform.position);
+
                         IControllable target_control =
                             (IControllable)control_script_holder.GetComponent(hit.collider.transform.GetChild(0).name); //get corresponding class
 
@@ -422,6 +453,9 @@ public class ControlScript : MonoBehaviour
                     }
                 }
             }
+            myAnimationController.setIKRightArm(false);
+            myAnimationController.setIKLeftArm(false);
+
             control_info.SetActive(false); //hide UI indicator if not looking at a control
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update if not looking at a control
         }

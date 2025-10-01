@@ -93,6 +93,8 @@ public class PlayerMove : NetworkBehaviour
         move_coroutine = null;
 
         animator.SetBool("Sitting", true);
+        animator.SetInteger("Seat", pos);
+
         myAnimationController.setPlayerRotationLock(true);
 
         //Sets the rotation of the player to forward
