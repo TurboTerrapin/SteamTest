@@ -132,7 +132,15 @@ public class ScenarioManager : NetworkBehaviour
 
         //assign the piloting system the new World Root
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
-        
+        GameObject WorldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject[] collisionObjects = GameObject.FindGameObjectsWithTag("Asteroid"); 
+        foreach (GameObject collisionObj in collisionObjects)
+        {
+            collisionObj.transform.SetParent(WorldRoot.transform);
+        }
+
+
+
         //generate new entrance/exit path locations and angles
         generatePaths();
 
