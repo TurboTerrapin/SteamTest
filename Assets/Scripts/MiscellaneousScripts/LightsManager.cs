@@ -32,11 +32,12 @@ public class LightsManager : MonoBehaviour
 
     // Added - Henryk
     private Coroutine flicker_coroutine = null;
-    private static float BASE_FLICKER_DURATION = 5.0f;
+    private static float BASE_FLICKER_DURATION = 3.0f;
     private static float FLICKER_DAMAGE_THRESHOLD = 15.0f;
+    private List<Material> tempMaterials = new List<Material>(); // Stores the instanced dimmed materials for flickering
 
     [Range(0.0f, 1.0f)]
-    private float minDimnessAtMaxDamage = 0.05f;
+    private float minDimnessAtMaxDamage = 0.01f;
     private float minFlickerOffDuration = 0.05f;
     private float maxFlickerOffDuration = 0.1f;
     private float minFlickerOnDuration = 0.025f;
@@ -65,9 +66,6 @@ public class LightsManager : MonoBehaviour
             }
         }
     }
-
-
-
 
     public void resetLights()
     {
@@ -100,7 +98,6 @@ public class LightsManager : MonoBehaviour
         enabled_lights[0] = true;
         enabled_lights[1] = false;
     }
-
 
 
     //helper method that changes every light's color in light_group
@@ -263,6 +260,7 @@ public class LightsManager : MonoBehaviour
         flicker_coroutine = StartCoroutine(FlickerEffectCoroutine(collisionDamage));
     }
 
+    // Flickers both the lights and the emissive materials (instanced)
     private IEnumerator FlickerEffectCoroutine(float damage)
     {
         // Calculate the flicker parameters
@@ -270,14 +268,55 @@ public class LightsManager : MonoBehaviour
         float flicker_duration = BASE_FLICKER_DURATION * normalized_damage;
         float dim_factor = Mathf.Lerp(1.0f, minDimnessAtMaxDamage, normalized_damage);
 
-        float elapsed_time = 0f;
+        // Cache all renderers and create dimmed materials once
+        List<Renderer> activeRenderers = new List<Renderer>();
+        List<Material> dimmedMaterials = new List<Material>();
+        List<Material> tempMaterials = new List<Material>();
         bool is_red_alert = ship_status.getCurrColor() == 2;
-        Material normal_material = is_red_alert ? lit_red : null;
+
+        for (int i = 0; i < 2; i++)
+        {
+            if (!enabled_lights[i]) continue;
+
+            Transform light_group = light_groups[i].transform;
+            foreach (Transform light_transform in light_group)
+            {
+                foreach (Transform physical_light in light_transform)
+                {
+                    Renderer rend = physical_light.GetComponent<Renderer>();
+                    if (rend != null)
+                    {
+                        activeRenderers.Add(rend);
+
+                        // Create a dimmed version of the current material
+                        Material dimmedMat = new Material(rend.material);
+                        if (dimmedMat.HasProperty("_EmissionColor"))
+                        {
+                            Color emissionColor = dimmedMat.GetColor("_EmissionColor");
+                            dimmedMat.SetColor("_EmissionColor", emissionColor * dim_factor);
+                        }
+                        if (dimmedMat.HasProperty("_Color"))
+                        {
+                            Color color = dimmedMat.color;
+                            dimmedMat.SetColor("_Color", color * dim_factor);
+                        }
+                        dimmedMaterials.Add(dimmedMat);
+                        tempMaterials.Add(dimmedMat); // Track for cleanup
+                    }
+                }
+            }
+        }
+
+        float elapsed_time = 0f;
 
         while (elapsed_time < flicker_duration)
         {
-            // Dim phase
+            // Dim phase - both lights and materials
             SetAllLightsIntensity(dim_factor);
+            for (int i = 0; i < activeRenderers.Count; i++)
+            {
+                activeRenderers[i].material = dimmedMaterials[i];
+            }
 
             float off_time = Random.Range(minFlickerOffDuration, maxFlickerOffDuration);
             yield return new WaitForSeconds(off_time);
@@ -285,7 +324,7 @@ public class LightsManager : MonoBehaviour
 
             if (elapsed_time >= flicker_duration) break;
 
-            // Normal phase
+            // Normal phase - restores everything
             RestoreLightsToNormal(is_red_alert);
 
             float on_time = Random.Range(minFlickerOnDuration, maxFlickerOnDuration);
@@ -295,6 +334,14 @@ public class LightsManager : MonoBehaviour
 
         // Restore to final state
         RestoreLightsToNormal(ship_status.getCurrColor() == 2);
+
+        // Cleanup 
+        foreach (Material mat in tempMaterials)
+        {
+            Destroy(mat);
+        }
+        tempMaterials.Clear();
+
         flicker_coroutine = null;
     }
 
