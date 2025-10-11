@@ -12,6 +12,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.Rendering;
 
 public class ControlScript : MonoBehaviour
 {
@@ -35,10 +36,12 @@ public class ControlScript : MonoBehaviour
 
     //CLASS VARIABLES
     private HUDInfo current_info;
+    private GameObject current_ray_target = null;
     private int curr_pos = -1; //0 is Pilot, 1 is Tactician, 2 is Engineer, 3 is Captain
     private bool is_sitting = false;
     private Coroutine seat_check_coroutine = null;
     private Coroutine control_check_coroutine = null;
+    private Coroutine ray_target_check_coroutine = null;
 
     //SETTINGS
     private int HUD_setting = 0; //0 is Default, 1 is Minimized, 2 is Cursor Only, 3 is None
@@ -205,6 +208,7 @@ public class ControlScript : MonoBehaviour
         paused = true;
         cursor.SetActive(false);
     }
+
     public void unpause()
     {
         UnityEngine.Cursor.visible = false;
@@ -306,12 +310,27 @@ public class ControlScript : MonoBehaviour
 
                     player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
 
+                    ray_target_check_coroutine = StartCoroutine(rayCheck());
                     control_check_coroutine = StartCoroutine(controlCheck());
                 }
             }
             return;
         }
         control_info.SetActive(false);
+    }
+
+    //runs on FixedUpdate() time
+    IEnumerator rayCheck()
+    {
+        while (true)
+        {
+            current_ray_target = null;
+            if (Physics.Raycast(new Ray(roundVector3(plr_camera.transform.position), roundVector3(plr_camera.transform.forward)), out RaycastHit hit, RAYCAST_RANGE))
+            {
+                current_ray_target = hit.collider.gameObject;
+            }
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     //runs on Update() time
@@ -323,7 +342,16 @@ public class ControlScript : MonoBehaviour
             checkForControlsAndInputs();
         }
 
+        StopCoroutine(ray_target_check_coroutine);
         control_check_coroutine = null;
+        ray_target_check_coroutine = null;
+    }
+
+    //helper method called by the raycasting to improve raycast consistency (rounds to nearest hundredth)
+    private Vector3 roundVector3(Vector3 to_round)
+    {
+        to_round = new Vector3(Mathf.Round(to_round.x * 1000.0f) / 1000.0f, Mathf.Round(to_round.y * 1000.0f) / 1000.0f, Mathf.Round(to_round.z * 1000.0f) / 1000.0f);
+        return to_round;
     }
 
     //called by controlCheck() every frame
@@ -355,15 +383,14 @@ public class ControlScript : MonoBehaviour
                     }
                 }
 
-                //else check controls
-                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE)) //cast ray
+                if (current_ray_target != null) //check if ray cast hit something
                 {
-                    if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
+                    if (current_ray_target.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
                         IControllable target_control =
-                            (IControllable)control_script_holder.GetComponent(hit.collider.transform.GetChild(0).name); //get corresponding class
+                            (IControllable)control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name); //get corresponding class
 
-                        HUDInfo temp_info = target_control.getHUDinfo(hit.collider.gameObject);
+                        HUDInfo temp_info = target_control.getHUDinfo(current_ray_target.gameObject);
 
                         if (control_title.GetComponent<TMP_Text>().text.CompareTo(temp_info.getName()) != 0 || current_info.numOptions() != temp_info.numOptions())
                         {
@@ -417,7 +444,7 @@ public class ControlScript : MonoBehaviour
                         }
                         control_info.SetActive(true); //show UI indicator
                         float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-                        target_control.handleInputs(current_inputs, hit.collider.gameObject, dt, curr_pos); //call when all inputs have been checked
+                        target_control.handleInputs(current_inputs, current_ray_target, dt, curr_pos); //call when all inputs have been checked
                         return;
                     }
                 }
