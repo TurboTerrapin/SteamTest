@@ -5,14 +5,13 @@
     - Manages the HUD display for control interaction
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     Contributor(s): Jake Schott
-    Last Updated: 8/28/2025
+    Last Updated: 10/11/2025
 */
 
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor.Rendering;
 
 public class ControlScript : MonoBehaviour
 {
@@ -319,15 +318,26 @@ public class ControlScript : MonoBehaviour
         control_info.SetActive(false);
     }
 
-    //runs on FixedUpdate() time
+    //runs on FixedUpdate() time (this code is meant to improve raycast consistency/avoid flickering)
     IEnumerator rayCheck()
     {
+        float cooldown = 0.0f;
+        current_ray_target = null;
         while (true)
         {
-            current_ray_target = null;
             if (Physics.Raycast(new Ray(roundVector3(plr_camera.transform.position), roundVector3(plr_camera.transform.forward)), out RaycastHit hit, RAYCAST_RANGE))
             {
                 current_ray_target = hit.collider.gameObject;
+                cooldown = 0.0f;
+            }
+            else
+            {
+                cooldown += Time.fixedDeltaTime;
+                if (cooldown >= 0.12f)
+                {
+                    current_ray_target = null;
+                    cooldown = 0.0f;
+                }
             }
             yield return new WaitForFixedUpdate();
         }
