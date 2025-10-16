@@ -147,7 +147,6 @@ public class LoadHandler : NetworkBehaviour
 
         //enable load screen
         randomizeColors();
-        load_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
         load_screen.SetActive(true);
 
         //switch cameras

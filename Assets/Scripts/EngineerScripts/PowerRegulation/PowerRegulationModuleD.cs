@@ -14,7 +14,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
 {
     //CLASS CONSTANTS
     private static float STATE_CHANGE_TIME = 0.5f;
-    private static float SLIDE_SPEED = 0.25f;
+    private static float SLIDE_SPEED = 0.35f;
 
     private string[] CONTROL_NAMES = new string[3] { "PRIMARY IMPULSE ENERGIZER", "SECONDARY IMPULSE ENERGIZER", "TERTIARY IMPULSE ENERGIZER" };
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };

@@ -132,11 +132,6 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 
             trigger_percentage = Mathf.Max(0.0f, ((trigger_percentage * COOLDOWN_TIME) - dt) / COOLDOWN_TIME);
 
-            if (trigger_percentage != before_trigger_percentage)
-            {
-                transmitTriggerPercentageRPC(trigger_percentage);
-            }
-
             displayAdjustment();
 
             keys_down.Clear();
@@ -167,7 +162,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
                 trigger_percentage = Mathf.Max(0.0f, ((trigger_percentage * ARM_TIME) - dt) / ARM_TIME);
             }
 
-            BUTTONS[0].updateInteractable(trigger_percentage >= 1.0f);
+            BUTTONS[0].updateInteractable(trigger_percentage >= 1.0f && is_powered);
 
             if (trigger_percentage != before_trigger_percentage)
             {

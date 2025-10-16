@@ -26,7 +26,6 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
     public GameObject auxiliary_power_lever;
     public GameObject auxiliary_power_display;
 
-    private TMP_Text auxiliary_power_label;
     private UnityEngine.UI.RawImage auxiliary_power_outer_circle;
     private UnityEngine.UI.Image auxiliary_power_fill_circle;
     private TMP_Text auxiliary_power_available_label;

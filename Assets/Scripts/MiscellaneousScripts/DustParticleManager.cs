@@ -68,7 +68,8 @@ public class DustParticleManager : MonoBehaviour
         }
         if (spaceship == null)
         {
-            Destroy(this);
+            GameObject.Destroy(gameObject);
+            return;
         }
         for (int i = 1; i <= NUM_PARTICLES; i++) 
         {

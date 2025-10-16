@@ -73,7 +73,7 @@ public class EnergyPatternManager : MonoBehaviour
     //establishes the pattern and sets
     public void setPattern(int index, PatternData pd)
     {
-        //clear current pattern (if there is one
+        //clear current pattern (if there is one)
         patterns[index].GetComponent<PatternVisualizer>().resetPattern();
 
         corresponding_pattern_data[index] = pd;

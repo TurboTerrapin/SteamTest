@@ -144,10 +144,10 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
                 symbol_icon.texture = matching_symbol.texture;
                 symbol_icon.color = matching_symbol.color;
                 symbol_icon.gameObject.SetActive(true);
-                yield return new WaitForSeconds(2.5f);
+                yield return new WaitForSeconds(1.25f);
             }
             symbol_icon.gameObject.SetActive(false);
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.5f);
         }
     }
 

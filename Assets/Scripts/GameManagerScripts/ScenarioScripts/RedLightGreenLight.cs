@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using Steamworks;
+using NUnit.Framework.Constraints;
 
 public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
@@ -220,12 +221,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             if (successful_transmission)
             {
                 randomizeColors();
-                string cc = "";
-                for (int i = 0; i < 5; i++)
-                {
-                    cc += curr_colors[i].ToString();
-                }
-                enterGreenLightStateRPC(cc);
+                string s_cc = DataConverter.arrayToString(curr_colors);
+                enterGreenLightStateRPC(s_cc);
             }
             else
             {
@@ -260,6 +257,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             friendlyMessageIndexes = reversedIndexes;
         }
 
+        bool to_return = true;
+
         for (int i = 0; i < 8; i++)
         {
             //if 2+ dotted rings, make sure is orange
@@ -267,21 +266,21 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             {
                 if (cc[i] != 3)
                 {
-                    return false;
+                    to_return = false;
                 }
             }
             //make sure is symbol
             if (cin[i] != 0)
             {
-                return false;
+                to_return = false;
             }
             //make sure is right message
             if (ci[i] != friendlyMessageIndexes[i])
             {
-                return false;
+                to_return = false;
             }
         }
-        return true;
+        return to_return;
     }
 
     private void resetCoroutines()
@@ -313,9 +312,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         int[] temp_curr_colors = DataConverter.stringToArray(s_ring_colors);
         int[] temp_textures = DataConverter.stringToArray(s_ring_textures);
+        num_dotted = 0;
 
-        setColorInfo();
-
+        //set texture info
         List<bool> ring_is_solid = new List<bool>();
         List<Texture> ring_textures = new List<Texture>();
         for (int i = 0; i < 4; i++)
@@ -327,6 +326,13 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             }
             ring_textures.Add(texture_options[temp_textures[i]]);
         }
+
+        //set color info
+        for (int i = 0; i < 4; i++)
+        {
+            curr_colors[i] = temp_curr_colors[i];
+        }
+        setColorInfo();
 
         PatternData RLGLpattern = new PatternData();
         RLGLpattern.setCenter(center_texture, COLOR_OPTIONS[curr_colors[4]], center_speed);
@@ -346,6 +352,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private void enterGreenLightStateRPC(string s_new_colors)
     {
         int[] temp_curr_colors = DataConverter.stringToArray(s_new_colors);
+        curr_colors = temp_curr_colors;
 
         setColorInfo();
 

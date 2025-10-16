@@ -1,9 +1,9 @@
 /*
     ShipStatus.cs
     - Handles slider
-    - Changes lights at highest status
+    - Enables/disables red alert
     Contributor(s): Jake Schott
-    Last Updated: 9/8/2025
+    Last Updated: 10/15/2025
 */
 
 using System.Collections;
@@ -68,7 +68,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         for (int i = 0; i <= curr_status; i++)
         {
             indicators[i].GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[curr_status];
-            indicators[i].SetActive(true);
+            indicators[i].SetActive(is_powered);
         }
 
         //change lights
@@ -215,8 +215,6 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             {
                 indicators[i].SetActive(false);
             }
-            BUTTONS[0].updateInteractable(false);
-            BUTTONS[1].updateInteractable(false);
 
             //return to normal status
             if (power_loss_coroutine != null)

@@ -499,7 +499,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
     }
 
-    //called by PowerRegulator.moduleCompleted()
+    //called by PowerRegulator.moduleCompleted(), PowerRegulator.useAuxiliaryPower()
     public void restorePower()
     {
         if (shutdown_coroutine != null)
