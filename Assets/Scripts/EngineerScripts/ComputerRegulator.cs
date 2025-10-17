@@ -9,7 +9,9 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
@@ -18,7 +20,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
     private static float BUTTON_SPEED = 15.0f;
     private static float CONFIRM_BUTTON_TIME = 0.25f;
     private static float CURSOR_MOVE_SPEED = 0.1f;
-    private static Vector2 CURSOR_BOUNDS = new Vector2(0.058f, 0.085f);
+    private static Vector2 CURSOR_BOUNDS = new Vector2(0.069f, 0.095f);
     private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.129f, 1f, 0.04f, 0.2f), new Color(0.69f, 0f, 0.69f, 0.2f), new Color(0.84f, 0.62f, 0f, 0.2f) };
 
     private string CONTROL_NAME = "COMPUTER REGULATOR";
@@ -48,6 +50,47 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
+    //used to space out the different shapes
+    private struct area
+    {
+        public Vector2 tlc;
+        public Vector2 brc;
+
+        public area(Vector2 top_left_coordinate, Vector2 bottom_right_coordinate)
+        {
+            tlc = top_left_coordinate;
+            brc = bottom_right_coordinate;
+        }
+
+        public bool pointIsInArea(Vector2 to_test)
+        {
+            return ((to_test.x > tlc.x && to_test.x < brc.x) && (to_test.y < tlc.y && to_test.y > brc.y));
+        }
+
+        public bool canFitShape(float shape_size)
+        {
+            shape_size += 0.015f; //add a little cushion
+            float area_width = brc.x - tlc.x;
+            float area_height = tlc.y - brc.y;
+            return (area_width > shape_size && area_height > shape_size);
+        }
+
+        public bool isOverlapping(area other)
+        {
+            return (pointIsInArea(other.tlc) || pointIsInArea(other.brc) || pointIsInArea(new Vector2(other.tlc.x, other.brc.y)) || pointIsInArea(new Vector2(other.brc.x, other.tlc.y)));
+        }
+
+        public List<Vector2> addPoints(List<Vector2> points_list)
+        {
+            points_list.Add(brc);
+            points_list.Add(tlc);
+            points_list.Add(new Vector2(brc.x, tlc.y));
+            points_list.Add(new Vector2(tlc.x, brc.y));
+            return points_list;
+        }
+    }
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -187,12 +230,12 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
             if (Mathf.Abs(cursor_movement_factors[0] - cursor_movement_factors[1]) > 0.0f)
             {
                 cursor_position.y += (cursor_movement_factors[0] - cursor_movement_factors[1]) * dt * CURSOR_MOVE_SPEED;
-                cursor_position.y = Mathf.Clamp(cursor_position.y, CURSOR_BOUNDS.y * -1.0f, CURSOR_BOUNDS.y);
+                cursor_position.y = Mathf.Clamp(cursor_position.y, CURSOR_BOUNDS.y * -1.0f + 0.01f, CURSOR_BOUNDS.y - 0.01f);
             }
             if (Mathf.Abs(cursor_movement_factors[3] - cursor_movement_factors[2]) > 0.0f)
             {
                 cursor_position.x += (cursor_movement_factors[3] - cursor_movement_factors[2]) * dt * CURSOR_MOVE_SPEED;
-                cursor_position.x = Mathf.Clamp(cursor_position.x, CURSOR_BOUNDS.x * -1.0f, CURSOR_BOUNDS.x);
+                cursor_position.x = Mathf.Clamp(cursor_position.x, CURSOR_BOUNDS.x * -1.0f + 0.01f, CURSOR_BOUNDS.x - 0.01f);
             }
 
             for (int i = 0; i < 4; i++)
@@ -252,7 +295,6 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         cursor_confirm_coroutine = null;
     }
     
-
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         if (is_powered == false)
@@ -284,33 +326,116 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
-    private Vector2 getRandomLocation(float size)
+    private Vector2 getRandomLocation(float size, int c)
     {
         Vector2 valid_location = Vector2.zero;
-        bool location_found = false;
-        int attempts = 0;
-        while (location_found == false)
+        List<area> unoccupied_areas = new List<area>();
+        List<area> occupied_areas = new List<area>();
+
+        List<Vector2> connecting_points = new List<Vector2>();
+
+        area default_space = new area(new Vector2(CURSOR_BOUNDS.x * -1.0f, CURSOR_BOUNDS.y), new Vector2(CURSOR_BOUNDS.x, CURSOR_BOUNDS.y * -1.0f));
+        connecting_points = default_space.addPoints(connecting_points);
+
+        //check existing shapes
+        for (int i = 0; i < 10; i++)
         {
-            valid_location.x = Random.Range(CURSOR_BOUNDS.x * -1.0f + (size * 0.5f), CURSOR_BOUNDS.x - (size * 0.5f));
-            valid_location.y = Random.Range(CURSOR_BOUNDS.y * -1.0f + (size * 0.5f), CURSOR_BOUNDS.y - (size * 0.5f));
-
-            location_found = true;
-
-            for (int i = shapes_holder.transform.childCount - 1; i >= 1; i--)
+            if (shapes[i] != null)
             {
-                GameObject to_compare_to = shapes_holder.transform.GetChild(i).gameObject;
-                float dist = Vector2.Distance(valid_location, new Vector2(to_compare_to.transform.localPosition.x, to_compare_to.transform.localPosition.y));
-                float min_dist = (size * 0.5f) + (to_compare_to.GetComponent<RectTransform>().sizeDelta.x * 0.5f) + 0.02f;
-                if (dist < min_dist)
+                area occupied_space = new area();
+                occupied_space.tlc = new Vector2(shapes[i].transform.localPosition.x - (shapes[i].GetComponent<RectTransform>().sizeDelta.x * 0.5f), shapes[i].transform.localPosition.y + (shapes[i].GetComponent<RectTransform>().sizeDelta.y * 0.5f));
+                occupied_space.brc = new Vector2(shapes[i].transform.localPosition.x + (shapes[i].GetComponent<RectTransform>().sizeDelta.x * 0.5f), shapes[i].transform.localPosition.y - (shapes[i].GetComponent<RectTransform>().sizeDelta.y * 0.5f));
+                
+                connecting_points = occupied_space.addPoints(connecting_points);
+                occupied_areas.Add(occupied_space);
+            }
+        }
+
+        //start at 1 to skip bottom right corner
+        for (int i = 1; i < connecting_points.Count; i++)
+        {
+            for (int k = 0; k < connecting_points.Count; k++)
+            {
+                if (connecting_points[i] != connecting_points[k])
                 {
-                    location_found = false;
+                    area rectangular_space = new area(connecting_points[i], connecting_points[k]);
+
+                    //ensure tlc is actually top-left coordinate
+                    if (rectangular_space.tlc.x > rectangular_space.brc.x)
+                    {
+                        float switch_x = rectangular_space.brc.x;
+                        rectangular_space.brc.x = rectangular_space.tlc.x;
+                        rectangular_space.tlc.x = switch_x;
+                    }
+
+                    //ensure brc is actually bottom-right coordinate
+                    if (rectangular_space.brc.y > rectangular_space.tlc.y)
+                    {
+                        float switch_y = rectangular_space.brc.y;
+                        rectangular_space.brc.y = rectangular_space.tlc.y;
+                        rectangular_space.tlc.y = switch_y;
+                    }
+
+                    unoccupied_areas.Add(rectangular_space);
                 }
             }
-            attempts++;
-            if (attempts > 1000)
+        }
+
+        List<area> candidate_areas = new List<area>();
+
+        //filter out spaces
+        foreach (area possible_area in unoccupied_areas)
+        {
+            bool successful_candidate = true;
+
+            //make sure to not include already included areas
+            for (int i = 0; i < candidate_areas.Count; i++)
             {
-                location_found = true;
+                if (possible_area.tlc == candidate_areas[i].tlc && possible_area.brc == candidate_areas[i].brc)
+                {
+                    successful_candidate = false;
+                }
             }
+
+            //not big enough
+            if (possible_area.canFitShape(size) == false)
+            {
+                successful_candidate = false;
+            }
+            
+            //compare against occupied areas
+            for (int i = 0; i < occupied_areas.Count; i++)
+            {
+                //check if occupied or overlapping with occupied
+                if ((possible_area.tlc == occupied_areas[i].tlc && possible_area.brc == occupied_areas[i].brc) || (possible_area.isOverlapping(occupied_areas[i]) == true)) 
+                {
+                    successful_candidate = false;
+                    break;
+                }
+            }
+
+            if (successful_candidate == true) //passes tests, add as candidate
+            {
+                candidate_areas.Add(possible_area);
+            }
+        }
+
+        //pick candidate area with greatest size to spread out as much as possible
+        if (candidate_areas.Count > 0)
+        {
+            int candidate_to_choose = 0;
+            float greatest_dist = 0.0f;
+            for (int i = 0; i < candidate_areas.Count; i++)
+            {
+                float dist = Vector2.Distance(candidate_areas[i].tlc, candidate_areas[i].brc);
+                if (dist > greatest_dist)
+                {
+                    candidate_to_choose = i;
+                    greatest_dist = dist;
+                }
+            }
+            valid_location.x = Random.Range(candidate_areas[candidate_to_choose].tlc.x + (size * 0.5f) + 0.0075f, candidate_areas[candidate_to_choose].brc.x - (size * 0.5f) - 0.0075f);
+            valid_location.y = Random.Range(candidate_areas[candidate_to_choose].brc.y + (size * 0.5f) + 0.0075f, candidate_areas[candidate_to_choose].tlc.y - (size * 0.5f) - 0.0075f);
         }
 
         return valid_location;
@@ -368,7 +493,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
                 float shape_size = Random.Range(0.015f, 0.02f);
                 int shape_index = Random.Range(0, 3);
                 int color_index = Random.Range(0, 3);
-                Vector2 shape_location = getRandomLocation(shape_size);
+                Vector2 shape_location = getRandomLocation(shape_size, i);
                 transmitShapeAdditionRPC(i, shape_index, shape_size, shape_location, color_index);
             }
         }

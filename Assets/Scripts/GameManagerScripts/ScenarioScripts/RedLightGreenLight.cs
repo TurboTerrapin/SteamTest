@@ -81,7 +81,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         }
     }
 
-    private List<Color> getColorsAsColor()
+    private List<Color> getRingColorsAsColor()
     {
         List<Color> to_return = new List<Color>();
         for (int i = 0; i < 4; i++)
@@ -89,6 +89,11 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             to_return.Add(COLOR_OPTIONS[curr_colors[i]]);
         }
         return to_return;
+    }
+
+    private Color getCenterColorAsColor()
+    {
+        return COLOR_OPTIONS[curr_colors[4]];
     }
 
     private void Start()
@@ -335,8 +340,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         setColorInfo();
 
         PatternData RLGLpattern = new PatternData();
-        RLGLpattern.setCenter(center_texture, COLOR_OPTIONS[curr_colors[4]], center_speed);
-        RLGLpattern.setRings(4, getColorsAsColor(), ring_textures, ring_is_solid, ring_speeds);
+        RLGLpattern.setCenter(center_texture, getCenterColorAsColor(), center_speed);
+        RLGLpattern.setRings(4, getRingColorsAsColor(), ring_textures, ring_is_solid, ring_speeds);
 
         energyPatternManager.setPattern(0, RLGLpattern);
     }
@@ -356,7 +361,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         setColorInfo();
 
-        energyPatternManager.updateColors(0, getColorsAsColor(), 1.0f);
+        energyPatternManager.updateColors(0, getRingColorsAsColor(), getCenterColorAsColor(), 1.0f);
 
         resetCoroutines();
         greenLightCoroutine = StartCoroutine(GreenLightState());

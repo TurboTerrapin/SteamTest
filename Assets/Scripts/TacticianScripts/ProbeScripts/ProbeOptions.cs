@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/16/2025
 */
 
 using System.Collections;
@@ -14,9 +14,9 @@ using Unity.Netcode;
 public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float TURN_TIME = 1.0f;
-    private static float CHARGE_TIME = 2.0f;
-    private static float FUNCTION_TIME = 4.0f;
+    private static float TURN_TIME = 0.5f;
+    private static float CHARGE_TIME = 1.5f;
+    private static float FUNCTION_TIME = 3.0f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };

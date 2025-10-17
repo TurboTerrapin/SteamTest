@@ -2,7 +2,7 @@
     SignalOptions.cs
     - Handles the controls that send/receive transmissions
     Contributor(s): Jake Schott
-    Last Updated: 8/23/2025
+    Last Updated: 10/16/2025
 */
 
 using System.Collections;
@@ -13,10 +13,10 @@ using UnityEngine;
 public class SignalOptions : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float TURN_TIME = 0.75f;
+    private static float TURN_TIME = 0.25f;
 
-    private string CONTROL_NAME = "SIGNAL OPTIONS";
-    private List<string> CONTROL_DESCS = new List<string>{"RECEIVE", "BROADCAST"};
+    private string[] CONTROL_NAMES = new string[2] {"RECEIVE TRANSMISSION", "BROADCAST TRANSMISSION"};
+    private List<string> CONTROL_DESCS = new List<string>{"TRANSMIT", "TRANSMIT"};
     private List<int> CONTROL_INDEXES = new List<int>(){6};
     private List<Button>[] BUTTON_LISTS = new List<Button>[2]{new List<Button>(), new List<Button>()};
 
@@ -35,17 +35,18 @@ public class SignalOptions : NetworkBehaviour, IControllable
     {
         transmission_handler = transform.GetComponent<TransmissionHandler>();
 
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAMES[0]);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[0], false, false));
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
-        hud_info.setButtons(BUTTON_LISTS[index]);
+        hud_info.setTitle(CONTROL_NAMES[index]);
+        hud_info.setButtons(BUTTON_LISTS[index], 6);
         return hud_info;
     }
 

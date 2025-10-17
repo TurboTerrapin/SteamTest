@@ -3,7 +3,7 @@
     - Handles distance to ship
     - Handles probe health
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2025
+    Last Updated: 10/16/2025
 */
 
 using System.Collections;
@@ -12,7 +12,7 @@ using UnityEngine;
 public class Probe : MonoBehaviour
 {
     //CLASS CONSTANTS
-    private static float RANGE = 125.0f; //how far the probe can be from the ship while still being in contact
+    private static float RANGE = 1500.0f; //how far the probe can be from the ship while still being in contact
 
     private float probe_health;
     private bool connected;

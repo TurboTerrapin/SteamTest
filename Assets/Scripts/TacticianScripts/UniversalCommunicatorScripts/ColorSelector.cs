@@ -3,7 +3,7 @@
     - Handles color slider
     - Updates characters
     Contributor(s): Jake Schott
-    Last Updated: 7/29/2025
+    Last Updated: 10/16/2025
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
-    private static float MOVE_TIME = 0.5f;
+    private static float MOVE_TIME = 0.2f;
 
     private string CONTROL_NAME = "COLOR SELECTOR";
     private List<string> CONTROL_DESCS = new List<string> { "SHIFT LEFT", "SHIFT RIGHT" };

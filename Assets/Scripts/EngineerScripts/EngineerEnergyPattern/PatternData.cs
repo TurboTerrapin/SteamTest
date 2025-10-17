@@ -27,6 +27,11 @@ public class PatternData
         center_speed = speed;
     }
 
+    public void setCenterColor(Color c_color)
+    {
+        center_color = c_color;
+    }
+
     public void setRings(int num, List<Color> colors, List<Texture> textures, List<bool> is_solid, List<float> speeds)
     {
         number_of_rings = num;

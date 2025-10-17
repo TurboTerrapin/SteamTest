@@ -122,10 +122,9 @@ public class EnergyPatternManager : MonoBehaviour
     }
 
     //updates the colors in the PatternData and corresponding visualizer
-    public void updateColors(int index, List<Color> new_colors, float anim_time)
+    public void updateColors(int index, List<Color> new_ring_colors, Color new_center_color, float anim_time)
     {
-        corresponding_pattern_data[index].setRingColors(new_colors);
-        patterns[index].GetComponent<PatternVisualizer>().changeColors(new_colors, anim_time);
+        patterns[index].GetComponent<PatternVisualizer>().changeColors(new_ring_colors, new_center_color, anim_time);
     }
 
     //resizes the pattern in the corresponding index to either contracted (true) or expanded (false) in time_interval time

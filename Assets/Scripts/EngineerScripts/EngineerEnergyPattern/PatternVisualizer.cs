@@ -48,27 +48,32 @@ public class PatternVisualizer : MonoBehaviour
     }
 
     //handles color changes in (runs for anim_time)
-    IEnumerator patternColorChange(List<Color> end_colors, float anim_time)
+    IEnumerator patternColorChange(List<Color> end_ring_colors, Color end_center_color, float anim_time)
     {
-        Color[] starting_colors = new Color[pattern_information.getNumberOfRings()];
-        for (int i = 0; i < starting_colors.Length; i++)
+        //get current colors before change
+        Color[] starting_colors = new Color[pattern_information.getNumberOfRings() + 1];
+        for (int i = 0; i < pattern_information.getNumberOfRings(); i++)
         {
             starting_colors[i] = pattern_information.getRingColors()[i];
         }
-
+        starting_colors[pattern_information.getNumberOfRings()] = pattern_information.getCenterColor();
+        
+        //identify solid rings
         List<bool> is_solid = pattern_information.getRingSolids();
 
+        //color change animation
         float time_remaining = anim_time;
         while (time_remaining > 0.0f)
         {
-            time_remaining -= Time.deltaTime;
+            time_remaining = Mathf.Max(0.0f, time_remaining - Time.deltaTime);
 
-            for (int r = 0; r < starting_colors.Length; r++)
+            //recolor rings
+            for (int r = 0; r < pattern_information.getNumberOfRings(); r++)
             {
                 Color temp_color =
-                    new Color(Mathf.Lerp(starting_colors[r].r, end_colors[r].r, 1.0f - (time_remaining / anim_time)),
-                              Mathf.Lerp(starting_colors[r].g, end_colors[r].g, 1.0f - (time_remaining / anim_time)),
-                              Mathf.Lerp(starting_colors[r].b, end_colors[r].b, 1.0f - (time_remaining / anim_time)),
+                    new Color(Mathf.Lerp(starting_colors[r].r, end_ring_colors[r].r, 1.0f - (time_remaining / anim_time)),
+                              Mathf.Lerp(starting_colors[r].g, end_ring_colors[r].g, 1.0f - (time_remaining / anim_time)),
+                              Mathf.Lerp(starting_colors[r].b, end_ring_colors[r].b, 1.0f - (time_remaining / anim_time)),
                               1.0f);
 
                 if (is_solid[r] == false) //must recolor each individual dot
@@ -84,10 +89,19 @@ public class PatternVisualizer : MonoBehaviour
                 }
             }
 
+            //recolor center
+            pattern_center.GetComponent<UnityEngine.UI.RawImage>().color = 
+                new Color(Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].r, end_center_color.r, 1.0f - (time_remaining / anim_time)),
+                          Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].g, end_center_color.g, 1.0f - (time_remaining / anim_time)),
+                          Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].b, end_center_color.b, 1.0f - (time_remaining / anim_time)),
+                          1.0f);
+
             yield return null;
         }
 
-        pattern_information.setRingColors(end_colors);
+        //update PatternData to reflect color changes
+        pattern_information.setRingColors(end_ring_colors);
+        pattern_information.setCenterColor(end_center_color);
     }
 
     //ringa resize to small if true, big is false (runs for time_interval) 
@@ -192,14 +206,14 @@ public class PatternVisualizer : MonoBehaviour
         default_rotation_coroutine = StartCoroutine(spinRings(rotate_speeds));
     }
 
-    public void changeColors(List<Color> new_colors, float anim_time)
+    public void changeColors(List<Color> new_ring_colors, Color new_center_color, float anim_time)
     {
         if (color_change_coroutine != null)
         {
             StopCoroutine(color_change_coroutine);
         }
 
-        color_change_coroutine = StartCoroutine(patternColorChange(new_colors, anim_time));
+        color_change_coroutine = StartCoroutine(patternColorChange(new_ring_colors, new_center_color, anim_time));
     }
 
     public void contractPattern(float time_interval)
