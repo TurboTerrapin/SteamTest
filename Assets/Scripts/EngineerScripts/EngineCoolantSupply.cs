@@ -4,20 +4,21 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 9/23/2025
+    Last Updated: 10/18/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
 public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float TURN_SPEED = 0.1f;
+    private static float TURN_SPEED = 0.15f;
     private static float IMPULSE_SPEED_CHANGE_FACTOR = 4.0f; //goes 1/4 as fast when engines are overheated
-    private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.025f;
+    private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.005f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
@@ -30,22 +31,27 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 
     public GameObject engine_coolant_supply_display;
     public GameObject coolant_wheel;
+    private GameObject flow; //the UI section that shows the engine coolant flow
+    private GameObject temperature; //the UI section that shows the engine temperature
+    private GameObject capacity; //the UI section that shows impulse capacity
 
     private PilotingSystem piloting_system;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
     private float coolant_flow = 0.0f;
-    private float engine_temperature = 0.05f;
-    private float impulse_speed_modifier = 1.0f;
+    private float engine_temperature = 0.0f;
     private Coroutine engine_temperature_increase_coroutine = null;
-    private Coroutine engine_speed_change_coroutine = null;
 
     private static HUDInfo hud_info = null;
 
     private void Start()
     {
         piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
+
+        flow = engine_coolant_supply_display.transform.GetChild(0).gameObject;
+        temperature = engine_coolant_supply_display.transform.GetChild(1).gameObject;
+        capacity = engine_coolant_supply_display.transform.GetChild(2).gameObject;
 
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
@@ -58,23 +64,40 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    public void resetToDefault()
+    {
+        if (engine_temperature_increase_coroutine != null)
+        {
+            StopCoroutine(engine_temperature_increase_coroutine);
+            engine_temperature_increase_coroutine = null;
+        }
+        engine_temperature = 0.0f;
+        displayEngineTemperatureAdjustment();
+    }
+
     private void displayCoolantFlowAdjustment()
     {
         //update wheel rotation
         coolant_wheel.transform.localRotation = Quaternion.Euler(-54.0f, 315.0f, coolant_flow * 1080.0f);
 
         //update screen wheel
-        engine_coolant_supply_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
-        float a = 1.0f;
-        if (coolant_flow < 0.4f)
-        {
-            a = 0.2f;
-        }
-        engine_coolant_supply_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        flow.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
+        flow.transform.GetChild(3).transform.localRotation = Quaternion.Euler(180.0f, 0.0f, coolant_flow * 1080.0f);
     }
 
     private void displayEngineTemperatureAdjustment()
     {
+        //display impulse capacity
+        float impulse_capacity = Mathf.Lerp(1.0f, 1.0f / IMPULSE_SPEED_CHANGE_FACTOR, engine_temperature);
+        string impulse_capacity_as_string = ((Mathf.Round(impulse_capacity * 1000.0f) / 1000.0f) * 100.0f).ToString();
+        if (impulse_capacity_as_string.Contains('.') == false)
+        {
+            impulse_capacity_as_string += ".0";
+        }
+        capacity.transform.GetChild(1).GetComponent<TMP_Text>().SetText(impulse_capacity_as_string + "%");
+        capacity.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = impulse_capacity;
+
+        //display engine temperature
         Color status_color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         if (engine_temperature >= 1.0f)
         {
@@ -85,29 +108,21 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
             status_color = new Color(0.84f, 0.62f, 0.0f, 1.0f);
         }
 
-        //update screen (left bar and right bar are the same)
-        for (int i = 0; i < 2; i++)
-        {
-            //update colors
-            engine_coolant_supply_display.transform.GetChild(i + 3).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-            engine_coolant_supply_display.transform.GetChild(i + 3).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = status_color;
-
-            //update fill bar
-            engine_coolant_supply_display.transform.GetChild(i + 3).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Max(0.05f, engine_temperature);
-        }
-
-        //inner and outer rings
-        engine_coolant_supply_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        engine_coolant_supply_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        engine_coolant_supply_display.transform.GetChild(2).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        engine_coolant_supply_display.transform.GetChild(2).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        float engine_temp = Mathf.Max(0.02f, engine_temperature);
+        temperature.transform.GetChild(0).GetComponent<TMP_Text>().color = status_color;
+        temperature.transform.GetChild(2).transform.localPosition = new Vector3(Mathf.Lerp(-0.011f, 0.063f, engine_temp), 0.0195f, 0.0f);
+        temperature.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        temperature.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = engine_temp;
+        temperature.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().color = status_color;
     }
 
     IEnumerator engineTemperatureIncreaser()
     {
-        while (engine_temperature < 1.0f)
+        float coolant_flow_booster = 0.0f; //used to help accelerate temperature reduction
+        while (true)
         {
-            float difference = ENGINE_TEMPERATURE_INCREASE_SPEED - (coolant_flow * (ENGINE_TEMPERATURE_INCREASE_SPEED * 2.5f));
+            coolant_flow_booster = Mathf.Max(0.0f, Mathf.Min(2.0f, coolant_flow_booster + ((coolant_flow - 0.5f) * Time.deltaTime)));
+            float difference = ENGINE_TEMPERATURE_INCREASE_SPEED - (coolant_flow * (ENGINE_TEMPERATURE_INCREASE_SPEED * (1.5f + coolant_flow_booster)));
             if (difference > 0.0f)
             {
                 engine_temperature = Mathf.Min(1.0f, engine_temperature + (difference * Time.deltaTime));
@@ -120,29 +135,9 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
             {
                 transmitEngineTemperatureChangeRPC(engine_temperature);
             }
+            piloting_system.AdjustMaxImpulseSpeed(Mathf.Lerp(1.0f, 1.0f / IMPULSE_SPEED_CHANGE_FACTOR, engine_temperature));
             yield return null;
         }
-
-        transmitEngineOverheatRPC();
-
-        engine_temperature_increase_coroutine = null;
-    }
-
-    IEnumerator engineSpeedChange(float to_change_to)
-    {
-        float anim_time = 1.0f; //takes one second to update
-        float starting_impulse_speed_modifier = impulse_speed_modifier;
-        while (anim_time > 0.0f)
-        {
-            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-
-            impulse_speed_modifier = Mathf.Lerp(starting_impulse_speed_modifier, to_change_to, 1.0f - anim_time);
-            piloting_system.AdjustMaxImpulseSpeed(impulse_speed_modifier);
-
-            yield return null;
-        }
-
-        engine_speed_change_coroutine = null;
     }
 
     public void initializeEngineTemperatureIncreaser()
@@ -156,27 +151,6 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 
             engine_temperature = 0.0f;
             engine_temperature_increase_coroutine = StartCoroutine(engineTemperatureIncreaser());
-        }
-    }
-
-    public void resetEngineTemperatureIncreaser()
-    {
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            if (engine_temperature_increase_coroutine != null)
-            {
-                StopCoroutine(engine_temperature_increase_coroutine);
-                engine_temperature_increase_coroutine = null;
-            }
-
-            if (engine_speed_change_coroutine != null)
-            {
-                StopCoroutine (engine_speed_change_coroutine);
-                engine_speed_change_coroutine = null;
-            }
-
-            piloting_system.AdjustMaxImpulseSpeed(1.0f);
-            transmitEngineTemperatureChangeRPC(0.0f);
         }
     }
 
@@ -263,22 +237,6 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         coolant_flow = cf;
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, cf * MAX_POWER_CONSUMPTION);
         displayCoolantFlowAdjustment();
-
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            if (engine_temperature_increase_coroutine == null && coolant_flow > 0.4f)
-            {
-                engine_temperature = 0.99f;
-                transmitEngineTemperatureChangeRPC(engine_temperature);
-                engine_temperature_increase_coroutine = StartCoroutine(engineTemperatureIncreaser());
-
-                if (engine_speed_change_coroutine != null)
-                {
-                    StopCoroutine(engine_speed_change_coroutine);
-                }
-                engine_speed_change_coroutine = StartCoroutine(engineSpeedChange(1.0f));
-            }
-        }
     }
 
     [Rpc(SendTo.Everyone)]
@@ -286,22 +244,5 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     {
         engine_temperature = et;
         displayEngineTemperatureAdjustment();
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void transmitEngineOverheatRPC()
-    {
-        engine_temperature = 1.0f;
-        displayEngineTemperatureAdjustment();
-
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            if (engine_speed_change_coroutine != null)
-            {
-                StopCoroutine(engine_speed_change_coroutine);
-            }
-
-            engine_speed_change_coroutine = StartCoroutine(engineSpeedChange(1.0f / IMPULSE_SPEED_CHANGE_FACTOR));
-        }
     }
 }

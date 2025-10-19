@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 9/17/2025
+    Last Updated: 10/17/2025
 */
 
 using System.Collections;
@@ -302,7 +302,8 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("ControlHandler").GetComponent<PhaserFrequency>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<EnergyPattern>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
-        GameObject.Find("ControlHandler").GetComponent<EngineCoolantSupply>().resetEngineTemperatureIncreaser();
+        GameObject.Find("ControlHandler").GetComponent<EngineCoolantSupply>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<CargoEjectLoader>().resetToDefault();
 
         //destroy probe (if exists)
         foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))

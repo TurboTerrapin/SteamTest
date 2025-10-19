@@ -325,20 +325,24 @@ public class ControlScript : MonoBehaviour
         current_ray_target = null;
         while (true)
         {
-            if (Physics.Raycast(new Ray(roundVector3(plr_camera.transform.position), roundVector3(plr_camera.transform.forward)), out RaycastHit hit, RAYCAST_RANGE))
+            if (plr_camera != null)
             {
-                current_ray_target = hit.collider.gameObject;
-                cooldown = 0.0f;
-            }
-            else
-            {
-                cooldown += Time.fixedDeltaTime;
-                if (cooldown >= 0.12f)
+                if (Physics.Raycast(new Ray(roundVector3(plr_camera.transform.position), roundVector3(plr_camera.transform.forward)), out RaycastHit hit, RAYCAST_RANGE))
                 {
-                    current_ray_target = null;
+                    current_ray_target = hit.collider.gameObject;
                     cooldown = 0.0f;
                 }
+                else
+                {
+                    cooldown += Time.fixedDeltaTime;
+                    if (cooldown >= 0.12f)
+                    {
+                        current_ray_target = null;
+                        cooldown = 0.0f;
+                    }
+                }
             }
+
             yield return new WaitForFixedUpdate();
         }
     }

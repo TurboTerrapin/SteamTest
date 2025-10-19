@@ -2,7 +2,7 @@
     CargoEjectLoader.cs
     - Handles the loading and unloading of items in the cargo eject launcher
     Contributor(s): Jake Schott
-    Last Updated: 9/27/2025
+    Last Updated: 10/17/2025
 */
 
 using System.Collections;
@@ -80,11 +80,39 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    public void resetToDefault()
+    {
+        //stop all coroutines
+        StopAllCoroutines();
+
+        if (item_loaded == true)
+        {
+            //reset switches/dial
+            cargo_eject_item_type_switch.transform.localPosition = item_type_switch_initial_position;
+            cargo_eject_load_dial.transform.localRotation = Quaternion.Euler(-54.0f, 315.0f, 0.0f);
+            cargo_eject_item_variation_switch.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f);
+
+            //unload item
+            if (NetworkManager.Singleton.IsHost == true)
+            {
+                transmitCargoLoadChangeRPC(item_type_category, item_variation_index, false);
+            }
+        }
+
+        item_type_category = 0;
+        item_variation_index = 0;
+        displayAdjustment(false);
+    }
+
     private void displayAdjustment(bool loading)
     {
-        UnityEngine.UI.RawImage item_icon = cargo_eject_load_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>();
-        TMP_Text item_text = cargo_eject_load_display.transform.GetChild(0).GetComponent<TMP_Text>();
-        TMP_Text quantity_text = cargo_eject_load_display.transform.GetChild(2).GetComponent<TMP_Text>();
+        string name_of_item = engineer_inventory.getItemName(item_type_category, item_variation_index);
+
+        TMP_Text item_name = cargo_eject_load_display.transform.GetChild(0).GetComponent<TMP_Text>();
+        TMP_Text item_id = cargo_eject_load_display.transform.GetChild(1).GetComponent<TMP_Text>();
+        UnityEngine.UI.RawImage item_icon = cargo_eject_load_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>();
+        TMP_Text item_info = cargo_eject_load_display.transform.GetChild(3).GetComponent<TMP_Text>();
+        TMP_Text quantity_text = cargo_eject_load_display.transform.GetChild(4).GetComponent<TMP_Text>();
 
         Color item_color = engineer_inventory.getItemColor(item_type_category, item_variation_index);
 
@@ -97,17 +125,33 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         item_color = new Color(item_color.r, item_color.g, item_color.b, a);
 
         //set title text
-        item_text.color = item_color;
-        string item_title = engineer_inventory.getItemName(item_type_category, item_variation_index).ToUpper();
+        item_name.color = item_color;
+        string item_title = name_of_item.ToUpper();
         if (item_type_category == 1)
         {
             item_title += " TORPEDO";
         }
-        item_text.SetText(item_title);
+        item_name.SetText(item_title);
+
+        //set id text
+        item_id.color = item_color;
+        item_id.SetText("ITEM ID: " + engineer_inventory.getItemID(name_of_item));
 
         //set icon
         item_icon.color = item_color;
         item_icon.texture = engineer_inventory.getItemTexture(item_type_category, item_variation_index);
+
+        //set item info
+        item_info.color = item_color;
+        Vector2 item_size = engineer_inventory.getItemSize(name_of_item);
+        item_info.SetText("WEIGHT: " + engineer_inventory.getItemWeight(name_of_item) + "kg\nHEIGHT: " + item_size.x + "m\nLENGTH: " + item_size.y + "m");
+
+        //change bar colors
+        foreach (Transform bar in cargo_eject_load_display.transform.GetChild(6))
+        {
+            bar.GetComponent<UnityEngine.UI.RawImage>().color = item_color;
+        }
+        cargo_eject_load_display.transform.GetChild(5).GetComponent<UnityEngine.UI.Image>().color = item_color;
 
         //set quantity text
         quantity_text.color = item_color;
@@ -222,7 +266,19 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            //turn dial
             cargo_eject_load_dial.transform.localRotation = Quaternion.Euler(-54.0f, 315.0f, Mathf.Lerp(start_rotation, destination_rotation, 1.0f - (anim_time / LOAD_CONFIRMATION_TIME)));
+
+            //update fill bar
+            if (is_loading == false)
+            {
+                cargo_eject_load_display.transform.GetChild(5).GetComponent<UnityEngine.UI.Image>().fillAmount = anim_time / LOAD_CONFIRMATION_TIME;
+            }
+            else
+            {
+                cargo_eject_load_display.transform.GetChild(5).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - (anim_time / LOAD_CONFIRMATION_TIME);
+            }
 
             yield return null;
         }
@@ -363,10 +419,14 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = true;
 
-        item_type_category = 0;
-        item_variation_index = 0;
+        if (item_loaded == false)
+        {
+            item_type_category = 0;
+            item_variation_index = 0;
 
-        displayAdjustment(false);
+            displayAdjustment(false);
+        }
+
         activateButtons();
 
         cargo_eject_load_display.SetActive(true);
