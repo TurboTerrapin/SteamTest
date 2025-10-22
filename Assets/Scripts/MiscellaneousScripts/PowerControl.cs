@@ -3,7 +3,7 @@
     - Handles power-on/power-off procedure
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 9/28/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class PowerControl : NetworkBehaviour, IControllable
     private static float TURN_TIME = 1.0f;
 
     private string CONTROL_NAME = "POSITION POWER";
+    private static string INFO_MESSAGE = "Controls the enabled status of all controls at the corresponding position (only when ship power is available).";
     private List<string> CONTROL_DESCS = new List<string>{ "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>(){6};
     private List<Button>[] BUTTON_LISTS = new List<Button>[4];
@@ -38,6 +39,8 @@ public class PowerControl : NetworkBehaviour, IControllable
             BUTTON_LISTS[i] = new List<Button>();
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], true, true));
         }
+
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {

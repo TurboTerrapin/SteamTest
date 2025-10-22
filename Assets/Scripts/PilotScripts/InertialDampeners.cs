@@ -4,13 +4,14 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 {
@@ -19,6 +20,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 per dampener)
 
     private string[] CONTROL_NAMES = new string[] { "PRIMARY INERTIAL DAMPENER", "SECONDARY INERTIAL DAMPENER", "TERTIARY INERTIAL DAMPENER" };
+    private static string INFO_MESSAGE = "Increases ship acceleration for thrusters and impulse throttle. Each dampener contributes 33% to maximum acceleration effect.";
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -38,11 +40,12 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[2].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTON_LISTS[0], 6);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -99,6 +102,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
             }
         }
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
+        hud_info.setPowerConsumption(consumed_power);
     }
 
     IEnumerator adjustFillBar()
@@ -243,6 +247,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
         dampener_display.SetActive(false);
+        hud_info.setPowerConsumption(0.0f);
 
         //turn off all inertial dampeners
         if (power_loss_coroutine != null)

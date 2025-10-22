@@ -3,7 +3,7 @@
     - Meant to temporarily jam signals
     - Does nothing
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
@@ -23,6 +23,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "SIGNAL JAMMER";
+    private static string INFO_MESSAGE = "Disrupts the ability of others to transmit signals and utilize location-tracking technology.";
     private List<string> CONTROL_DESCS = new List<string>() { "ACTIVATE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button> BUTTONS = new List<Button>();
@@ -43,13 +44,15 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     private Vector3 button_final_pos = new Vector3(-2.4599f, -0.6773f, 2.1674f);
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         button_initial_pos = signal_jam_button.transform.localPosition;
 
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
@@ -177,6 +180,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         }
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
 
         jam_time = JAM_TIME;
         while (jam_time > 0.0f)
@@ -207,6 +211,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         colorChange(BLUE);
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, 0.0f);
+        hud_info.setPowerConsumption(0.0f);
 
         float reset_time = RESET_TIME;
         while (reset_time > 0.0f)
@@ -255,6 +260,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
             if (jam_time > 0.0f)
             {
                 transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
+                hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
             }
         }
     }
@@ -268,6 +274,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         {
             signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = unlit_blue;
         }
+        hud_info.setPowerConsumption(0.0f);
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)

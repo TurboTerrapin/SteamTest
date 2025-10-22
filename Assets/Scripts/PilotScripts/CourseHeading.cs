@@ -20,6 +20,7 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
     private const float wheelFriction = 0.95f;
 
     private string CONTROL_NAME = "COURSE HEADING";
+    private static string INFO_MESSAGE = "Controls ship steering when impulse throttle is active.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
@@ -48,6 +49,7 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
