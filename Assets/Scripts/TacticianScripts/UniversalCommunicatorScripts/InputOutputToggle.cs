@@ -2,7 +2,7 @@
     InputOutputToggle.cs
     - Switch that switches between input/output mode
     Contributor(s): Jake Schott
-    Last Updated: 7/29/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
     private static float SWITCH_TIME = 0.5f;
 
     private string CONTROL_NAME = "INPUT/OUTPUT TOGGLE";
+    private static string INFO_MESSAGE = "Used to switch between input (character entry) or output (message reading) mode.";
     private List<string> CONTROL_DESCS = new List<string>{"SWITCH"};
     private List<int> CONTROL_INDEXES = new List<int>(){6};
     private List<Button> BUTTONS = new List<Button>();
@@ -38,6 +39,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {

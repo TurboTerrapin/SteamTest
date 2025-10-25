@@ -2,7 +2,7 @@
     FrequencyAdjuster.cs
     - Switches frequencies
     Contributor(s): Jake Schott
-    Last Updated: 7/28/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -16,6 +16,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
     private static float FREQUENCY_SWITCH_TIME = 1.5f; //for frequency
 
     private string CONTROL_NAME = "FREQUENCY ADJUSTER";
+    private static string INFO_MESSAGE = "Adjusts the frequency for universal communicator transmissions.";
     private List<string> CONTROL_DESCS = new List<string>{"DECREASE", "INCREASE"};
     private List<int> CONTROL_INDEXES = new List<int>(){4, 5};
     private List<Button> BUTTONS = new List<Button>();
@@ -27,6 +28,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
     private float frequency_update = 0.5f; //increases at 1.0, decreases at 0.0
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         transmission_handler = transform.GetComponent<TransmissionHandler>();  
@@ -35,7 +37,9 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;

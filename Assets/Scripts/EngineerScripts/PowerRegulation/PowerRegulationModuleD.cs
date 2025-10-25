@@ -2,7 +2,7 @@
     PowerRegulationModuleD.cs
     - Handles the horizontal slider mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 9/15/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
     private static float SLIDE_SPEED = 0.35f;
 
     private string[] CONTROL_NAMES = new string[3] { "PRIMARY IMPULSE ENERGIZER", "SECONDARY IMPULSE ENERGIZER", "TERTIARY IMPULSE ENERGIZER" };
+    private static string INFO_MESSAGE = "Align each slider with the corresponding color marker to complete the module.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -62,6 +63,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         hud_info.setButtons(BUTTON_LISTS[0], 7);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)

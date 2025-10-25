@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 10/18/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -22,6 +22,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
+    private static string INFO_MESSAGE = "Regulates engines to prevent overheating and engine slowdown.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
@@ -53,10 +54,11 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         temperature = engine_coolant_supply_display.transform.GetChild(1).gameObject;
         capacity = engine_coolant_supply_display.transform.GetChild(2).gameObject;
 
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
         hud_info.setButtons(BUTTONS, 7);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -219,6 +221,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
+        hud_info.setPowerConsumption(0.0f);
 
         coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
         engine_coolant_supply_display.SetActive(false);
@@ -236,6 +239,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     {
         coolant_flow = cf;
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, cf * MAX_POWER_CONSUMPTION);
+        hud_info.setPowerConsumption(cf * MAX_POWER_CONSUMPTION);
         displayCoolantFlowAdjustment();
     }
 

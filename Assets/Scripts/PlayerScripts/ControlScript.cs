@@ -318,9 +318,9 @@ public class ControlScript : MonoBehaviour
         current_ray_target = null;
         while (true)
         {
-            if (plr_camera != null)
+            if (plr_camera != null && is_active == true)
             {
-                if (Physics.Raycast(new Ray(roundVector3(plr_camera.transform.position), roundVector3(plr_camera.transform.forward)), out RaycastHit hit, RAYCAST_RANGE))
+                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE))
                 {
                     current_ray_target = hit.collider.gameObject;
                     cooldown = 0.0f;
@@ -334,6 +334,11 @@ public class ControlScript : MonoBehaviour
                         cooldown = 0.0f;
                     }
                 }
+            }
+            else
+            {
+                cooldown = 0.0f;
+                current_ray_target = null;
             }
 
             yield return new WaitForFixedUpdate();
@@ -352,13 +357,6 @@ public class ControlScript : MonoBehaviour
         StopCoroutine(ray_target_check_coroutine);
         control_check_coroutine = null;
         ray_target_check_coroutine = null;
-    }
-
-    //helper method called by the raycasting to improve raycast consistency (rounds to nearest hundredth)
-    private Vector3 roundVector3(Vector3 to_round)
-    {
-        to_round = new Vector3(Mathf.Round(to_round.x * 1000.0f) / 1000.0f, Mathf.Round(to_round.y * 1000.0f) / 1000.0f, Mathf.Round(to_round.z * 1000.0f) / 1000.0f);
-        return to_round;
     }
 
     //called by controlCheck() every frame
@@ -495,7 +493,7 @@ public class ControlScript : MonoBehaviour
                     }
                 }
             }
-            secondary_info.SetActive(paused == false && HUD_setting == 0);
+            secondary_info.SetActive(is_active == true && paused == false && HUD_setting == 0);
             secondary_info.transform.GetChild(1).gameObject.SetActive(false);
             control_info.SetActive(false); //hide UI indicator if not looking at a control
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update if not looking at a control

@@ -107,6 +107,10 @@ public class ScenarioManager : NetworkBehaviour
     //called when start of scenario transition
     public string loadNewScenario()
     {
+        if (countdown_coroutine != null)
+        {
+            StopCoroutine(countdown_coroutine);
+        }
         endpoint_reached = false;
         scenario_number += 1;
         if (SceneManager.GetActiveScene().name == "RedLightGreenLight")

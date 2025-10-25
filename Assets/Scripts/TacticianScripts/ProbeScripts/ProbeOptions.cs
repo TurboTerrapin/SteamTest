@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 10/16/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };
+    private List<string> INFO_MESSAGES = new List<string>() { "Launches a probe into outer space if available in inventory and none currently active.", "Destroys launched probe in a controlled explosion (only if ship is within range)." };
     private List<string> CONTROL_DESCS = new List<string> { "ACTIVATE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
@@ -51,7 +52,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
 
         tactician_probe_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianProbeInfo>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
@@ -63,6 +64,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
+        hud_info.setInfo(INFO_MESSAGES[index]);
 
         hud_info.setButtons(BUTTON_LISTS[index]);
         return hud_info;
@@ -96,6 +98,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
         resetProbeInfoScreens();
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+        hud_info.setPowerConsumption(0.0f);
     }
 
     //spawns a probe, links probe to probe controls
@@ -110,6 +113,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
         transform.GetComponent<ProbeOrientation>().linkProbe(current_probe);
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
     }
 
     private void setChargeColor(Color new_color)
@@ -333,6 +337,7 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
         {
             BUTTON_LISTS[1][0].updateInteractable(current_probe.GetComponent<Probe>().inRange());
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
@@ -347,7 +352,8 @@ public class ProbeOptions : NetworkBehaviour, IControllable, IPowerable
         probe_options_display.SetActive(false);
         BUTTON_LISTS[0][0].updateInteractable(false);
         BUTTON_LISTS[1][0].updateInteractable(false);
-        
+        hud_info.setPowerConsumption(0.0f);
+
         if (dial_activation_coroutine != null)
         {
             StopCoroutine(dial_activation_coroutine);

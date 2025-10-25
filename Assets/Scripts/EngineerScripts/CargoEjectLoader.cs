@@ -2,7 +2,7 @@
     CargoEjectLoader.cs
     - Handles the loading and unloading of items in the cargo eject launcher
     Contributor(s): Jake Schott
-    Last Updated: 10/17/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     private static float LOAD_CONFIRMATION_TIME = 1.0f;
 
     private string[] CONTROL_NAMES = new string[] { "CARGO EJECT ITEM TYPE SELECTOR", "CARGO EJECT ITEM VARIATION", "CARGO EJECT LOADER" };
+    private List<string> INFO_MESSAGES = new List<string>() { "Switches between normal items and torpedoes.", "Selects which item to load into cargo eject bay.", "Loads and unloads item from cargo eject bay." };
     private List<string> CONTROL_DESCS = new List<string> { "SWITCH", "SELECT LEFT", "SELECT RIGHT", "LOAD", "UNLOAD" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 4, 5, 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -60,6 +61,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         hud_info.setButtons(BUTTON_LISTS[0], 6);
+        hud_info.setInfo(INFO_MESSAGES[0]);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -67,6 +69,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         int index = ray_targets.IndexOf(current_target.name);
 
         hud_info.setTitle(CONTROL_NAMES[index]);
+        hud_info.setInfo(INFO_MESSAGES[index]);
 
         if (index == 1)
         {

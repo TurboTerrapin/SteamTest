@@ -2,7 +2,7 @@
     ShipManualSelector.cs
     - Sends inputs to ShipManual and CommunicationsManual (directional, selection, and back)
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -38,7 +38,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
         manuals[0] = transform.GetComponent<ShipManual>();
         manuals[1] = transform.GetComponent<CommunicationsManual>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
         for (int i = 0; i < 2; i++)
         {
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -50,6 +50,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
         }
 
         hud_info.setButtons(BUTTON_LISTS[0], 4);
+        hud_info.setInfo(ManualOnOff.INFO_MESSAGES[0]);
 
         //set initial positions
         for (int i = 0; i < button_holders.Count; i++)
@@ -65,6 +66,8 @@ public class ManualSelector : NetworkBehaviour, IControllable
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 4);
+        hud_info.setInfo(ManualOnOff.INFO_MESSAGES[index]);
+        hud_info.setPowerConsumption(transform.GetComponent<ManualOnOff>().getManualPowerConsumption(index));
 
         return hud_info;
     }

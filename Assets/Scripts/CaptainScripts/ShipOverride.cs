@@ -19,7 +19,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "OVERRIDE SWITCH ";
-   
+    private static string INFO_MESSAGE = "Enables/disables computer override based on corresponding color for internal operations.";
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[8];
@@ -40,7 +40,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], true);
 
         for (int i = 0; i < 8; i++)
         {
@@ -49,6 +49,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
         }
 
         hud_info.setButtons(BUTTON_LISTS[0], 6);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -71,6 +72,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
             }
         }
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
+        hud_info.setPowerConsumption(consumed_power);
     }
 
     private void displayAdjustment(int index)
@@ -211,6 +213,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     public void powerOff(int position, float time)
     {
         is_powered = false;
+        hud_info.setPowerConsumption(0.0f);
 
         //return override switches to off
         if (power_loss_coroutine != null)

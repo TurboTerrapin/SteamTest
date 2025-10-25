@@ -4,7 +4,7 @@
     - Turns dial, changes screen
     - Handles flashing of circle
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "SHIP BEACON";
+    private static string INFO_MESSAGE = "Enables/disables transponder used for ship identification by foreign vessels.";
     private List<string> CONTROL_DESCS = new List<string> { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button> BUTTONS = new List<Button>();
@@ -39,9 +40,10 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true)); //enable button
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         displayAdjustment();
     }
@@ -119,6 +121,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         {
             beacon_enabled = false;
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
+            hud_info.setPowerConsumption(0.0f);
             displayAdjustment();
         }
 
@@ -146,6 +149,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         {
             beacon_enabled = true;
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
             displayAdjustment();
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);
         }
@@ -212,6 +216,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].untoggle();
         BUTTONS[0].updateDesc(CONTROL_DESCS[0]);
         displayAdjustment();
+        hud_info.setPowerConsumption(0.0f);
 
         if (beacon_flash_coroutine != null)
         {

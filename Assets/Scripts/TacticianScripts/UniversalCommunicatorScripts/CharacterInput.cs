@@ -2,7 +2,7 @@
     CharacterInput.cs
     - Inputs a new numeric/symbol
     Contributor(s): Jake Schott
-    Last Updated: 5/16/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -16,6 +16,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
     private static float PUSH_TIME = 0.25f;
 
     private string CONTROL_NAME = "CHARACTER INPUT";
+    private static string INFO_MESSAGE = "Input characters or symbols into the universal communicator.";
     private List<string> CONTROL_DESCS = new List<string> {"INPUT"};
     private List<int> CONTROL_INDEXES = new List<int>() {6};
     private List<Button> BUTTONS = new List<Button>();
@@ -35,6 +36,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         //set initial positions
         for (int i = 0; i < input_buttons.transform.childCount; i++)

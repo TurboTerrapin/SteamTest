@@ -131,7 +131,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
     IEnumerator signalTransmission(int index)
     {
         bool successful_transmission = false;
-        for (int k = 0; k < 4; k++)
+        for (int k = 0; k < 6; k++)
         {
             for (int i = 0; i < 8; i++)
             {
@@ -186,6 +186,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
         yield return new WaitForSeconds(0.5f);
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+        transform.GetComponent<SignalOptions>().getHUDinfo().setPowerConsumption(0.0f);
 
         success_indicator.GetComponent<Renderer>().material = unlit_green;
         failure_indicator.GetComponent<Renderer>().material = unlit_red;
@@ -220,6 +221,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
         msg_preview_display.SetActive(false);
         transform.GetComponent<SignalOptions>().deactivate();
         transform.GetComponent<FrequencyAdjuster>().deactivate();
+        transform.GetComponent<SignalOptions>().getHUDinfo().setPowerConsumption(0.0f);
 
         if (signal_transmission_coroutine != null)
         {
@@ -296,6 +298,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
         iot.deactivate();
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        transform.GetComponent<SignalOptions>().getHUDinfo().setPowerConsumption(MAX_POWER_CONSUMPTION);
 
         if (signal_transmission_coroutine != null)
         {

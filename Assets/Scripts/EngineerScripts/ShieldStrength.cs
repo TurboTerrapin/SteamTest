@@ -3,7 +3,7 @@
     - Handles allocating power to each of the shields and showing their damage
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 9/18/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
     private static float ADJUST_TIME = 0.4f;
 
     private string[] CONTROL_NAMES = new string[] { "FORWARD", "PORT", "STARBOARD", "AFT" };
+    private static string INFO_MESSAGE = "Use shield batteries to adjust shield strength. Does not enable/disable shields (pilot position).";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 2, 0 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
@@ -44,6 +45,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
 
         hud_info = new HUDInfo(CONTROL_NAMES[0] + " SHIELD STRENGTH");
         hud_info.setButtons(BUTTON_LISTS[0], 7);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)

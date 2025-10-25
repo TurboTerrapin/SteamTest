@@ -2,7 +2,7 @@
     ResetDisplay.cs
     - Clears code
     Contributor(s): Jake Schott
-    Last Updated: 7/29/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -16,6 +16,7 @@ public class ResetDisplay : NetworkBehaviour, IControllable
     private static float PUSH_TIME = 0.5f;
 
     private string CONTROL_NAME = "RESET DISPLAY";
+    private static string INFO_MESSAGE = "Resets the display back to default state in input mode.";
     private List<string> CONTROL_DESCS = new List<string> {"RESET"};
     private List<int> CONTROL_INDEXES = new List<int>() {6};
     private List<Button> BUTTONS = new List<Button>();
@@ -34,6 +35,7 @@ public class ResetDisplay : NetworkBehaviour, IControllable
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         //set initial positions
         initial_pos = reset_button.transform.localPosition;

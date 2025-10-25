@@ -2,7 +2,7 @@
     SignalOptions.cs
     - Handles the controls that send/receive transmissions
     Contributor(s): Jake Schott
-    Last Updated: 10/16/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -13,10 +13,11 @@ using UnityEngine;
 public class SignalOptions : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float TURN_TIME = 0.25f;
+    private static float TURN_TIME = 0.5f;
 
     private string[] CONTROL_NAMES = new string[2] {"RECEIVE TRANSMISSION", "BROADCAST TRANSMISSION"};
-    private List<string> CONTROL_DESCS = new List<string>{"TRANSMIT", "TRANSMIT"};
+    private List<string> INFO_MESSAGES = new List<string>() { "Receives any messages on given frequency and displays on universal communicator.", "Broadcasts universal communicator message on given frequency (green light indicates success)." };
+    private List<string> CONTROL_DESCS = new List<string>{"TRANSMIT"};
     private List<int> CONTROL_INDEXES = new List<int>(){6};
     private List<Button>[] BUTTON_LISTS = new List<Button>[2]{new List<Button>(), new List<Button>()};
 
@@ -26,27 +27,35 @@ public class SignalOptions : NetworkBehaviour, IControllable
     private Coroutine dial_turn_coroutine = null;
     private float[] dial_turn_percentages = { 0.0f, 0.0f };
 
-    private List<KeyCode> keys_down = new List<KeyCode>();
     private List<string> ray_targets = new List<string> { "transmission_receive", "transmission_broadcast" };
     private int ray_target_index = -1;
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         transmission_handler = transform.GetComponent<TransmissionHandler>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
-        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
-        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[0], false, false));
+        BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTON_LISTS[0], 6);
     }
+
+    public HUDInfo getHUDinfo()
+    {
+        return hud_info;
+    }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 6);
+        hud_info.setInfo(INFO_MESSAGES[index]);
+
         return hud_info;
     }
 
@@ -56,18 +65,6 @@ public class SignalOptions : NetworkBehaviour, IControllable
             Quaternion.Euler(dials[index].transform.localEulerAngles.x,
                              dials[index].transform.localEulerAngles.y,
                              Mathf.Lerp(180.0f, 90.0f, dial_turn_percentages[index]));
-    }
-
-    private bool checkNeutralState()
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            if (dial_turn_percentages[i] > 0.0f)
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     IEnumerator dialReturn()
@@ -95,44 +92,27 @@ public class SignalOptions : NetworkBehaviour, IControllable
         dial_turn_coroutine = StartCoroutine(dialReturn());
     }
 
-    IEnumerator dialTurn()
+    IEnumerator dialTurn(int index)
     {
-        while (keys_down.Count > 0 || checkNeutralState() == false)
+        float anim_time = TURN_TIME;
+
+        while (anim_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
+            anim_time = Mathf.Max(0.0f, anim_time - dt);
 
-            if (ray_target_index >= 0)
-            {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && transmission_handler.getIsPowered() == true)
-                {
-                    dial_turn_percentages[ray_target_index] = Mathf.Min(1.0f, dial_turn_percentages[ray_target_index] + (dt / TURN_TIME));
-                    if (dial_turn_percentages[ray_target_index] >= 1.0f)
-                    {
-                        if (transmission_handler.isTransmitting() == false)
-                        {
-                            transmission_handler.transmitSignal(ray_target_index); //handles the transmission stuff
-                        }
-                    }
-                }
-                else
-                {
-                    dial_turn_percentages[ray_target_index] = Mathf.Max(0.0f, dial_turn_percentages[ray_target_index] - (dt / TURN_TIME));
-                }
-            }
+            dial_turn_percentages[index] = 1.0f - (anim_time / TURN_TIME);
+            displayDialTurn(index);
 
-            for (int i = 0; i < 2; i++)
-            {
-                if (i != ray_target_index)
-                {
-                    dial_turn_percentages[i] = Mathf.Max(0.0f, dial_turn_percentages[i] - (dt / TURN_TIME));
-                }
-            }
-
-            transmitDialArmRPC(dial_turn_percentages[0], dial_turn_percentages[1]);
-
-            keys_down.Clear();
-            ray_target_index = -1;
             yield return null;
+        }
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            if (transmission_handler.isTransmitting() == false)
+            {
+                transmission_handler.transmitSignal(ray_target_index); //handles the transmission stuff
+            }
         }
 
         dial_turn_coroutine = null;
@@ -157,30 +137,26 @@ public class SignalOptions : NetworkBehaviour, IControllable
             return;
         }
 
-        keys_down = inputs;
         ray_target_index = ray_targets.IndexOf(current_target.name);
 
-        if (dial_turn_percentages[ray_target_index] == 0.0f )
+        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (dial_turn_coroutine == null)
             {
-                if (dial_turn_coroutine == null)
-                {
-                    dial_turn_coroutine = StartCoroutine(dialTurn());
-                }
+                BUTTON_LISTS[ray_target_index][0].toggle(0.2f);
+                transmitDialArmRPC(ray_target_index);
             }
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitDialArmRPC(float dp_receive, float dp_broadcast)
+    private void transmitDialArmRPC(int index)
     {
-        dial_turn_percentages[0] = dp_receive;
-        dial_turn_percentages[1] = dp_broadcast;
-
-        for (int i = 0; i < 2; i++)
+        if (dial_turn_coroutine != null)
         {
-            displayDialTurn(i);
+            StopCoroutine(dial_turn_coroutine);
         }
+
+        dial_turn_coroutine = StartCoroutine(dialTurn(index));
     }
 }

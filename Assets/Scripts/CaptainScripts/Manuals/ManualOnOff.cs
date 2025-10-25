@@ -2,7 +2,7 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 8/9/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -17,6 +17,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
     private static float MAX_POWER_CONSUMPTION = 0.6f; //6 circles, 3 per manual
 
     private string[] CONTROL_NAMES = new string[] { "SHIP MANUAL", "COMMUNICATIONS MANUAL" };
+    public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on general operations (ship functions, procedures, anomaly analysis).", "Information resource on communications (universal communicator and indirect signaling)." };
     private List<string> CONTROL_DESCS = new List<string> { "TURN ON", "TURN OFF" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
@@ -36,12 +37,13 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         manuals[0] = transform.GetComponent<ShipManual>();
         manuals[1] = transform.GetComponent<CommunicationsManual>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTON_LISTS[0], 6);
+        hud_info.setInfo(INFO_MESSAGES[0]);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -49,7 +51,20 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 6);
+        hud_info.setInfo(INFO_MESSAGES[index]);
+        hud_info.setPowerConsumption(getManualPowerConsumption(index));
         return hud_info;
+    }
+
+    public float getManualPowerConsumption(int index)
+    {
+        float consumed_power = 0.0f;
+        Manual m = (Manual)manuals[index];
+        if (m.getCurrentlyEnabled() == true || m.getCurrentlyAnimating() == true)
+        {
+            consumed_power += (MAX_POWER_CONSUMPTION / 2);
+        }
+        return consumed_power;
     }
 
     private void handlePowerConsumptionChange()
@@ -57,11 +72,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         float consumed_power = 0.0f;
         for (int i = 0; i < 2; i++)
         {
-            Manual m = (Manual)manuals[i];
-            if (m.getCurrentlyEnabled() == true || m.getCurrentlyAnimating() == true)
-            {
-                consumed_power += (MAX_POWER_CONSUMPTION / 2);
-            }
+            consumed_power += getManualPowerConsumption(i);
         }
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
     }

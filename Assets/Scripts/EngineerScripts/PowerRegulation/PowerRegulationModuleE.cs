@@ -2,7 +2,7 @@
     PowerRegulationModuleE.cs
     - Handles the memorization switch minigame in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 9/15/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
     private static float SWITCH_TIME = 0.25f;
 
     private string[] CONTROL_NAMES = new string[5] { "SECURITY CODE OPTION A", "SECURITY CODE OPTION B", "SECURITY CODE OPTION C", "SECURITY CODE OPTION D", "SECURITY CODE OPTION E" };
+    private static string INFO_MESSAGE = "Analyze the code and enter the five corresponding color symbols (in order) to complete the module.";
     private List<string> CONTROL_DESCS = new List<string> { "GREEN", "BLUE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 2, 0 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[5] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
@@ -50,6 +51,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         hud_info.setButtons(BUTTON_LISTS[0], 7);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)

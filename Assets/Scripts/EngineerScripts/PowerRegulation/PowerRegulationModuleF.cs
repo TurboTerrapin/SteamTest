@@ -2,7 +2,7 @@
     PowerRegulationModuleF.cs
     - Handles the turn pattern mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 9/15/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
     private static float CRANK_TIME = 0.5f;
 
     private string CONTROL_NAME = "ENERGY FIELD EQUALIZER";
+    private static string INFO_MESSAGE = "Rotate the crank left or right in the order displayed to complete the module.";
     private List<string> CONTROL_DESCS = new List<string> { "CRANK LEFT", "CRANK RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
@@ -40,6 +41,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
 
         hud_info = new HUDInfo(CONTROL_NAME);
         hud_info.setButtons(BUTTONS, 7);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)

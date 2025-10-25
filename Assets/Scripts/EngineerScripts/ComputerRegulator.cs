@@ -4,14 +4,12 @@
     - Controls cursor
     - Handles generating "algorithmic patterns"
     Contributor(s): Jake Schott
-    Last Updated: 9/27/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
@@ -24,6 +22,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
     private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.129f, 1f, 0.04f, 0.2f), new Color(0.69f, 0f, 0.69f, 0.2f), new Color(0.84f, 0.62f, 0f, 0.2f) };
 
     private string CONTROL_NAME = "COMPUTER REGULATOR";
+    private static string INFO_MESSAGE = "Controls overall ship computer infrastructure to handle malfunctions or hack attempts.";
     private List<string> CONTROL_DESCS = new List<string> { "UP", "DOWN", "SELECT", "LEFT", "RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 0, 2, 6, 1, 3 };
     private List<Button> BUTTONS = new List<Button>();
@@ -102,6 +101,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[4], CONTROL_INDEXES[4], false, false));
 
         hud_info.setButtons(BUTTONS, 9);
+        hud_info.setInfo(INFO_MESSAGE);
 
         cursor = computer_regulator_display.transform.GetChild(1).gameObject;
         shapes_holder = computer_regulator_display.transform.GetChild(0).gameObject;

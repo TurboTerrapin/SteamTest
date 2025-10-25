@@ -2,7 +2,7 @@
     PowerRegulationModuleC.cs
     - Handles the timing mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 9/14/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
     private static float[] ARROW_LOCATIONS = new float[3] { -0.079f, 0.0f, 0.079f};
 
     private string CONTROL_NAME = "SEQUENCE COORDINATOR";
+    private static string INFO_MESSAGE = "Time the synchronizer bar with the correct button three consecutive times to complete the module.";
     private List<string> CONTROL_DESCS = new List<string> { "SYNCHRONIZE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -55,6 +56,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
 
         hud_info = new HUDInfo(CONTROL_NAME);
         hud_info.setButtons(BUTTON_LISTS[0], 6);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)

@@ -2,7 +2,7 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 9/22/2025
+    Last Updated: 10/23/2025
 */
 
 using System;
@@ -20,6 +20,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     private static float LOAD_CONFIRMATION_TIME = 2.0f;
 
     private string[] CONTROL_NAMES = new string[] { "TORPEDO TYPE SELECTOR", "TORPEDO BAY SELECTOR", "TORPEDO BAY LOADER" };
+    private List<string> INFO_MESSAGES = new List<string>() { "Selects which torpedo to load.", "Selects which bay to load the torpedo into.", "Confirms the torpedo type and bay (cannot be unloaded once loaded)." };
     private List<string> CONTROL_DESCS = new List<string> { "SELECT LEFT", "SELECT RIGHT", "SHIFT LEFT", "SHIFT RIGHT", "LOAD" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5, 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -68,6 +69,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         hud_info.setButtons(BUTTON_LISTS[0], 7);
+        hud_info.setInfo(INFO_MESSAGES[0]);
 
         displayTorpedoSelectionAdjustment();
     }
@@ -77,6 +79,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         int index = ray_targets.IndexOf(current_target.name);
 
         hud_info.setTitle(CONTROL_NAMES[index]);
+        hud_info.setInfo(INFO_MESSAGES[index]);
 
         if (index < 2)
         {

@@ -4,9 +4,10 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 9/6/2025
+    Last Updated: 10/23/2025
 */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -35,7 +36,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public AudioSource power_off_sound;
     public AudioSource power_on_sound;
 
-    private GameObject engineer_power_breakdown_display;
     private GameObject control_handler;
     private GameObject sensor_handler;
 
@@ -58,7 +58,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
     {
         control_handler = GameObject.FindGameObjectWithTag("ControlHandler");
         sensor_handler = GameObject.FindGameObjectWithTag("SensorHandler");
-        engineer_power_breakdown_display = engineer_power_displays[0].transform.parent.gameObject;
 
         addPilotModules(); //positional_modules[0]
         addTacticianModules(); //positional_modules[1]
@@ -285,41 +284,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_change_coroutines[position] = StartCoroutine(powerDownSequence(to_disable, position));
     }
 
-    //called by this script to display the position's power circles and the warning indicator only
-    public void powerOn(int position)
-    {
-        if (position <= 1) //pilot, tactician
-        {
-            if (position_power_displays[position].activeSelf == true) //second pass
-            {
-                power_warnings[position].SetActive(true);
-            }
-        }
-        else if (position == 2) //engineer
-        {
-            if (engineer_power_breakdown_display.activeSelf == false)
-            {
-                engineer_power_breakdown_display.SetActive(true);
-                return;
-            }
-        }
-        position_power_displays[position].SetActive(true);
-    }
-
-    //called by this script to hide the position's power circles and the warning indicator only
-    public void powerOff(int position, float time)
-    {
-        if (position <= 1) //pilot, tactician
-        {
-            power_warnings[position].SetActive(false);
-        }
-        else if (position == 2) //engineer
-        {
-            engineer_power_breakdown_display.SetActive(false);
-        }
-        position_power_displays[position].SetActive(false);
-    }
-
     //helper method used to set the color of a power icon, called by powerUpdater() and animationProgressHelper()
     private void powerIconHelper(GameObject to_change, float a)
     {
@@ -432,12 +396,16 @@ public class PowerManager : NetworkBehaviour, IPowerable
             engineer_power_displays[index].transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
         }
 
-        //animate the progress bar based on TIME_TO_POWER_LOSS
+        //animate the progress bar based on TIME_TO_POWER_LOSS and positional indicator (if pilot or tactician)
         float anim_time = TIME_TO_POWER_LOSS;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
+            if (index < 2)
+            {
+                sensor_handler.GetComponent<StatusIndicators>().displayOverconsumptionPositionIndicator(index, 1.0f - (anim_time / TIME_TO_POWER_LOSS));
+            }
             power_loss_bar.GetComponent<UnityEngine.UI.Image>().fillAmount = (anim_time / TIME_TO_POWER_LOSS);
 
             yield return null;
@@ -475,6 +443,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
             {
                 StopCoroutine(overconsumption_coroutines[i]);
                 overconsumption_coroutines[i] = null;
+                if (i < 2)
+                {
+                    sensor_handler.GetComponent<StatusIndicators>().resetOverconsumptionPositionIndicator(i);
+                }
                 resetEngineerPositionDisplay(i);
             }
         }
@@ -534,6 +506,16 @@ public class PowerManager : NetworkBehaviour, IPowerable
         {
             checkForOverConsumption(position, allocation);
         }
+    }
+
+    public void powerOn(int position)
+    {
+        position_power_displays[position].SetActive(true);
+    }
+
+    public void powerOff(int position, float time)
+    {
+        position_power_displays[position].SetActive(false);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -621,6 +603,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
             overconsumption_warning_sound.Stop();
         }
 
+        if (index < 2)
+        {
+            sensor_handler.GetComponent<StatusIndicators>().resetOverconsumptionPositionIndicator(index);
+        }
         resetEngineerPositionDisplay(index);
     }
 
@@ -647,8 +633,8 @@ public class PowerManager : NetworkBehaviour, IPowerable
         pilot_modules.Add(control_handler.GetComponent("TractorBeamOptions")); //6
         pilot_modules.Add(sensor_handler.GetComponent("PilotTractorBeamProgress")); //7
         pilot_modules.Add(sensor_handler.GetComponent("PilotSCA")); //8
-        pilot_modules.Add(control_handler.GetComponent("ShipStatus")); //9
-        pilot_modules.Add(this); //10
+        pilot_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //9
+        pilot_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //10
         pilot_modules.Add(control_handler.GetComponent("TractorBeamPower")); //11
         pilot_modules.Add(control_handler.GetComponent("InertialDampeners")); //12
         pilot_modules.Add(control_handler.GetComponent("Headlights")); //13
@@ -671,8 +657,8 @@ public class PowerManager : NetworkBehaviour, IPowerable
         tactician_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
         tactician_modules.Add(control_handler.GetComponent("TransmissionHandler")); //5
         tactician_modules.Add(sensor_handler.GetComponent("TacticianProbeInfo")); //6
-        tactician_modules.Add(control_handler.GetComponent("ShipStatus")); //7
-        tactician_modules.Add(this); //8
+        tactician_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //7
+        tactician_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //8
         tactician_modules.Add(control_handler.GetComponent("ProbeVerticalMovement")); //9
         tactician_modules.Add(control_handler.GetComponent("ProbeLateralMovement")); //10
         tactician_modules.Add(control_handler.GetComponent("PhaserTemperatures")); //11
@@ -694,7 +680,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_modules.Add(sensor_handler.GetComponent("EngineerScenarioCountdown")); //2
         engineer_modules.Add(control_handler.GetComponent("PhaserFrequency")); //3
         engineer_modules.Add(control_handler.GetComponent("EnergyPattern")); //4
-        engineer_modules.Add(this); //5
+        engineer_modules.Add(control_handler.GetComponent("PowerAllocation")); //5
         engineer_modules.Add(control_handler.GetComponent("PowerAllocation")); //6
         engineer_modules.Add(sensor_handler.GetComponent("EngineerPhaserHeat")); //7
         engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //8

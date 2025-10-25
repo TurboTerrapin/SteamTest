@@ -4,7 +4,7 @@
     - Adjusts screen
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IPowerable
     private static float PROBE_SPEED = 10.0f;
 
     private string CONTROL_NAME = "PROBE LATERAL MOVEMENT";
+    private static string INFO_MESSAGE = "Handles the forward, reverse, left, and right movements of an active probe.";
     private List<string> CONTROL_DESCS = new List<string> { "FORWARD", "REVERSE", "LEFT", "RIGHT"};
     private List<int> CONTROL_INDEXES = new List<int>() {0, 2, 1, 3};
     private List<Button> BUTTONS = new List<Button>();
@@ -48,6 +49,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[3], CONTROL_INDEXES[3], false, false));
 
         hud_info.setButtons(BUTTONS, 8);
+        hud_info.setInfo(INFO_MESSAGE);
 
         for (int i = 0; i <= 3; i++)
         {

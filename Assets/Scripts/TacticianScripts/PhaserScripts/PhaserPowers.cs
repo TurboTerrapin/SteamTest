@@ -2,7 +2,7 @@
     PhaserPowers.cs
     - Determines whether phasers are enabled or not
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -18,6 +18,7 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles
 
     private List<string> CONTROL_NAMES = new List<string>() { "LONG-RANGE PHASER", "SHORT-RANGE LEFT PHASER", "SHORT-RANGE RIGHT PHASER" };
+    private static string INFO_MESSAGE = "Enables/disables corresponding phasers. Phasers increase in temperature and can overheat if left enabled for too long.";
     private List<string> CONTROL_DESCS = new List<string> {"ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -39,27 +40,20 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
     {
         phaser_temperatures = transform.GetComponent<PhaserTemperatures>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[2].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTON_LISTS[0], 6);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
-
-        if (index != 0)
-        {
-            hud_info.setButtons(BUTTON_LISTS[index], 6);
-        }
-        else
-        {
-            hud_info.setButtons(BUTTON_LISTS[index]);
-        }
+        hud_info.setButtons(BUTTON_LISTS[index], 6);
 
         return hud_info;
     }
@@ -80,6 +74,7 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
             }
         }
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+        hud_info.setPowerConsumption(consumed_power);
     }
 
     IEnumerator switchPhaser(int index)
@@ -213,6 +208,7 @@ public class PhaserPowers : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
         phaser_switch_display.SetActive(false);
+        hud_info.setPowerConsumption(0.0f);
 
         //return phasers to 0
         if (power_loss_coroutine != null)

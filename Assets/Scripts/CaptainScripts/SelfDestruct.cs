@@ -2,7 +2,7 @@
     SelfDestruct.cs
     - Used to handle code input and initation/abort
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -19,6 +19,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
     private static float SEQUENCE_COOLDOWN_TIME = 2.0f;
 
     private string[] CONTROL_NAMES = new string[] { "SELF-DESTRUCT CODE", "SELF-DESTRUCT SEQUENCE" };
+    private static string INFO_MESSAGE = "Enables the self-destruct sequence which destroys the ship afer a 10-second countdown unless aborted.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE", "INITATE", "ABORT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5, 6, 12 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
@@ -45,6 +46,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setInfo(INFO_MESSAGE);
 
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[3], CONTROL_INDEXES[3], false, true));
