@@ -362,7 +362,7 @@ public class ControlScript : MonoBehaviour
                 {
                     myAnimationController.setIKRightArm(false);
                     myAnimationController.setIKLeftArm(false);
-                    myAnimationController.setCharacterPosition(new Vector3(0, 0.16f, 0));
+                    myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
 
                     is_sitting = !seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
                     if (is_sitting == false)
@@ -388,8 +388,20 @@ public class ControlScript : MonoBehaviour
                 {
                     if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
-                        myAnimationController.setIKRightArm(true);
-                        myAnimationController.setRightArmIKPosition(hit.collider.transform.position);
+                        //Check if the camera is looking to the right or the left
+                        if(Vector3.SignedAngle(myPlayer.transform.forward, myPlayer.transform.GetChild(0).forward, myPlayer.transform.up) > 0)
+                        {
+                            //Set IK on and move the right arm target
+                            myAnimationController.setIKRightArm(true);
+                            myAnimationController.setRightArmIKPosition(hit.collider.transform.position);
+                        }
+                        else
+                        {
+                            //Set IK on and move the left arm target
+                            myAnimationController.setIKLeftArm(true);
+                            myAnimationController.setLeftArmIKPosition(hit.collider.transform.position);
+                        }
+                        
 
                         IControllable target_control =
                             (IControllable)control_script_holder.GetComponent(hit.collider.transform.GetChild(0).name); //get corresponding class

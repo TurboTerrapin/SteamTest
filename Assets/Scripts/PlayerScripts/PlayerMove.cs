@@ -204,8 +204,9 @@ public class PlayerMove : NetworkBehaviour
             }
             else if (pos == 2) //if engineer, decide shift direction based on whether looking right or left
             {
-                if (transform.localRotation.eulerAngles.y < 135.0f)
+                if (Vector3.SignedAngle(transform.forward, transform.GetChild(0).forward, transform.up) < 0)
                 {
+                    
                     shift_index++;
                 }
                 else
