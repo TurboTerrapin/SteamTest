@@ -53,7 +53,7 @@ public class CustomizeCharacterMenu : MonoBehaviour
     public UIButton LeftHairButton;
     public UIButton RightHairButton;
     private int CurrentHairOptionIndex = 0;
-    private string[] HairOptions = { "Short", "Medium", "Long" };
+    private string[] HairOptions = { "Bald", "Short", "Medium", "Long" };
 
     public MeshRenderer HairRenderer;
     public MeshRenderer LeftEyeRenderer;

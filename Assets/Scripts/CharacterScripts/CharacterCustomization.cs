@@ -29,8 +29,6 @@ public class CharacterCustomization : MonoBehaviour
 
     public void ChangeHairType(int newHair)
     {
-
-
         hair = newHair;
 
         if (hair == 0)
@@ -40,9 +38,9 @@ public class CharacterCustomization : MonoBehaviour
         }
 
         hairObject.GetComponent<MeshFilter>().mesh = hairModels[hair - 1].GetComponent<MeshFilter>().sharedMesh;
-
     }
 
+    /*
     // Update is called once per frame
     void Update()
     {
@@ -57,5 +55,5 @@ public class CharacterCustomization : MonoBehaviour
 
 
 
-    }
+    }*/
 }
