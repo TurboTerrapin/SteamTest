@@ -29,6 +29,8 @@ public class ThrusterControl : NetworkBehaviour
     protected float thrust_direction = 0;
     protected Coroutine thruster_coroutine;
 
+    protected HUDInfo hud_info = null;
+
     public void adjustInertialDampenerModifier(float new_modifier)
     {
         inertial_dampener_modifier = new_modifier;
@@ -39,6 +41,7 @@ public class ThrusterControl : NetworkBehaviour
         thrust_direction = thruster_percentage[1] - thruster_percentage[0];
         float greatest_thruster = Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, greatest_thruster * MAX_POWER_CONSUMPTION);
+        hud_info.setPowerConsumption(greatest_thruster * MAX_POWER_CONSUMPTION);
     }
 
     protected bool checkNeutralState()

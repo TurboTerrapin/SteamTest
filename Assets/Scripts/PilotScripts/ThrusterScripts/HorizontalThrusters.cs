@@ -3,7 +3,7 @@
     - Handles inputs for horizontal thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
@@ -14,6 +14,7 @@ using Unity.Netcode;
 public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
 {
     private string CONTROL_NAME = "HORIZONTAL THRUSTERS";
+    private static string INFO_MESSAGE = "Controls lateral movement through leftward and rightward movements. Useful for evasive maneuvers.";
     private List<string> CONTROL_DESCS = new List<string> { "MOVE LEFT", "MOVE RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() {1, 3};
     private List<Button> BUTTONS = new List<Button>();
@@ -22,17 +23,16 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
 
     private bool is_powered = false;
 
-    private static HUDInfo hud_info = null;
-
     private void Start()
     {
         button_initial_pos = thruster_buttons[0].transform.localPosition;
         button_final_pos = new Vector3(0.2816f, -1.3473f, 19.1217f);
 
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -103,6 +103,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
         thruster_display.SetActive(false);
+        hud_info.setPowerConsumption(0.0f);
     }
 
     [Rpc(SendTo.Everyone)]

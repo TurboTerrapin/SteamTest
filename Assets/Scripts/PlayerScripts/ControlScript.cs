@@ -5,15 +5,13 @@
     - Manages the HUD display for control interaction
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     Contributor(s): Jake Schott
-    Last Updated: 8/28/2025
+    Last Updated: 10/18/2025
 */
 
-using Steamworks;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class ControlScript : MonoBehaviour
 {
@@ -24,6 +22,7 @@ public class ControlScript : MonoBehaviour
     //GAME OBJECTS
     public GameObject cursor; //the diamond in the center of the screen
     public GameObject control_info; //UI indicator that you are looking at a control
+    public GameObject secondary_info; //UI indicators on the left and right sides of the screen (only visible in default mode)
     public GameObject control_title; //title at the top of the UI trapezoid indicator
     public GameObject seat_title; //title at the top of the rounded UI seat indicator
     public GameObject buttons_panel; //contains all the buttons/dividers inside the trapezoid
@@ -37,13 +36,16 @@ public class ControlScript : MonoBehaviour
 
     //CLASS VARIABLES
     private HUDInfo current_info;
+    private GameObject current_ray_target = null;
     private int curr_pos = -1; //0 is Pilot, 1 is Tactician, 2 is Engineer, 3 is Captain
+    private float displayed_power = 0.0f; //used for the power indicator in the bottom right (5 circles)
     private bool is_sitting = false;
     private Coroutine seat_check_coroutine = null;
     private Coroutine control_check_coroutine = null;
+    private Coroutine ray_target_check_coroutine = null;
 
     //SETTINGS
-    private int HUD_setting = 0; //0 is Default, 1 is Minimized, 2 is Cursor Only, 3 is None
+    private int HUD_setting = 0; //0 is Default, 1 is Trapezoid Only, 2 is Minimized, 3 is Cursor Only, 4 is None
     private bool can_pause = false;
     private bool paused = false;
     private bool is_active = false;
@@ -65,14 +67,6 @@ public class ControlScript : MonoBehaviour
         new KeyCode[] {KeyCode.Z},
         new KeyCode[] {KeyCode.V}
     };
-
-    //public Camera my_camera; //player's camera
-
-
-    private GameObject myPlayer = null;
-    private AnimationController myAnimationController = null;
-
-
 
     public static bool checkInputIndex(int input_index, List<KeyCode> inputs_to_check)
     {
@@ -96,20 +90,6 @@ public class ControlScript : MonoBehaviour
             Destroy(this);
         }
         Instance = this;
-
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        foreach (GameObject player in players)
-        {
-            if (player.GetComponent<PlayerMove>().IsOwner)
-            {
-                myPlayer = player;
-                myAnimationController = player.GetComponent<AnimationController>();
-                //playerAnimator = myPlayer.transform.GetChild(1).GetComponent<Animator>();
-                //playerIK = myPlayer.transform.GetChild(1).GetComponent<IKController>();
-                break;
-
-            }
-        }
     }
 
     public void unlockPlayer(GameObject plr_prefab)
@@ -161,12 +141,13 @@ public class ControlScript : MonoBehaviour
         clearButtons();
 
         //if trapezoid or minimized list, then create visual buttons/list entries
-        if (HUD_setting < 2)
+        if (HUD_setting < 3)
         {
-            control_info.transform.GetChild(HUD_setting).gameObject.SetActive(true);
+            control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
+            control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
 
             GameObject frame = control_info.transform.GetChild(0).gameObject;
-            if (HUD_setting == 1) //if minimized list
+            if (HUD_setting == 2) //if minimized list
             {
                 frame = control_info.transform.GetChild(1).gameObject;
             }
@@ -192,19 +173,13 @@ public class ControlScript : MonoBehaviour
     {
         if (new_hud != HUD_setting)
         {
-            if (new_hud >= 0 && new_hud < 4)
+            if (new_hud >= 0 && new_hud < 5)
             {
                 HUD_setting = new_hud;
             }
-            if (HUD_setting != 0)
-            {
-                control_info.transform.GetChild(0).gameObject.SetActive(false); //make the trapezoid invisible
-                control_info.transform.GetChild(2).gameObject.SetActive(false); //make the seat rounded rectangle invisible
-            }
-            if (HUD_setting != 1)
-            {
-                control_info.transform.GetChild(1).gameObject.SetActive(false); //make the list invisible
-            }
+            control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2 && is_sitting == true); //trapezoid
+            control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2); //minimized list
+            control_info.transform.GetChild(2).gameObject.SetActive(HUD_setting < 2 && is_sitting == false); //rounded seat indicator
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update
         }
     }
@@ -229,6 +204,7 @@ public class ControlScript : MonoBehaviour
         paused = true;
         cursor.SetActive(false);
     }
+
     public void unpause()
     {
         UnityEngine.Cursor.visible = false;
@@ -239,7 +215,7 @@ public class ControlScript : MonoBehaviour
         paused = false;
         if (is_active == true)
         {
-            if (HUD_setting != 3)
+            if (HUD_setting != 4)
             {
                 cursor.SetActive(true);
             }
@@ -301,15 +277,9 @@ public class ControlScript : MonoBehaviour
             int closest_seat = seat_script_holder.GetComponent<SeatManager>().checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
             {
-                if (HUD_setting == 0)
-                {
-                    seat_title.GetComponent<TMP_Text>().SetText(POSITION_NAMES[closest_seat] + " POSITION");
-                    control_info.transform.GetChild(2).gameObject.SetActive(true);
-                }
-                else if (HUD_setting == 1)
-                {
-                    control_info.transform.GetChild(1).gameObject.SetActive(true);
-                }
+                control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
+                control_info.transform.GetChild(2).gameObject.SetActive(HUD_setting < 2);
+                seat_title.GetComponent<TMP_Text>().SetText(POSITION_NAMES[closest_seat] + " POSITION");
                 control_info.SetActive(true);
             }
             else //can't sit
@@ -324,18 +294,55 @@ public class ControlScript : MonoBehaviour
                     curr_pos = closest_seat;
 
                     control_info.SetActive(false);
+                    secondary_info.SetActive(HUD_setting == 0);
+                    control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
+                    control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
                     control_info.transform.GetChild(2).gameObject.SetActive(false);
-                    control_info.transform.GetChild(1).gameObject.SetActive(false);
                     control_info.transform.GetChild(1).GetChild(0).gameObject.SetActive(false);
 
                     player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
 
+                    ray_target_check_coroutine = StartCoroutine(rayCheck());
                     control_check_coroutine = StartCoroutine(controlCheck());
                 }
             }
             return;
         }
         control_info.SetActive(false);
+    }
+
+    //runs on FixedUpdate() time (this code is meant to improve raycast consistency/avoid flickering)
+    IEnumerator rayCheck()
+    {
+        float cooldown = 0.0f;
+        current_ray_target = null;
+        while (true)
+        {
+            if (plr_camera != null && is_active == true)
+            {
+                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE))
+                {
+                    current_ray_target = hit.collider.gameObject;
+                    cooldown = 0.0f;
+                }
+                else
+                {
+                    cooldown += Time.fixedDeltaTime;
+                    if (cooldown >= 0.12f)
+                    {
+                        current_ray_target = null;
+                        cooldown = 0.0f;
+                    }
+                }
+            }
+            else
+            {
+                cooldown = 0.0f;
+                current_ray_target = null;
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     //runs on Update() time
@@ -347,7 +354,9 @@ public class ControlScript : MonoBehaviour
             checkForControlsAndInputs();
         }
 
+        StopCoroutine(ray_target_check_coroutine);
         control_check_coroutine = null;
+        ray_target_check_coroutine = null;
     }
 
     //called by controlCheck() every frame
@@ -360,14 +369,11 @@ public class ControlScript : MonoBehaviour
                 //check if trying to unseat
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up
                 {
-                    myAnimationController.setIKRightArm(false);
-                    myAnimationController.setIKLeftArm(false);
-                    myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
-
                     is_sitting = !seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
                     if (is_sitting == false)
                     {
                         control_info.SetActive(false);
+                        secondary_info.SetActive(false);
 
                         control_info.transform.GetChild(0).gameObject.SetActive(false);
                         control_info.transform.GetChild(1).gameObject.SetActive(false);
@@ -382,47 +388,67 @@ public class ControlScript : MonoBehaviour
                         return;
                     }
                 }
-                
-                //else check controls
-                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE)) //cast ray
+
+                if (current_ray_target != null) //check if raycast hit something
                 {
-                    if (hit.collider.gameObject.layer == 6) //the ray hit a control (Layer 6 = Control)
+                    if (current_ray_target.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
-                        //Check if the camera is looking to the right or the left
-                        if(Vector3.SignedAngle(myPlayer.transform.forward, myPlayer.transform.GetChild(0).forward, myPlayer.transform.up) > 0)
-                        {
-                            //Set IK on and move the right arm target
-                            myAnimationController.setIKRightArm(true);
-                            myAnimationController.setRightArmIKPosition(hit.collider.transform.position);
-                        }
-                        else
-                        {
-                            //Set IK on and move the left arm target
-                            myAnimationController.setIKLeftArm(true);
-                            myAnimationController.setLeftArmIKPosition(hit.collider.transform.position);
-                        }
-                        
-
                         IControllable target_control =
-                            (IControllable)control_script_holder.GetComponent(hit.collider.transform.GetChild(0).name); //get corresponding class
+                            (IControllable)control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name); //get corresponding class
 
-                        HUDInfo temp_info = target_control.getHUDinfo(hit.collider.gameObject);
+                        HUDInfo temp_info = target_control.getHUDinfo(current_ray_target.gameObject);
 
                         if (control_title.GetComponent<TMP_Text>().text.CompareTo(temp_info.getName()) != 0 || current_info.numOptions() != temp_info.numOptions())
                         {
                             control_title.GetComponent<TMP_Text>().SetText(temp_info.getName()); //set title of that control
                             current_info = temp_info;
-                            if (HUD_setting < 2) //trapezoid or minimized
+                            if (HUD_setting < 3) //trapezoid or minimized
                             {
                                 createButtons();
                             }
+
+                            //determine whether to show or hide the power indicator
+                            secondary_info.transform.GetChild(1).GetChild(0).gameObject.SetActive(temp_info.getConsumesPower());
+
+                            //set info frame title and description
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<TMP_Text>().SetText(temp_info.getName());
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(5).GetComponent<TMP_Text>().SetText(temp_info.getInfo());
                         }
                         else
                         {
-                            if (HUD_setting < 2) //trapezoid or minimized
+                            if (HUD_setting < 3) //trapezoid or minimized
                             {
                                 updateButtons(temp_info);
                             }
+                        }
+
+                        //check if trying to show/hide info
+                        if (UnityEngine.Input.GetKeyDown(KeyCode.Tab) && HUD_setting == 0)
+                        {
+                            bool currently_visible = secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.activeSelf;
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.SetActive(!currently_visible);
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(1).gameObject.SetActive(currently_visible);
+
+                            if (currently_visible == true)
+                            {
+                                secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -880f);
+                            }
+                            else
+                            {
+                                secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -60f);
+                            }
+                        }
+
+                        if (temp_info.getConsumesPower() && temp_info.getPowerConsumption() != displayed_power)
+                        {
+                            float tmp_pwr = (temp_info.getPowerConsumption() * 2.0f);
+                            for (int i = 0; i <= 4; i++)
+                            {
+                                tmp_pwr = (temp_info.getPowerConsumption() * 2.0f) - (0.2f * i);
+                                float a = tmp_pwr / 0.2f;
+                                secondary_info.transform.GetChild(1).GetChild(0).GetChild(4).GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = a;
+                            }
+                            displayed_power = temp_info.getPowerConsumption();
                         }
 
                         List<KeyCode> current_inputs = new List<KeyCode>(); //gets all inputted keys
@@ -459,15 +485,16 @@ public class ControlScript : MonoBehaviour
                             }
                         }
                         control_info.SetActive(true); //show UI indicator
+                        secondary_info.SetActive(HUD_setting == 0); //show secondary UI
+                        secondary_info.transform.GetChild(1).gameObject.SetActive(true);
                         float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-                        target_control.handleInputs(current_inputs, hit.collider.gameObject, dt, curr_pos); //call when all inputs have been checked
+                        target_control.handleInputs(current_inputs, current_ray_target, dt, curr_pos); //call when all inputs have been checked
                         return;
                     }
                 }
             }
-            myAnimationController.setIKRightArm(false);
-            myAnimationController.setIKLeftArm(false);
-
+            secondary_info.SetActive(is_active == true && paused == false && HUD_setting == 0);
+            secondary_info.transform.GetChild(1).gameObject.SetActive(false);
             control_info.SetActive(false); //hide UI indicator if not looking at a control
             control_title.GetComponent<TMP_Text>().SetText(""); //forces an update if not looking at a control
         }

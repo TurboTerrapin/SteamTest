@@ -4,7 +4,7 @@
     - Adjusts screen
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IPowerable
     private static float PROBE_SPEED = 0.1f;
 
     private string CONTROL_NAME = "PROBE VERTICAL MOVEMENT";
+    private static string INFO_MESSAGE = "Handles the up and down movement of an active probe.";
     private List<string> CONTROL_DESCS = new List<string> {"DESCEND", "ASCEND"};
     private List<int> CONTROL_INDEXES = new List<int>() {2,0};
     private List<Button> BUTTONS = new List<Button>();
@@ -43,6 +44,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS, 7);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {

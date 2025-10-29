@@ -3,7 +3,7 @@
     - Handles color slider
     - Updates characters
     Contributor(s): Jake Schott
-    Last Updated: 7/29/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -16,9 +16,10 @@ public class ColorSelector : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
-    private static float MOVE_TIME = 0.5f;
+    private static float MOVE_TIME = 0.2f;
 
     private string CONTROL_NAME = "COLOR SELECTOR";
+    private static string INFO_MESSAGE = "Change the color selector for character and symbol inputs in input mode.";
     private List<string> CONTROL_DESCS = new List<string> { "SHIFT LEFT", "SHIFT RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() {4, 5};
     private List<Button> BUTTONS = new List<Button>();
@@ -42,6 +43,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = selector_lever.transform.localPosition;
     }

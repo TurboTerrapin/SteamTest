@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER", "ENERGY PATTERN SHIFTER" };
+    private List<string> INFO_MESSAGES = new List<string>() { "Enables/disables the energy pattern viewer used to analyze spatial anomalies.", "Shifts energy pattern viewer between ship analysis, tractor beam analysis, or probe analysis." };
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE", "SHIFT DOWN", "SHIFT UP" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 2, 0 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
@@ -47,7 +48,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         energy_pattern_manager = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EnergyPatternManager>();
         energy_pattern_slider_initial_pos = energy_pattern_slider.transform.localPosition;
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
         //power on list
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -56,7 +57,24 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[1], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[3], CONTROL_INDEXES[2], false, true));
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
+        hud_info.setInfo(INFO_MESSAGES[0]);
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+
+        hud_info.setTitle(CONTROL_NAMES[index]);
+        hud_info.setButtons(BUTTON_LISTS[1], 7);
+        hud_info.setInfo(INFO_MESSAGES[index]);
+
+        if (index == 0)
+        {
+            hud_info.setButtons(BUTTON_LISTS[0], 6);
+        }
+
+        return hud_info;
     }
 
     private void displayAdjustment()
@@ -69,10 +87,12 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         if (display_enabled == true)
         {
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
+            hud_info.setPowerConsumption(0.0f);
         }
     }
 
@@ -157,21 +177,6 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     public int getCurrentlyViewing()
     {
         return currently_viewing;
-    }
-
-    public HUDInfo getHUDinfo(GameObject current_target)
-    {
-        int index = ray_targets.IndexOf(current_target.name);
-
-        hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[1]);
-
-        if (index == 0)
-        {
-            hud_info.setButtons(BUTTON_LISTS[0]);
-        }
-
-        return hud_info;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -268,6 +273,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
             StopCoroutine(energy_pattern_power_coroutine);
             energy_pattern_power_coroutine = null;
         }
+        hud_info.setPowerConsumption(0.0f);
 
         //return energy pattern dial to off
         if (power_loss_coroutine != null)

@@ -3,8 +3,9 @@
     - Moves the waves
     - Switches waves
     - Updates frequency text
+    - Handles the actual receiving/broadcasting of UniversalCommunicator messages
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/16/2025
 */
 
 using System.Collections;
@@ -130,7 +131,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
     IEnumerator signalTransmission(int index)
     {
         bool successful_transmission = false;
-        for (int k = 0; k < 8; k++)
+        for (int k = 0; k < 6; k++)
         {
             for (int i = 0; i < 8; i++)
             {
@@ -141,7 +142,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
                         progress_lights.transform.GetChild(x).GetComponent<Renderer>().material = lit_neon;
                     }
                 }
-                yield return new WaitForSeconds(0.08f);
+                yield return new WaitForSeconds(0.06f);
                 resetProgressLights();
             }
             if (index == 1) //broadcast, remove circles
@@ -182,9 +183,10 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
             failure_indicator.GetComponent<Renderer>().material = lit_red;
         }
 
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(0.5f);
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+        transform.GetComponent<SignalOptions>().getHUDinfo().setPowerConsumption(0.0f);
 
         success_indicator.GetComponent<Renderer>().material = unlit_green;
         failure_indicator.GetComponent<Renderer>().material = unlit_red;
@@ -219,6 +221,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
         msg_preview_display.SetActive(false);
         transform.GetComponent<SignalOptions>().deactivate();
         transform.GetComponent<FrequencyAdjuster>().deactivate();
+        transform.GetComponent<SignalOptions>().getHUDinfo().setPowerConsumption(0.0f);
 
         if (signal_transmission_coroutine != null)
         {
@@ -295,6 +298,7 @@ public class TransmissionHandler : NetworkBehaviour, IPowerable
         iot.deactivate();
 
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        transform.GetComponent<SignalOptions>().getHUDinfo().setPowerConsumption(MAX_POWER_CONSUMPTION);
 
         if (signal_transmission_coroutine != null)
         {

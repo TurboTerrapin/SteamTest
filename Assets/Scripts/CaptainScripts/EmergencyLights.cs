@@ -4,7 +4,7 @@
     - Moves slider
     - Enables/disables emergency lights using LightsManager
     Contributor(s): Jake Schott
-    Last Updated: 9/12/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "EMERGENCY LIGHTS";
+    private static string INFO_MESSAGE = "Enables/disables the emergency lights. Useful in situations where the main lights are malfunctioning.";
     private List<string> CONTROL_DESCS = new List<string> { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button> BUTTONS = new List<Button>();
@@ -38,9 +39,10 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true)); //enable button
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = slider.transform.localPosition; //sets the initial position
         final_pos = initial_pos + final_pos;
@@ -67,6 +69,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         {
             emergency_lights_enabled = false;
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
+            hud_info.setPowerConsumption(0.0f);
         }
 
         float anim_time = SWITCH_TIME;
@@ -95,6 +98,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         {
             emergency_lights_enabled = true;
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);
         }
         else
@@ -140,6 +144,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
             StopCoroutine(emergency_lights_switch_coroutine);
             emergency_lights_switch_coroutine = null;
         }
+        hud_info.setPowerConsumption(0.0f);
 
         //turn off lights
         if (power_loss_coroutine != null)

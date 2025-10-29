@@ -3,7 +3,7 @@
     - Handles warp throttle
     - Does nothing
     Contributor(s): Jake Schott
-    Last Updated: 8/19/2025
+    Last Updated: 10/21/2025
 */
 
 
@@ -13,6 +13,7 @@ using UnityEngine;
 public class Warp : MonoBehaviour, IControllable, IPowerable
 {
     private string CONTROL_NAME = "WARP THROTTLE";
+    private static string INFO_MESSAGE = "Enables ship capability to reach superluminal speed at variable warp factors.";
     private List<string> CONTROL_DESCS = new List<string>() { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5, 6 };
     private List<Button> BUTTONS = new List<Button>();
@@ -31,6 +32,7 @@ public class Warp : MonoBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {

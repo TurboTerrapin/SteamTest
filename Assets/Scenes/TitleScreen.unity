@@ -1330,7 +1330,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 295704428}
+      - m_Target: {fileID: 467405877}
         m_TargetAssemblyTypeName: UniversalSettingsController, Assembly-CSharp
         m_MethodName: HandleXButtonClick
         m_Mode: 1
@@ -2419,7 +2419,6 @@ GameObject:
   - component: {fileID: 295704423}
   - component: {fileID: 295704426}
   - component: {fileID: 295704425}
-  - component: {fileID: 295704428}
   m_Layer: 5
   m_Name: SettingsMenu
   m_TagString: Untagged
@@ -2485,31 +2484,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 295704422}
   m_CullTransparentMesh: 1
---- !u!114 &295704428
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 295704422}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72a56636f1f10407cb9e7416aed9309d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SettingsMenu: {fileID: 295704422}
-  MainMenu: {fileID: 992464527}
-  PauseMenu: {fileID: 0}
-  FullScreenToggle: {fileID: 1817279737}
-  ResolutionDropdown: {fileID: 1317594996}
-  MasterVolumeSlider: {fileID: 467900629}
-  MasterVolumeFillBar: {fileID: 2117465917}
-  ActualVolumeLabel: {fileID: 532377467}
-  HUDVisibilityDropdown: {fileID: 1000925481}
-  control_script_holder: {fileID: 0}
-  CameraSensitivitySlider: {fileID: 1179709427}
-  CameraSensitivityFillBar: {fileID: 1972382700}
-  ActualCameraSensitivityLabel: {fileID: 1197856308}
 --- !u!1 &335787201
 GameObject:
   m_ObjectHideFlags: 0
@@ -3723,6 +3697,7 @@ GameObject:
   - component: {fileID: 467405875}
   - component: {fileID: 467405874}
   - component: {fileID: 467405873}
+  - component: {fileID: 467405877}
   m_Layer: 5
   m_Name: MainMenuCanvas
   m_TagString: Untagged
@@ -3818,6 +3793,31 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &467405877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 467405872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72a56636f1f10407cb9e7416aed9309d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SettingsMenu: {fileID: 295704422}
+  MainMenu: {fileID: 992464527}
+  PauseMenu: {fileID: 0}
+  FullScreenToggle: {fileID: 1817279737}
+  ResolutionDropdown: {fileID: 1317594996}
+  MasterVolumeSlider: {fileID: 467900629}
+  MasterVolumeFillBar: {fileID: 2117465917}
+  ActualVolumeLabel: {fileID: 532377467}
+  HUDVisibilityDropdown: {fileID: 1000925481}
+  control_script_holder: {fileID: 0}
+  CameraSensitivitySlider: {fileID: 1179709427}
+  CameraSensitivityFillBar: {fileID: 1972382700}
+  ActualCameraSensitivityLabel: {fileID: 1197856308}
 --- !u!1 &467900627
 GameObject:
   m_ObjectHideFlags: 0
@@ -6449,6 +6449,9 @@ MonoBehaviour:
   m_Options:
     m_Options:
     - m_Text: Default
+      m_Image: {fileID: 0}
+      m_Color: {r: 1, g: 1, b: 1, a: 1}
+    - m_Text: Trapezoid Only
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Minimized

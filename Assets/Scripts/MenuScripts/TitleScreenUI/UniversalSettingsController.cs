@@ -3,6 +3,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 public class UniversalSettingsController : MonoBehaviour
 {
@@ -25,7 +26,6 @@ public class UniversalSettingsController : MonoBehaviour
     public Image CameraSensitivityFillBar;
     public TMP_Text ActualCameraSensitivityLabel;
 
-
     void Start()
     {
         // Loads player full screen preference (default is true if nothing is saved)
@@ -35,8 +35,29 @@ public class UniversalSettingsController : MonoBehaviour
         // Applies state
         Screen.fullScreen = isFullScreen;
 
-        // Loads player resolution preference (default is 1, 1920 x 1080)
-        int ResIndex = PlayerPrefs.GetInt("Resolution", 1);
+        // Set dropdown UI to display possible options
+        ResolutionDropdown.ClearOptions();
+        // Gather possible resolution options based on the max resolution
+        Resolution maxResolution = Screen.resolutions[Screen.resolutions.Length - 1];
+        Vector2[] defaultResolutionOptions = new Vector2[4] { new Vector2(1280, 720), new Vector2(1920, 1080), new Vector2(2560, 1440), new Vector2(3840, 2160) };
+        List<TMP_Dropdown.OptionData> possibleResolutionOptions = new List<TMP_Dropdown.OptionData>();
+        for (int i = 0; i < defaultResolutionOptions.Length; i++)
+        {
+            // Add resolution to options if default (1280 x 720) or is less than max resolution (x, y)
+            if (i == 0 || (defaultResolutionOptions[i].x <= maxResolution.width && defaultResolutionOptions[i].y <= maxResolution.height))
+            {
+                TMP_Dropdown.OptionData res_option = new TMP_Dropdown.OptionData();
+                res_option.text = defaultResolutionOptions[i].x + " x " + defaultResolutionOptions[i].y;
+                possibleResolutionOptions.Add(res_option);
+            }
+        }
+        ResolutionDropdown.AddOptions(possibleResolutionOptions);
+        // Loads player resolution preference (default is highest possible resolution)
+        int ResIndex = PlayerPrefs.GetInt("Resolution", possibleResolutionOptions.Count - 1);
+        if (ResIndex > possibleResolutionOptions.Count - 1)
+        {
+            ResIndex = possibleResolutionOptions.Count - 1;
+        }
         // Sets dropdown UI to display option corresponding to selected index
         ResolutionDropdown.value = ResIndex;
         // Applies option based on index
@@ -80,8 +101,8 @@ public class UniversalSettingsController : MonoBehaviour
 
     public void HandleResolutionDropdownClicked(int index)
     {
-        int width = 1920;
-        int height = 1080;
+        int width = 1280;
+        int height = 720;
 
         // Resolution options
         switch (index)
@@ -99,7 +120,7 @@ public class UniversalSettingsController : MonoBehaviour
                 width = 3840; height = 2160;
                 break;
             default:
-                width = 1920; height = 1080;
+                width = 1280; height = 720;
                 break;
         }
 
@@ -169,7 +190,6 @@ public class UniversalSettingsController : MonoBehaviour
                 // Apply sensitivity to camera controller
                 camMove.SetMouseSensitvity(actualSensitivity);
             }
-
         }
 
         // Saves camera preference

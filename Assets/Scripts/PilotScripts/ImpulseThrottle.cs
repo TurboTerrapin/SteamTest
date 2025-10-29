@@ -3,7 +3,7 @@
     - Handles inputs for impulse throttle
     - Moves throttle lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string CONTROL_NAME = "IMPULSE THROTTLE";
+    private static string INFO_MESSAGE = "Controls the speed at which the ship moves in either the forward or reverse direction.";
     private List<string> CONTROL_DESCS = new List<string> {"DECREASE", "INCREASE"};
     private List<int> CONTROL_INDEXES = new List<int>() {4, 5};
     private List<Button> BUTTONS = new List<Button>();
@@ -38,10 +39,11 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = handle.transform.localPosition; //sets the initial position
     }
@@ -146,6 +148,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
         impulse_bars_display.SetActive(false);
+        hud_info.setPowerConsumption(0.0f);
 
         //return impulse throttle/impulse to 0
         if (power_loss_coroutine != null)
@@ -160,6 +163,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
     {
         impulse = imp;
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, imp * MAX_POWER_CONSUMPTION);
+        hud_info.setPowerConsumption(imp * MAX_POWER_CONSUMPTION);
         displayAdjustment();
     }
 }

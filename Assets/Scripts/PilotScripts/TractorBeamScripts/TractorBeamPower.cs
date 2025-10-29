@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
 {
@@ -21,6 +20,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string CONTROL_NAME = "TRACTOR BEAM";
+    private static string INFO_MESSAGE = "Controls the strength and radius of tractor beam for item collection and analysis.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
@@ -36,10 +36,11 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
@@ -145,6 +146,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
         info_display.SetActive(false);
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
+        hud_info.setPowerConsumption(0.0f);
 
         //return tractor beam handle/power to 0
         if (power_loss_coroutine != null)
@@ -159,6 +161,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     {
         power = pwr;
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, pwr * MAX_POWER_CONSUMPTION);
+        hud_info.setPowerConsumption(pwr * MAX_POWER_CONSUMPTION);
         displayAdjustment();
     }
 }

@@ -3,7 +3,7 @@
     - Handles shifting between forward and reverse
     - Moves shift lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
@@ -18,6 +18,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     private static float DELAY_TIME = 1.0f;
 
     private string CONTROL_NAME = "DIRECTIONAL SHIFTER";
+    private static string INFO_MESSAGE = "Handles the direction the ship travels at impulse speed. Can only be used when stationary.";
     private List<string> CONTROL_DESCS = new List<string> { "SHIFT" };
     private List<int> CONTROL_INDEXES = new List<int>() {6};
     private List<Button> BUTTONS = new List<Button>();
@@ -42,6 +43,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         spaceship = GameObject.FindGameObjectWithTag("Spaceship");
         course_heading = transform.GetComponent<CourseHeading>();

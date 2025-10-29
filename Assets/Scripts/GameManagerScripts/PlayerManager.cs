@@ -6,10 +6,12 @@
     Last Updated: 9/6/2025
 */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -75,6 +77,16 @@ public class PlayerManager : NetworkBehaviour
             yield return null;
         }
 
+        //parent all players to spaceship
+        foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            NetworkObject plr_no = plr.GetComponent<NetworkObject>();
+            if (plr_no != null)
+            {
+                plr_no.TrySetParent(GameObject.FindGameObjectWithTag("Spaceship").transform, true);
+            }
+        }
+
         //ensure all players are on the same page
         //------------------------------------//
         collectiveBridgeEnvironmentLoadedRPC(
@@ -125,6 +137,9 @@ public class PlayerManager : NetworkBehaviour
             player_prefab_names[i] = player_steam_names[i] + "_" + player_steam_ids[i];
         }
 
+        //position local player
+        local_player.transform.localPosition = spawn_points.transform.GetChild(getPlayerIndex()).localPosition;
+
         foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
         {
             NetworkObject plr_no = plr.GetComponent<NetworkObject>();
@@ -133,13 +148,8 @@ public class PlayerManager : NetworkBehaviour
                 int index = (int)plr_no.OwnerClientId;
                 if (index < 4)
                 {
-                    if (NetworkManager.Singleton.IsHost == true)
-                    {
-                        plr_no.TrySetParent(GameObject.FindGameObjectWithTag("Spaceship").transform, true);
-                    }
                     player_prefabs[index] = plr;
                     player_prefabs[index].name = player_prefab_names[index];
-                    player_prefabs[index].transform.position = spawn_points.transform.GetChild(index).position;
                 }
             }
         }
@@ -200,14 +210,13 @@ public class PlayerManager : NetworkBehaviour
     //called by FailureHandler
     public void freezeAllPlayers()
     {
-        for (int i = 0; i < 4; i++)
+        foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
         {
-            if (player_prefabs[i] != null)
-            {
-                player_prefabs[i].transform.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("Everything");
-                player_prefabs[i].transform.GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("Everything");
-                player_prefabs[i].transform.GetComponent<Rigidbody>().useGravity = false;
-            }
+            plr.transform.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+            plr.transform.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+            plr.transform.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("Everything");
+            plr.transform.GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("Everything");
+            plr.transform.GetComponent<Rigidbody>().useGravity = false;
         }
     }
 

@@ -2,7 +2,7 @@
     PhaserFrequency.cs
     - Handles inputs for engineer phaser frequency adjustment
     Contributor(s): Jake Schott
-    Last Updated: 8/25/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -21,6 +21,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
     private static int[] MAX_FREQUENCIES = { 70, 90 }; //long-range, short-range
 
     private string CONTROL_NAME = "PHASER FREQUENCY";
+    private static string INFO_MESSAGE = "Adjusts phaser frequency for either long-range or short-range phasers to improve efficiency.";
     private List<string> CONTROL_DESCS = new List<string> { "SWITCH", "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
@@ -49,6 +50,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], false, false));
         hud_info.setButtons(BUTTONS, 5);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {

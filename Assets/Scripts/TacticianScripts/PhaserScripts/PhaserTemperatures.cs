@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser temperature screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -18,6 +18,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASER", "SHORT-RANGE PHASERS"};
+    private static string INFO_MESSAGE = "Adjusts the intensity of the corresponding phasers to increase or decrease damage.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>()};
@@ -40,7 +41,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
     {
         phaser_powers = transform.GetComponent<PhaserPowers>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
         
         for (int i = 0; i <= 1; i++)
         {
@@ -61,6 +62,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index]);
+        hud_info.setInfo(INFO_MESSAGE);
 
         return hud_info;
     }
@@ -96,6 +98,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
             consumed_power += (phaser_temperatures[i] * 0.5f * MAX_POWER_CONSUMPTION);
         }
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+        hud_info.setPowerConsumption(consumed_power);
     }
 
     private void displayAdjustment(int index)
@@ -218,6 +221,7 @@ public class PhaserTemperatures : NetworkBehaviour, IControllable, IPowerable
             BUTTON_LISTS[i][0].updateInteractable(false);
             BUTTON_LISTS[i][1].updateInteractable(false);
         }
+        hud_info.setPowerConsumption(0.0f);
 
         //return temperatures to 0
         if (power_loss_coroutine != null)

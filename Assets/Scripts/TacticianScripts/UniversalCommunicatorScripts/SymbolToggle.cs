@@ -2,7 +2,7 @@
     SymbolToggle.cs
     - Slider that switches between symbols and numbers
     Contributor(s): Jake Schott
-    Last Updated: 7/29/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -13,9 +13,10 @@ using Unity.Netcode;
 public class SymbolToggle : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    private static float SWITCH_TIME = 0.5f;
+    private static float SWITCH_TIME = 0.2f;
 
     private string CONTROL_NAME = "SYMBOL MODE";
+    private static string INFO_MESSAGE = "Switches between symbol and character mode for input mode.";
     private List<string> CONTROL_DESCS = new List<string> {"SWITCH"};
     private List<int> CONTROL_INDEXES = new List<int>() {6};
     private List<Button> BUTTONS = new List<Button>();
@@ -37,6 +38,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = numeric_selector.transform.localPosition;
     }
@@ -111,6 +113,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
 
         symbol_mode = !symbol_mode;
 
+        BUTTONS[0].untoggle();
         BUTTONS[0].updateInteractable(is_active);
 
         numer_selector_coroutine = null;
@@ -122,7 +125,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
-                BUTTONS[0].toggle(0.2f);
+                BUTTONS[0].toggle();
                 transmitSymbolSwitchRPC(symbol_mode);
             }
         }

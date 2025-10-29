@@ -2,7 +2,7 @@
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
     Contributor(s): Jake Schott
-    Last Updated: 9/6/2025
+    Last Updated: 10/14/2025
 */
 
 using System.Collections;
@@ -22,6 +22,8 @@ public class LoadHandler : NetworkBehaviour
     private GameObject load_screen;
     private GameObject load_ring;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
+
+    private List<TMP_Dropdown.OptionData> possible_resolution_options = new List<TMP_Dropdown.OptionData>();
 
     void Start()
     {
@@ -145,7 +147,6 @@ public class LoadHandler : NetworkBehaviour
 
         //enable load screen
         randomizeColors();
-        load_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
         load_screen.SetActive(true);
 
         //switch cameras

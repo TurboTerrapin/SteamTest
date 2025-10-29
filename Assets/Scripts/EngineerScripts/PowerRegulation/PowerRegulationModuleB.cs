@@ -2,7 +2,7 @@
     PowerRegulationModuleB.cs
     - Handles the lever pushing mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 9/14/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -16,6 +16,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
     private static float STATE_CHANGE_TIME = 0.5f;
 
     private string[] CONTROL_NAMES = new string[3] { "PRIMARY ANTI-MATTER INDUCER", "SECONDARY ANTI-MATTER INDUCER", "TERTIARY ANTI-MATTER INDUCER" };
+    private static string INFO_MESSAGE = "Prime each slider until it is at its max setting to complete the module.";
     private List<string> CONTROL_DESCS = new List<string> { "POWER" };
     private List<int> CONTROL_INDEXES = new List<int>() { 11 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -45,6 +46,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -187,7 +189,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
             {
                 BUTTON_LISTS[target_index][0].toggle();
                 BUTTON_LISTS[target_index][0].updateInteractable(false);
-                transmitSlideAdjustmentRPC(target_index, Mathf.Min(1.0f, slide_percentages[target_index] + 0.04f));
+                transmitSlideAdjustmentRPC(target_index, Mathf.Min(1.0f, slide_percentages[target_index] + 0.08f));
             }
         }
     }

@@ -2,10 +2,9 @@
     Shields.cs
     - Handles enabling/disabling of shields
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/21/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -19,6 +18,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.4f; //equates to 4 circles (1 per shield)
 
     private List<string> CONTROL_NAMES = new List<string>() { "FORWARD SHIELDS", "PORT SHIELDS", "STARBOARD SHIELDS", "AFT SHIELDS" };
+    private static string INFO_MESSAGE = "Enables/disables shields in the corresponding section of the ship. Does not affect shield strength (engineer position).";
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[4] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
@@ -39,12 +39,13 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAMES[0]);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[2].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[3].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
@@ -87,6 +88,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
             }
         }
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
+        hud_info.setPowerConsumption(consumed_power);
     }
 
     IEnumerator shieldChange(int shield_to_change, bool to_change_to)
@@ -226,6 +228,7 @@ public class Shields : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
         pilot_shield_display.SetActive(false);
+        hud_info.setPowerConsumption(0.0f);
 
         //turn off all shields
         if (power_loss_coroutine != null)

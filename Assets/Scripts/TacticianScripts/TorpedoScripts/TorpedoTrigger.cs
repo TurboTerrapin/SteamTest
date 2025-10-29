@@ -3,7 +3,7 @@
     - Handles arming and firing of torpedoes
     - Moves base and lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private static float RED_BUTTON_PUSH_TIME = 0.5f;
 
     private string CONTROL_NAME = "TORPEDO TRIGGER";
+    private static string INFO_MESSAGE = "Used to fire torpedo in selected direction if charge is fully energized and torpedo is loaded.";
     private List<string> CONTROL_DESCS = new List<string>{"FIRE", "ARM"};
     private List<int> CONTROL_INDEXES = new List<int>(){6, 11};
     private List<Button> BUTTONS = new List<Button>();
@@ -49,6 +50,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         trigger_base_initial_pos = trigger_base.transform.localPosition;
     }
@@ -132,11 +134,6 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 
             trigger_percentage = Mathf.Max(0.0f, ((trigger_percentage * COOLDOWN_TIME) - dt) / COOLDOWN_TIME);
 
-            if (trigger_percentage != before_trigger_percentage)
-            {
-                transmitTriggerPercentageRPC(trigger_percentage);
-            }
-
             displayAdjustment();
 
             keys_down.Clear();
@@ -167,7 +164,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
                 trigger_percentage = Mathf.Max(0.0f, ((trigger_percentage * ARM_TIME) - dt) / ARM_TIME);
             }
 
-            BUTTONS[0].updateInteractable(trigger_percentage >= 1.0f);
+            BUTTONS[0].updateInteractable(trigger_percentage >= 1.0f && is_powered);
 
             if (trigger_percentage != before_trigger_percentage)
             {
@@ -198,7 +195,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
         }
         else
         {
-            if (trigger_percentage >= 1.0f)
+            if (trigger_percentage >= 1.0f && torpedo_fire_coroutine == null)
             {
                 if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
                 {

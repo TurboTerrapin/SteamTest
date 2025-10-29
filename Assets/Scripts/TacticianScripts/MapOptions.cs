@@ -3,7 +3,7 @@
     - Handles inputs for map zoom, map configuration
     - Zooms the lines for the map, tells TacticianMap to zoom the objects accordingly
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 10/23/2025
 */
 
 using Unity.Netcode;
@@ -18,6 +18,7 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
     private static float PUSH_TIME = 0.5f;
 
     private string CONTROL_NAME = "MAP OPTIONS";
+    private static string INFO_MESSAGE = "Handles proximity map configuration. Modes include default, defensive, and tactical.";
     private List<string> CONTROL_DESCS = new List<string> {"CHANGE MODE", "ZOOM OUT", "ZOOM IN"};
     private List<int> CONTROL_INDEXES = new List<int>() {6, 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
@@ -38,7 +39,6 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
     private float zoom = 1.0f;
     private Vector3 slider_initial_pos; //slider starting position (100% zoom)
     private Vector3 slider_final_pos = new Vector3(-3.1877f, 8.7002f, 3.6736f);
-
     
     private int map_config = 0;
     private Coroutine map_config_coroutine = null;
@@ -53,6 +53,7 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], false, false));
         hud_info.setButtons(BUTTONS, 5);
+        hud_info.setInfo(INFO_MESSAGE);
         hud_info.adjustButtonFontSizes(36.0f);
 
         //set initial positions

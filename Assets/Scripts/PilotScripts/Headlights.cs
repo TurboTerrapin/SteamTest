@@ -4,14 +4,13 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class Headlights : NetworkBehaviour, IControllable, IPowerable
 {
@@ -21,6 +20,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     private string CONTROL_NAME = "HEADLIGHTS";
+    private static string INFO_MESSAGE = "Increases visibility and illuminates the surrounding area outside of the window.";
     private List<string> CONTROL_DESCS = new List<string> {"DIM", "BRIGHTEN"};
     private List<int> CONTROL_INDEXES = new List<int>() {2, 0};
     private List<Button> BUTTONS = new List<Button>();
@@ -41,10 +41,11 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = slider.transform.localPosition;
         final_pos = new Vector3(0.2817f, -1.2825f, 19.2646f);
@@ -196,6 +197,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
         headlights_display.SetActive(false);
+        hud_info.setPowerConsumption(0.0f);
 
         //return headlight slider to 0
         if (power_loss_coroutine != null)
@@ -210,6 +212,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     {
         headlight_configuration = headlight_config;
         transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, (headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
+        hud_info.setPowerConsumption((headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
         if (headlight_shift_coroutine != null)
         {
             StopCoroutine(headlight_shift_coroutine);

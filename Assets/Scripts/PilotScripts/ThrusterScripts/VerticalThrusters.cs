@@ -3,7 +3,7 @@
     - Handles inputs for vertical thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 8/20/2025
+    Last Updated: 10/21/2025
 */
 
 using System.Collections;
@@ -14,6 +14,7 @@ using UnityEngine;
 public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
 {
     private string CONTROL_NAME = "VERTICAL THRUSTERS";
+    private static string INFO_MESSAGE = "Controls the altitude of the ship through upward and downward movement.";
     private List<string> CONTROL_DESCS = new List<string>{"DESCEND", "ASCEND"};
     private List<int> CONTROL_INDEXES = new List<int>(){2, 0};
     private List<Button> BUTTONS = new List<Button>();
@@ -22,17 +23,16 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
 
     private bool is_powered = false;
 
-    private HUDInfo hud_info = null;
-
     private void Start()
     {
         button_initial_pos = thruster_buttons[0].transform.localPosition;
         button_final_pos = new Vector3(0.2816f, -1.3473f, 19.1217f);
 
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -103,12 +103,12 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
         thruster_display.SetActive(false);
+        hud_info.setPowerConsumption(0.0f);
     }
 
     [Rpc(SendTo.Everyone)]
     private void transmitVerticalThrusterRPC(float down_thrust, float up_thrust, float down_button, float up_button)
     {
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, 0.0f);
         thruster_percentage[0] = down_thrust;
         thruster_percentage[1] = up_thrust;
         button_push_percentage[0] = down_button;

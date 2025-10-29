@@ -3,7 +3,7 @@
     - Handles torpedo slider
     - Updates arrow screen
     Contributor(s): Jake Schott
-    Last Updated: 9/8/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
     private static float MOVE_TIME = 0.5f;
 
     private string CONTROL_NAME = "TORPEDO SELECTOR";
+    private static string INFO_MESSAGE = "Handles selecting which torpedo bay/direction to use for the torpedo trigger.";
     private List<string> CONTROL_DESCS = new List<string>{"SHIFT LEFT", "SHIFT RIGHT"};
     private List<int> CONTROL_INDEXES = new List<int>(){4, 5};
     private List<Button> BUTTONS = new List<Button>();
@@ -39,6 +40,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = selector_lever.transform.localPosition;
     }

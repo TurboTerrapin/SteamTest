@@ -2,7 +2,7 @@
     EngineerInventory.cs
     - Currently only enables/disables inventory screen
     Contributor(s): Jake Schott
-    Last Updated: 9/22/2025
+    Last Updated: 10/17/2025
 */
 
 using System.Collections.Generic;
@@ -18,9 +18,15 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
     private GameObject torpedo_count_indicators;
 
     private List<int> item_quantities = new List<int>() { 1, 4, 5 };
+    private List<int> item_ids = new List<int>() { 102824, 104308, 102110 };
+    private List<int> item_weights = new List<int>() { 1200, 3500, 500 };
+    private List<Vector2> item_sizes = new List<Vector2>() { new Vector2(3.6f, 3.6f), new Vector2(4.2f, 4.8f), new Vector2(3.3f, 4.1f) };
     private List<string> item_names = new List<string>() { "Probe", "Escape Pod", "Shield Battery" };
 
     private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 0, 0 };
+    private List<int> torpedo_ids = new List<int>() { 302025, 302022, 302001, 301995, 301997, 382000};
+    private List<int> torpedo_weights = new List<int>() { 5000, 3350, 6000, 1100, 500, 8900 };
+    private List<Vector2> torpedo_sizes = new List<Vector2>() { new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(1.5f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.5f, 4.1f) };
     private List<string> torpedo_names = new List<string>() { "Photon", "Ion", "Proton", "Quantum", "Superluminal", "Chroniton" };
 
     private void Start()
@@ -287,6 +293,60 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
             return item_quantities[item_index];
         }
         return torpedo_quantities[item_index];
+    }
+
+    //returns the item's ID
+    public int getItemID(string item_name)
+    {
+        if (getItemTexture(item_name) == null)
+        {
+            return -1;
+        }
+
+        int item_category = getItemCategoryFromName(item_name);
+        int item_index = getItemIndexFromName(item_name);
+
+        if (item_category == 0)
+        {
+            return item_ids[item_index];
+        }
+        return torpedo_ids[item_index];
+    }
+
+    //returns the item's weight
+    public int getItemWeight(string item_name)
+    {
+        if (getItemTexture(item_name) == null)
+        {
+            return -1;
+        }
+
+        int item_category = getItemCategoryFromName(item_name);
+        int item_index = getItemIndexFromName(item_name);
+
+        if (item_category == 0)
+        {
+            return item_weights[item_index];
+        }
+        return torpedo_weights[item_index];
+    }
+
+    //returns a Vector2 of the item's height and length
+    public Vector2 getItemSize(string item_name)
+    {
+        if (getItemTexture(item_name) == null)
+        {
+            return Vector2.zero;
+        }
+
+        int item_category = getItemCategoryFromName(item_name);
+        int item_index = getItemIndexFromName(item_name);
+
+        if (item_category == 0)
+        {
+            return item_sizes[item_index];
+        }
+        return torpedo_sizes[item_index];
     }
 
     //shows inventory screen

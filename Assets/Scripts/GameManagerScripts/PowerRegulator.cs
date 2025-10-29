@@ -91,7 +91,7 @@ public class PowerRegulator : NetworkBehaviour
         }
     }
 
-    //resets all modules and freezes depletion (called by PowerManager on scenario completion)
+    //resets all modules and freezes depletion (called by PowerManager on scenario completion) or by useAuxiliaryPower()
     public void resetPowerRegulator()
     {
         //stop neutral state depletion delay
@@ -176,11 +176,14 @@ public class PowerRegulator : NetworkBehaviour
     {
         resetPowerRegulator();
         restartPowerBarUpdater();
-        neutral_state_coroutine = StartCoroutine(neutralState());
 
-        if (transform.GetComponent<PowerManager>().getShipHasPower() == false)
+        if (NetworkManager.Singleton.IsHost == true)
         {
-            transform.GetComponent<PowerManager>().restorePower();
+            neutral_state_coroutine = StartCoroutine(neutralState());
+            if (transform.GetComponent<PowerManager>().getShipHasPower() == false)
+            {
+                transform.GetComponent<PowerManager>().restorePower();
+            }
         }
     }
 

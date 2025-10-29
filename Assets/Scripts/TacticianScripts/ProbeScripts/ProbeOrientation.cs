@@ -4,7 +4,7 @@
     - Adjusts probe heading
     - Affects probe
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IPowerable
     private static float TURN_SPEED = 25.0f;
 
     private string CONTROL_NAME = "PROBE ORIENTATION";
+    private static string INFO_MESSAGE = "Handles the rotation and turning of an active probe.";
     private List<string> CONTROL_DESCS = new List<string> {"TURN LEFT", "TURN RIGHT"};
     private List<int> CONTROL_INDEXES = new List<int>() {4, 5};
     private List<Button> BUTTONS = new List<Button>();
@@ -44,6 +45,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {

@@ -3,10 +3,9 @@
     - Handles inputs for power allocation
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 9/7/2025
+    Last Updated: 10/23/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -20,6 +19,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     private static int MAX_ALLOCATION_UNITS = 24; //don't change this number
 
     private string[] CONTROL_NAMES = new string[] { "PILOT", "TACTICIAN", "ENGINEER", "CAPTAIN" };
+    private static string INFO_MESSAGE = "Controls the power allocation (circles) for the corresponding position to prevent overconsumption and power loss.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
@@ -55,6 +55,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
 
         hud_info = new HUDInfo(CONTROL_NAMES[0] + " POWER ALLOCATION");
         hud_info.setButtons(BUTTON_LISTS[0], 7);
+        hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -223,6 +224,14 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
 
     public void powerOn(int position)
     {
+        //first pass
+        if (power_screen_displays[0].transform.parent.gameObject.activeSelf == false)
+        {
+            power_screen_displays[0].transform.parent.gameObject.SetActive(true);
+            return;
+        }
+
+        //second pass
         is_powered = true;
         info_display.SetActive(true);
         for (int i = 0; i < 4; i++)
@@ -237,6 +246,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     public void powerOff(int position, float time)
     {
         is_powered = false;
+        power_screen_displays[0].transform.parent.gameObject.SetActive(false);
         info_display.SetActive(false);
         for (int i = 0; i < 4; i++)
         {

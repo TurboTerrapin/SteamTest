@@ -162,8 +162,8 @@ public class CameraMove : MonoBehaviour
     {
         Cursor.visible = false;
         //Gets mouse input
-        mouseMove = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
- 
+        mouseMove = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")); 
+
         //Increases the sensitivity to movement
         mouseMove *= mouseSensitivity * Mathf.Min(1.0f, (1.1f - ((60.0f - my_camera.fieldOfView) / 20.0f)));
 

@@ -2,7 +2,7 @@
     CargoJettion.cs
     - Launches item loaded in cargo bay
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 10/23/2025
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "CARGO JETTISON";
+    private static string INFO_MESSAGE = "Ejects whatever cargo is held in the cargo eject as loaded in the engineer position.";
     private List<string> CONTROL_DESCS = new List<string>() { "EJECT", "ARM" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 11 };
     private List<Button> BUTTONS = new List<Button>(0);
@@ -51,6 +52,7 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
         initial_pos = dial.transform.localPosition;
 
         hud_info.setButtons(BUTTONS);
+        hud_info.setInfo(INFO_MESSAGE);
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
