@@ -51,7 +51,7 @@ public class ControlScript : MonoBehaviour
     private bool is_active = false;
 
     //INPUT INFO
-    public static List<KeyCode[]> input_options = new List<KeyCode[]>{ 
+    public static List<KeyCode[]> input_options = new List<KeyCode[]>{
         new KeyCode[] {KeyCode.W, KeyCode.UpArrow}, //first argument is displayed, others are not
         new KeyCode[] {KeyCode.A, KeyCode.LeftArrow},
         new KeyCode[] {KeyCode.S, KeyCode.DownArrow},
@@ -67,6 +67,9 @@ public class ControlScript : MonoBehaviour
         new KeyCode[] {KeyCode.Z},
         new KeyCode[] {KeyCode.V}
     };
+
+    private GameObject myPlayer = null;
+    private AnimationController myAnimationController = null;
 
     public static bool checkInputIndex(int input_index, List<KeyCode> inputs_to_check)
     {
@@ -90,6 +93,20 @@ public class ControlScript : MonoBehaviour
             Destroy(this);
         }
         Instance = this;
+
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject player in players)
+        {
+            if (player.GetComponent<PlayerMove>().IsOwner)
+            {
+                myPlayer = player;
+                myAnimationController = player.GetComponent<AnimationController>();
+                //playerAnimator = myPlayer.transform.GetChild(1).GetComponent<Animator>();
+                //playerIK = myPlayer.transform.GetChild(1).GetComponent<IKController>();
+                break;
+
+            }
+        }
     }
 
     public void unlockPlayer(GameObject plr_prefab)
@@ -369,6 +386,10 @@ public class ControlScript : MonoBehaviour
                 //check if trying to unseat
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up
                 {
+                    myAnimationController.setIKRightArm(false);
+                    myAnimationController.setIKLeftArm(false);
+                    myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
+
                     is_sitting = !seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
                     if (is_sitting == false)
                     {
@@ -393,6 +414,19 @@ public class ControlScript : MonoBehaviour
                 {
                     if (current_ray_target.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
+                        if (Vector3.SignedAngle(myPlayer.transform.forward, myPlayer.transform.GetChild(0).forward, myPlayer.transform.up) > 0)
+                        {
+                            //Set IK on and move the right arm target
+                            myAnimationController.setIKRightArm(true);
+                            myAnimationController.setRightArmIKPosition(current_ray_target.transform.position);
+                        }
+                        else
+                        {
+                            //Set IK on and move the left arm target
+                            myAnimationController.setIKLeftArm(true);
+                            myAnimationController.setLeftArmIKPosition(current_ray_target.transform.position);
+                        }
+
                         IControllable target_control =
                             (IControllable)control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name); //get corresponding class
 
@@ -493,6 +527,9 @@ public class ControlScript : MonoBehaviour
                     }
                 }
             }
+            myAnimationController.setIKRightArm(false);
+            myAnimationController.setIKLeftArm(false);
+
             secondary_info.SetActive(is_active == true && paused == false && HUD_setting == 0);
             secondary_info.transform.GetChild(1).gameObject.SetActive(false);
             control_info.SetActive(false); //hide UI indicator if not looking at a control
