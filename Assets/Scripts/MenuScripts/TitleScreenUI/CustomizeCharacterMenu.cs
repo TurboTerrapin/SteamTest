@@ -1,5 +1,6 @@
-using UnityEngine;
+using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 using UIButton = UnityEngine.UI.Button;
 
@@ -54,11 +55,13 @@ public class CustomizeCharacterMenu : MonoBehaviour
     public UIButton RightHairButton;
     private int CurrentHairOptionIndex = 0;
     private string[] HairOptions = { "Bald", "Short", "Medium", "Long" };
+    [SerializeField]
+    private List<GameObject> hairModels = new List<GameObject>();
 
     public MeshRenderer HairRenderer;
     public MeshRenderer LeftEyeRenderer;
     public MeshRenderer RightEyeRenderer;
-    public MeshRenderer DummyRenderer;
+    public SkinnedMeshRenderer DummyRenderer;
 
 
     void Start()
@@ -290,6 +293,7 @@ public class CustomizeCharacterMenu : MonoBehaviour
         {
             // wrap around
             CurrentHairOptionIndex = 0;
+            
         }
         UpdateHairOptionText();
     }
@@ -297,6 +301,14 @@ public class CustomizeCharacterMenu : MonoBehaviour
     private void UpdateHairOptionText()
     {
         HairOptionText.text = HairOptions[CurrentHairOptionIndex];
+        if (CurrentHairOptionIndex == 0)
+        {
+            HairRenderer.gameObject.GetComponent<MeshFilter>().mesh = null;
+        }
+        else
+        {
+            HairRenderer.gameObject.GetComponent<MeshFilter>().mesh = hairModels[CurrentHairOptionIndex - 1].GetComponent<MeshFilter>().sharedMesh;
+        }
     }
 
     // ------ TEXT INPUT LIMITATIONS/CHECKS ------
