@@ -5,6 +5,7 @@ public class MainMenuController : MonoBehaviour
     public GameObject MainMenu;
     public GameObject CampaignMenu;
     //public GameObject LogsScreen;
+    public GameObject CustomizationMenu;
     public GameObject SettingsMenu;
 
     private void Start()
@@ -26,6 +27,11 @@ public class MainMenuController : MonoBehaviour
         //SwitchTo(LogsScreen);
     }
 
+    public void HandleCustomizeButtonClick()
+    {
+        SwitchTo(CustomizationMenu);
+    }
+
     public void HandleSettingsButtonClick()
     {
         SwitchTo(SettingsMenu);
@@ -41,6 +47,7 @@ public class MainMenuController : MonoBehaviour
         MainMenu.SetActive(false);
         CampaignMenu.SetActive(false);
         //LogsScreen.SetActive(false);
+        CustomizationMenu.SetActive(false);
         SettingsMenu.SetActive(false);
 
         target.SetActive(true);
