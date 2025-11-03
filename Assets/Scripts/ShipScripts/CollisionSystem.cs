@@ -6,8 +6,13 @@ using Unity.Netcode;
 [RequireComponent(typeof(ShipHealth))]
 public class CollisionSystem : NetworkBehaviour
 {
-    public float ASTEROID_DMG = 15; 
+    public float ASTEROID_DMG = 15.0f; 
+    // Add other collision object damage values here
+
+
     private ShipHealth shipHealth;
+    public LightsManager lightsManager;
+
 
     // Asteroid impact
     public GameObject spriteRendererPrefab = null;
@@ -69,8 +74,8 @@ public class CollisionSystem : NetworkBehaviour
         if (sectionIndex != -1)
         {
             Vector3 impactCoord = other.ClosestPoint(colliderObject.transform.position);
+            TriggerFlickerClientRpc();
 
-            
             if (sectionIndex == 0) // If collision with forward collider
             {
                 Vector3 directionToImpact = (impactCoord - transform.position).normalized;
@@ -99,6 +104,20 @@ public class CollisionSystem : NetworkBehaviour
         if (spriteRendererPrefab != null && explosionSprites != null && explosionSprites.Count > 0)
         {
             StartCoroutine(AsteroidImpactAnimation(coord));
+        }
+    }
+
+    [ClientRpc]
+    private void TriggerFlickerClientRpc()
+    {
+
+        // debug line to test flicker duration / itensity
+        float damage = (float)Random.Range(5.0f, 50.0f);
+        if (lightsManager != null)
+        {
+            //lightsManager.TriggerCollisionFlicker(ASTEROID_DMG); // original 
+            lightsManager.TriggerCollisionFlicker(damage); // debug
+
         }
     }
 
