@@ -52,7 +52,7 @@ public class BackgroundAnimator : MonoBehaviour
     {
         foreach (IAnimable animation in animable_components)
         {
-            animation.animate(Time.deltaTime);
+            animation.animate(Mathf.Min(1.0f / 30.0f, Time.deltaTime));
         }
     }
 }

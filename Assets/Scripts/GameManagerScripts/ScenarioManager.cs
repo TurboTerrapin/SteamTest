@@ -107,10 +107,6 @@ public class ScenarioManager : NetworkBehaviour
     //called when start of scenario transition
     public string loadNewScenario()
     {
-        if (countdown_coroutine != null)
-        {
-            StopCoroutine(countdown_coroutine);
-        }
         endpoint_reached = false;
         scenario_number += 1;
         if (SceneManager.GetActiveScene().name == "RedLightGreenLight")
@@ -137,14 +133,7 @@ public class ScenarioManager : NetworkBehaviour
         //assign the piloting system the new World Root
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
         GameObject WorldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
-        GameObject[] collisionObjects = GameObject.FindGameObjectsWithTag("Asteroid"); 
-        foreach (GameObject collisionObj in collisionObjects)
-        {
-            collisionObj.transform.SetParent(WorldRoot.transform);
-        }
-
-
-
+        
         //generate new entrance/exit path locations and angles
         generatePaths();
 
@@ -224,6 +213,8 @@ public class ScenarioManager : NetworkBehaviour
         {
             return; 
         }
+
+        disableScenarioTimer();
 
         //check if already did game over or reached endpoint
         if (game_over == true || endpoint_reached == true)
