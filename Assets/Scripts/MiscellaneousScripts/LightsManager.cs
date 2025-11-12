@@ -1,8 +1,8 @@
 /*
     LightsManager.cs
     - Handles light stuff
-    Contributor(s): Jake Schott, Henryk, Gemini
-    Last Updated: 10/1/2025
+    Contributor(s): Jake Schott, Henryk Musial
+    Last Updated: 11/10/2025
 */
 
 using System.Collections;
@@ -23,6 +23,11 @@ public class LightsManager : MonoBehaviour
     public Material unlit_neon;
     public Material lit_off_white;
     public Material lit_red;
+    public Material pure_black;
+
+    public GameObject default_lights;
+    public GameObject emergency_lights;
+    public GameObject light_strip;
 
     private GameObject[] light_groups = new GameObject[2] { null, null };
     private ShipStatus ship_status;
@@ -45,8 +50,8 @@ public class LightsManager : MonoBehaviour
 
     private void Start()
     {
-        light_groups[0] = transform.GetChild(0).gameObject;
-        light_groups[1] = transform.GetChild(1).gameObject;
+        light_groups[0] = default_lights;
+        light_groups[1] = emergency_lights;
 
         DEFAULT_LIGHT_MATERIAL[0] = lit_neon;
         DEFAULT_LIGHT_MATERIAL[1] = lit_off_white;
@@ -97,6 +102,9 @@ public class LightsManager : MonoBehaviour
         //default lights enabled to start, emergency lights disabled to start
         enabled_lights[0] = true;
         enabled_lights[1] = false;
+
+        //enable light strip
+        light_strip.GetComponent<Renderer>().material = lit_neon;
     }
 
 
@@ -201,6 +209,9 @@ public class LightsManager : MonoBehaviour
         resetLightChangeCoroutine(0);
         enabled_lights[0] = true;
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, DEFAULT_LIGHT_INTENSITY[0]));
+
+        //enable light strip
+        light_strip.GetComponent<Renderer>().material = lit_neon;
     }  
 
     public void disableDefaultLights()
@@ -208,6 +219,9 @@ public class LightsManager : MonoBehaviour
         resetLightChangeCoroutine(0);
         enabled_lights[0] = false;
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, 0.0f));
+
+        //disable light strip
+        light_strip.GetComponent<Renderer>().material = pure_black;
     }
 
     public void enableRedAlert()

@@ -3,7 +3,7 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 9/17/2025
+    Last Updated: 11/10/2025
 */
 
 using System.Collections;
@@ -129,7 +129,7 @@ public class PowerRegulator : NetworkBehaviour
         }
 
         //update power status screen
-        updatePowerStatus();
+        updatePowerStatus(getPowerStatusState());
     }
 
     //resets all non-depleted power sources (called by PowerManager)
@@ -166,7 +166,7 @@ public class PowerRegulator : NetworkBehaviour
 
         //change state to offline
         restartPowerBarUpdater();
-        updatePowerStatus();
+        updatePowerStatus(getPowerStatusState());
 
         auxiliary_power.activate();
     }
@@ -192,7 +192,7 @@ public class PowerRegulator : NetworkBehaviour
     {
         //change state to online
         restartPowerBarUpdater();
-        updatePowerStatus();
+        updatePowerStatus(0);
     }
 
     //called when a power regulation module "minigame" has been completed
@@ -216,7 +216,7 @@ public class PowerRegulator : NetworkBehaviour
         power_regulation_components[module_index].resetToDefault();
 
         restartPowerBarUpdater();
-        updatePowerStatus();
+        updatePowerStatus(getPowerStatusState());
 
         if (getPowerSourcesEnabled() < 6)
         {
@@ -410,8 +410,7 @@ public class PowerRegulator : NetworkBehaviour
         }
     }
 
-    //purely visual update to the power status screen in the engineer position
-    private void updatePowerStatus()
+    private int getPowerStatusState()
     {
         //determine power status state
         int state = 0;
@@ -430,7 +429,12 @@ public class PowerRegulator : NetworkBehaviour
                 state = 0;
             }
         }
+        return state;
+    }
 
+    //purely visual update to the power status screen in the engineer position
+    private void updatePowerStatus(int state)
+    {
         //change color of divider bar, POWER STATUS label
         if (state == 2)
         {
@@ -515,7 +519,7 @@ public class PowerRegulator : NetworkBehaviour
             auxiliary_power.deactivate();
         }
 
-        updatePowerStatus();
+        updatePowerStatus(getPowerStatusState());
         restartPowerBarUpdater();
 
         if (NetworkManager.Singleton.IsHost == true)

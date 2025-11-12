@@ -47,6 +47,7 @@ public class ScenarioManager : NetworkBehaviour
     private PowerManager power_manager;
     private PowerControl power_control;
     private LightsManager lights_manager;
+    private BackgroundAnimator background_animator;
     private Coroutine countdown_coroutine;
     private GameObject scenario_handler;
 
@@ -66,7 +67,8 @@ public class ScenarioManager : NetworkBehaviour
         engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
         power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
         power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
-        lights_manager = GameObject.Find("Lights").GetComponent<LightsManager>();
+        lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
+        background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
     }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
@@ -285,6 +287,9 @@ public class ScenarioManager : NetworkBehaviour
     {
         //resets PowerManager, PowerAllocation, and PowerRegulator
         power_manager.resetPowerManager();
+
+        //reset BackgroundAnimator
+        background_animator.enableAllScreens();
 
         //power down all stations
         for (int i = 0; i < 4; i++)

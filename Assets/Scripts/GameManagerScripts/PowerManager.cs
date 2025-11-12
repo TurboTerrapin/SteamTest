@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 11/10/2025
 */
 
 using System;
@@ -29,6 +29,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
     public PowerAllocation power_allocation;
     public LightsManager lights_manager;
+    public BackgroundAnimator background_animator;
 
     //sounds
     public AudioSource overconsumption_warning_sound;
@@ -426,6 +427,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_off_sound.Play();
         ship_beeps_sound.Stop();
         overconsumption_warning_sound.Stop();
+        background_animator.disableAllScreens();
 
         //stop updating power consumption
         if (power_updater_coroutine != null)
@@ -541,18 +543,19 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //play sound but wait a delay
         power_on_sound.Play();
 
-        yield return new WaitForSeconds(3.0f);
-        
-        //bring back power
-        ship_has_power = true;
-
         //show power enabled on power status screen in engineer position
         transform.GetComponent<PowerRegulator>().displayPowerRestoration();
+
+        yield return new WaitForSeconds(3.0f);
+
+        //bring back power
+        ship_has_power = true;
 
         //handle restart effects (lights, sounds)
         lights_manager.enableDefaultLights();
         lights_manager.disableEmergencyLights();
         ship_beeps_sound.Play();
+        background_animator.enableAllScreens(1.5f);
 
         //start updating power consumption
         if (power_updater_coroutine == null)

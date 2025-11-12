@@ -6,11 +6,13 @@
     Last Updated: 10/21/2025
 */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Windows;
 
 public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
 {
@@ -35,8 +37,12 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
     private float inertial_dampener_modifier = 0.0f;
     private Vector3 initial_pos; //handle starting position (0% impulse)
     private Vector3 final_pos = new Vector3(0.2816f, -1.2306f, 19.3834f);
+    private Coroutine impulse_adjustment_coroutine = null;
+
+    private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME, true);
@@ -73,10 +79,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
         }
 
         //update lever position
-        handle.transform.localPosition =
-            new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, impulse),
-                        Mathf.Lerp(initial_pos.y, final_pos.y, impulse),
-                        Mathf.Lerp(initial_pos.z, final_pos.z, impulse));
+        handle.transform.localPosition = Vector3.Lerp(initial_pos, final_pos, impulse);
 
         //update speedometer text in engineer position
         string rounded_speed = (Mathf.Round(impulse * 1000.0f) / 10.0f).ToString();
@@ -87,34 +90,87 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
         speed_text.GetComponent<TMP_Text>().SetText("IMPULSE SPEED: " + rounded_speed + "%");
     }
 
-    public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
+    private bool checkIfChangeNecessary()
     {
         if (is_powered == false)
         {
-            return;
+            return false;
         }
-        int impulse_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
+        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
         {
-            impulse_direction += 1;
+            return false;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrement
+        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)
         {
-            impulse_direction -= 1;
+            return true;
         }
-        if (impulse_direction != 0)
+        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f)
         {
-            if (impulse_direction > 0)
+            return true;
+        }
+        return false;
+    }
+
+    IEnumerator impulseAdjustment()
+    {
+        float momentum = 0.01f;
+        while (checkIfChangeNecessary())
+        {
+            int impulse_direction = 0;
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f) //E to increment
             {
-                impulse = Mathf.Min(1.0f, impulse + (0.002f * (impulse / 0.5f) + 0.001f) * dt * MOVE_SPEED * (1.0f + (3.5f * inertial_dampener_modifier)));
+                impulse_direction += 1;
+            }
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)  //Q to decrement
+            {
+                impulse_direction -= 1;
+            }
+            if (impulse_direction != 0)
+            {
+                float dt = Mathf.Min(1.0f / 30.0f, Time.deltaTime);
+                if (impulse_direction > 0)
+                {
+                    impulse = Mathf.Min(1.0f, impulse + (dt * MOVE_SPEED * 0.003f * momentum));
+                }
+                else
+                {
+                    impulse = Mathf.Max(0.0f, impulse - (dt * MOVE_SPEED * 0.003f * momentum));
+                }
+
+                momentum = Mathf.Min(1.1f + (inertial_dampener_modifier * 2.0f), momentum + (dt * (1.1f + (1.0f + (inertial_dampener_modifier * 0.05f)))));
+
+                transmitImpulseAdjustmentRPC(impulse);
             }
             else
             {
-                impulse = Mathf.Max(0.0f, impulse - (0.002f * (impulse / 0.5f) + 0.001f) * dt * MOVE_SPEED * (1.0f + (3.5f * inertial_dampener_modifier)));
+                momentum = 0.01f;
             }
-            BUTTONS[0].updateInteractable(impulse > 0.0f);
-            BUTTONS[1].updateInteractable(impulse < 1.0f);
-            transmitImpulseAdjustmentRPC(impulse);
+
+            BUTTONS[0].updateInteractable(impulse > 0.0f && is_powered == true);
+            BUTTONS[1].updateInteractable(impulse < 1.0f && is_powered == true);
+
+            keys_down.Clear();
+
+            int iterator = 0; //counts frames
+            while (keys_down.Count == 0 && iterator < 2)
+            {
+                yield return null;
+                iterator++;
+            }
+        }
+
+        impulse_adjustment_coroutine = null;
+    }
+
+    public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
+    {
+        keys_down = inputs;
+        if (impulse_adjustment_coroutine == null && is_powered == true)
+        {
+            if (checkIfChangeNecessary())
+            {
+                impulse_adjustment_coroutine = StartCoroutine(impulseAdjustment());
+            }
         }
     }
 

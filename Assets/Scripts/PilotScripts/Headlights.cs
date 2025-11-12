@@ -27,6 +27,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
 
     public GameObject slider;
     public GameObject headlights_display;
+    public GameObject ship_headlights;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -55,15 +56,31 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    private void setHeadlights(float a, float intensity, float scale)
+    {
+        foreach (Transform light in ship_headlights.transform)
+        {
+            light.GetComponent<Light>().intensity = intensity;
+            light.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.0f, 0.84f, 1.0f, a);
+            light.GetChild(0).localScale = new Vector3(scale, scale, 1.0f);
+        }
+    }
+
     IEnumerator headlightShift()
     {
         float animation_time = MOVE_TIME;
 
         Vector3 starting_pos = slider.transform.localPosition;
-        Vector3 dest_pos =
-            new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, headlight_configuration / 7.0f),
-                        Mathf.Lerp(initial_pos.y, final_pos.y, headlight_configuration / 7.0f),
-                        Mathf.Lerp(initial_pos.z, final_pos.z, headlight_configuration / 7.0f));
+        Vector3 dest_pos = Vector3.Lerp(initial_pos, final_pos, headlight_configuration / 7.0f);
+
+        float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
+        float dest_a = Mathf.Lerp(0.0f, 0.5f, headlight_configuration / 7.0f);
+
+        float starting_intensity = ship_headlights.transform.GetChild(0).GetComponent<Light>().intensity;
+        float dest_intensity = Mathf.Lerp(0.0f, 2000.0f, headlight_configuration / 7.0f);
+
+        float starting_scale = ship_headlights.transform.GetChild(0).GetChild(0).localScale.x;
+        float dest_scale = Mathf.Lerp(0.5f, 1.5f, headlight_configuration / 7.0f);
 
         float starting_fill = headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount;
         float dest_fill = headlight_configuration / 7.0f;
@@ -73,12 +90,14 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             animation_time = Mathf.Max(0.0f, animation_time - dt);
-            slider.transform.localPosition =
-                new Vector3(Mathf.Lerp(starting_pos.x, dest_pos.x, 1.0f - (animation_time / MOVE_TIME)),
-                            Mathf.Lerp(starting_pos.y, dest_pos.y, 1.0f - (animation_time / MOVE_TIME)),
-                            Mathf.Lerp(starting_pos.z, dest_pos.z, 1.0f - (animation_time / MOVE_TIME)));
+
+            float slide_percentage = 1.0f - (animation_time / MOVE_TIME);
+
+            slider.transform.localPosition = Vector3.Lerp(starting_pos, dest_pos, slide_percentage);
+
+            setHeadlights(Mathf.Lerp(starting_a, dest_a, slide_percentage), Mathf.Lerp(starting_intensity, dest_intensity, slide_percentage), Mathf.Lerp(starting_scale, dest_scale, slide_percentage));
             
-            headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill, dest_fill, 1.0f - (animation_time / MOVE_TIME));
+            headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill, dest_fill, slide_percentage);
             yield return null;
         }
 
@@ -90,6 +109,10 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
 
     private bool checkIfChangeNecessary()
     {
+        if (is_powered == false)
+        {
+            return false;
+        }
         if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && headlight_configuration > 0){
             return true;
         }
@@ -129,7 +152,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
                     }
                 }
             }
-            keys_down.Clear();
+
             //wait for coroutine to start
             while (headlight_shift_coroutine == null)
             {
@@ -139,6 +162,15 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
             while (headlight_shift_coroutine != null)
             {
                 yield return null;
+            }
+
+            keys_down.Clear();
+
+            int iterator = 0; //counts frames
+            while (keys_down.Count == 0 && iterator < 2)
+            {
+                yield return null;
+                iterator++;
             }
 
             BUTTONS[0].updateInteractable(headlight_configuration > 0 && is_powered == true);
@@ -155,13 +187,9 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         keys_down = inputs;
         if (headlight_adjustment_coroutine == null && is_powered == true)
         {
-            for (int i = CONTROL_INDEXES.Count - 1; i >= 0; i--)
+            if (checkIfChangeNecessary())
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
-                {
-                    headlight_adjustment_coroutine = StartCoroutine(headlightAdjustment());
-                    return;
-                }
+                headlight_adjustment_coroutine = StartCoroutine(headlightAdjustment());
             }
         }
     }
@@ -170,13 +198,19 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     IEnumerator returnToZero(float power_off_time)
     {
         Vector3 start_pos = slider.transform.localPosition;
+        float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
+        float starting_intensity = ship_headlights.transform.GetChild(0).GetComponent<Light>().intensity;
+        float starting_scale = ship_headlights.transform.GetChild(0).GetChild(0).localScale.x;
+
         float anim_time = power_off_time;
         headlight_configuration = 0;
         headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-            slider.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, 1.0f - (anim_time / power_off_time));
+            float off_percentage = 1.0f - (anim_time / power_off_time);
+            slider.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, off_percentage);
+            setHeadlights(Mathf.Lerp(starting_a, 0.0f, off_percentage), Mathf.Lerp(starting_intensity, 0.0f, off_percentage), Mathf.Lerp(starting_scale, 0.0f, off_percentage));
             yield return null;
         }
 
