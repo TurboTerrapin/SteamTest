@@ -4,7 +4,7 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 11/12/2025
 */
 
 using System.Collections;
@@ -56,11 +56,12 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
-    private void setHeadlights(float a, float intensity, float scale)
+    private void setHeadlights(float a, float range, float scale)
     {
         foreach (Transform light in ship_headlights.transform)
         {
-            light.GetComponent<Light>().intensity = intensity;
+            light.GetComponent<Light>().range = range;
+            light.GetComponent<Light>().intensity = range;
             light.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.0f, 0.84f, 1.0f, a);
             light.GetChild(0).localScale = new Vector3(scale, scale, 1.0f);
         }
@@ -76,8 +77,8 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
         float dest_a = Mathf.Lerp(0.0f, 0.5f, headlight_configuration / 7.0f);
 
-        float starting_intensity = ship_headlights.transform.GetChild(0).GetComponent<Light>().intensity;
-        float dest_intensity = Mathf.Lerp(0.0f, 2000.0f, headlight_configuration / 7.0f);
+        float starting_range = ship_headlights.transform.GetChild(0).GetComponent<Light>().range;
+        float dest_range = Mathf.Lerp(0.0f, 2000.0f, headlight_configuration / 7.0f);
 
         float starting_scale = ship_headlights.transform.GetChild(0).GetChild(0).localScale.x;
         float dest_scale = Mathf.Lerp(0.5f, 1.5f, headlight_configuration / 7.0f);
@@ -95,7 +96,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
 
             slider.transform.localPosition = Vector3.Lerp(starting_pos, dest_pos, slide_percentage);
 
-            setHeadlights(Mathf.Lerp(starting_a, dest_a, slide_percentage), Mathf.Lerp(starting_intensity, dest_intensity, slide_percentage), Mathf.Lerp(starting_scale, dest_scale, slide_percentage));
+            setHeadlights(Mathf.Lerp(starting_a, dest_a, slide_percentage), Mathf.Lerp(starting_range, dest_range, slide_percentage), Mathf.Lerp(starting_scale, dest_scale, slide_percentage));
             
             headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill, dest_fill, slide_percentage);
             yield return null;
@@ -199,7 +200,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     {
         Vector3 start_pos = slider.transform.localPosition;
         float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
-        float starting_intensity = ship_headlights.transform.GetChild(0).GetComponent<Light>().intensity;
+        float starting_range = ship_headlights.transform.GetChild(0).GetComponent<Light>().range;
         float starting_scale = ship_headlights.transform.GetChild(0).GetChild(0).localScale.x;
 
         float anim_time = power_off_time;
@@ -210,7 +211,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
             float off_percentage = 1.0f - (anim_time / power_off_time);
             slider.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, off_percentage);
-            setHeadlights(Mathf.Lerp(starting_a, 0.0f, off_percentage), Mathf.Lerp(starting_intensity, 0.0f, off_percentage), Mathf.Lerp(starting_scale, 0.0f, off_percentage));
+            setHeadlights(Mathf.Lerp(starting_a, 0.0f, off_percentage), Mathf.Lerp(starting_range, 0.0f, off_percentage), Mathf.Lerp(starting_scale, 0.0f, off_percentage));
             yield return null;
         }
 
