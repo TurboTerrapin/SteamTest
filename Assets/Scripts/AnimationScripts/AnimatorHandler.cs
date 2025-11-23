@@ -1,13 +1,18 @@
+/*
+    AnimatorHandler.cs
+    - Handles IK positioning
+    - Handles animation events (sitting down, standing up)
+    Contributor(s): John Aylward
+    Last Updated: 11/15/2025
+*/
+
 using UnityEngine;
-using System;
-using System.Collections;
 
 [RequireComponent(typeof(Animator))]
-public class IKController : MonoBehaviour
+public class AnimatorHandler : MonoBehaviour
 {
-
     protected Animator animator;
-    
+
     [SerializeField]
     private bool ikActive = true;
     [SerializeField]
@@ -28,40 +33,53 @@ public class IKController : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-
     public void setIKActive(bool value)
     {
         ikActive = value;
     }
+
     public void setIKHead(bool value)
     {
         ikHead = value;
     }
+
     public void setIKRightArm(bool value)
     {
         ikRightArm = value;
     }
+
     public void setIKLeftArm(bool value)
     {
         ikLeftArm = value;
     }
+
     public void setRightArmIKPosition(Vector3 pos)
     {
         rightHandObj.position = pos;
     }
+
     public void setLeftArmIKPosition(Vector3 pos)
     {
         leftHandObj.position = pos;
     }
+
     public void setHeadIKPosition(Vector3 pos)
     {
         lookObj.position = pos;
     }
 
+    public void onSitAnimationEnd()
+    {
+        ControlScript.Instance.assumePosition();
+    }
 
-
-
-
+    public void onGetUpAnimationEnd()
+    {
+        ControlScript.Instance.relinquishPosition();
+        animator.SetBool("GettingUp", false);
+        animator.SetBool("SittingDown", false);
+        transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+    }
 
     //a callback for calculating IK
     void OnAnimatorIK()
@@ -121,5 +139,4 @@ public class IKController : MonoBehaviour
             animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
         }
     }
-    
 }

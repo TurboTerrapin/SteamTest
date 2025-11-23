@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ba1af003ee0e6944d8b2b6c2a0116c2a
+guid: 32841e36cf3c7a2459f83f5ef5e705e8
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -31,14 +31,14 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: metarig|metarigAction
-      takeName: metarig|metarigAction
-      internalID: -887982601649841707
+      name: metarig|metarig|metarig|metarig|metarig|metarigAction
+      takeName: metarig|metarig|metarig|metarig|metarig|metarigAction
+      internalID: -4768486888802618081
       firstFrame: 0
-      lastFrame: 76
+      lastFrame: 75
       wrapMode: 0
       orientationOffsetY: 0
-      level: 0
+      level: 1
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
@@ -47,17 +47,24 @@ ModelImporter:
       loopBlendOrientation: 1
       loopBlendPositionY: 1
       loopBlendPositionXZ: 1
-      keepOriginalOrientation: 0
+      keepOriginalOrientation: 1
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
+      keepOriginalPositionXZ: 1
       heightFromFeet: 0
       mirror: 0
-      bodyMask: 00000000000000000000000000000000000000000100000001000000010000000100000000000000000000000000000000000000
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 1
+        functionName: onGetUpAnimationEnd
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c8c0110d32b87e44b8a051e370bd9bd7, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
-      maskType: 1
-      maskSource: {fileID: 31900000, guid: 4e7456d050ad9e249a4b8778cf8882ee, type: 2}
+      maskType: 3
+      maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     isReadable: 0
   meshes:

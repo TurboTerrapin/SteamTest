@@ -6,48 +6,44 @@ public class AnimationController : MonoBehaviour
     [SerializeField]
     private Animator myAnimator = null;
     [SerializeField]
-    private IKController myIKController = null;
-
+    private AnimatorHandler myAnimatorHandler = null;
 
     [SerializeField]
     private float x, y, z, w;
-
 
     //private void Update()
     //{
     //    x = transform.localRotation.x; y = transform.localRotation.y; z = transform.localRotation.z; w = transform.localRotation.w;
     //}
 
-
     public void setIKActive(bool value)
     {
-        myIKController.setIKActive(value);
+        myAnimatorHandler.setIKActive(value);
     }
     public void setIKHead(bool value)
     {
-        myIKController.setIKHead(value);
+        myAnimatorHandler.setIKHead(value);
     }
     public void setIKRightArm(bool value)
     {
-        myIKController.setIKRightArm(value);
+        myAnimatorHandler.setIKRightArm(value);
     }
     public void setIKLeftArm(bool value)
     {
-        myIKController.setIKLeftArm(value);
+        myAnimatorHandler.setIKLeftArm(value);
     }
     public void setRightArmIKPosition(Vector3 pos)
     {
-        myIKController.setRightArmIKPosition(pos);
+        myAnimatorHandler.setRightArmIKPosition(pos);
     }
     public void setLeftArmIKPosition(Vector3 pos)
     {
-        myIKController.setLeftArmIKPosition(pos);
+        myAnimatorHandler.setLeftArmIKPosition(pos);
     }
     public void setHeadIKPosition(Vector3 pos)
     {
-        myIKController.setHeadIKPosition(pos);
+        myAnimatorHandler.setHeadIKPosition(pos);
     }
-
 
     public void setCharacterPosition()
     {
@@ -81,8 +77,6 @@ public class AnimationController : MonoBehaviour
         transform.localRotation = direction;
     }
 
-
-
     /*
     [Rpc(SendTo.Server)]
     public void SendPlayerData()
@@ -90,6 +84,4 @@ public class AnimationController : MonoBehaviour
 
     }
     */
-
-
 }
