@@ -57,19 +57,12 @@ public class CameraMove : MonoBehaviour
         cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
     }
 
-    public void unlockCamera()
+    public void unlockCamera(Vector2 initial_pos)
     {
         camera_transform.parent = transform;
         if (cameraUpdateCoroutine == null)
         {
-            if (captainMode == false)
-            {
-                prevPos = new Vector2(0.0f, 30.0f);
-            }
-            else
-            {
-                prevPos = new Vector2(180.0f, 30.0f);
-            }
+            prevPos = initial_pos;
             cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
         }
     }

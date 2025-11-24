@@ -109,6 +109,16 @@ public class SeatManager : NetworkBehaviour
         return true;
     }
 
+    //true is left, false is right
+    public bool getGetUpDirection(int pos)
+    {
+        if (seat_indexes[pos] == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
     public bool sitDown(int seat)
     {
         if (occupied_seats[seat] != -1)

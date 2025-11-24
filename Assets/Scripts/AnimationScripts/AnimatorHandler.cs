@@ -6,6 +6,8 @@
     Last Updated: 11/15/2025
 */
 
+using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
@@ -70,15 +72,56 @@ public class AnimatorHandler : MonoBehaviour
 
     public void onSitAnimationEnd()
     {
-        ControlScript.Instance.assumePosition();
+        if (transform.parent.GetComponent<NetworkObject>().IsOwner == true)
+        {
+            ControlScript.Instance.assumePosition();
+        }
+
     }
 
     public void onGetUpAnimationEnd()
     {
-        ControlScript.Instance.relinquishPosition();
+        if (transform.parent.GetComponent<NetworkObject>().IsOwner == true)
+        {
+            if (animator.GetInteger("Seat") == 3)
+            {
+                transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+            }
+            else
+            {
+                animator.applyRootMotion = false;
+                animator.StopPlayback();
+                int to_realign = 0;
+                if (animator.GetBool("IsLeft") == true)
+                {
+                    to_realign = 1;
+                }
+                Vector3 char_position = transform.position;
+                transform.parent.position = char_position + new Vector3(0.0f, -0.12f, 0.0f);
+                transform.position = char_position;
+            }
+
+            StartCoroutine(playerReadjustment());
+        }
+    }
+
+    IEnumerator playerReadjustment()
+    {
+        Vector3 this_pos = transform.localPosition;
+
+        float anim_time = 0.15f;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            transform.localPosition = Vector3.Lerp(new Vector3(0.0f, 0.12f, 0.0f), this_pos, anim_time / 10.0f);
+            
+            yield return null;
+        }
+
         animator.SetBool("GettingUp", false);
         animator.SetBool("SittingDown", false);
-        transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        ControlScript.Instance.relinquishPosition();
     }
 
     //a callback for calculating IK

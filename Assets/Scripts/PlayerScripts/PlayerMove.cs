@@ -93,6 +93,7 @@ public class PlayerMove : NetworkBehaviour
 
         animator.applyRootMotion = true;
         animator.SetBool("SittingDown", true);
+        animator.SetBool("GettingUp", false);
     }
 
     public void getUp(int pos)
@@ -106,32 +107,30 @@ public class PlayerMove : NetworkBehaviour
         Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
 
         myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
-        myAnimationController.setIKActive(false);
         animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
         transform.GetComponent<CameraMove>().lockCamera();
 
         Quaternion starting_rotation = camera_transform.localRotation;
-
-        /*
-        float starting_rotation_x = camera_transform.localRotation.eulerAngles.x;
-        float starting_rotation_y = camera_transform.localRotation.eulerAngles.y;
-        */
+        float dest_angle_x = 0.0f;
+        if (pos == 3)
+        {
+            dest_angle_x = 180.0f;
+        }
         
         float anim_time = 0.15f;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            camera_transform.localRotation = Quaternion.Lerp(Quaternion.Euler(30.0f, 180.0f, 0.0f), starting_rotation, anim_time / 0.15f);
+            camera_transform.localRotation = Quaternion.Lerp(Quaternion.Euler(30.0f, dest_angle_x, 0.0f), starting_rotation, anim_time / 0.15f);
             camera_transform.position = transform.GetComponent<CameraMove>().head_transform.position;
-
-            //camera_transform.localRotation = Quaternion.Euler(Mathf.Lerp(30.0f, starting_rotation_x, anim_time / 0.2f), Mathf.Lerp(180.0f, starting_rotation_y, anim_time / 0.2f), 0.0f);
 
             yield return null;
         }
         yield return new WaitForSeconds(0.05f);
 
         camera_transform.parent = transform.GetComponent<CameraMove>().head_transform;
+        animator.SetBool("IsLeft", seat_manager.getGetUpDirection(pos));
         animator.SetBool("GettingUp", true);
     }
 
