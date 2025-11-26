@@ -314,7 +314,14 @@ public class ControlScript : MonoBehaviour
     {
         player_prefab.GetComponent<CameraMove>().parentRotationLock = true;
         player_prefab.GetComponent<CameraMove>().captainMode = (curr_pos == 3);
-        player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(0.0f, 30.0f));
+        if (curr_pos != 3)
+        {
+            player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(0.0f, 30.0f));
+        }
+        else
+        {
+            player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(180.0f, 30.0f)); //captain is flipped for some reason
+        }
         myAnimationController.setIKActive(true);
         myAnimationController.setIKHead(true);
 

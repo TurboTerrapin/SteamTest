@@ -4,7 +4,7 @@
     - Handles looking around
     - Handles camera zoom (using RMB or CTRL)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 11/22/2025
+    Last Updated: 11/26/2025
 */
 
 using System.Collections;
@@ -28,7 +28,7 @@ public class CameraMove : MonoBehaviour
 
     private void Start()
     {
-        if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //not owner, kill the camera
+        if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //Not owner, kill the camera
         {
             Destroy(camera_transform.gameObject);
             Destroy(this);
@@ -48,7 +48,7 @@ public class CameraMove : MonoBehaviour
         }
     }
 
-    //runs after scene is loaded and client matches
+    //Runs after scene is loaded and client matches
     public void initialize()
     {
         rb = transform.gameObject.GetComponent<Rigidbody>();
@@ -98,7 +98,7 @@ public class CameraMove : MonoBehaviour
         cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
     }
 
-    //called by FailureHandler on game restart
+    //Called by FailureHandler on game restart
     public void resetCamera()
     {
         if (cameraUpdateCoroutine != null)
@@ -145,13 +145,13 @@ public class CameraMove : MonoBehaviour
         }
     }
 
-    //runs every frame after initialize() is called
+    //Runs every frame after initialize() is called
     private void updateCamera()
     {
-        //make sure we are the owner
+        //Make sure we are the owner
         if (!transform.gameObject.GetComponent<PlayerMove>().IsOwner) return;
 
-        //handle pause/unpause
+        //Handle pause/unpause
         if (Input.GetKeyDown(KeyCode.Escape) && ControlScript.Instance.canPause())
         {
             if (!ControlScript.Instance.isPaused())
@@ -165,7 +165,7 @@ public class CameraMove : MonoBehaviour
             }
         }
 
-        //if not paused
+        //If not paused
         if (Cursor.lockState == CursorLockMode.Locked)
         {
             MouseMove();
@@ -220,7 +220,7 @@ public class CameraMove : MonoBehaviour
         camera_transform.position = head_transform.position;
     }
 
-    //used by settings
+    //Used by settings
     public void SetMouseSensitvity(float newSensitivity)
     {
         mouseSensitivity = newSensitivity;

@@ -74,12 +74,14 @@ public class PlayerMove : NetworkBehaviour
         reposition_coroutine = null;
     }
 
+    //called by ControlScript
     public void sitDown(int pos)
     {
         resetPlayerMove();
         seat_change_coroutine = StartCoroutine(sitDownSequence(pos));
     }
 
+    //handles sit down sequence
     IEnumerator sitDownSequence(int pos)
     {
         animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
@@ -93,7 +95,7 @@ public class PlayerMove : NetworkBehaviour
 
         animator.applyRootMotion = true;
         animator.SetBool("SittingDown", true);
-        animator.SetBool("GettingUp", false);
+        animator.SetBool("GettingUp", false); //trigger sit down animation
     }
 
     public void getUp(int pos)
@@ -102,6 +104,7 @@ public class PlayerMove : NetworkBehaviour
         seat_change_coroutine = StartCoroutine(getUpSequence(pos));
     }
 
+    //orients camera for get up
     IEnumerator getUpSequence(int pos)
     {
         Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
@@ -131,9 +134,10 @@ public class PlayerMove : NetworkBehaviour
 
         camera_transform.parent = transform.GetComponent<CameraMove>().head_transform;
         animator.SetBool("IsLeft", seat_manager.getGetUpDirection(pos));
-        animator.SetBool("GettingUp", true);
+        animator.SetBool("GettingUp", true); //trigger get up animation
     }
 
+    //orients player and camera for sit down
     IEnumerator repositionPlayer(Vector3 new_position, float new_rotation, float time)
     {
         Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
@@ -189,6 +193,7 @@ public class PlayerMove : NetworkBehaviour
         shift_coroutine = StartCoroutine(shift(pos));
     }
 
+    //adjust the player prefab (bean) and tells SeatManager to adjust seat during a shift
     IEnumerator shift(int pos)
     {
         bool look_direction = transform.GetComponent<CameraMove>().camera_transform.localRotation.eulerAngles.y < 120;

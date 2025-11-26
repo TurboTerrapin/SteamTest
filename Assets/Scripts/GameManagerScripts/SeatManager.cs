@@ -2,8 +2,11 @@
     SeatManager.cs
     - Used to ensure two players are not sitting in the same seat at the same time
     - Checks if a player is close enough to sit down
+    - Handles RPC which positions the seats
+    - Handles giving sit down/get up directions for physical seats
+    - Handles storing/giving seat indexes (where they are shifted)
     Contributor(s): Jake Schott
-    Last Updated: 11/20/2025
+    Last Updated: 11/26/2025
 */
 
 using System.Collections.Generic;
@@ -17,7 +20,7 @@ public class SeatManager : NetworkBehaviour
     public static Vector2[][] SEAT_COORDINATES = new Vector2[4][]{
         new Vector2[]{ new Vector2(-0.92f, 0.0f), new Vector2(0.0f, 0.0f) }, //pilot seat positions
         new Vector2[]{ new Vector2(0.0f, 0.0f), new Vector2(0.92f, 0.0f) }, //tactician seat positions
-        new Vector2[]{ new Vector2(0.0f, 0.0f), new Vector2(-0.6f, -0.6f), new Vector2(-1.2f, -1.2f), new Vector2(-1.9f, -1.9f), new Vector2(-2.25f, -2.25f)}, //engineer seat positions
+        new Vector2[]{ new Vector2(0.0f, 0.0f), new Vector2(-0.6f, -0.6f), new Vector2(-1.1f, -1.1f), new Vector2(-1.7f, -1.7f), new Vector2(-2.05f, -2.05f)}, //engineer seat positions
         new Vector2[]{} //captain seat positions
     };
 
@@ -33,6 +36,7 @@ public class SeatManager : NetworkBehaviour
         player_manager = GameObject.Find("PlayerManager").GetComponent<PlayerManager>();
     }
 
+    //returns -1 if no unoccupied seats within SIT_RANGE, otherwise returns index (0-3) of position available
     public int checkSeats(Vector3 player_pos)
     {
         int closest_pos = -1;
@@ -119,6 +123,7 @@ public class SeatManager : NetworkBehaviour
         return false;
     }
 
+    //called to trigger an RPC to occupy a seat
     public bool sitDown(int seat)
     {
         if (occupied_seats[seat] != -1)
@@ -129,42 +134,46 @@ public class SeatManager : NetworkBehaviour
         return true;
     }
 
+    //returns the SEAT_COORDINATES index based on whether the seat is farthest left, farthest right, or if in the middle, look direction (left = false)
     public int getShiftLocation(int pos, bool look_direction)
     {
         if (pos == 0 || pos == 1)
         {
             int new_seat_index = 0;
-            if (seat_indexes[pos] == 0)
+            if (seat_indexes[pos] == 0) //if left, then right
             {
                 new_seat_index = 1;
             }
-            return new_seat_index;
+            return new_seat_index; //left
         }
-        if (seat_indexes[pos] == 0)
+        if (seat_indexes[pos] == 0) //if furthest left, one to the right
         {
             return 1;
         }
-        if (seat_indexes[pos] == SEAT_COORDINATES[pos].Length - 1)
+        if (seat_indexes[pos] == SEAT_COORDINATES[pos].Length - 1) //if furthest right, one to the left
         {
             return SEAT_COORDINATES[pos].Length - 2;
         }
-        if (look_direction == true)
+        if (look_direction == true) //if looking right
         {
-            return seat_indexes[pos] + 1;
+            return seat_indexes[pos] + 1; //right
         }
-        return seat_indexes[pos] - 1;
+        return seat_indexes[pos] - 1; //left
     }
 
+    //called by shifting player after shift to seat transform
     public void updateSeatLocation(int seat, Vector3 new_seat_loc)
     {
         transmitSeatLocationChangeRPC(seat, new_seat_loc);
     }
 
+    //called by shifting player after shift to a new SEAT_LOCATION
     public void updateSeatIndex(int seat, int new_seat_index)
     {
         transmitSeatIndexChangeRPC(seat, new_seat_index);
     }
 
+    //called to trigger an RPC to relinquish a seat
     public bool getUp(int seat)
     {
         if (occupied_seats[seat] == player_manager.getPlayerIndex())
@@ -175,6 +184,7 @@ public class SeatManager : NetworkBehaviour
         return false;
     }
 
+   
     [Rpc(SendTo.Everyone)]
     private void transmitSeatOccupantChangeRPC(int seat, int occupant, bool occupied)
     {

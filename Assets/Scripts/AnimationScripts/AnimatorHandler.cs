@@ -1,9 +1,9 @@
 /*
     AnimatorHandler.cs
     - Handles IK positioning
-    - Handles animation events (sitting down, standing up)
+    - Handles animation events (sitting down, getting up)
     Contributor(s): John Aylward
-    Last Updated: 11/15/2025
+    Last Updated: 11/26/2025
 */
 
 using System.Collections;
@@ -79,6 +79,7 @@ public class AnimatorHandler : MonoBehaviour
 
     }
 
+    //called on last frame of get up animations
     public void onGetUpAnimationEnd()
     {
         if (transform.parent.GetComponent<NetworkObject>().IsOwner == true)
@@ -91,11 +92,7 @@ public class AnimatorHandler : MonoBehaviour
             {
                 animator.applyRootMotion = false;
                 animator.StopPlayback();
-                int to_realign = 0;
-                if (animator.GetBool("IsLeft") == true)
-                {
-                    to_realign = 1;
-                }
+
                 Vector3 char_position = transform.position;
                 transform.parent.position = char_position + new Vector3(0.0f, -0.12f, 0.0f);
                 transform.position = char_position;
@@ -114,7 +111,7 @@ public class AnimatorHandler : MonoBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            transform.localPosition = Vector3.Lerp(new Vector3(0.0f, 0.12f, 0.0f), this_pos, anim_time / 10.0f);
+            transform.localPosition = Vector3.Lerp(new Vector3(0.0f, 0.12f, 0.0f), this_pos, anim_time / 0.15f);
             
             yield return null;
         }
