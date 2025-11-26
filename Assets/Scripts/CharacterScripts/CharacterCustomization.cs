@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class CharacterCustomization : MonoBehaviour
+public class CharacterCustomization : NetworkBehaviour
 {
 
     [SerializeField]
@@ -23,7 +24,9 @@ public class CharacterCustomization : MonoBehaviour
     [SerializeField]
     private int clothing = 0;
 
-
+    private Color HairColor = Color.white;
+    private Color EyeColor = Color.white;
+    private Color SkinColor = Color.white;
 
 
     float timer = 0;
@@ -38,6 +41,7 @@ public class CharacterCustomization : MonoBehaviour
     {
         Material mat = hairObject.GetComponent<MeshRenderer>().material;
         mat.SetColor("_BaseColor", newColor);
+        HairColor = newColor;
     }
 
     public void ApplyEyeColor(Color newColor)
@@ -46,12 +50,14 @@ public class CharacterCustomization : MonoBehaviour
         Material matRight = rightEyeObject.GetComponent<MeshRenderer>().material;
         matLeft.SetColor("_BaseColor", newColor);
         matRight.SetColor("_BaseColor", newColor);
+        EyeColor = newColor;
     }
 
     public void ApplySkinTone(Color newColor)
     {
         Material mat = playerObject.GetComponent<SkinnedMeshRenderer>().material;
         mat.SetColor("_BaseColor", newColor);
+        SkinColor = newColor;
     }
 
 
@@ -86,6 +92,7 @@ public class CharacterCustomization : MonoBehaviour
 
             // Load options selected
             hair = data.SelectedHairOption;
+            ChangeHairType(hair);
             clothing = data.SelectedClothingOption;
         }
     }
@@ -121,4 +128,19 @@ public class CharacterCustomization : MonoBehaviour
 
 
     }*/
+
+
+    [Rpc(SendTo.Everyone)]
+    public void SyncCustomizationRPC()
+    {
+        if (IsOwner)
+        {
+            ApplyHairColor(HairColor);
+            ApplyEyeColor(EyeColor);
+            ApplySkinTone(SkinColor);
+            ChangeHairType(hair);
+        }
+    }
+
+
 }

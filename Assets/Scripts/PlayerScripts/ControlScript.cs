@@ -107,6 +107,7 @@ public class ControlScript : MonoBehaviour
 
             }
         }
+        myPlayer.transform.GetChild(0).GetComponent<CameraFollowHead>().SetActive(true);
     }
 
     public void unlockPlayer(GameObject plr_prefab)
@@ -213,11 +214,13 @@ public class ControlScript : MonoBehaviour
 
     public void pause()
     {
+        myPlayer.transform.GetChild(0).GetComponent<CameraFollowHead>().SetActive(false);
         UnityEngine.Cursor.visible = true;
         UnityEngine.Cursor.lockState = CursorLockMode.None;
         pause_menu.SetActive(true);
         settings_menu.SetActive(false);
         controls_menu.SetActive(false);
+        
         paused = true;
         cursor.SetActive(false);
     }
@@ -230,6 +233,7 @@ public class ControlScript : MonoBehaviour
         settings_menu.SetActive(false);
         controls_menu.SetActive(false);
         paused = false;
+        myPlayer.transform.GetChild(0).GetComponent<CameraFollowHead>().SetActive(true);
         if (is_active == true)
         {
             if (HUD_setting != 4)

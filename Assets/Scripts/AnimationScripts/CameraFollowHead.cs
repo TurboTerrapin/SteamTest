@@ -21,10 +21,20 @@ public class CameraFollowHead : MonoBehaviour
     {
         if (!active) return;
 
-        transform.position = new Vector3(headBone.transform.position.x, headBone.transform.position.y - 0.1f, headBone.transform.position.z);
+        transform.position = headBone.transform.position;
         transform.rotation = headBone.transform.rotation;
 
-
+        Debug.DrawRay(transform.position, transform.forward, Color.green);
+        //Debug.DrawRay(headBone.transform.position, headBone.transform.forward, Color.red);
 
     }
+
+    public void SetActive(bool state)
+    {
+        active = state;
+    }
+
+
+
+
 }

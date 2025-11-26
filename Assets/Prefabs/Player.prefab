@@ -108,6 +108,37 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &994134077502839611
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1539668463825242657}
+  m_Layer: 9
+  m_Name: CameraPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1539668463825242657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994134077502839611}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.0011101123, z: 0.00089490146}
+  m_LocalScale: {x: 0.0003, y: 0.0003, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8039372078326848420}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4626818690023258244
 GameObject:
   m_ObjectHideFlags: 0
@@ -641,7 +672,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 0
-  headBone: {fileID: 758565228276078074}
+  headBone: {fileID: 994134077502839611}
 --- !u!1 &5342489398951201457
 GameObject:
   m_ObjectHideFlags: 0
@@ -901,6 +932,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8950480641416126531, guid: bee8eb4084af8514e926a65740063703, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3075637451104566784}
+    - targetCorrespondingSourceObject: {fileID: -8950480641416126531, guid: bee8eb4084af8514e926a65740063703, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1539668463825242657}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bee8eb4084af8514e926a65740063703, type: 3}
       insertIndex: -1
@@ -909,11 +943,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 8853690570099486071}
   m_SourcePrefab: {fileID: 100100000, guid: bee8eb4084af8514e926a65740063703, type: 3}
---- !u!1 &758565228276078074 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -1810763679673101853, guid: bee8eb4084af8514e926a65740063703, type: 3}
-  m_PrefabInstance: {fileID: 7807015280105489433}
-  m_PrefabAsset: {fileID: 0}
 --- !u!95 &4409730614584719752 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: bee8eb4084af8514e926a65740063703, type: 3}
