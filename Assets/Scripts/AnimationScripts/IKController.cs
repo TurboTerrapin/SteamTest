@@ -1,6 +1,7 @@
-using UnityEngine;
 using System;
 using System.Collections;
+using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 [RequireComponent(typeof(Animator))]
 public class IKController : MonoBehaviour
@@ -49,9 +50,17 @@ public class IKController : MonoBehaviour
     {
         rightHandObj.position = pos;
     }
+    public void setRightArmIKRotation(Quaternion rot)
+    {
+        rightHandObj.rotation = rot;
+    }
     public void setLeftArmIKPosition(Vector3 pos)
     {
         leftHandObj.position = pos;
+    }
+    public void setLeftArmIKRotation(Quaternion rot)
+    {
+        leftHandObj.rotation = rot;
     }
     public void setHeadIKPosition(Vector3 pos)
     {

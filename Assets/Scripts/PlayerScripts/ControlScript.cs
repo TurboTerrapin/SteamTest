@@ -418,21 +418,32 @@ public class ControlScript : MonoBehaviour
                 {
                     if (current_ray_target.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
-                        if (Vector3.SignedAngle(myPlayer.transform.forward, myPlayer.transform.GetChild(0).forward, myPlayer.transform.up) > 0)
-                        {
-                            //Set IK on and move the right arm target
-                            myAnimationController.setIKRightArm(true);
-                            myAnimationController.setRightArmIKPosition(current_ray_target.transform.position);
-                        }
-                        else
-                        {
-                            //Set IK on and move the left arm target
-                            myAnimationController.setIKLeftArm(true);
-                            myAnimationController.setLeftArmIKPosition(current_ray_target.transform.position);
-                        }
-
                         IControllable target_control =
                             (IControllable)control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name); //get corresponding class
+
+                        IIKTargetable target_IK = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
+
+                        if (target_IK != null)
+                        {
+                            if (Vector3.SignedAngle(myPlayer.transform.forward, myPlayer.transform.GetChild(0).forward, myPlayer.transform.up) > 0)
+                            {
+                                //Set IK on and move the right arm target
+                                myAnimationController.setIKRightArm(true);
+                                myAnimationController.setRightArmIKPosition(target_IK.getIKTarget().position);
+                                myAnimationController.setRightArmIKRotation(target_IK.getIKTarget().rotation);
+                            }
+                            else
+                            {
+                                //Set IK on and move the left arm target
+                                myAnimationController.setIKLeftArm(true);
+                                myAnimationController.setLeftArmIKPosition(target_IK.getIKTarget().position);
+                                myAnimationController.setLeftArmIKRotation(target_IK.getIKTarget().rotation);
+                            }
+                        }
+
+
+
+
 
                         HUDInfo temp_info = target_control.getHUDinfo(current_ray_target.gameObject);
 

@@ -1,5 +1,6 @@
 //using Unity.Netcode;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public class AnimationController : MonoBehaviour
 {
@@ -39,9 +40,17 @@ public class AnimationController : MonoBehaviour
     {
         myIKController.setRightArmIKPosition(pos);
     }
+    public void setRightArmIKRotation(Quaternion rot)
+    {
+        myIKController.setRightArmIKRotation(rot);
+    }
     public void setLeftArmIKPosition(Vector3 pos)
     {
         myIKController.setLeftArmIKPosition(pos);
+    }
+    public void setLeftArmIKRotation(Quaternion rot)
+    {
+        myIKController.setLeftArmIKRotation(rot);
     }
     public void setHeadIKPosition(Vector3 pos)
     {

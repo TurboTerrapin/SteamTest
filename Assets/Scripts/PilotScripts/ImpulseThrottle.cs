@@ -12,7 +12,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
+public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 35.0f;
@@ -52,6 +52,10 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    public Transform getIKTarget()
+    {
+        return handle.transform.GetChild(0);
+    }
     public void adjustInertialDampenerModifier(float new_modifier)
     {
         inertial_dampener_modifier = new_modifier;
