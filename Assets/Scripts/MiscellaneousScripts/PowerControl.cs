@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class PowerControl : NetworkBehaviour, IControllable
+public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float TURN_TIME = 1.0f;
@@ -25,6 +25,7 @@ public class PowerControl : NetworkBehaviour, IControllable
     public PowerManager power_manager;
     public List<GameObject> dials = null;
     public List<GameObject> light_indicator_groups = null;
+    public List<GameObject> IK_targets = null;
 
     private bool[] active_dials = new bool[4] { true, true, true, true };
     private List<string> ray_targets = new List<string>{"pilot_power", "tactician_power", "engineer_power", "captain_power"};
@@ -42,6 +43,12 @@ public class PowerControl : NetworkBehaviour, IControllable
 
         hud_info.setInfo(INFO_MESSAGE);
     }
+
+    public Transform getIKTarget()
+    {
+        return IK_targets[0].transform;
+    }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);

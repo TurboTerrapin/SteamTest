@@ -30546,6 +30546,37 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: -1
   m_TargetDisplay: 0
+--- !u!1 &223659682
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 223659683}
+  m_Layer: 0
+  m_Name: PowerDialIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &223659683
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 223659682}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6332130073211125949}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 90}
 --- !u!1 &224377180
 GameObject:
   m_ObjectHideFlags: 0
@@ -54192,6 +54223,7 @@ MonoBehaviour:
   handle: {fileID: 8792849438992977599}
   impulse_bars_display: {fileID: 1796765673}
   speed_text: {fileID: 2030021924}
+  IK_target: {fileID: 805459986}
 --- !u!114 &401286167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54295,6 +54327,8 @@ MonoBehaviour:
   - {fileID: 1796665432}
   - {fileID: 1481726992}
   - {fileID: 389766168}
+  IK_targets:
+  - {fileID: 223659682}
 --- !u!114 &401286182
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108655,6 +108689,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 805446858}
   m_Mesh: {fileID: 5427411371750288659, guid: 645d1fa24cef28841adc5aac31a7bdc9, type: 3}
+--- !u!1 &805459986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 805459987}
+  m_Layer: 0
+  m_Name: ImpulseIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &805459987
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805459986}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalPosition: {x: 1.191, y: -16.617, z: 0.725}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7609800909359991156}
+  m_LocalEulerAnglesHint: {x: -90, y: 180, z: 0}
 --- !u!1 &805511109
 GameObject:
   m_ObjectHideFlags: 0
@@ -320498,6 +320563,7 @@ Transform:
   m_Children:
   - {fileID: 3413316065640980689}
   - {fileID: 4081602308246920988}
+  - {fileID: 223659683}
   m_Father: {fileID: 462005105}
   m_LocalEulerAnglesHint: {x: -67, y: 90, z: 90}
 --- !u!1 &6332715219025358130
@@ -328191,7 +328257,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 805459987}
   m_Father: {fileID: 8215423059987243586}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &7619581447371313219

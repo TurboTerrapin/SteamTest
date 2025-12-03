@@ -429,7 +429,11 @@ public class ControlScript : MonoBehaviour
                             {
                                 //Set IK on and move the right arm target
                                 myAnimationController.setIKRightArm(true);
-                                myAnimationController.setRightArmIKPosition(target_IK.getIKTarget().position);
+
+                                Vector3 pos = target_IK.getIKTarget().position;
+                                Debug.Log(pos);
+
+                                myAnimationController.setRightArmIKPosition(pos);
                                 myAnimationController.setRightArmIKRotation(target_IK.getIKTarget().rotation);
                             }
                             else

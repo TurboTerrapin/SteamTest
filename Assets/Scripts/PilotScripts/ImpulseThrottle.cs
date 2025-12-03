@@ -27,6 +27,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     public GameObject handle;
     public GameObject impulse_bars_display; //used to display the bars beneath the handle
     public GameObject speed_text; //used to update the speedometer
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -54,7 +55,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     public Transform getIKTarget()
     {
-        return handle.transform.GetChild(0);
+        return IK_target.transform;
     }
     public void adjustInertialDampenerModifier(float new_modifier)
     {
