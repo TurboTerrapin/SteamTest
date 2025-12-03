@@ -79416,6 +79416,7 @@ MonoBehaviour:
   handle: {fileID: 8792849438992977599}
   impulse_bars_display: {fileID: 1796765673}
   speed_text: {fileID: 2030021924}
+  IK_target: {fileID: 995017531}
 --- !u!114 &401286167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79520,6 +79521,8 @@ MonoBehaviour:
   - {fileID: 1796665432}
   - {fileID: 1481726992}
   - {fileID: 389766168}
+  IK_targets:
+  - {fileID: 806698668}
 --- !u!114 &401286182
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -160947,6 +160950,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 806638028}
   m_CullTransparentMesh: 1
+--- !u!1 &806698668
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 806698669}
+  m_Layer: 0
+  m_Name: PowerControlIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &806698669
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 806698668}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000030908623, y: -0.7071068, z: -0.7071068, w: 0.000000030908623}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6332130073211125949}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &806733476
 GameObject:
   m_ObjectHideFlags: 0
@@ -200085,6 +200119,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 994987864}
   m_CullTransparentMesh: 1
+--- !u!1 &995017531
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 995017532}
+  m_Layer: 0
+  m_Name: ImpulseIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &995017532
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 995017531}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalPosition: {x: 1.194, y: -16.619, z: 0.721}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7609800909359991156}
+  m_LocalEulerAnglesHint: {x: -90, y: 180, z: 0}
 --- !u!1 &995981114
 GameObject:
   m_ObjectHideFlags: 0
@@ -455636,6 +455701,7 @@ Transform:
   m_Children:
   - {fileID: 3413316065640980689}
   - {fileID: 4081602308246920988}
+  - {fileID: 806698669}
   m_Father: {fileID: 462005105}
   m_LocalEulerAnglesHint: {x: -67, y: 90, z: 90}
 --- !u!1 &6332715219025358130
@@ -462388,7 +462454,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 995017532}
   m_Father: {fileID: 8215423059987243586}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &7619581447371313219

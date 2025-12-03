@@ -34,6 +34,7 @@ public class ControlScript : MonoBehaviour
     public GameObject seat_script_holder; //empty GameObject that contains the seat script manager
     private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
+    private GameObject myPlayer = null;
     private AnimationController myAnimationController = null;
 
     //CLASS VARIABLES
@@ -93,6 +94,23 @@ public class ControlScript : MonoBehaviour
             Destroy(this);
         }
         Instance = this;
+
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject player in players)
+        {
+            if (player.GetComponent<PlayerMove>().IsOwner)
+            {
+                myPlayer = player;
+                myAnimationController = player.GetComponent<AnimationController>();
+                //playerAnimator = myPlayer.transform.GetChild(1).GetComponent<Animator>();
+                //playerIK = myPlayer.transform.GetChild(1).GetComponent<IKController>();
+                break;
+
+            }
+        }
+        //myPlayer.transform.GetChild(0).GetComponent<CameraFollowHead>().SetActive(true);
+
+
     }
 
     public void unlockPlayer(GameObject plr_prefab)
@@ -446,20 +464,19 @@ public class ControlScript : MonoBehaviour
                 {
                     if (current_ray_target.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
-
                         IIKTargetable target_IK = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
-
+                        //If the ray target has a specific IK target, then use the IK target
                         if (target_IK != null)
                         {
-                            if (Vector3.SignedAngle(myPlayer.transform.forward, myPlayer.transform.GetChild(0).forward, myPlayer.transform.up) > 0)
+                            //Debug.Log(Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up));
+                            if (Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up) > 0)
+                            //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
                             {
                                 //Set IK on and move the right arm target
                                 myAnimationController.setIKRightArm(true);
+                                //Vector3 pos = target_IK.getIKTarget().position;
 
-                                Vector3 pos = target_IK.getIKTarget().position;
-                                Debug.Log(pos);
-
-                                myAnimationController.setRightArmIKPosition(pos);
+                                myAnimationController.setRightArmIKPosition(target_IK.getIKTarget().position);
                                 myAnimationController.setRightArmIKRotation(target_IK.getIKTarget().rotation);
                             }
                             else
@@ -470,25 +487,25 @@ public class ControlScript : MonoBehaviour
                                 myAnimationController.setLeftArmIKRotation(target_IK.getIKTarget().rotation);
                             }
                         }
-
-
-
-
-                        if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
-                        {
-                            //Set IK on and move the right arm target
-                            myAnimationController.setIKRightArm(true);
-                            myAnimationController.setRightArmIKPosition(current_ray_target.transform.position);
-                            myAnimationController.setIKLeftArm(false);
-                        }
+                        //Otherwise fallback to normal IK mode
                         else
                         {
-                            //Set IK on and move the left arm target
-                            myAnimationController.setIKLeftArm(true);
-                            myAnimationController.setLeftArmIKPosition(current_ray_target.transform.position);
-                            myAnimationController.setIKRightArm(false);
+                            if (Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up) > 0)
+                            //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
+                            {
+                                //Set IK on and move the right arm target
+                                myAnimationController.setIKRightArm(true);
+                                myAnimationController.setRightArmIKPosition(current_ray_target.transform.position);
+                                myAnimationController.setIKLeftArm(false);
+                            }
+                            else
+                            {
+                                //Set IK on and move the left arm target
+                                myAnimationController.setIKLeftArm(true);
+                                myAnimationController.setLeftArmIKPosition(current_ray_target.transform.position);
+                                myAnimationController.setIKRightArm(false);
+                            }
                         }
-
                         IControllable target_control =
                             (IControllable)control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name); //get corresponding class
 

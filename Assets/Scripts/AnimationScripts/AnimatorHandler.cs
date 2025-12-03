@@ -130,6 +130,10 @@ public class AnimatorHandler : MonoBehaviour
         ControlScript.Instance.relinquishPosition();
     }
 
+
+
+    private Vector3 currentR;
+    private Vector3 currentL;
     //a callback for calculating IK
     void OnAnimatorIK()
     {
@@ -159,7 +163,17 @@ public class AnimatorHandler : MonoBehaviour
             {
                 animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
                 animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
-                animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
+                //animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
+
+                //Testing Lerp
+                Vector3 currentPos = animator.GetIKPosition(AvatarIKGoal.RightHand);
+                Vector3 targetPos = rightHandObj.position;
+
+                currentR = Vector3.Lerp(currentR, targetPos, Time.deltaTime * 5f);
+
+                animator.SetIKPosition(AvatarIKGoal.RightHand, currentR);
+
+                
                 animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
             }
         }
@@ -168,6 +182,7 @@ public class AnimatorHandler : MonoBehaviour
         {
             animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
             animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+            //currentR = Vector3.zero;
         }
 
 
@@ -177,7 +192,17 @@ public class AnimatorHandler : MonoBehaviour
             {
                 animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
                 animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1);
-                animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHandObj.position);
+                //animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHandObj.position);
+
+                //Testing Lerp
+                Vector3 currentPos = animator.GetIKPosition(AvatarIKGoal.LeftHand);
+                Vector3 targetPos = leftHandObj.position;
+
+                currentL = Vector3.Lerp(currentL, targetPos, Time.deltaTime * 5f);
+
+                animator.SetIKPosition(AvatarIKGoal.LeftHand, currentL);
+
+
                 animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHandObj.rotation);
             }
         }
@@ -186,6 +211,7 @@ public class AnimatorHandler : MonoBehaviour
         {
             animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
             animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
+            //currentL = Vector3.zero;
         }
     }
 }
