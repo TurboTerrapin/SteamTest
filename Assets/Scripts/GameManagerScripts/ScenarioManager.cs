@@ -47,6 +47,7 @@ public class ScenarioManager : NetworkBehaviour
     private PowerManager power_manager;
     private PowerControl power_control;
     private LightsManager lights_manager;
+    private BackgroundAnimator background_animator;
     private Coroutine countdown_coroutine;
     private GameObject scenario_handler;
 
@@ -66,7 +67,8 @@ public class ScenarioManager : NetworkBehaviour
         engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
         power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
         power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
-        lights_manager = GameObject.Find("Lights").GetComponent<LightsManager>();
+        lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
+        background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
     }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
@@ -107,10 +109,6 @@ public class ScenarioManager : NetworkBehaviour
     //called when start of scenario transition
     public string loadNewScenario()
     {
-        if (countdown_coroutine != null)
-        {
-            StopCoroutine(countdown_coroutine);
-        }
         endpoint_reached = false;
         scenario_number += 1;
         if (SceneManager.GetActiveScene().name == "RedLightGreenLight")
@@ -136,6 +134,7 @@ public class ScenarioManager : NetworkBehaviour
 
         //assign the piloting system the new World Root
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+        GameObject WorldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         
         //generate new entrance/exit path locations and angles
         generatePaths();
@@ -217,6 +216,8 @@ public class ScenarioManager : NetworkBehaviour
             return; 
         }
 
+        disableScenarioTimer();
+
         //check if already did game over or reached endpoint
         if (game_over == true || endpoint_reached == true)
         {
@@ -286,6 +287,9 @@ public class ScenarioManager : NetworkBehaviour
     {
         //resets PowerManager, PowerAllocation, and PowerRegulator
         power_manager.resetPowerManager();
+
+        //reset BackgroundAnimator
+        background_animator.enableAllScreens();
 
         //power down all stations
         for (int i = 0; i < 4; i++)

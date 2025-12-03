@@ -6,12 +6,11 @@
     Last Updated: 9/6/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Steamworks;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -168,9 +167,8 @@ public class PlayerManager : NetworkBehaviour
         {
             if (player_prefabs[i] != null)
             {
-                player_prefabs[i].GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
-                player_prefabs[i].GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("None");
-                player_prefabs[i].GetComponent<Rigidbody>().useGravity = true;
+                unfreezePlayer(i);
+
             }
         }
         ControlScript.Instance.unlockPlayer(local_player);
@@ -207,17 +205,47 @@ public class PlayerManager : NetworkBehaviour
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
     }
 
+    private void freezePlayer(GameObject plr)
+    {
+        plr.transform.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+        plr.transform.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        plr.transform.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.NameToLayer("Everything");
+        plr.transform.GetComponent<Rigidbody>().excludeLayers = LayerMask.NameToLayer("Everything");
+        plr.transform.GetComponent<Rigidbody>().useGravity = false;
+    }
+
+    private void unfreezePlayer(GameObject plr)
+    {
+        plr.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("None");
+        plr.GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("None");
+        plr.GetComponent<Rigidbody>().useGravity = true;
+    }
+
     //called by FailureHandler
     public void freezeAllPlayers()
     {
         foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
         {
-            plr.transform.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-            plr.transform.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
-            plr.transform.GetComponent<CapsuleCollider>().excludeLayers = LayerMask.GetMask("Everything");
-            plr.transform.GetComponent<Rigidbody>().excludeLayers = LayerMask.GetMask("Everything");
-            plr.transform.GetComponent<Rigidbody>().useGravity = false;
+            freezePlayer(plr);
         }
+    }
+
+    public void freezePlayer(int index)
+    {
+        if (index > player_prefabs.Length || player_prefabs[index] == null)
+        {
+            return;
+        }
+        freezePlayer(player_prefabs[index]);
+    }
+
+    public void unfreezePlayer(int index)
+    {
+        if (index > player_prefabs.Length || player_prefabs[index] == null)
+        {
+            return;
+        }
+        unfreezePlayer(player_prefabs[index]);
     }
 
     //---------------------------------------------------------------------------------------//

@@ -4,7 +4,7 @@
     - Handles enabling/disabling the overconsumption circles in pilot and tactician position
     - Handles coloring blue/yellow/red alert circles across the ship
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 11/10/2025
 */
 
 using System.Collections.Generic;
@@ -42,6 +42,7 @@ public class StatusIndicators : MonoBehaviour, IPowerable
         ship_status_position_indicators[position].SetActive(false);
     }
 
+    //the small blue circle on pilot and tactician positions only
     public void displayOverconsumptionPositionIndicator(int position, float percentage)
     {
         //make red
@@ -62,6 +63,7 @@ public class StatusIndicators : MonoBehaviour, IPowerable
         }
     }
 
+    //the small blue circle on pilot and tactician positions only
     public void resetOverconsumptionPositionIndicator(int position)
     {
         //make blue

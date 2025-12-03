@@ -4,39 +4,43 @@
     - Handles looking around
     - Handles camera zoom (using RMB or CTRL)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/28/2025
+    Last Updated: 11/26/2025
 */
 
-using Steamworks;
 using System.Collections;
 using UnityEngine;
-
 
 public class CameraMove : MonoBehaviour
 {
     private Vector2 mouseMove = new Vector2();
-    private Vector2 prevPos = new Vector2(0f, 0); //x represents angle of camera, y represents angle of player capsule
+    private Vector2 prevPos = new Vector2(0.0f, 0.0f); //x represents angle of camera, y represents angle of player capsule
     private Rigidbody rb = null;
 
     private float mouseSensitivity = 1f;
     private Camera my_camera;
-    private Transform camera_transform;
+    public Transform camera_transform;
+    public Transform head_transform;
     private float zoomFOV = 40f;
     private Coroutine cameraUpdateCoroutine = null;
 
     public bool parentRotationLock = false;
+    public bool captainMode = false;
 
     private void Start()
     {
-        camera_transform = transform.GetChild(0);
-
-        if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //not owner, kill the camera
+        if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //Not owner, kill the camera
         {
             Destroy(camera_transform.gameObject);
             Destroy(this);
         }
 
+        //hide eyes, hair
+        foreach (Transform t in head_transform)
+        {
+            t.gameObject.SetActive(false);
+        }
         my_camera = camera_transform.GetComponent<Camera>();
+
 
         if (my_camera != null)
         {
@@ -44,13 +48,32 @@ public class CameraMove : MonoBehaviour
         }
     }
 
-    //runs after scene is loaded and client matches
+    //Runs after scene is loaded and client matches
     public void initialize()
     {
         rb = transform.gameObject.GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
 
         cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
+    }
+
+    public void unlockCamera(Vector2 initial_pos)
+    {
+        camera_transform.parent = transform;
+        if (cameraUpdateCoroutine == null)
+        {
+            prevPos = initial_pos;
+            cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
+        }
+    }
+
+    public void lockCamera()
+    {
+        if (cameraUpdateCoroutine != null)
+        {
+            StopCoroutine(cameraUpdateCoroutine);
+            cameraUpdateCoroutine = null;
+        }
     }
 
     public void deactivateCamera()
@@ -75,7 +98,7 @@ public class CameraMove : MonoBehaviour
         cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
     }
 
-    //called by FailureHandler on game restart
+    //Called by FailureHandler on game restart
     public void resetCamera()
     {
         if (cameraUpdateCoroutine != null)
@@ -122,13 +145,13 @@ public class CameraMove : MonoBehaviour
         }
     }
 
-    //runs every frame after initialize() is called
+    //Runs every frame after initialize() is called
     private void updateCamera()
     {
-        //make sure we are the owner
+        //Make sure we are the owner
         if (!transform.gameObject.GetComponent<PlayerMove>().IsOwner) return;
 
-        //handle pause/unpause
+        //Handle pause/unpause
         if (Input.GetKeyDown(KeyCode.Escape) && ControlScript.Instance.canPause())
         {
             if (!ControlScript.Instance.isPaused())
@@ -142,7 +165,7 @@ public class CameraMove : MonoBehaviour
             }
         }
 
-        //if not paused
+        //If not paused
         if (Cursor.lockState == CursorLockMode.Locked)
         {
             MouseMove();
@@ -161,30 +184,43 @@ public class CameraMove : MonoBehaviour
     void MouseMove()
     {
         Cursor.visible = false;
+
         //Gets mouse input
         mouseMove = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")); 
 
         //Increases the sensitivity to movement
         mouseMove *= mouseSensitivity * Mathf.Min(1.0f, (1.1f - ((60.0f - my_camera.fieldOfView) / 20.0f)));
 
-        prevPos.y = Mathf.Clamp(prevPos.y, -90.0f, 90.0f);
-
-        prevPos.y -= mouseMove.y;
         prevPos.x += mouseMove.x;
+        prevPos.y -= mouseMove.y;
 
-        if (!parentRotationLock)
+        if (!parentRotationLock) //Free roaming
         {
-            camera_transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
+            prevPos.y = Mathf.Clamp(prevPos.y, -70.0f, 85.0f);
+
             transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up);
+            camera_transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
         }
-        else
+        else //Sitting down
         {
-            prevPos.x = Mathf.Clamp(prevPos.x, -120f, 120f);
+            prevPos.y = Mathf.Clamp(prevPos.y, -10.0f, 50.0f);
+
+            if (captainMode == false)
+            {
+                prevPos.x = Mathf.Clamp(prevPos.x, -120.0f, 120.0f);
+            }
+            else
+            {
+                prevPos.x = Mathf.Clamp(prevPos.x, 100.0f, 260.0f);
+            }
+
             camera_transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
         }
+
+        camera_transform.position = head_transform.position;
     }
 
-    //used by settings
+    //Used by settings
     public void SetMouseSensitvity(float newSensitivity)
     {
         mouseSensitivity = newSensitivity;

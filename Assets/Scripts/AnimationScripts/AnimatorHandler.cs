@@ -1,14 +1,20 @@
-using System;
+/*
+    AnimatorHandler.cs
+    - Handles IK positioning
+    - Handles animation events (sitting down, getting up)
+    Contributor(s): John Aylward
+    Last Updated: 11/26/2025
+*/
+
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI.Table;
 
 [RequireComponent(typeof(Animator))]
-public class IKController : MonoBehaviour
+public class AnimatorHandler : MonoBehaviour
 {
-
     protected Animator animator;
-    
+
     [SerializeField]
     private bool ikActive = true;
     [SerializeField]
@@ -29,48 +35,91 @@ public class IKController : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-
     public void setIKActive(bool value)
     {
         ikActive = value;
     }
+
     public void setIKHead(bool value)
     {
         ikHead = value;
     }
+
     public void setIKRightArm(bool value)
     {
         ikRightArm = value;
     }
+
     public void setIKLeftArm(bool value)
     {
         ikLeftArm = value;
     }
+
     public void setRightArmIKPosition(Vector3 pos)
     {
         rightHandObj.position = pos;
     }
-    public void setRightArmIKRotation(Quaternion rot)
-    {
-        rightHandObj.rotation = rot;
-    }
+
     public void setLeftArmIKPosition(Vector3 pos)
     {
         leftHandObj.position = pos;
     }
-    public void setLeftArmIKRotation(Quaternion rot)
-    {
-        leftHandObj.rotation = rot;
-    }
+
     public void setHeadIKPosition(Vector3 pos)
     {
         lookObj.position = pos;
     }
 
+    public void onSitAnimationEnd()
+    {
+        if (transform.parent.GetComponent<NetworkObject>().IsOwner == true)
+        {
+            ControlScript.Instance.assumePosition();
+        }
 
+    }
 
+    //called on last frame of get up animations
+    public void onGetUpAnimationEnd()
+    {
+        if (transform.parent.GetComponent<NetworkObject>().IsOwner == true)
+        {
+            if (animator.GetInteger("Seat") == 3)
+            {
+                transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+            }
+            else
+            {
+                animator.applyRootMotion = false;
+                animator.StopPlayback();
 
+                Vector3 char_position = transform.position;
+                transform.parent.position = char_position + new Vector3(0.0f, -0.12f, 0.0f);
+                transform.position = char_position;
+            }
 
+            StartCoroutine(playerReadjustment());
+        }
+    }
+
+    IEnumerator playerReadjustment()
+    {
+        Vector3 this_pos = transform.localPosition;
+
+        float anim_time = 0.15f;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            transform.localPosition = Vector3.Lerp(new Vector3(0.0f, 0.12f, 0.0f), this_pos, anim_time / 0.15f);
+            
+            yield return null;
+        }
+
+        animator.SetBool("GettingUp", false);
+        animator.SetBool("SittingDown", false);
+        ControlScript.Instance.relinquishPosition();
+    }
 
     //a callback for calculating IK
     void OnAnimatorIK()
@@ -130,5 +179,4 @@ public class IKController : MonoBehaviour
             animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
         }
     }
-    
 }

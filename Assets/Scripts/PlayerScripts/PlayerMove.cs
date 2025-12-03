@@ -6,14 +6,13 @@
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/11/2025
+    Last Updated: 11/22/2025
 */
 
 using System.Collections;
 using Steamworks;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerMove : NetworkBehaviour
 {
@@ -27,11 +26,10 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField]
     private Rigidbody playerRB = null;
 
-    private Coroutine sit_coroutine = null;
+    private Coroutine seat_change_coroutine = null;
     private Coroutine shift_coroutine = null;
     private Coroutine move_coroutine = null;
-    private int shift_index = -1; //used for shifting
-    private bool shift_increasing = false; //used for shifting
+    private Coroutine reposition_coroutine = null;
     private SeatManager seat_manager = null;
 
     [SerializeField]
@@ -40,7 +38,7 @@ public class PlayerMove : NetworkBehaviour
     AnimationController myAnimationController = null;
 
     void Start()
-    { 
+    {
         DontDestroyOnLoad(gameObject);
 
         myAnimationController = GetComponent<AnimationController>();
@@ -50,7 +48,7 @@ public class PlayerMove : NetworkBehaviour
             //USERNAME_STEAMID
             transform.name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
         }
-        else 
+        else
         {
             transform.name = "OTHER_CLIENT";
         }
@@ -60,203 +58,169 @@ public class PlayerMove : NetworkBehaviour
     {
         seat_manager = GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>();
 
-        move_coroutine = StartCoroutine(checkForMovement());
+        if (move_coroutine == null)
+        {
+            move_coroutine = StartCoroutine(checkForMovement());
+        }
     }
 
     //called by FailureHandler on game restart
     public void resetPlayerMove()
     {
-        if (move_coroutine != null)
-        {
-            StopCoroutine(move_coroutine);
-            move_coroutine = null;
-        }
-        if (sit_coroutine != null)
-        {
-            StopCoroutine(sit_coroutine);
-            sit_coroutine = null;
-        }
-        if (shift_coroutine != null)
-        {
-            StopCoroutine(shift_coroutine);
-            shift_coroutine = null;
-        }
+        StopAllCoroutines();
+        move_coroutine = null;
+        seat_change_coroutine = null;
+        shift_coroutine = null;
+        reposition_coroutine = null;
     }
 
+    //called by ControlScript
     public void sitDown(int pos)
     {
-        if (move_coroutine != null)
-        {
-            StopCoroutine(move_coroutine);
-        }
+        resetPlayerMove();
+        seat_change_coroutine = StartCoroutine(sitDownSequence(pos));
+    }
 
-        move_coroutine = null;
-
-        animator.SetBool("Sitting", true);
+    //handles sit down sequence
+    IEnumerator sitDownSequence(int pos)
+    {
+        animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
+        GameObject to_orient = seat_manager.getSitDownPosition(pos, transform.position);
+        animator.SetBool("IsLeft", seat_manager.getSitDownDirection(pos, transform.position));
         animator.SetInteger("Seat", pos);
+        reposition_coroutine = StartCoroutine(repositionPlayer(to_orient.transform.localPosition + to_orient.transform.parent.localPosition, to_orient.transform.localRotation.eulerAngles.y, 0.2f));
 
-        myAnimationController.setPlayerRotationLock(true);
+        yield return reposition_coroutine;
+        reposition_coroutine = null;
 
-        //Sets the rotation of the player to forward
-        myAnimationController.setPlayerForwardRotation();
-        //myAnimationController.setCharacterPosition(new Vector3(-0.63f, -0.3f, 0));
-        myAnimationController.setCharacterPosition(new Vector3(0, -0.3f, 0));
-
-        //Sets the specific rotation of the player to 135 degrees from forward, to fit with the direction of the engineer position
-        if (pos == 2)
-        {
-            myAnimationController.setPlayerForwardRotation(Quaternion.AngleAxis(135, Vector3.up));
-        }
-
-        if (pos == 3)
-        {
-            myAnimationController.setCharacterPosition(new Vector3(0, -0.3f, 0));
-            //myAnimationController.setPlayerForwardRotation(Quaternion.AngleAxis(180, Vector3.up));
-
-        }
-
-
-        //figure out which shift point the player is closer to
-        int closest_index = -1;
-        float closest_dist = 9999;
-        GameObject position_info_holder = seat_manager.position_point_holders[pos];
-        for (int i = 1; i < position_info_holder.transform.childCount; i++)
-        {
-            float temp_dist = Vector3.Distance(transform.position, position_info_holder.transform.GetChild(i).position);
-            if (temp_dist < closest_dist)
-            {
-                closest_dist = temp_dist;
-                closest_index = i;
-                shift_index = i;
-            }
-        }
-
-        transform.position = position_info_holder.transform.GetChild(closest_index).position;
-
-        if (sit_coroutine != null)
-        {
-            StopCoroutine(sit_coroutine);
-            sit_coroutine = null;
-        }
-
-        //captain doesn't shift
-        if (pos != 3)
-        {
-            sit_coroutine = StartCoroutine(checkForShifting());
-        }
+        animator.applyRootMotion = true;
+        animator.SetBool("SittingDown", true);
+        animator.SetBool("GettingUp", false); //trigger sit down animation
     }
 
     public void getUp(int pos)
     {
+        resetPlayerMove();
+        seat_change_coroutine = StartCoroutine(getUpSequence(pos));
+    }
 
-        myAnimationController.setPlayerRotationLock(false);
-        animator.SetBool("Sitting", false);
+    //orients camera for get up
+    IEnumerator getUpSequence(int pos)
+    {
+        Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
 
-        if (move_coroutine != null)
+        myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
+        animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
+        transform.GetComponent<CameraMove>().lockCamera();
+
+        Quaternion starting_rotation = camera_transform.localRotation;
+        float dest_angle_x = 0.0f;
+        if (pos == 3)
         {
-            StopCoroutine(move_coroutine);
-            move_coroutine = null;
+            dest_angle_x = 180.0f;
+        }
+        
+        float anim_time = 0.15f;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            camera_transform.localRotation = Quaternion.Lerp(Quaternion.Euler(30.0f, dest_angle_x, 0.0f), starting_rotation, anim_time / 0.15f);
+            camera_transform.position = transform.GetComponent<CameraMove>().head_transform.position;
+
+            yield return null;
+        }
+        yield return new WaitForSeconds(0.05f);
+
+        camera_transform.parent = transform.GetComponent<CameraMove>().head_transform;
+        animator.SetBool("IsLeft", seat_manager.getGetUpDirection(pos));
+        animator.SetBool("GettingUp", true); //trigger get up animation
+    }
+
+    //orients player and camera for sit down
+    IEnumerator repositionPlayer(Vector3 new_position, float new_rotation, float time)
+    {
+        Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
+
+        Vector3 starting_position = transform.localPosition;
+        float starting_rotation = transform.localRotation.eulerAngles.y;
+        float starting_cam_rotation = camera_transform.localRotation.eulerAngles.x;
+        if (new_rotation == 0.0f && starting_rotation > 180.0f)
+        {
+            starting_rotation = 0.0f - (360.0f - starting_rotation);
+        }
+
+        float anim_time = time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            transform.localPosition = Vector3.Lerp(new_position, starting_position, anim_time / time);
+            transform.localRotation = Quaternion.Euler(0.0f, Mathf.Lerp(new_rotation, starting_rotation, anim_time / time), 0.0f);
+            camera_transform.localRotation = Quaternion.Euler(Mathf.Lerp(30.0f, starting_cam_rotation, anim_time / time), 0.0f, 0.0f);
+            camera_transform.position = transform.GetComponent<CameraMove>().head_transform.position;
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.05f);
+    }
+
+    //returns true if currently shifting
+    public bool isShifting()
+    {
+        return (shift_coroutine != null);
+    }
+
+    //returns true if shifting or sitting/getting up
+    public bool isAnimating()
+    {
+        return (shift_coroutine != null || seat_change_coroutine != null);
+    }
+
+    public void seatShift(int pos)
+    {
+        if (pos == 3) //captain doesn't shift
+        {
+            return;
         }
 
         if (shift_coroutine != null)
         {
             StopCoroutine(shift_coroutine);
-            shift_coroutine = null;
         }
 
-        if (sit_coroutine != null)
-        {
-            StopCoroutine(sit_coroutine);
-            sit_coroutine = null;
-        }
-
-        if (pos == 3) //captain exception
-        {
-            transform.position = seat_manager.position_point_holders[3].transform.GetChild(0).position;
-        }
-
-        move_coroutine = StartCoroutine(checkForMovement());
+        shift_coroutine = StartCoroutine(shift(pos));
     }
 
+    //adjust the player prefab (bean) and tells SeatManager to adjust seat during a shift
     IEnumerator shift(int pos)
     {
-        GameObject pph = seat_manager.position_point_holders[pos];
+        bool look_direction = transform.GetComponent<CameraMove>().camera_transform.localRotation.eulerAngles.y < 120;
+        int new_seat_index = seat_manager.getShiftLocation(pos, look_direction);
+        Vector3 start_pos = seat_manager.physical_seats[pos].transform.localPosition;
+        Vector3 end_pos = new Vector3(SeatManager.SEAT_COORDINATES[pos][new_seat_index].x, start_pos.y, SeatManager.SEAT_COORDINATES[pos][new_seat_index].y);
 
-        Vector3 start_pos = pph.transform.GetChild(shift_index).localPosition;
-        
-        if (shift_index == pph.transform.childCount - 1) //must decrease
-        {
-            shift_index--;
-            shift_increasing = false;
-        }
-        else if (shift_index != 1) //in the middle
-        {
-            if (pos != 2) //not engineer
-            {
-                if (shift_increasing == true)
-                {
-                    shift_index++;
-                }
-                else
-                {
-                    shift_index--;
-                }
-            }
-            else if (pos == 2) //if engineer, decide shift direction based on whether looking right or left
-            {
-                if (Vector3.SignedAngle(transform.forward, transform.GetChild(0).forward, transform.up) < 0)
-                {
-                    
-                    shift_index++;
-                }
-                else
-                {
-                    shift_index--;
-                }
-            }
-
-        }
-        else //increasing, use default positions
-        {
-            shift_index++;
-            shift_increasing = true;
-        }
-        Vector3 end_pos = pph.transform.GetChild(shift_index).localPosition;
+        Vector3 offset = seat_manager.physical_seats[pos].transform.localPosition - transform.localPosition;
 
         float total_shift_time = Vector3.Distance(start_pos, end_pos) / SHIFT_SPEED;
         float shift_time = total_shift_time;
+
         while (shift_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             shift_time = Mathf.Max(0.0f, shift_time - dt);
-            transform.localPosition =
-                new Vector3(Mathf.Lerp(end_pos.x, start_pos.x, shift_time / total_shift_time),
-                            Mathf.Lerp(end_pos.y, start_pos.y, shift_time / total_shift_time),
-                            Mathf.Lerp(end_pos.z, start_pos.z, shift_time / total_shift_time));
+            transform.localPosition = Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time) - offset;
+            seat_manager.updateSeatLocation(pos, Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time));
 
             yield return null;
         }
+
+        seat_manager.updateSeatIndex(pos, new_seat_index);
 
         shift_coroutine = null;
-
-        sit_coroutine = StartCoroutine(checkForShifting());
     }
 
-    IEnumerator checkForShifting()
-    {
-
-        while (shift_coroutine == null)
-        {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.LeftShift) || UnityEngine.Input.GetKeyDown(KeyCode.RightShift))
-            {
-                int pos = ControlScript.Instance.currentSeat();
-                shift_coroutine = StartCoroutine(shift(pos));
-            }
-            yield return null;
-        }
-
-        sit_coroutine = null;
-    }
 
     IEnumerator checkForMovement()
     {
@@ -294,7 +258,6 @@ public class PlayerMove : NetworkBehaviour
 
         animator.SetFloat("Movement", moveDir.magnitude);
         animator.SetFloat("Forward", moveDir.y);
-
 
         if (transform.parent != null) //local movement
         {
