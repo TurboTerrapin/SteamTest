@@ -39,7 +39,7 @@ public class AnimationController : MonoBehaviour
     }
     public void setRightArmIKRotation(Quaternion rot)
     {
-        myIKController.setRightArmIKRotation(rot);
+        myAnimatorHandler.setRightArmIKRotation(rot);
     }
     public void setLeftArmIKPosition(Vector3 pos)
     {
@@ -47,7 +47,7 @@ public class AnimationController : MonoBehaviour
     }
     public void setLeftArmIKRotation(Quaternion rot)
     {
-        myIKController.setLeftArmIKRotation(rot);
+        myAnimatorHandler.setLeftArmIKRotation(rot);
     }
     public void setHeadIKPosition(Vector3 pos)
     {

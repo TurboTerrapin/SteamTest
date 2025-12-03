@@ -59,10 +59,19 @@ public class AnimatorHandler : MonoBehaviour
     {
         rightHandObj.position = pos;
     }
+    public void setRightArmIKRotation(Quaternion rot)
+    {
+        rightHandObj.rotation = rot;
+    }
 
     public void setLeftArmIKPosition(Vector3 pos)
     {
         leftHandObj.position = pos;
+    }
+
+    public void setLeftArmIKRotation(Quaternion rot)
+    {
+        leftHandObj.rotation = rot;
     }
 
     public void setHeadIKPosition(Vector3 pos)

@@ -446,6 +446,34 @@ public class ControlScript : MonoBehaviour
                 {
                     if (current_ray_target.layer == 6) //the ray hit a control (Layer 6 = Control)
                     {
+
+                        IIKTargetable target_IK = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
+
+                        if (target_IK != null)
+                        {
+                            if (Vector3.SignedAngle(myPlayer.transform.forward, myPlayer.transform.GetChild(0).forward, myPlayer.transform.up) > 0)
+                            {
+                                //Set IK on and move the right arm target
+                                myAnimationController.setIKRightArm(true);
+
+                                Vector3 pos = target_IK.getIKTarget().position;
+                                Debug.Log(pos);
+
+                                myAnimationController.setRightArmIKPosition(pos);
+                                myAnimationController.setRightArmIKRotation(target_IK.getIKTarget().rotation);
+                            }
+                            else
+                            {
+                                //Set IK on and move the left arm target
+                                myAnimationController.setIKLeftArm(true);
+                                myAnimationController.setLeftArmIKPosition(target_IK.getIKTarget().position);
+                                myAnimationController.setLeftArmIKRotation(target_IK.getIKTarget().rotation);
+                            }
+                        }
+
+
+
+
                         if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
                         {
                             //Set IK on and move the right arm target
