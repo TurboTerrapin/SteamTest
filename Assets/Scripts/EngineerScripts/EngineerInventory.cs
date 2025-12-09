@@ -2,7 +2,7 @@
     EngineerInventory.cs
     - Currently only enables/disables inventory screen
     Contributor(s): Jake Schott
-    Last Updated: 10/17/2025
+    Last Updated: 12/9/2025
 */
 
 using System.Collections.Generic;
@@ -12,22 +12,26 @@ using UnityEngine;
 
 public class EngineerInventory : NetworkBehaviour, IPowerable
 {
+    //CLASS CONSTANTS
+    private static List<string> ITEM_NAMES = new List<string>() { "Probe", "Escape Pod", "Shield Battery", "Cargo Container" };
+    private static List<int> ITEM_IDS = new List<int>() { 102824, 104308, 102110, 102822 };
+    private static List<int> ITEM_WEIGHTS = new List<int>() { 1200, 3500, 500, 5000 };
+    private static List<Vector2> ITEM_SIZES = new List<Vector2>() { new Vector2(3.6f, 3.6f), new Vector2(4.2f, 4.8f), new Vector2(3.3f, 4.1f), new Vector2(4.5f, 4.5f) };
+
+    private static List<string> TORPEDO_NAMES = new List<string>() { "Photon", "Proton", "Ion",  "Quantum", "Superluminal", "Chroniton" };
+    private static List<int> TORPEDO_IDS = new List<int>() { 302025, 302022, 302001, 301995, 301997, 382000 };
+    private static List<int> TORPEDO_WEIGHTS = new List<int>() { 5000, 3350, 6000, 1100, 500, 8900 };
+    private static List<Vector2> TORPEDO_SIZES = new List<Vector2>() { new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.5f, 4.1f) };
+
     public GameObject inventory_display;
 
     private GameObject item_count_indicators;
     private GameObject torpedo_count_indicators;
 
-    private List<int> item_quantities = new List<int>() { 1, 4, 5 };
-    private List<int> item_ids = new List<int>() { 102824, 104308, 102110 };
-    private List<int> item_weights = new List<int>() { 1200, 3500, 500 };
-    private List<Vector2> item_sizes = new List<Vector2>() { new Vector2(3.6f, 3.6f), new Vector2(4.2f, 4.8f), new Vector2(3.3f, 4.1f) };
-    private List<string> item_names = new List<string>() { "Probe", "Escape Pod", "Shield Battery" };
-
+    //actual # of items in inventory (Probe, Escape Pod, Shield Battery, Cargo Container)
+    private List<int> item_quantities = new List<int>() { 1, 4, 5, 2 };
+    //actual # of torpedoes in inventory (Photon, Ion, Proton, Quantum, Superluminal, Chroniton)
     private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 0, 0 };
-    private List<int> torpedo_ids = new List<int>() { 302025, 302022, 302001, 301995, 301997, 382000};
-    private List<int> torpedo_weights = new List<int>() { 5000, 3350, 6000, 1100, 500, 8900 };
-    private List<Vector2> torpedo_sizes = new List<Vector2>() { new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(1.5f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.5f, 4.1f) };
-    private List<string> torpedo_names = new List<string>() { "Photon", "Ion", "Proton", "Quantum", "Superluminal", "Chroniton" };
 
     private void Start()
     {
@@ -95,11 +99,11 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
     //helper method that returns 0 if normal item, 1 if torpedo item
     private int getItemCategoryFromName(string item_name)
     {
-        if (item_names.Contains(item_name))
+        if (ITEM_NAMES.Contains(item_name))
         {
             return 0;
         }
-        else if (torpedo_names.Contains(item_name))
+        else if (TORPEDO_NAMES.Contains(item_name))
         {
             return 1;
         }
@@ -113,7 +117,7 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
         {
             return -1;
         }
-        List<string>[] possible_item_names = new List<string>[] { item_names, torpedo_names };
+        List<string>[] possible_item_names = new List<string>[] { ITEM_NAMES, TORPEDO_NAMES };
         return possible_item_names[getItemCategoryFromName(item_name)].IndexOf(item_name);
     }
 
@@ -133,7 +137,7 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
     //returns the name of the item/torpedo type
     public string getItemName(int item_category, int item_index)
     {
-        List<string>[] possible_item_names = new List<string>[] { item_names, torpedo_names };
+        List<string>[] possible_item_names = new List<string>[] { ITEM_NAMES, TORPEDO_NAMES };
         if (item_index >= 0 && (item_category >= 0 && item_category < 2))
         {
             if (item_index < possible_item_names[item_category].Count)
@@ -176,7 +180,7 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
             return -1;
         }
 
-        List<string>[] possible_items = new List<string>[] { item_names, torpedo_names };
+        List<string>[] possible_items = new List<string>[] { ITEM_NAMES, TORPEDO_NAMES };
         return possible_items[item_category].Count; 
     }
 
@@ -308,9 +312,9 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
 
         if (item_category == 0)
         {
-            return item_ids[item_index];
+            return ITEM_IDS[item_index];
         }
-        return torpedo_ids[item_index];
+        return TORPEDO_IDS[item_index];
     }
 
     //returns the item's weight
@@ -326,9 +330,9 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
 
         if (item_category == 0)
         {
-            return item_weights[item_index];
+            return ITEM_WEIGHTS[item_index];
         }
-        return torpedo_weights[item_index];
+        return TORPEDO_WEIGHTS[item_index];
     }
 
     //returns a Vector2 of the item's height and length
@@ -344,9 +348,9 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
 
         if (item_category == 0)
         {
-            return item_sizes[item_index];
+            return ITEM_SIZES[item_index];
         }
-        return torpedo_sizes[item_index];
+        return TORPEDO_SIZES[item_index];
     }
 
     //shows inventory screen

@@ -4,10 +4,9 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 11/10/2025
+    Last Updated: 12/9/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -429,6 +428,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         overconsumption_warning_sound.Stop();
         background_animator.disableAllScreens();
 
+        //stop orange flashing at positions where a player is sitting but power dial is not active
+        control_handler.GetComponent<PowerControl>().updatePlayerNotifiers();
+
         //stop updating power consumption
         if (power_updater_coroutine != null)
         {
@@ -568,6 +570,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         {
             control_handler.GetComponent<PowerControl>().enableDial(i, false);
         }
+
+        //start orange flashing for power dials (if a player is sitting at a position)
+        control_handler.GetComponent<PowerControl>().updatePlayerNotifiers();
 
         power_restart_coroutine = null;
     }

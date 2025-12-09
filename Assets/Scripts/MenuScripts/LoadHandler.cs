@@ -23,8 +23,6 @@ public class LoadHandler : NetworkBehaviour
     private GameObject load_ring;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
 
-    private List<TMP_Dropdown.OptionData> possible_resolution_options = new List<TMP_Dropdown.OptionData>();
-
     void Start()
     {
         //used to ensure there is ever only one LoadHandler
