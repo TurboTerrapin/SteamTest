@@ -99,11 +99,11 @@ public class TacticianMap : MonoBehaviour, IPowerable
     {
         List<GameObject> map_items = new List<GameObject>();
 
-        if(world_root == null)
+        world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        if (world_root == null)
         {
-            world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+            return;
         }
-
 
         foreach (Transform m in world_root.transform)
         {

@@ -13,12 +13,12 @@ using UnityEngine;
 public class EngineerInventory : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
-    private static List<string> ITEM_NAMES = new List<string>() { "Probe", "Escape Pod", "Shield Battery", "Cargo Container" };
+    public static List<string> ITEM_NAMES = new List<string>() { "Probe", "Escape Pod", "Shield Battery", "Cargo Container" };
     private static List<int> ITEM_IDS = new List<int>() { 102824, 104308, 102110, 102822 };
     private static List<int> ITEM_WEIGHTS = new List<int>() { 1200, 3500, 500, 5000 };
     private static List<Vector2> ITEM_SIZES = new List<Vector2>() { new Vector2(3.6f, 3.6f), new Vector2(4.2f, 4.8f), new Vector2(3.3f, 4.1f), new Vector2(4.5f, 4.5f) };
 
-    private static List<string> TORPEDO_NAMES = new List<string>() { "Photon", "Proton", "Ion",  "Quantum", "Superluminal", "Chroniton" };
+    public static List<string> TORPEDO_NAMES = new List<string>() { "Photon", "Proton", "Ion",  "Quantum", "Superluminal", "Chroniton" };
     private static List<int> TORPEDO_IDS = new List<int>() { 302025, 302022, 302001, 301995, 301997, 382000 };
     private static List<int> TORPEDO_WEIGHTS = new List<int>() { 5000, 3350, 6000, 1100, 500, 8900 };
     private static List<Vector2> TORPEDO_SIZES = new List<Vector2>() { new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.5f, 4.1f) };
@@ -29,7 +29,7 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
     private GameObject torpedo_count_indicators;
 
     //actual # of items in inventory (Probe, Escape Pod, Shield Battery, Cargo Container)
-    private List<int> item_quantities = new List<int>() { 1, 4, 5, 2 };
+    private List<int> item_quantities = new List<int>() { 1, 4, 10, 2 };
     //actual # of torpedoes in inventory (Photon, Ion, Proton, Quantum, Superluminal, Chroniton)
     private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 0, 0 };
 
@@ -262,6 +262,25 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
         else
         {
             torpedo_quantities[item_index] = Mathf.Max(0, torpedo_quantities[item_index] - 1);
+        }
+        displayAdjustment();
+    }
+
+    //sets the quantity of an item
+    public void setItemQuantity(int item_category, int item_index, int new_quantity)
+    {
+        if (getItemTexture(item_category, item_index) == null)
+        {
+            return;
+        }
+
+        if (item_category == 0)
+        {
+            item_quantities[item_index] = new_quantity;
+        }
+        else
+        {
+            torpedo_quantities[item_index] = new_quantity;
         }
         displayAdjustment();
     }

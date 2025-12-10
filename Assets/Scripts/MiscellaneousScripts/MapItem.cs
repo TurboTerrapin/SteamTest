@@ -19,7 +19,8 @@ public class MapItem : MonoBehaviour
     private Texture map_icon = null;
     [SerializeField]
     private Color icon_color = Color.white;
-    private void setVisibility(bool v)
+
+    public void setVisibility(bool v)
     {
         is_visible = v;
     }
@@ -63,6 +64,4 @@ public class MapItem : MonoBehaviour
     {
         return is_visible;
     }
-
-
 }

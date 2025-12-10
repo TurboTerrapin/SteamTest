@@ -111,6 +111,9 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
+                        SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
+        return "CollectibleTest";
+        /*
         if (SceneManager.GetActiveScene().name == "RedLightGreenLight")
         {
             SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
@@ -120,7 +123,7 @@ public class ScenarioManager : NetworkBehaviour
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
             return "RedLightGreenLight";
-        }
+        }*/
     }
 
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene

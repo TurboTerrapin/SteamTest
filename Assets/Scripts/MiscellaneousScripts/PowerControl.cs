@@ -166,11 +166,11 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         current_seats = occupied_seats;
 
         //handle starting/stopping beep sound
-        if (power_manager.getPowerEnabled(updated_position) == true || occupied_seats[updated_position] == false)
+        if (power_manager.getPowerEnabled(updated_position) == true || occupied_seats[updated_position] == false || power_manager.getShipHasPower() == false)
         {
             dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().Stop();
         }
-        else if (occupied_seats[updated_position] == true)
+        else if (occupied_seats[updated_position] == true && power_manager.getShipHasPower() == true)
         {
             if (dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().isPlaying == false)
             {
@@ -178,7 +178,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
             }
         }
 
-        //do nothing if already notifying
+        //check if need to stop the player_notifier_coroutine
         if (player_notifier_coroutine != null)
         {
             bool keep_going = false;
@@ -212,13 +212,16 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
             return;
         }
 
-        //check if needing to start
-        for (int i = 0; i < 4; i++)
+        //check if need to start the player_notifier_coroutine
+        if (power_manager.getShipHasPower() == true)
         {
-            if (power_manager.getPowerEnabled(i) == false && occupied_seats[i] == true)
+            for (int i = 0; i < 4; i++)
             {
-                player_notifier_coroutine = StartCoroutine(playerNotifier());
-                return;
+                if (power_manager.getPowerEnabled(i) == false && occupied_seats[i] == true)
+                {
+                    player_notifier_coroutine = StartCoroutine(playerNotifier());
+                    return;
+                }
             }
         }
     }
@@ -250,7 +253,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         }
     }
 
-    //infinite loop that handles flashing the orange indicators when a player is sitting at a position with the power on but not turning the dial
+    //infinite loop that handles flashing the orange indicators when a player is sitting at a position with the power on but not turning the dial (works for all four positions)
     IEnumerator playerNotifier()
     {
         float anim_time = PLAYER_NOTIFIER_REFRESH;
@@ -277,6 +280,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
                     {
                         updateNotifierIndicator(i, orange_color);
                     }
+
                     yield return null;
                 }
             }

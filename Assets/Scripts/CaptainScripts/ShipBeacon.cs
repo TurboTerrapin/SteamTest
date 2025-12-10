@@ -3,8 +3,9 @@
     - Handles inputs for ship beacon
     - Turns dial, changes screen
     - Handles flashing of circle
+    - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 12/9/2025
 */
 
 using System.Collections;
@@ -84,6 +85,26 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
             //hide flashing beacon if not active
             beacon_display.transform.GetChild(0).gameObject.SetActive(false);
             beacon_display.transform.GetChild(1).gameObject.SetActive(false);
+        }
+
+        //update items in space
+        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        if (world_root == null)
+        {
+            return;
+        }
+
+        foreach (Transform i in world_root.transform)
+        {
+            Component[] item_components = i.GetComponents<Component>();
+            for (int c = 0; c < item_components.Length; c++)
+            {
+                CollectibleItem test_collectible_item = item_components[c] as CollectibleItem;
+                if (test_collectible_item != null)
+                {
+                    test_collectible_item.setIlluminated(beacon_enabled);
+                }
+            }
         }
     }
 
