@@ -609,6 +609,11 @@ public class ControlScript : MonoBehaviour
             myAnimationController.setIKRightArm(false);
             myAnimationController.setIKLeftArm(false);
 
+            //myAnimationController.setRightArmIKPosition(target_IK.getIKTarget().position);
+            myAnimationController.setRightArmIKRotation(Quaternion.identity);
+            //myAnimationController.setLeftArmIKPosition(target_IK.getIKTarget().position);
+            myAnimationController.setLeftArmIKRotation(Quaternion.identity);
+
             secondary_info.SetActive(is_active == true && paused == false && HUD_setting == 0);
             secondary_info.transform.GetChild(1).gameObject.SetActive(false);
             control_info.SetActive(false); //hide UI indicator if not looking at a control
