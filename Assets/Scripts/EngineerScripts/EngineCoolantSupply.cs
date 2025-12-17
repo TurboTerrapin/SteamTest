@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 12/16/2025
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private static float IMPULSE_SPEED_CHANGE_FACTOR = 4.0f; //goes 1/4 as fast when engines are overheated
     private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.005f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
+    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(0.84f, 0.62f, 0.0f), new Color(1.0f, 0.0f, 0.0f)}; //blue, orange, red
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
     private static string INFO_MESSAGE = "Regulates engines to prevent overheating and engine slowdown.";
@@ -37,6 +38,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private GameObject capacity; //the UI section that shows impulse capacity
 
     private PilotingSystem piloting_system;
+    private PilotEngineInfo pilot_engine_info;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -49,6 +51,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private void Start()
     {
         piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
+        pilot_engine_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotEngineInfo>();
 
         flow = engine_coolant_supply_display.transform.GetChild(0).gameObject;
         temperature = engine_coolant_supply_display.transform.GetChild(1).gameObject;
@@ -100,14 +103,14 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         capacity.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = impulse_capacity;
 
         //display engine temperature
-        Color status_color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        Color status_color = COLOR_OPTIONS[0];
         if (engine_temperature >= 1.0f)
         {
-            status_color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+            status_color = COLOR_OPTIONS[2];
         }
         else if (engine_temperature > 0.5)
         {
-            status_color = new Color(0.84f, 0.62f, 0.0f, 1.0f);
+            status_color = COLOR_OPTIONS[1];
         }
 
         float engine_temp = Mathf.Max(0.02f, engine_temperature);
@@ -133,13 +136,20 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
             {
                 engine_temperature = Mathf.Max(0.0f, engine_temperature + (difference * Time.deltaTime));
             }
-            if (is_powered == true)
-            {
-                transmitEngineTemperatureChangeRPC(engine_temperature);
-            }
-            piloting_system.AdjustMaxImpulseSpeed(Mathf.Lerp(1.0f, 1.0f / IMPULSE_SPEED_CHANGE_FACTOR, engine_temperature));
+            transmitEngineTemperatureChangeRPC(engine_temperature);
+            piloting_system.AdjustMaxImpulseSpeed(getMaxImpulseSpeedBasedOnEngineTemperature());
             yield return null;
         }
+    }
+
+    public float getMaxImpulseSpeedBasedOnEngineTemperature()
+    {
+        return Mathf.Lerp(1.0f, 1.0f / IMPULSE_SPEED_CHANGE_FACTOR, engine_temperature);
+    }
+
+    public float getEngineTemperature()
+    {
+        return Mathf.Max(0.02f, engine_temperature);
     }
 
     public void initializeEngineTemperatureIncreaser()
@@ -247,6 +257,12 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private void transmitEngineTemperatureChangeRPC(float et)
     {
         engine_temperature = et;
-        displayEngineTemperatureAdjustment();
+        if (is_powered == true)
+        {
+            displayEngineTemperatureAdjustment();
+        }
+
+        //update pilot position
+        pilot_engine_info.temperatureAdjustment();
     }
 }

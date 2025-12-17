@@ -40,6 +40,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME, true);
@@ -49,8 +50,9 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = slider.transform.localPosition;
-        final_pos = new Vector3(0.2817f, -1.2825f, 19.2646f);
+        final_pos = new Vector3(0.0f, 0.0593f, 0.1451f);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;

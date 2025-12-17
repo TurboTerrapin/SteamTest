@@ -26,7 +26,7 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
     private void Start()
     {
         button_initial_pos = thruster_buttons[0].transform.localPosition;
-        button_final_pos = new Vector3(0.2816f, -1.3473f, 19.1217f);
+        button_final_pos = new Vector3(0.0f, -0.0068f, 0.0028f);
 
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));

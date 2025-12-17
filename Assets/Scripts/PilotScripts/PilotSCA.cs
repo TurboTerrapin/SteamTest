@@ -3,7 +3,7 @@
     - Updates SCA reset bar
     - Updates SCA circular screen
     Contributor(s): Jake Schott
-    Last Updated: 9/7/2025
+    Last Updated: 12/17/2025
 */
 
 using System.Collections;
@@ -19,7 +19,8 @@ public class PilotSCA : NetworkBehaviour, IPowerable
     private static List<int> DEFAULT_MOLECULES = new List<int>() { 0 };
     private static List<int> DEFAULT_MOLECULE_QUANTITIES = new List<int>() { 49 };
 
-    public GameObject reset_bar;
+    public GameObject reset_bar; 
+    public GameObject notifier;
     public GameObject SCA_display;
 
     private bool is_powered = false;
@@ -171,6 +172,7 @@ public class PilotSCA : NetworkBehaviour, IPowerable
         is_powered = true;
         SCA_display.SetActive(true);
         reset_bar.SetActive(true);
+        notifier.SetActive(true);
         if (NetworkManager.Singleton.IsHost == true)
         {
             generateNewMolecules();
@@ -183,6 +185,7 @@ public class PilotSCA : NetworkBehaviour, IPowerable
         is_powered = false;
         SCA_display.SetActive(false);
         reset_bar.SetActive(false);
+        notifier.SetActive(false);
         if (reset_bar_coroutine != null)
         {
             StopCoroutine(reset_bar_coroutine);

@@ -635,11 +635,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
         List<Component> pilot_modules = new List<Component>();
         pilot_modules.Add(control_handler.GetComponent("SignalJammer")); //1
         pilot_modules.Add(this); //2
-        pilot_modules.Add(control_handler.GetComponent("Shields")); //3
+        pilot_modules.Add(control_handler.GetComponent("EmissionReducers")); //3
         pilot_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
         pilot_modules.Add(control_handler.GetComponent("DirectionalShifter")); //5
         pilot_modules.Add(control_handler.GetComponent("TractorBeamOptions")); //6
-        pilot_modules.Add(sensor_handler.GetComponent("PilotTractorBeamProgress")); //7
+        pilot_modules.Add(sensor_handler.GetComponent("PilotEngineInfo")); //7
         pilot_modules.Add(sensor_handler.GetComponent("PilotSCA")); //8
         pilot_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //9
         pilot_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //10

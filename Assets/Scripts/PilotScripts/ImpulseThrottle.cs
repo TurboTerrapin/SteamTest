@@ -3,16 +3,14 @@
     - Handles inputs for impulse throttle
     - Moves throttle lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 12/14/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Windows;
 
 public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -28,8 +26,10 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     public GameObject handle;
     public GameObject impulse_bars_display; //used to display the bars beneath the handle
-    public GameObject speed_text; //used to update the speedometer
+    public GameObject speed_text; //used to update the speed text in engineer position
     public GameObject IK_target;
+
+    private PilotEngineInfo pilot_engine_info;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -37,7 +37,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     private float impulse = 0.0f;
     private float inertial_dampener_modifier = 0.0f;
     private Vector3 initial_pos; //handle starting position (0% impulse)
-    private Vector3 final_pos = new Vector3(0.2816f, -1.2306f, 19.3834f);
+    private Vector3 final_pos = new Vector3(0.0f, 0.111f, 0.264f);
     private Coroutine impulse_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -46,6 +46,8 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private void Start()
     {
+        pilot_engine_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotEngineInfo>();
+
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
@@ -72,6 +74,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         return impulse;
     }
+
     private void displayAdjustment()
     {
         //update bars on screen
@@ -93,6 +96,9 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
             rounded_speed += ".0";
         }
         speed_text.GetComponent<TMP_Text>().SetText("IMPULSE SPEED: " + rounded_speed + "%");
+
+        //update pilot position engine info
+        pilot_engine_info.impulseAdjustment();
     }
 
     private bool checkIfChangeNecessary()
