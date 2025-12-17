@@ -3,7 +3,7 @@
     - Updates speed and engine capacity temperature screens (next to Spatial Composition Analyzer)
     - Adjusts engine sound
     Contributor(s): Jake Schott
-    Last Updated: 12/16/2025
+    Last Updated: 12/17/2025
 */
 
 using TMPro;
@@ -17,6 +17,7 @@ public class PilotEngineInfo : MonoBehaviour, IPowerable
 
     public GameObject engine_speed_display;
     public GameObject engine_capacity_display;
+    public TMP_Text engineer_speed_text;
     public AudioSource ambient_ship_noise;
 
     private ImpulseThrottle impulse_throttle;
@@ -34,8 +35,21 @@ public class PilotEngineInfo : MonoBehaviour, IPowerable
     {
         float imp = impulse_throttle.getCurrentImpulse();
         float max_speed = engine_coolant_supply.getMaxImpulseSpeedBasedOnEngineTemperature();
+
+        //update speedometer
         engine_speed_display.transform.GetChild(1).transform.localRotation = Quaternion.Euler(0.0f, 0.0f, Mathf.Lerp(150.0f, -150.0f, imp * max_speed));
+
+        //update engine volume
         ambient_ship_noise.volume = Mathf.Lerp(0.1f, 0.5f, imp * max_speed);
+
+        //update speedometer text in engineer position
+        string rounded_speed = (Mathf.Round(imp * max_speed * 1000.0f) / 10.0f).ToString();
+        if (rounded_speed.Contains(".") == false)
+        {
+            rounded_speed += ".0";
+        }
+        engineer_speed_text.SetText("IMPULSE SPEED: " + rounded_speed + "%");
+        engineer_speed_text.color = COLOR_OPTIONS[current_state];
     }
 
     public void impulseAdjustment()

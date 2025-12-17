@@ -102,8 +102,9 @@ public class SeatManager : NetworkBehaviour
         {
             return true;
         }
-        else if (seat_indexes[pos] == SEAT_COORDINATES.Length - 1) //seat to the right, send left
+        else if (seat_indexes[pos] == SEAT_COORDINATES.Length) //seat to the right, send left
         {
+            Debug.Log("BLAMO!!!!");
             return false;
         }
 

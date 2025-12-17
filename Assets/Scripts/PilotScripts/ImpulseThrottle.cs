@@ -26,7 +26,6 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     public GameObject handle;
     public GameObject impulse_bars_display; //used to display the bars beneath the handle
-    public GameObject speed_text; //used to update the speed text in engineer position
     public GameObject IK_target;
 
     private PilotEngineInfo pilot_engine_info;
@@ -88,14 +87,6 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
         //update lever position
         handle.transform.localPosition = Vector3.Lerp(initial_pos, final_pos, impulse);
-
-        //update speedometer text in engineer position
-        string rounded_speed = (Mathf.Round(impulse * 1000.0f) / 10.0f).ToString();
-        if (rounded_speed.Contains(".") == false)
-        {
-            rounded_speed += ".0";
-        }
-        speed_text.GetComponent<TMP_Text>().SetText("IMPULSE SPEED: " + rounded_speed + "%");
 
         //update pilot position engine info
         pilot_engine_info.impulseAdjustment();
