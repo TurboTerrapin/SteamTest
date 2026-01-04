@@ -1,16 +1,15 @@
 /*
     EngineerInventory.cs
-    - Currently only enables/disables inventory screen
+    - Handles keeping track of normal items and torpedo items for the whole ship
     Contributor(s): Jake Schott
-    Last Updated: 12/9/2025
+    Last Updated: 12/30/2025
 */
 
 using System.Collections.Generic;
 using TMPro;
-using Unity.Netcode;
 using UnityEngine;
 
-public class EngineerInventory : NetworkBehaviour, IPowerable
+public class EngineerInventory : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     public static List<string> ITEM_NAMES = new List<string>() { "Probe", "Escape Pod", "Shield Battery", "Cargo Container" };
@@ -25,16 +24,18 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
 
     public GameObject inventory_display;
 
+    private ProbeController probe_controller;
     private GameObject item_count_indicators;
     private GameObject torpedo_count_indicators;
 
     //actual # of items in inventory (Probe, Escape Pod, Shield Battery, Cargo Container)
-    private List<int> item_quantities = new List<int>() { 1, 4, 10, 2 };
+    private List<int> item_quantities = new List<int>() { 2, 4, 10, 2 };
     //actual # of torpedoes in inventory (Photon, Ion, Proton, Quantum, Superluminal, Chroniton)
     private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 0, 0 };
 
     private void Start()
     {
+        probe_controller = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>();
         item_count_indicators = inventory_display.transform.GetChild(1).gameObject;
         torpedo_count_indicators = inventory_display.transform.GetChild(2).gameObject;
 
@@ -66,6 +67,8 @@ public class EngineerInventory : NetworkBehaviour, IPowerable
                 item_indicators[i].transform.GetChild(c).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color(curr_color.r, curr_color.g, curr_color.b, a);
             }
         }
+
+        probe_controller.onInventoryChange(item_quantities[0]);
     }
 
     //helper method

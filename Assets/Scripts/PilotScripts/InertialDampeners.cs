@@ -11,7 +11,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 {
@@ -38,6 +37,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private List<string> ray_targets = new List<string> { "primary_inertial_dampener", "secondary_inertial_dampener", "tertiary_inertial_dampener" };
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
@@ -73,7 +73,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private float getInertialDampenerModifierValue()
     {
         float modifier = 0.0f;
-        for (int i = 0; i <= 2; i++)
+        for (int i = 0; i < 3; i++)
         {
             if (dampener_enabled_percentage[i] >= 1.0f)
             {
@@ -191,7 +191,6 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
                 transmitInertialDampenerRPC(index, dampener_is_enabled[index]);
             }
         }
-
     }
 
     //used by powerOff
@@ -200,6 +199,8 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
         float[] starting_rotations = new float[3] { 0.0f, 0.0f, 0.0f };
         for (int i = 0; i < 3; i++)
         {
+            starting_rotations[i] = Mathf.Lerp(90.0f, 180.0f, dampener_enabled_percentage[i]);
+
             if (dampener_switch_coroutines[i] != null)
             {
                 StopCoroutine(dampener_switch_coroutines[i]);
@@ -210,8 +211,6 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
             BUTTON_LISTS[i][0].untoggle();
             dampener_is_enabled[i] = false;
             dampener_enabled_percentage[i] = 0.0f;
-
-            starting_rotations[i] = dampener_switches.transform.GetChild(i).localRotation.eulerAngles.z;
         }
         dampener_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
 

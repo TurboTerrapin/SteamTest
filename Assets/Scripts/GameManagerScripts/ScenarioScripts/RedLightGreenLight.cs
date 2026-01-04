@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using Steamworks;
-using NUnit.Framework.Constraints;
 
 public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
@@ -83,12 +82,12 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     private List<Color> getRingColorsAsColor()
     {
-        List<Color> to_return = new List<Color>();
+        List<Color> toReturn = new List<Color>();
         for (int i = 0; i < 4; i++)
         {
-            to_return.Add(COLOR_OPTIONS[curr_colors[i]]);
+            toReturn.Add(COLOR_OPTIONS[curr_colors[i]]);
         }
-        return to_return;
+        return toReturn;
     }
 
     private Color getCenterColorAsColor()

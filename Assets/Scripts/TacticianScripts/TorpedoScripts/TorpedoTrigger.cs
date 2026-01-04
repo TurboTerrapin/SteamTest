@@ -3,7 +3,7 @@
     - Handles arming and firing of torpedoes
     - Moves base and lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 12/23/2025
 */
 
 using System.Collections;
@@ -19,9 +19,9 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private static float RED_BUTTON_PUSH_TIME = 0.5f;
 
     private string CONTROL_NAME = "TORPEDO TRIGGER";
-    private static string INFO_MESSAGE = "Used to fire torpedo in selected direction if charge is fully energized and torpedo is loaded.";
-    private List<string> CONTROL_DESCS = new List<string>{"FIRE", "ARM"};
-    private List<int> CONTROL_INDEXES = new List<int>(){6, 11};
+    private static string INFO_MESSAGE = "Used to fire torpedo in selected direction if torpedo is loaded in corresponding bay.";
+    private List<string> CONTROL_DESCS = new List<string>{ "FIRE", "ARM" };
+    private List<int> CONTROL_INDEXES = new List<int>(){ 6, 11 };
     private List<Button> BUTTONS = new List<Button>();
 
     public Material lit_red;
@@ -36,7 +36,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private bool is_powered = false;
     private float trigger_percentage = 0.0f;
     private Vector3 trigger_base_initial_pos;
-    private Vector3 trigger_base_final_pos = new Vector3(-3.1877f, 8.7244f, 3.7303f);
+    private Vector3 trigger_base_final_pos = new Vector3(0.0f, -0.0148f, -0.0353f);
     private Coroutine trigger_arm_coroutine = null;
     private Coroutine torpedo_fire_coroutine = null;
     private Coroutine red_button_coroutine = null;
@@ -44,6 +44,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -61,13 +62,10 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private void displayAdjustment()
     {
         float trigger_base_distance_percentage = Mathf.Min(1.0f, trigger_percentage / 0.8f);
-        trigger_base.transform.localPosition =
-            new Vector3(Mathf.Lerp(trigger_base_initial_pos.x, trigger_base_final_pos.x, trigger_base_distance_percentage),
-                        Mathf.Lerp(trigger_base_initial_pos.y, trigger_base_final_pos.y, trigger_base_distance_percentage),
-                        Mathf.Lerp(trigger_base_initial_pos.z, trigger_base_final_pos.z, trigger_base_distance_percentage));
+        trigger_base.transform.localPosition = Vector3.Lerp(trigger_base_initial_pos, trigger_base_final_pos, trigger_base_distance_percentage);
 
         float trigger_lever_rotation = Mathf.Max(0.0f, (trigger_percentage - 0.5f) / 0.5f);
-        trigger_base.transform.GetChild(0).localRotation = Quaternion.Euler(-200f + (trigger_lever_rotation * -15f), 180f, 90f);
+        trigger_base.transform.GetChild(0).localRotation = Quaternion.Euler(158.0f + (trigger_lever_rotation * -15f), 180.0f, 90.0f);
 
         //update lit indicators
         if (is_powered == true)

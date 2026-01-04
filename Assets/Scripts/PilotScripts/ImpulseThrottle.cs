@@ -55,6 +55,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
         initial_pos = handle.transform.localPosition; //sets the initial position
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
@@ -64,6 +65,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         return IK_target.transform;
     }
+
     public void adjustInertialDampenerModifier(float new_modifier)
     {
         inertial_dampener_modifier = new_modifier;

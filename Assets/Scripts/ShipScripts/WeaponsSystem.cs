@@ -11,8 +11,8 @@ public class WeaponsSystem : MonoBehaviour
 {
     // Tactican Control References
     private LongRangeDirection longRangeDirection;
-    private PhaserPowers phaserPowers;
-    private PhaserTemperatures phaserTemperatures;
+    private PhaserActivators phaserActivators;
+    private PhaserIntensities phaserIntensities;
 
     // LineRenderers (Phasers)
     private LineRenderer longRangePhaser;
@@ -131,19 +131,19 @@ public class WeaponsSystem : MonoBehaviour
     public bool AssignControlReferences(GameObject controlHandler) // Called by ShipController.cs
     {
         longRangeDirection = controlHandler.GetComponent<LongRangeDirection>();
-        phaserPowers = controlHandler.GetComponent<PhaserPowers>();
-        phaserTemperatures = controlHandler.GetComponent<PhaserTemperatures>();
+        phaserActivators = controlHandler.GetComponent<PhaserActivators>();
+        phaserIntensities = controlHandler.GetComponent<PhaserIntensities>();
 
-        return longRangeDirection && phaserPowers && phaserTemperatures;
+        return longRangeDirection && phaserActivators && phaserIntensities;
     }
 
     // **********************************************************************************************
 
     public void UpdateInput()
     {
-        activePhasers = phaserPowers.getActivePhasers();
+        activePhasers = phaserActivators.getActivePhasers();
         longRangePhaserAngle = longRangeDirection.getPhaserDirectionAngle();
-        phaserTemps = phaserTemperatures.getPhaserTemperatures();
+        phaserTemps = phaserIntensities.getPhaserTemperatures();
     }
    
     private void UpdateLongRangePhaser(float dt)

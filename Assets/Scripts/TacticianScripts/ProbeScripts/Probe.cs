@@ -1,106 +1,65 @@
 /*
     Probe.cs
-    - Handles distance to ship
-    - Handles probe health
+    - Alerts ProbeController.cs when damaged
+    - Handles visual things
     Contributor(s): Jake Schott
-    Last Updated: 10/16/2025
+    Last Updated: 12/29/2025
 */
 
 using System.Collections;
 using UnityEngine;
 
-public class Probe : MonoBehaviour
+public class Probe : MonoBehaviour //IDamageable
 {
-    //CLASS CONSTANTS
-    private static float RANGE = 1500.0f; //how far the probe can be from the ship while still being in contact
+    public Material lit_orange;
+    public Material pure_black;
 
-    private float probe_health;
-    private bool connected;
-    private GameObject control_handler;
-    private GameObject sensor_handler;
-    private GameObject ship;
-    private Coroutine out_of_range_coroutine = null;
+    private ProbeController probe_controller;
 
-    void Start()
+    private Coroutine self_destruct_coroutine = null;
+
+    private void Start()
     {
-        //always start connected
-        connected = true;
-
-        //health goes from 0 to 100
-        probe_health = 100.0f;
-
-        control_handler = GameObject.FindGameObjectWithTag("ControlHandler");
-        sensor_handler = GameObject.FindGameObjectWithTag("SensorHandler");
-        ship = GameObject.FindGameObjectWithTag("Spaceship");
+        probe_controller = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>();
     }
 
-    public bool inRange()
+    /*
+    public void damage(float dam)
     {
-        return (Mathf.Min(RANGE, Vector3.Distance(transform.position, ship.transform.position)) < RANGE);
+        probe_controller.damageProbe(dam);
+    }
+    */
+
+    //orange flashing
+    public void toggleSelfDestructVisual()
+    {
+        StopAllCoroutines();
+        self_destruct_coroutine = StartCoroutine(selfDestruct());
     }
 
-    public void damageProbe(float dam)
+    IEnumerator selfDestruct()
     {
-        probe_health = Mathf.Max(0.0f, probe_health - dam);
-        sensor_handler.GetComponent<TacticianProbeInfo>().displayHealth(probe_health);
-        if (probe_health <= 0.0f)
+        //runs until destroyed
+        while (true) 
         {
-            unlink();
-            control_handler.GetComponent<ProbeOptions>().onProbeDestroyed(); //only necessary in cases where probe is not self-destructed
-            GameObject.Destroy(transform.gameObject);
-        }
-    }
-
-    IEnumerator outOfRangeHelper()
-    {
-        yield return new WaitForSeconds(5.0f);
-        if (Mathf.Min(RANGE, Vector3.Distance(transform.position, ship.transform.position)) >= RANGE)
-        {
-            connected = false;
-            unlink();
-        }
-        out_of_range_coroutine = null;
-    }
-
-    private void unlink()
-    {
-        sensor_handler.GetComponent<TacticianProbeInfo>().disconnectProbe();
-        sensor_handler.GetComponent<TacticianProbeInfo>().displayRange(0.0f);
-        control_handler.GetComponent<ProbeLateralMovement>().unlinkProbe();
-        control_handler.GetComponent<ProbeVerticalMovement>().unlinkProbe();
-        control_handler.GetComponent<ProbeOrientation>().unlinkProbe();
-        control_handler.GetComponent<ProbeOptions>().unlinkProbe();
-    }
-
-    private void link()
-    {
-        sensor_handler.GetComponent<TacticianProbeInfo>().connectProbe();
-        control_handler.GetComponent<ProbeLateralMovement>().linkProbe(transform.gameObject);
-        control_handler.GetComponent<ProbeVerticalMovement>().linkProbe(transform.gameObject);
-        control_handler.GetComponent<ProbeOrientation>().linkProbe(transform.gameObject);
-        control_handler.GetComponent<ProbeOptions>().linkProbe();
-    }
-
-    public void updateDistance()
-    {
-        float distance = Mathf.Min(RANGE, Vector3.Distance(transform.position, ship.transform.position));
-        if (distance >= RANGE)
-        {
-            if (connected == true && out_of_range_coroutine == null)
+            for (int i = 1; i <= 3; i++)
             {
-                //attempt disconnect
-                out_of_range_coroutine = StartCoroutine(outOfRangeHelper());
+                transform.GetChild(i).GetComponent<Renderer>().material = lit_orange;
             }
-        }
-        else
-        {
-            if (connected == false)
+            transform.GetChild(0).gameObject.SetActive(true);
+            foreach (Transform light in transform.GetChild(0))
             {
-                //reconnect
-                connected = true;
-                link();
+                light.GetComponent<Light>().color = new Color(0.84f, 0.67f, 0.0f);
             }
+            yield return new WaitForSeconds(0.1f);
+            
+            for (int i = 1; i <= 3; i++)
+            {
+                transform.GetChild(i).GetComponent<Renderer>().material = pure_black;
+            }
+            transform.GetChild(0).gameObject.SetActive(false);
+            
+            yield return new WaitForSeconds(0.1f);
         }
-        sensor_handler.GetComponent<TacticianProbeInfo>().displayRange(1.0f - Mathf.Max(0.0f, (distance - 25.0f) / (RANGE - 25.0f)));
     }
 }

@@ -63,8 +63,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
         phaser_frequency_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText(phaser_frequencies[phaser_to_adjust].ToString() + ".0GH");
 
         //rotate dial
-        phaser_frequency_dial.transform.localRotation =
-            Quaternion.Euler(-54.0f, -45.0f, dial_rotation);
+        phaser_frequency_dial.transform.localRotation = Quaternion.Euler(-54.0f, -45.0f, dial_rotation);
     }
 
     private void displaySwitchAdjustment()

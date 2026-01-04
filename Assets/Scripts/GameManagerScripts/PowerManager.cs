@@ -659,25 +659,24 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private void addTacticianModules()
     {
         List<Component> tactician_modules = new List<Component>();
-        tactician_modules.Add(control_handler.GetComponent("TorpedoPower")); //1
+        tactician_modules.Add(control_handler.GetComponent("TorpedoPowers")); //1
         tactician_modules.Add(this); //2
-        tactician_modules.Add(control_handler.GetComponent("ProbeOrientation")); //3
+        tactician_modules.Add(sensor_handler.GetComponent("TacticianCloakDetector")); //3
         tactician_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
-        tactician_modules.Add(control_handler.GetComponent("TransmissionHandler")); //5
+        tactician_modules.Add(control_handler.GetComponent("ProbeController")); //5
         tactician_modules.Add(sensor_handler.GetComponent("TacticianProbeInfo")); //6
         tactician_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //7
         tactician_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //8
-        tactician_modules.Add(control_handler.GetComponent("ProbeVerticalMovement")); //9
-        tactician_modules.Add(control_handler.GetComponent("ProbeLateralMovement")); //10
-        tactician_modules.Add(control_handler.GetComponent("PhaserTemperatures")); //11
-        tactician_modules.Add(control_handler.GetComponent("UniversalCommunicator")); //12
-        tactician_modules.Add(control_handler.GetComponent("LongRangeDirection")); //13
-        tactician_modules.Add(control_handler.GetComponent("TorpedoSelector")); //14
-        tactician_modules.Add(sensor_handler.GetComponent("TacticianMap")); //15
-        tactician_modules.Add(control_handler.GetComponent("MapOptions")); //16
-        tactician_modules.Add(control_handler.GetComponent("TorpedoTrigger")); //17
-        tactician_modules.Add(control_handler.GetComponent("ProbeOptions")); //18
-        tactician_modules.Add(control_handler.GetComponent("PhaserPowers")); //19
+        tactician_modules.Add(control_handler.GetComponent("UniversalCommunicator")); //9
+        tactician_modules.Add(control_handler.GetComponent("PhaserIntensities")); //10
+        tactician_modules.Add(control_handler.GetComponent("PhaserActivators")); //11
+        tactician_modules.Add(control_handler.GetComponent("LongRangeDirection")); //12
+        tactician_modules.Add(sensor_handler.GetComponent("TacticianMap")); //13
+        tactician_modules.Add(control_handler.GetComponent("TorpedoTrigger")); //14
+        tactician_modules.Add(control_handler.GetComponent("MapOptions")); //15
+        tactician_modules.Add(control_handler.GetComponent("TorpedoSelector")); //16
+        tactician_modules.Add(control_handler.GetComponent("ThreatDetectors")); //17
+
         positional_modules[1] = tactician_modules;
     }
 

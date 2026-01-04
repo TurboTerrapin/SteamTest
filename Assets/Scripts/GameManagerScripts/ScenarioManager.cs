@@ -111,9 +111,7 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
-                        SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
-        return "CollectibleTest";
-        /*
+
         if (SceneManager.GetActiveScene().name == "RedLightGreenLight")
         {
             SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
@@ -123,7 +121,7 @@ public class ScenarioManager : NetworkBehaviour
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
             return "RedLightGreenLight";
-        }*/
+        }
     }
 
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
@@ -137,10 +135,12 @@ public class ScenarioManager : NetworkBehaviour
 
         //assign the piloting system the new World Root
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
-        GameObject WorldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         
         //generate new entrance/exit path locations and angles
         generatePaths();
+
+        //reset transmission frequencies
+        GameObject.Find("ControlHandler").GetComponent<TransmissionHandler>().resetFrequencies();
 
         //check for a scenario script and handle any sort of scenario prep (ex. starting an energy pattern, spawning cheeseballs)
         scenario_handler = GameObject.FindWithTag("ScenarioHandler");
@@ -307,8 +307,10 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("SensorHandler").GetComponent<EnergyPatternManager>().clearAllPatterns();
         GameObject.Find("SensorHandler").GetComponent<PilotSCA>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<DirectionalShifter>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<ThreatDetectors>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<MapOptions>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<LongRangeDirection>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<TransmissionHandler>().resetFrequencies();
         GameObject.Find("ControlHandler").GetComponent<TorpedoSelector>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<PhaserFrequency>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<EnergyPattern>().resetToDefault();
@@ -317,10 +319,7 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("ControlHandler").GetComponent<CargoEjectLoader>().resetToDefault();
 
         //destroy probe (if exists)
-        foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))
-        {
-            probe.GetComponent<Probe>().damageProbe(9999.9f);
-        }
+        GameObject.Find("ControlHandler").GetComponent<ProbeController>().damageProbe(9999.9f);
     }
 
     [Rpc(SendTo.Everyone)]

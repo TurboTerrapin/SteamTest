@@ -3,7 +3,7 @@
     - Handles inputs for map zoom, map configuration
     - Zooms the lines for the map, tells TacticianMap to zoom the objects accordingly
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 12/23/2025
 */
 
 using Unity.Netcode;
@@ -33,12 +33,12 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
     private bool is_powered = false;
 
     private Vector3 config_button_initial_pos;
-    private Vector3 config_button_final_pos = new Vector3(-3.1877f, 8.7354f, 3.7738f);
+    private Vector3 config_button_final_pos = new Vector3(0.0f, -0.0056f, 0.0023f);
 
     //zoom settings
     private float zoom = 1.0f;
     private Vector3 slider_initial_pos; //slider starting position (100% zoom)
-    private Vector3 slider_final_pos = new Vector3(-3.1877f, 8.7002f, 3.6736f);
+    private Vector3 slider_final_pos = new Vector3(0.0f, -0.0394f, -0.0934f);
     
     private int map_config = 0;
     private Coroutine map_config_coroutine = null;

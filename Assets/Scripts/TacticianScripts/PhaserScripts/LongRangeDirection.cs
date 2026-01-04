@@ -2,12 +2,13 @@
     LongRangeDirection.cs
     - Handles inputs for long-range phaser direction
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 12/23/2025
 */
 
 using System.Collections.Generic;
-using UnityEngine;
+using TMPro;
 using Unity.Netcode;
+using UnityEngine;
 
 public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
 {
@@ -20,8 +21,9 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() {4, 5};
     private List<Button> BUTTONS = new List<Button>();
 
-    public GameObject long_range_lever = null;
-    public GameObject long_range_direction_display = null;
+    public GameObject long_range_dial;
+    public GameObject long_range_direction_display;
+    public GameObject long_range_degree_display;
 
     private bool is_powered = false;
     private float long_range_angle = 0.0f;
@@ -49,8 +51,24 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
 
     private void displayAdjustment()
     {
+        //update the circular screen
         long_range_direction_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, long_range_angle);
-        long_range_lever.transform.localRotation = Quaternion.Euler(-69.4f, 180f, 270f + long_range_angle);
+
+        //update dial
+        long_range_dial.transform.localRotation = Quaternion.Euler(248.0f, 0.0f, 180.0f + long_range_angle);
+
+        //update degree text
+        float rounded_angle = Mathf.Round(long_range_angle * 10.0f) / 10.0f;
+        string display_angle = rounded_angle.ToString();
+        if (display_angle.Contains(".") == false)
+        {
+            display_angle += ".0";
+        }
+        if (display_angle.CompareTo("360.0") == 0)
+        {
+            display_angle = "0.0";
+        }
+        long_range_degree_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText(display_angle + "°");
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -101,6 +119,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = true;
         long_range_direction_display.SetActive(true);
+        long_range_degree_display.SetActive(true);
         BUTTONS[0].updateInteractable(true);
         BUTTONS[1].updateInteractable(true);
     }
@@ -109,6 +128,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
         long_range_direction_display.SetActive(false);
+        long_range_degree_display.SetActive(false);
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
     }

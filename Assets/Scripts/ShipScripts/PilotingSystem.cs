@@ -15,9 +15,6 @@ using UnityEngine;
 
 public class PilotingSystem : NetworkBehaviour
 {
-    [Header("Control References")]
-    private GameObject controlHandler;
-
     [Header("Speed Settings")]
     private float maxThrusterSpeed = 6f;
     private float maxImpulseForwardSpeed = 50f;
@@ -36,6 +33,7 @@ public class PilotingSystem : NetworkBehaviour
     private PilotNavigation pilotNavigation;
     private TacticianMap tacticianMap;
     private EngineerMap engineerMap;
+    private ProbeController probeController;
 
     // Input values
     private float currentImpulse;
@@ -72,6 +70,7 @@ public class PilotingSystem : NetworkBehaviour
         courseHeading = controlHandler.GetComponent<CourseHeading>();
         horizontalThrusters = controlHandler.GetComponent<HorizontalThrusters>();
         verticalThrusters = controlHandler.GetComponent<VerticalThrusters>();
+        probeController = controlHandler.GetComponent<ProbeController>();
 
         pilotNavigation = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>();
         tacticianMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
@@ -318,11 +317,7 @@ public class PilotingSystem : NetworkBehaviour
     private void ProbeDistanceChangeRPC()
     {
         //update probe (if it exists)
-        GameObject probe = GameObject.FindGameObjectWithTag("Probe");
-        if (probe != null)
-        {
-            probe.GetComponent<Probe>().updateDistance();
-        }
+        probeController.onProbeDistanceChange();
     }
 
     private void BoundaryCheck(GameObject worldRoot)
