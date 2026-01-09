@@ -194,6 +194,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
         prsc_display.SetActive(false);
         for (int i = 0; i < 3; i++)
         {
+            BUTTON_LISTS[i][0].untoggle();
             BUTTON_LISTS[i][0].updateInteractable(false);
         }
     }

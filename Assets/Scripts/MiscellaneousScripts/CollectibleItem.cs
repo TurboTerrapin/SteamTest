@@ -3,7 +3,7 @@
     - Used for items that can be collected once pulled in by the tractor beam
     - Handles illuminating/hiding objects (activated/deactivated by ShipBeacon in captain position)
     Contributor(s): Jake Schott
-    Last Updated: 12/9/2025
+    Last Updated: 1/9/2026
 */
 
 using UnityEngine;
@@ -23,6 +23,7 @@ public class CollectibleItem : MonoBehaviour
 
     private Material starting_material;
     private int serial_num; //unique identifier
+    private bool is_probe = false;
 
     private void Start()
     {
@@ -32,10 +33,16 @@ public class CollectibleItem : MonoBehaviour
         }
 
         setIlluminated(is_illuminated);
+        is_probe = (transform.GetComponent<Probe>() != null);
     }
 
     public void setIlluminated(bool illuminated)
     {
+        if (is_probe == true)
+        {
+            return;
+        }
+
         is_illuminated = illuminated;
 
         if (lit_mesh != null)

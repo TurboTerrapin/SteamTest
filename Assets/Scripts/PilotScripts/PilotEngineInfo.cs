@@ -3,17 +3,39 @@
     - Updates speed and engine capacity temperature screens (next to Spatial Composition Analyzer)
     - Adjusts engine sound
     Contributor(s): Jake Schott
-    Last Updated: 12/17/2025
+    Last Updated: 1/5/2026
 */
 
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class PilotEngineInfo : MonoBehaviour, IPowerable
+public class PilotEngineInfo : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(0.84f, 0.62f, 0.0f), new Color(1.0f, 0.0f, 0.0f) }; //blue, orange, red
     private static string[] STATE_NAMES = new string[3] { "NOMINAL", "REDUCED", "MINIMAL" };
+
+    //list of all ray target names
+    private List<string> RAY_TARGETS = new List<string>()
+    {
+        "speedometer",
+        "engine_performance"
+    };
+
+    //module titles 
+    private static string[] INFO_TITLES = new string[]
+    {
+        "SHIP SPEED",
+        "ENGINE PERFORMANCE"
+    };
+
+    //module additional info, or "" if none
+    private static string[] INFO_DESCS = new string[]
+    {
+        "Describes current ship speed based on impulse percentage and engine capacity.",
+        "Describes engine performance based on impulse percentage and engine capacity based on engine temperature."
+    };
 
     public GameObject engine_speed_display;
     public GameObject engine_capacity_display;
@@ -24,11 +46,26 @@ public class PilotEngineInfo : MonoBehaviour, IPowerable
     private EngineCoolantSupply engine_coolant_supply;
 
     private int current_state = 0; //0 is nominal, 1 is reduced, 2 is minimal
+    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
 
     private void Start()
     {
         impulse_throttle = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ImpulseThrottle>();
         engine_coolant_supply = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<EngineCoolantSupply>();
+
+        for (int i = 0; i < INFO_TITLES.Length; i++)
+        {
+            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
+            if (INFO_DESCS[i].CompareTo("") != 0)
+            {
+                corresponding_infos[i].setInfo(INFO_DESCS[i]);
+            }
+        }
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
     }
 
     private void adjustSpeed()

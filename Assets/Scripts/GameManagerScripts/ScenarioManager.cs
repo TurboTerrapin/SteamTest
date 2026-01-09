@@ -112,15 +112,15 @@ public class ScenarioManager : NetworkBehaviour
         endpoint_reached = false;
         scenario_number += 1;
 
-        if (SceneManager.GetActiveScene().name == "RedLightGreenLight")
-        {
-            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
-            return "Cheeseballs";
-        }
-        else
+        if (SceneManager.GetActiveScene().name == "Cheeseballs")
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
             return "RedLightGreenLight";
+        }
+        else
+        {
+            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
+            return "Cheeseballs";
         }
     }
 

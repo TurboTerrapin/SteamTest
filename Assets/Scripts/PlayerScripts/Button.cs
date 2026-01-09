@@ -54,7 +54,7 @@ public class Button
         new Vector2(1800f, 250f),
         new Vector2(2300f, 250f),
         new Vector2(1600f, 350f),
-        new Vector2(1600f, 250f),
+        new Vector2(1750f, 250f),
         new Vector2(1400f, 250f),
         new Vector2(1400f, 250f),
         new Vector2(2050f, 250f),
@@ -68,7 +68,7 @@ public class Button
         700f,
         1000f,
         900f,
-        700f,
+        1000f,
         1200f,
         1150f,
         1000f,
@@ -82,7 +82,7 @@ public class Button
         new Vector2[] {new Vector2(-600f, -45f), new Vector2(0f, -45f), new Vector2(600f, -45f)},
         new Vector2[] {new Vector2(-863f, -45f), new Vector2(-288f, -45f), new Vector2(288f, -45f), new Vector2(863f, -45f)},
         new Vector2[] {new Vector2(-315f, 15f), new Vector2(315f, 15f), new Vector2(-582f, -90f), new Vector2(-194f, -90f), new Vector2(194f, -90f), new Vector2(582f, -90f)},
-        new Vector2[] {new Vector2(-510f, -45f), new Vector2(48f, -45f), new Vector2(536f, -45f)},
+        new Vector2[] {new Vector2(-520f, -45f), new Vector2(113f, -45f), new Vector2(601f, -45f)},
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)},
         new Vector2[] {new Vector2(-748f, -45f), new Vector2(-260f, -45f), new Vector2(260f, -45f), new Vector2(748f, -45f)},
@@ -110,7 +110,7 @@ public class Button
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(500f, 80f)},
         new Vector2[] {new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f)},
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f)},
-        new Vector2[] {new Vector2(450f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
+        new Vector2[] {new Vector2(560f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
         new Vector2[] {new Vector2(600f, 80f)},
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f)},
         new Vector2[] {new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
@@ -124,7 +124,7 @@ public class Button
         new Vector2[] {},
         new Vector2[] {},
         new Vector2[] {new Vector2(-388f, -90f), new Vector2(0f, -90f), new Vector2(388f, -90f)},
-        new Vector2[] {new Vector2(292f, -45f)},
+        new Vector2[] {new Vector2(357f, -45f)},
         new Vector2[] {},
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {new Vector2(-504f, -45f), new Vector2(504f, -45f)},
@@ -148,22 +148,27 @@ public class Button
         this.interactable = interactable;
         this.togglable = togglable;
     }
+
     public int getControlIndex()
     {
         return control_index;
     }
+
     public bool getInteractable()
     {
         return interactable;
     }
+
     public bool getTogglable()
     {
         return togglable;
     }
+
     public bool getToggled()
     {
         return currently_toggled;
     }
+
     public void updateDesc(string new_desc)
     {
         button_desc = new_desc;
@@ -218,6 +223,7 @@ public class Button
             }
         }
     }
+
     public void toggle(float toggle_length)
     {
         currently_toggled = true;
@@ -232,6 +238,7 @@ public class Button
             }
         }
     }
+
     public void toggle()
     {
         currently_toggled = true;
@@ -239,12 +246,14 @@ public class Button
         updateColor(0.36f);
         updateInteractable(false);
     }
+
     public void untoggle()
     {
         currently_toggled = false;
         percent_blue = 0.0f;
         updateInteractable(interactable);
     }
+
     public void createVisual(int HUD_setting, int layout, int order_index, GameObject frame)
     {
         string key = ControlScript.input_options[control_index][0].ToString();
@@ -317,6 +326,8 @@ public class Button
                 }
                 //handle title size
                 frame.transform.GetChild(3).GetComponent<RectTransform>().sizeDelta = new Vector2(title_sizes[layout], 80f);
+                //position title
+                frame.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -65f);
             }
 
             //make transparent if non-interactable

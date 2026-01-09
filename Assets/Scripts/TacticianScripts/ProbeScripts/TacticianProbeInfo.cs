@@ -3,21 +3,47 @@
     - Enables/disables the 
     - Has functions that takes
     Contributor(s): Jake Schott
-    Last Updated: 12/29/2025
+    Last Updated: 1/9/2026
 */
 
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TacticianProbeInfo : MonoBehaviour, IPowerable
+public class TacticianProbeInfo : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private Color BLUE = new Color(0.0f, 0.84f, 1.0f);
     private Color RED = new Color(1.0f, 0.0f, 0.0f);
     private Color ORANGE = new Color(0.84f, 0.62f, 0.0f);
+
+    //list of all ray target names
+    private List<string> RAY_TARGETS = new List<string>()
+    {
+        "probe_feed",
+        "probe_range",
+        "probe_altimeter",
+        "probe_health"
+    };
+
+    //module titles 
+    private static string[] INFO_TITLES = new string[]
+    {
+        "PROBE FEED",
+        "PROBE RANGE",
+        "PROBE ALTIMETER",
+        "PROBE HEALTH"
+    };
+
+    //module additional info, or "" if none
+    private static string[] INFO_DESCS = new string[]
+    {
+        "",
+        "",
+        "",
+        ""
+    };
 
     public GameObject probe_controller_display;
 
@@ -34,6 +60,7 @@ public class TacticianProbeInfo : MonoBehaviour, IPowerable
     private UnityEngine.UI.Image probe_load_fill_circle;
     private UnityEngine.UI.RawImage probe_icon;
     private UnityEngine.UI.RawImage probe_disconnected_icon;
+    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
 
     private void Start()
     {
@@ -44,6 +71,20 @@ public class TacticianProbeInfo : MonoBehaviour, IPowerable
         probe_load_fill_circle = probe_feed_display.transform.GetChild(2).GetChild(1).GetComponent<UnityEngine.UI.Image>();
         probe_icon = probe_feed_display.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>();
         probe_disconnected_icon = probe_feed_display.transform.GetChild(3).GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
+
+        for (int i = 0; i < INFO_TITLES.Length; i++)
+        {
+            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
+            if (INFO_DESCS[i].CompareTo("") != 0)
+            {
+                corresponding_infos[i].setInfo(INFO_DESCS[i]);
+            }
+        }
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
     }
 
     //enable probe feed view

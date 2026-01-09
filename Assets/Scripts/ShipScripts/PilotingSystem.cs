@@ -27,7 +27,7 @@ public class PilotingSystem : NetworkBehaviour
 
     // Component references
     private ImpulseThrottle impulseThrottle;
-    private CourseHeading courseHeading;
+    private ShipSteering shipSteering;
     private HorizontalThrusters horizontalThrusters;
     private VerticalThrusters verticalThrusters;
     private PilotNavigation pilotNavigation;
@@ -67,7 +67,7 @@ public class PilotingSystem : NetworkBehaviour
     public bool AssignControlReferences(GameObject controlHandler)
     {
         impulseThrottle = controlHandler.GetComponent<ImpulseThrottle>();
-        courseHeading = controlHandler.GetComponent<CourseHeading>();
+        shipSteering = controlHandler.GetComponent<ShipSteering>();
         horizontalThrusters = controlHandler.GetComponent<HorizontalThrusters>();
         verticalThrusters = controlHandler.GetComponent<VerticalThrusters>();
         probeController = controlHandler.GetComponent<ProbeController>();
@@ -76,7 +76,7 @@ public class PilotingSystem : NetworkBehaviour
         tacticianMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
         engineerMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>();
 
-        return impulseThrottle && courseHeading &&
+        return impulseThrottle && shipSteering &&
                horizontalThrusters && verticalThrusters;
     }
 
@@ -95,7 +95,7 @@ public class PilotingSystem : NetworkBehaviour
     public void UpdateInput()
     {
         currentImpulse = impulseThrottle.getCurrentImpulse();
-        steeringInput = courseHeading.getSteeringValue();
+        steeringInput = shipSteering.getSteeringValue();
         horizontalThrust = horizontalThrusters.getHorizontalThrusterState();
         verticalThrust = verticalThrusters.getVerticalThrusterState();
     }

@@ -2,39 +2,74 @@
     TacticianMap.cs
     - Handles tactician radar map
     Contributor(s): Jake Schott
-    Last Updated: 8/21/2025
+    Last Updated: 1/9/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TacticianMap : MonoBehaviour, IPowerable
+public class TacticianMap : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private static float MAP_UPDATE_DELAY = 1.5f; //updates every 1.5 seconds
+    private static float MAP_CUTOFF = 0.138f;
+    private static float MAP_SIZE_RELATIVE_TO_BOUNDARY = 0.5f; //40% the size of the boundary
+    private static float MAP_CENTER_SIZE = 100.0f;
+
+    //list of all ray target names
+    private List<string> RAY_TARGETS = new List<string>()
+    {
+        "proximity_map"
+    };
+
+    //module titles 
+    private static string[] INFO_TITLES = new string[]
+    {
+        "PROXIMITY MAP"
+    };
+
+    //module additional info, or "" if none
+    private static string[] INFO_DESCS = new string[]
+    {
+        "",
+    };
+
+    public GameObject map_display;
 
     private GameObject this_ship;
     private GameObject world_root;
-    public GameObject map_display;
-    private GameObject natural_phenomena;
-    private GameObject ships;
+    private GameObject map_center_icon;
     private MapOptions map_options; //used for zooming
 
     private float[] corresponding_sizes = new float[0];
     private GameObject[] corresponding_icons = new GameObject[0];
     private Color[] corresponding_colors = new Color[0]; 
-    private Vector3[] corresponding_locations = new Vector3[0];
+    private Vector2[] corresponding_locations = new Vector2[0];
     private Coroutine map_updater_coroutine = null;
     private Coroutine item_flasher_coroutine = null;
+    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
 
     void Start()
     {
-        map_options = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<MapOptions>();
         this_ship = GameObject.FindGameObjectWithTag("Spaceship");
         world_root = GameObject.FindGameObjectWithTag("WorldRoot");
-        natural_phenomena = map_display.transform.GetChild(2).gameObject;
-        ships = map_display.transform.GetChild(3).gameObject;
+        map_center_icon = map_display.transform.GetChild(1).GetChild(0).gameObject;
+        map_options = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<MapOptions>();
+
+        for (int i = 0; i < INFO_TITLES.Length; i++)
+        {
+            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
+            if (INFO_DESCS[i].CompareTo("") != 0)
+            {
+                corresponding_infos[i].setInfo(INFO_DESCS[i]);
+            }
+        }
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
     }
 
     IEnumerator itemFlasher()
@@ -43,15 +78,15 @@ public class TacticianMap : MonoBehaviour, IPowerable
         while (anim_time > 0.0f)
         {
             float dt = Time.deltaTime;
-            anim_time -= dt;
+            anim_time = Mathf.Max(0.0f, anim_time - dt);
+
+            float a = Mathf.Lerp(0.0f, 0.5f, anim_time / MAP_UPDATE_DELAY);
             for (int i = 0; i < corresponding_icons.Length; i++)
             {
                 corresponding_icons[i].GetComponent<UnityEngine.UI.RawImage>().color =
-                    new Color(corresponding_colors[i].r,
-                              corresponding_colors[i].g,
-                              corresponding_colors[i].b,
-                              Mathf.Lerp(0.0f, 0.5f, anim_time / MAP_UPDATE_DELAY));
+                    new Color(corresponding_colors[i].r, corresponding_colors[i].g, corresponding_colors[i].b, a);
             }
+
             yield return null;
         }
     }
@@ -59,12 +94,11 @@ public class TacticianMap : MonoBehaviour, IPowerable
     //clears all items from the map
     private void resetMap()
     {
-        GameObject[] to_reset = new GameObject[2] { natural_phenomena, ships };
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
-            for (int m = to_reset[i].transform.childCount - 1; m >= 1; m--)
+            for (int m = map_display.transform.GetChild(2 + i).childCount - 1; m >= 1; m--)
             {
-                Object.Destroy(to_reset[i].transform.GetChild(m).gameObject);
+                Object.Destroy(map_display.transform.GetChild(2 + i).transform.GetChild(m).gameObject);
             }
         }
     }
@@ -73,26 +107,52 @@ public class TacticianMap : MonoBehaviour, IPowerable
     {
         float zoom_percentage = map_options.getZoom(); //1.0 is full zoom; 0.0 is fully-zoomed out
 
-        for (int i = 0; i < corresponding_icons.Length; i++)
+        //adjust background rings
+        for (int i = 0; i < 7; i++)
         {
-            float x_coordinate = corresponding_locations[i].x * (0.00025f + ((zoom_percentage) * 0.00025f));
-            float z_coordinate = corresponding_locations[i].z * (0.00025f + ((zoom_percentage) * 0.00025f));
-            corresponding_icons[i].transform.localPosition =
-                new Vector3(-x_coordinate,
-                            z_coordinate,
-                            0.0f);
+            float circle_radius = 0.0475f + (0.0325f * (6.0f - i));
+            float circle_diameter = circle_radius + (zoom_percentage * circle_radius);
+            map_display.transform.GetChild(0).GetChild(i).gameObject.SetActive(!(circle_diameter > (MAP_CUTOFF * 2.0f)));
 
-            float item_size = Mathf.Max(0.005f, corresponding_sizes[i] * (0.001f + (zoom_percentage * 0.001f)));
-            corresponding_icons[i].GetComponent<RectTransform>().sizeDelta = new Vector2(item_size, item_size);
-            corresponding_icons[i].SetActive(Mathf.Abs(corresponding_icons[i].transform.localPosition.x) < 0.23f && Mathf.Abs(corresponding_icons[i].transform.localPosition.y) < 0.23f);
+            //adjust ring
+            map_display.transform.GetChild(0).GetChild(i).gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(circle_diameter, circle_diameter);
+
+            //adjust coverup
+            map_display.transform.GetChild(0).GetChild(i).GetChild(0).gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(circle_diameter - 0.0025f, circle_diameter - 0.0025f);
         }
 
+        //adjust ship triangle in center of map
+        float center_size = (MAP_CENTER_SIZE / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY)) * (MAP_CUTOFF * 2.0f);
+        center_size = center_size + (center_size * zoom_percentage);
+        map_center_icon.GetComponent<RectTransform>().sizeDelta = new Vector2(center_size, center_size);
+
+        float pos_conversion_factor = (MAP_CUTOFF) / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f);
+
+        //adjust map items
+        for (int i = 0; i < corresponding_icons.Length; i++)
+        {
+            //handle map item positioning
+            float x_coordinate = corresponding_locations[i].x * pos_conversion_factor;
+            x_coordinate = x_coordinate + (zoom_percentage * x_coordinate);
+            float z_coordinate = corresponding_locations[i].y * pos_conversion_factor;
+            z_coordinate = z_coordinate + (zoom_percentage * z_coordinate);
+            corresponding_icons[i].transform.localPosition =
+                new Vector3(x_coordinate, z_coordinate, 0.0f);
+
+            //handle map item resizing
+            float item_size = (corresponding_sizes[i] / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY)) * (MAP_CUTOFF * 2.0f);
+            item_size = item_size + (item_size * zoom_percentage);
+            corresponding_icons[i].GetComponent<RectTransform>().sizeDelta = new Vector2(item_size, item_size);
+            corresponding_icons[i].SetActive(Mathf.Abs(corresponding_icons[i].transform.localPosition.x) < (MAP_CUTOFF + 0.02f) && Mathf.Abs(corresponding_icons[i].transform.localPosition.y) < (MAP_CUTOFF + 0.02f));
+        }
     }
 
     public void rotateMap()
     {
-        natural_phenomena.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -this_ship.transform.localEulerAngles.y);
-        ships.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -this_ship.transform.localEulerAngles.y);
+        for (int i = 0; i < 3; i++)
+        {
+            map_display.transform.GetChild(2 + i).transform.localRotation = Quaternion.Euler(0.0f, 0.0f, this_ship.transform.localEulerAngles.y);
+        }
     }
 
     private void updateMap()
@@ -113,14 +173,15 @@ public class TacticianMap : MonoBehaviour, IPowerable
                 MapItem test_map_item = item_components[i] as MapItem;
                 if (test_map_item != null)
                 {
-                    if (test_map_item.isVisible() && Vector3.Distance(this_ship.transform.position, m.position) < 1000.0f)
+                    Vector2 m_position_xy = new Vector2(m.position.x, m.position.z);
+                    if (test_map_item.isVisible() && Vector2.Distance(Vector2.zero, m_position_xy) < (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f))
                     {
                         map_items.Add(m.gameObject);
                     }
                 }
             }
         }
-        corresponding_locations = new Vector3[map_items.Count];
+        corresponding_locations = new Vector2[map_items.Count];
         corresponding_icons = new GameObject[map_items.Count];
         corresponding_colors = new Color[map_items.Count];
         corresponding_sizes = new float[map_items.Count];
@@ -128,30 +189,32 @@ public class TacticianMap : MonoBehaviour, IPowerable
         for (int i = 0; i < map_items.Count; i++)
         {
             corresponding_locations[i] =
-                new Vector3(map_items[i].transform.position.x,
-                            this_ship.transform.position.y,
-                            map_items[i].transform.position.z);
+                new Vector2(map_items[i].transform.position.x, map_items[i].transform.position.z);
 
             GameObject item_to_add = null;
             MapItem item_info = map_items[i].GetComponent<MapItem>();
             bool item_is_ship = item_info.isShip();
+            int insert_index = 0; //obstacle
             if (item_is_ship == true)
             {
-                item_to_add = GameObject.Instantiate(ships.transform.GetChild(0).gameObject, ships.transform);
+                insert_index = 2; //ship
+            }
+            else if (item_info.gameObject.GetComponent<CollectibleItem>() != null)
+            {
+                insert_index = 1; //collectible item
+            }
+            item_to_add = GameObject.Instantiate(map_display.transform.GetChild(2 + insert_index).GetChild(0).gameObject, map_display.transform.GetChild(2 + insert_index));
+
+            //if ship or obstacle, rotate
+            if (insert_index == 0 || insert_index == 2)
+            {
+                item_to_add.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -item_info.transform.eulerAngles.y);
             }
             else
             {
-                item_to_add = GameObject.Instantiate(natural_phenomena.transform.GetChild(0).gameObject, natural_phenomena.transform);
+                item_to_add.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -map_display.transform.GetChild(3).transform.localRotation.eulerAngles.z);
             }
 
-            corresponding_locations[i] -= this_ship.transform.position;
-
-            item_to_add.transform.localPosition =
-                new Vector3(corresponding_locations[i].x * 0.001f,
-                            corresponding_locations[i].z * 0.001f,
-                            0.0f);
-
-            item_to_add.GetComponent<UnityEngine.UI.RawImage>().texture = item_info.getIcon();
             Color icon_color = item_info.getColor();
             item_to_add.GetComponent<UnityEngine.UI.RawImage>().color = new Color(icon_color.r, icon_color.g, icon_color.b, 0.5f);
 

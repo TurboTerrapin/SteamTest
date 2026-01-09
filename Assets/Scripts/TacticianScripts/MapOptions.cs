@@ -3,7 +3,7 @@
     - Handles inputs for map zoom, map configuration
     - Zooms the lines for the map, tells TacticianMap to zoom the objects accordingly
     Contributor(s): Jake Schott
-    Last Updated: 12/23/2025
+    Last Updated: 1/8/2026
 */
 
 using Unity.Netcode;
@@ -15,10 +15,10 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float ZOOM_SPEED = 1.0f;
-    private static float PUSH_TIME = 0.5f;
+    private static float PUSH_TIME = 0.25f;
 
-    private string CONTROL_NAME = "MAP OPTIONS";
-    private static string INFO_MESSAGE = "Handles proximity map configuration. Modes include default, defensive, and tactical.";
+    private string CONTROL_NAME = "PROXIMITY MAP";
+    private static string INFO_MESSAGE = "Handles proximity map settings. Map modes include obstacle view, collectible item view, and ship view.";
     private List<string> CONTROL_DESCS = new List<string> {"CHANGE MODE", "ZOOM OUT", "ZOOM IN"};
     private List<int> CONTROL_INDEXES = new List<int>() {6, 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
@@ -54,7 +54,6 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
         BUTTONS.Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], false, false));
         hud_info.setButtons(BUTTONS, 5);
         hud_info.setInfo(INFO_MESSAGE);
-        hud_info.adjustButtonFontSizes(36.0f);
 
         //set initial positions
         slider_initial_pos = slider.transform.localPosition;
@@ -88,13 +87,11 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
                     push_percentage = (push_time / half_time);
                 }
 
-                config_button.transform.localPosition =
-                    new Vector3(Mathf.Lerp(config_button_initial_pos.x, config_button_final_pos.x, push_percentage),
-                                Mathf.Lerp(config_button_initial_pos.y, config_button_final_pos.y, push_percentage),
-                                Mathf.Lerp(config_button_initial_pos.z, config_button_final_pos.z, push_percentage));
+                config_button.transform.localPosition = Vector3.Lerp(config_button_initial_pos, config_button_final_pos, push_percentage);
 
                 yield return null;
             }
+
             //switch map config
             if (i == 0)
             {
@@ -109,34 +106,22 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
 
     private void displayZoomAdjustment()
     {
-        //zoom map
-        for (int i = 0; i < 6; i++)
-        {
-            float circle_diameter = 0.06f + (0.04f * (5f - i)) + (zoom * (0.06f + (0.04f * (5f - i))));
-            map_display.transform.GetChild(0).GetChild(i).gameObject.SetActive(!(circle_diameter > 0.31f));
-
-            map_display.transform.GetChild(0).GetChild(i).gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(circle_diameter, circle_diameter);
-            map_display.transform.GetChild(0).GetChild(i).GetChild(0).gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(circle_diameter - 0.0025f, circle_diameter - 0.0025f);
-        }
-
         //zoom items
         tactician_map.zoomMap();
 
         //update zoom slider position
-        slider.transform.localPosition =
-            new Vector3(Mathf.Lerp(slider_initial_pos.x, slider_final_pos.x, 1.0f - zoom),
-                        Mathf.Lerp(slider_initial_pos.y, slider_final_pos.y, 1.0f - zoom),
-                        Mathf.Lerp(slider_initial_pos.z, slider_final_pos.z, 1.0f - zoom));
+        slider.transform.localPosition = Vector3.Lerp(slider_initial_pos, slider_final_pos, 1.0f - zoom);
     }
 
     private void displayMapConfigAdjustment()
     {
-        for (int z = 0; z <= 2; z++)
+        for (int z = 0; z < 3; z++)
         {
-            config_display.transform.GetChild(z).GetChild(0).gameObject.SetActive(z != map_config);
+            config_display.transform.GetChild(z).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
+            map_display.transform.GetChild(2 + z).gameObject.SetActive(false);
         }
-        map_display.transform.GetChild(2).gameObject.SetActive(map_config == 0);
-        map_display.transform.GetChild(3).gameObject.SetActive(map_config != 0);
+        config_display.transform.GetChild(map_config).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        map_display.transform.GetChild(2 + map_config).gameObject.SetActive(true);
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -195,6 +180,7 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
         displayZoomAdjustment();
         displayMapConfigAdjustment();
     }
+
     public void powerOn(int position)
     {
         is_powered = true;

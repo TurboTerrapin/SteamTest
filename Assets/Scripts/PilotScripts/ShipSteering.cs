@@ -1,9 +1,9 @@
 /*
-    CourseHeading.cs
+    ShipSteering.cs
     - Handles inputs for steering wheel
     - Moves wheel accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 8/19/2025
+    Last Updated: 1/5/2026
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
+public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
 {
     private const float maxAngularVelocity = 1.2f;
     private const float accelerationRate = 1.5f;
@@ -19,9 +19,9 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
     private const float returnSpringForce = 6.0f;
     private const float wheelFriction = 0.95f;
 
-    private string CONTROL_NAME = "COURSE HEADING";
+    private string CONTROL_NAME = "SHIP STEERING";
     private static string INFO_MESSAGE = "Controls ship steering when impulse throttle is active.";
-    private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
+    private List<string> CONTROL_DESCS = new List<string> { "TURN LEFT", "TURN RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
@@ -40,7 +40,7 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
     private bool is_powered = false;
     private Coroutine wheel_spin_coroutine = null;
     private List<KeyCode> keys_down = new List<KeyCode>();
-    
+
     private HUDInfo hud_info = null;
 
     private void Start()
@@ -57,23 +57,9 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
-    public float getSteeringValue() => steering_input;
-
-    //called by DirectionalShifter when switching ship direction
-    public void switchControlDescs(bool in_reverse)
+    public float getSteeringValue()
     {
-        if (in_reverse == true)
-        {
-            CONTROL_DESCS[0] = "INCREASE";
-            CONTROL_DESCS[1] = "DECREASE";
-        }
-        else
-        {
-            CONTROL_DESCS[0] = "DECREASE";
-            CONTROL_DESCS[1] = "INCREASE";
-        }
-        BUTTONS[0].updateDesc(CONTROL_DESCS[0]);
-        BUTTONS[1].updateDesc(CONTROL_DESCS[1]);
+        return steering_input;
     }
 
     private void displayAdjustment()
@@ -176,7 +162,7 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
                     {
                         steering_input = Mathf.Clamp(wheel_angle, -1f, 0f); // Clamp [-1, 0]
                     }
-                    else 
+                    else
                     {
                         steering_input = 0f;
                     }

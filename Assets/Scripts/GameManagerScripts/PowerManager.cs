@@ -649,7 +649,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         pilot_modules.Add(control_handler.GetComponent("Warp")); //14
         pilot_modules.Add(control_handler.GetComponent("VerticalThrusters")); //15
         pilot_modules.Add(sensor_handler.GetComponent("PilotNavigation")); //16
-        pilot_modules.Add(control_handler.GetComponent("CourseHeading")); //17
+        pilot_modules.Add(control_handler.GetComponent("ShipSteering")); //17
         pilot_modules.Add(control_handler.GetComponent("HorizontalThrusters")); //18
         pilot_modules.Add(sensor_handler.GetComponent("PilotNavigation")); //19
         pilot_modules.Add(control_handler.GetComponent("ImpulseThrottle")); //20

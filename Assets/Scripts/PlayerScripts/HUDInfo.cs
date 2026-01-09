@@ -3,10 +3,11 @@
     - Stores information for the onscreen UI indicator that appears when facing a control
         - Includes control title and button information
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 1/4/2025
 */
 
 using System.Collections.Generic;
+using UnityEngine;
 
 public class HUDInfo
 {
@@ -15,7 +16,7 @@ public class HUDInfo
     private bool consumes_power = false;
     private float power_consumption = 0.0f;
     private string info_msg = "";
-    private List<Button> buttons;
+    private List<Button> buttons = null;
 
     public HUDInfo(string title)
     {
@@ -26,6 +27,28 @@ public class HUDInfo
     {
         control_name = title;
         consumes_power = is_powerable;
+    }
+
+    public void applyDescriptor(Transform frame)
+    {
+        if (numOptions() > 0)
+        {
+            return;
+        }
+
+        float trapezoid_width = 50f + (control_name.Length * 50f);
+
+        //trapezoid height/vertical position
+        frame.transform.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 200f);
+        frame.transform.GetComponent<RectTransform>().anchoredPosition = new Vector3(0f, -980f, 0f);
+        //trapezoid center
+        frame.transform.GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(trapezoid_width, 0f);
+        //trapezoid edge triangles
+        frame.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector3(-1f * (trapezoid_width / 2 + 75f), 0f, 0f);
+        frame.transform.GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector3(trapezoid_width / 2 + 75f, 0f, 0f);
+        //handle title size
+        frame.transform.GetChild(3).GetComponent<RectTransform>().sizeDelta = new Vector2(trapezoid_width, 80f);
+        frame.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -100f);
     }
 
     public void setButtons(List<Button> buttons)
@@ -73,6 +96,11 @@ public class HUDInfo
         return buttons;
     }
 
+    public bool hasInfo()
+    {
+        return info_msg.CompareTo("") != 0;
+    }
+
     public bool getConsumesPower()
     {
         return consumes_power;
@@ -95,6 +123,10 @@ public class HUDInfo
 
     public int numOptions()
     {
+        if (buttons == null)
+        {
+            return 0;
+        }
         return buttons.Count;
     }
 

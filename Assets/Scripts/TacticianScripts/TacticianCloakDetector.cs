@@ -3,17 +3,35 @@
     - Handles tactician cloak detector
     - Has no interaction with the player
     Contributor(s): Jake Schott
-    Last Updated: 1/3/2026
+    Last Updated: 1/9/2026
 */
 
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-public class TacticianCloakDetector : MonoBehaviour, IPowerable
+public class TacticianCloakDetector : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private static float ANIMATION_PERIOD = 0.5f;
+
+    //list of all ray target names
+    private List<string> RAY_TARGETS = new List<string>()
+    {
+        "cloak_detector"
+    };
+
+    //module titles 
+    private static string[] INFO_TITLES = new string[]
+    {
+        "CLOAKED SHIP DETECTOR"
+    };
+
+    //module additional info, or "" if none
+    private static string[] INFO_DESCS = new string[]
+    {
+        "Flashes rapidly when a cloaked ship is detected by ship sensors."
+    };
 
     public Material lit_purple;
     public Material unlit_purple;
@@ -23,6 +41,24 @@ public class TacticianCloakDetector : MonoBehaviour, IPowerable
 
     private bool cloaked_ship_detected = false;
     private Coroutine cloak_indicator_coroutine = null;
+    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
+
+    private void Start()
+    {
+        for (int i = 0; i < INFO_TITLES.Length; i++)
+        {
+            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
+            if (INFO_DESCS[i].CompareTo("") != 0)
+            {
+                corresponding_infos[i].setInfo(INFO_DESCS[i]);
+            }
+        }
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
+    }
 
     public bool getCloakedShipDetected()
     {

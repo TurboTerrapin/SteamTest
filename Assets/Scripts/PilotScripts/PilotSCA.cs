@@ -3,7 +3,7 @@
     - Updates SCA reset bar
     - Updates SCA circular screen
     Contributor(s): Jake Schott
-    Last Updated: 12/17/2025
+    Last Updated: 1/5/2026
 */
 
 using System.Collections;
@@ -11,13 +11,37 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class PilotSCA : NetworkBehaviour, IPowerable
+public class PilotSCA : NetworkBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private static float RESET_TIMER = 10.0f; //seconds
     private static float PARTICLE_ROTATION_SPEED = 25.0f;
     private static List<int> DEFAULT_MOLECULES = new List<int>() { 0 };
     private static List<int> DEFAULT_MOLECULE_QUANTITIES = new List<int>() { 49 };
+
+    //list of all ray target names
+    private List<string> RAY_TARGETS = new List<string>()
+    {
+        "SCA",
+        "SCA_reset_timer",
+        "SCA_alert_indicator"
+    };
+
+    //module titles 
+    private static string[] INFO_TITLES = new string[]
+    {
+        "SPATIAL COMPOSITION ANALYZER",
+        "SCA RESET TIMER",
+        "SCA ALERT INDICATOR"
+    };
+
+    //module additional info, or "" if none
+    private static string[] INFO_DESCS = new string[]
+    {
+        "Describes outside spatial molecular composition. Used to identify gases and other anomalies.",
+        "",
+        "Flashes orange when there is an unusual reading on the spatial composition analyzer."
+    };
 
     public GameObject reset_bar; 
     public GameObject notifier;
@@ -26,12 +50,26 @@ public class PilotSCA : NetworkBehaviour, IPowerable
     private bool is_powered = false;
     private List<int> current_molecules = new List<int>(); //indices of the molecules in the SCA
     private List<int> molecule_quantities = new List<int>(); //corresponds by index to current_molecules
-
+    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
     private Coroutine reset_bar_coroutine = null;
 
     private void Start()
     {
         resetToDefault();
+
+        for (int i = 0; i < INFO_TITLES.Length; i++)
+        {
+            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
+            if (INFO_DESCS[i].CompareTo("") != 0)
+            {
+                corresponding_infos[i].setInfo(INFO_DESCS[i]);
+            }
+        }
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
     }
 
     //sets SCA to whatever is in DEFAULT_MOLECULES and DEFAULT_MOLECULE_QUANTITIES

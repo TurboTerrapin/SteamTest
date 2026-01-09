@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser intensity screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 12/23/2025
+    Last Updated: 1/9/2026
 */
 
 using System.Collections;
@@ -19,7 +19,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
 
     private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASER", "SHORT-RANGE PHASERS" };
     private static string INFO_MESSAGE = "Adjusts the intensity of the corresponding phasers to increase or decrease damage.";
-    private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
+    private List<string> CONTROL_DESCS = new List<string> { "REDUCE", "ENERGIZE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
@@ -54,14 +54,14 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
             phaser_slider_final_positions[i] = phaser_sliders[i].transform.localPosition + phaser_slide_direction;
         }
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_info.setButtons(BUTTON_LISTS[0], 7);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[index]);
+        hud_info.setButtons(BUTTON_LISTS[index], 7);
         hud_info.setInfo(INFO_MESSAGE);
 
         return hud_info;

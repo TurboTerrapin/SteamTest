@@ -2,7 +2,7 @@
     LongRangeDirection.cs
     - Handles inputs for long-range phaser direction
     Contributor(s): Jake Schott
-    Last Updated: 12/23/2025
+    Last Updated: 1/4/2026
 */
 
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
-        hud_info.setButtons(BUTTONS);
+        hud_info.setButtons(BUTTONS, 7);
         hud_info.setInfo(INFO_MESSAGE);
     }
 

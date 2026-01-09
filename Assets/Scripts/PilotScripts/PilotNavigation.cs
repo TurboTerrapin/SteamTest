@@ -3,15 +3,36 @@
     - Updates course heading text and compass slider
     - Updates ship altimeter
     Contributor(s): Jake Schott
-    Last Updated: 8/27/2025
+    Last Updated: 1/5/2026
 */
 
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class PilotNavigation : MonoBehaviour, IPowerable
+public class PilotNavigation : MonoBehaviour, IPowerable, IDescribable
 {
+    //list of all ray target names
+    private List<string> RAY_TARGETS = new List<string>()
+    {
+        "altimeter",
+        "course_heading"
+    };
+
+    //module titles 
+    private static string[] INFO_TITLES = new string[]
+    {
+        "ALTIMETER",
+        "COURSE HEADING"
+    };
+
+    //module additional info, or "" if none
+    private static string[] INFO_DESCS = new string[]
+    {
+        "",
+        ""
+    };
+
     public GameObject altitude_display;
     public GameObject heading_display;
 
@@ -19,10 +40,26 @@ public class PilotNavigation : MonoBehaviour, IPowerable
     public GameObject compass;
     public GameObject altimeter;
 
+    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
+
     private void Start()
     {
         updateCourseHeadingScreen();
         updateAltimeterScreen();
+
+        for (int i = 0; i < INFO_TITLES.Length; i++)
+        {
+            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
+            if (INFO_DESCS[i].CompareTo("") != 0)
+            {
+                corresponding_infos[i].setInfo(INFO_DESCS[i]);
+            }
+        }
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
     }
 
     public void updateAltimeterScreen()

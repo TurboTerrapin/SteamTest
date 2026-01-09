@@ -4,17 +4,57 @@
     - Handles enabling/disabling the overconsumption circles in pilot and tactician position
     - Handles coloring blue/yellow/red alert circles across the ship
     Contributor(s): Jake Schott
-    Last Updated: 11/10/2025
+    Last Updated: 1/5/2026
 */
 
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StatusIndicators : MonoBehaviour, IPowerable
+public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
 {
+    //list of all ray target names
+    private List<string> RAY_TARGETS = new List<string>()
+    {
+        "overconsumption_warning",
+        "red_alert_indicator"
+    };
+
+    //module titles 
+    private static string[] INFO_TITLES = new string[]
+    {
+        "POWER OVERCONSUMPTION INDICATOR",
+        "SHIP STATUS"
+    };
+
+    //module additional info, or "" if none
+    private static string[] INFO_DESCS = new string[]
+    {
+        "Animates when exceeding allocated power units until power overload and shutdown.",
+        ""
+    };
+
     public List<GameObject> overconsumption_position_indicators = null;
     public List<GameObject> ship_status_position_indicators = null;
     public List<GameObject> ship_status_indicators = null;
+
+    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
+
+    private void Start()
+    {
+        for (int i = 0; i < INFO_TITLES.Length; i++)
+        {
+            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
+            if (INFO_DESCS[i].CompareTo("") != 0)
+            {
+                corresponding_infos[i].setInfo(INFO_DESCS[i]);
+            }
+        }
+    }
+
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
+    }
 
     public void displayShipStatus(Color to_display)
     {

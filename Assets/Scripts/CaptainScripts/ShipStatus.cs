@@ -3,7 +3,7 @@
     - Handles slider
     - Enables/disables red alert
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/4/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     Color[] COLOR_OPTIONS = new Color[3] { new Color(0f, 0.84f, 1f), new Color(0.89f, 1f, 0.0f), new Color(1f, 0.01f, 0.0f)};
     private static float MOVE_TIME = 0.5f;
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
+    private static Vector3 FINAL_POS = new Vector3(0.0f, 0.0f, 0.081f);
 
     private string CONTROL_NAME = "SHIP ALERT STATUS";
     private static string INFO_MESSAGE = "Determines ship status (normal, yellow alert, red alert).";
@@ -31,7 +32,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     public GameObject selector_lever;
     public LightsManager lights_manager;
     private Vector3 initial_pos;
-    private Vector3 final_pos = new Vector3(0.3821f, -0.5888f, 13.6847f);
+
     private int curr_status = 0;
 
     private Coroutine status_shift_coroutine = null;
@@ -96,20 +97,14 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         float animation_time = MOVE_TIME;
 
         Vector3 starting_pos = selector_lever.transform.localPosition;
-        Vector3 dest_pos =
-            new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, curr_status / 2.0f),
-                        Mathf.Lerp(initial_pos.y, final_pos.y, curr_status / 2.0f),
-                        Mathf.Lerp(initial_pos.z, final_pos.z, curr_status / 2.0f));
+        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, curr_status / 2.0f);
 
         //move slider
         while (animation_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             animation_time = Mathf.Max(0.0f, animation_time - dt);
-            selector_lever.transform.localPosition =
-                new Vector3(Mathf.Lerp(starting_pos.x, dest_pos.x, 1.0f - (animation_time / MOVE_TIME)),
-                            Mathf.Lerp(starting_pos.y, dest_pos.y, 1.0f - (animation_time / MOVE_TIME)),
-                            Mathf.Lerp(starting_pos.z, dest_pos.z, 1.0f - (animation_time / MOVE_TIME)));
+            selector_lever.transform.localPosition = Vector3.Lerp(starting_pos, dest_pos, 1.0f - (animation_time / MOVE_TIME));
 
             yield return null;
         }

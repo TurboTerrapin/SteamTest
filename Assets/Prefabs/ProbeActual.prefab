@@ -1419,6 +1419,7 @@ GameObject:
   - component: {fileID: 4585813940983740236}
   - component: {fileID: -3425607253592114525}
   - component: {fileID: 4837155917885527750}
+  - component: {fileID: 8038809325730415200}
   m_Layer: 0
   m_Name: ProbeActual
   m_TagString: Probe
@@ -1435,7 +1436,7 @@ Transform:
   m_GameObject: {fileID: 7202370216243957036}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -3.09, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1483,10 +1484,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fcbf6e61ff26f34a9b79c7677b23949, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: 5
+  size: 50
   is_ship: 0
   is_visible: 1
-  map_icon: {fileID: 2800000, guid: 461884f5469a47b48a3c25a85b246825, type: 3}
   icon_color: {r: 0, g: 0.8352941, b: 1, a: 1}
 --- !u!114 &4837155917885527750
 MonoBehaviour:
@@ -1502,6 +1502,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lit_orange: {fileID: 2100000, guid: 4bcee9c283d980f489166261791e63d3, type: 2}
   pure_black: {fileID: 2100000, guid: 4fc913e7ec6af3647bde2d73f6a8cc42, type: 2}
+--- !u!114 &8038809325730415200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7202370216243957036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfe1797e4482b384a96ee6081df35ff2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pure_black: {fileID: 0}
+  lit_mesh: {fileID: 0}
+  lights: {fileID: 0}
+  item_category: 0
+  item_index: 0
+  is_illuminated: 1
 --- !u!1 &8930030926845122103
 GameObject:
   m_ObjectHideFlags: 0

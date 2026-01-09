@@ -21,7 +21,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };
-    private List<string> INFO_MESSAGES = new List<string>() { "Launches a probe if available in inventory and none currently active. Probes can only be recollected through the tractor beam.", "Destroys launched probe in a controlled explosion (only if ship is within range). Probes are finite." };
+    private List<string> INFO_MESSAGES = new List<string>() { "Launches a probe if available in inventory and none currently active. Probes can only be recollected through the tractor beam.", "Destroys launched probe in a controlled explosion (only if ship is within range). Probe inventory is limited." };
     private List<string> CONTROL_DESCS = new List<string> { "ACTIVATE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };

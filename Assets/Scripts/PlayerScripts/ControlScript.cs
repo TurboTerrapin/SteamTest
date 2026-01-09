@@ -6,7 +6,7 @@
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     - Handles transmitting IK targets for hand movement animations
     Contributor(s): Jake Schott, John Aylward
-    Last Updated: 11/15/2025
+    Last Updated: 1/4/2026
 */
 
 using UnityEngine;
@@ -31,11 +31,11 @@ public class ControlScript : MonoBehaviour
     public GameObject settings_menu;
     public GameObject controls_menu; //in the pause menu, not the trapezoid/list
     public GameObject control_script_holder; //empty GameObject that contains all the control scripts as components
+    public GameObject sensor_script_holder; //empty GameObject that contains all the sensor scripts as components
     public GameObject seat_script_holder; //empty GameObject that contains the seat script manager
     private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
-    private GameObject myPlayer = null;
-    private AnimationController myAnimationController = null;
+    private AnimationController my_animation_controller = null;
 
     //CLASS VARIABLES
     private HUDInfo current_info;
@@ -94,30 +94,13 @@ public class ControlScript : MonoBehaviour
             Destroy(this);
         }
         Instance = this;
-
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        foreach (GameObject player in players)
-        {
-            if (player.GetComponent<PlayerMove>().IsOwner)
-            {
-                myPlayer = player;
-                myAnimationController = player.GetComponent<AnimationController>();
-                //playerAnimator = myPlayer.transform.GetChild(1).GetComponent<Animator>();
-                //playerIK = myPlayer.transform.GetChild(1).GetComponent<IKController>();
-                break;
-
-            }
-        }
-        //myPlayer.transform.GetChild(0).GetComponent<CameraFollowHead>().SetActive(true);
-
-
     }
 
     public void unlockPlayer(GameObject plr_prefab)
     {
         player_prefab = plr_prefab;
 
-        myAnimationController = plr_prefab.GetComponent<AnimationController>();
+        my_animation_controller = plr_prefab.GetComponent<AnimationController>();
 
         plr_camera = player_prefab.transform.GetComponent<CameraMove>().camera_transform.GetComponent<Camera>();
         player_prefab.transform.GetComponent<CameraMove>().initialize();
@@ -126,6 +109,7 @@ public class ControlScript : MonoBehaviour
         unpause();
         control_info.SetActive(false); //hide UI indicator to start
         control_script_holder = GameObject.FindWithTag("ControlHandler");
+        sensor_script_holder = GameObject.FindGameObjectWithTag("SensorHandler");
         seat_script_holder = GameObject.FindWithTag("SeatHandler");
 
         //free player movement, start checking to sit down, begin the scenario
@@ -154,7 +138,7 @@ public class ControlScript : MonoBehaviour
     }
 
     //used to instantiate buttons/list entries for either trapezoid or minimized list
-    private void createButtons()
+    private void initializeControlInfo()
     {
         //hide both UI indicators
         control_info.transform.GetChild(0).gameObject.SetActive(false); //make the trapezoid invisible
@@ -169,7 +153,7 @@ public class ControlScript : MonoBehaviour
             control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
             control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
 
-            GameObject frame = control_info.transform.GetChild(0).gameObject;
+            GameObject frame = control_info.transform.GetChild(0).gameObject; //trapezoid
             if (HUD_setting == 2) //if minimized list
             {
                 frame = control_info.transform.GetChild(1).gameObject;
@@ -178,6 +162,15 @@ public class ControlScript : MonoBehaviour
             for (int i = 0; i < current_info.numOptions(); i++)
             {
                 current_info.getButtons()[i].createVisual(HUD_setting, current_info.getLayout(), i, frame);
+            }
+
+            //if no buttons, apply descriptor using HUDInfo
+            if (current_info.numOptions() == 0)
+            {
+                if (HUD_setting < 2)
+                {
+                    current_info.applyDescriptor(frame.transform);
+                }
             }
         }
     }
@@ -292,6 +285,7 @@ public class ControlScript : MonoBehaviour
         seat_check_coroutine = null;
     }
 
+    //called by seatCheck()
     private void checkForSeats()
     {
         if (!paused && is_active)
@@ -340,8 +334,8 @@ public class ControlScript : MonoBehaviour
         {
             player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(180.0f, 30.0f)); //captain is flipped for some reason
         }
-        myAnimationController.setIKActive(true);
-        myAnimationController.setIKHead(true);
+        my_animation_controller.setIKActive(true);
+        my_animation_controller.setIKHead(true);
 
         secondary_info.SetActive(HUD_setting == 0);
         control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
@@ -360,10 +354,10 @@ public class ControlScript : MonoBehaviour
         float[] rotations = new float[] { 0.0f, 0.0f, 135.0f, 180.0f };
         player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(rotations[curr_pos], 30.0f));
         player_prefab.GetComponent<CameraMove>().captainMode = false;
-        myAnimationController.setIKActive(true);
-        myAnimationController.setIKHead(true);
-        myAnimationController.setIKLeftArm(false);
-        myAnimationController.setIKRightArm(false);
+        my_animation_controller.setIKActive(true);
+        my_animation_controller.setIKHead(true);
+        my_animation_controller.setIKLeftArm(false);
+        my_animation_controller.setIKRightArm(false);
 
         player_prefab.transform.position = player_prefab.transform.Find("Character").position - new Vector3(0.0f, 0.12f, 0.0f);
         player_prefab.GetComponent<PlayerMove>().initialize();
@@ -383,7 +377,7 @@ public class ControlScript : MonoBehaviour
         {
             if (plr_camera != null && is_active == true)
             {
-                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE, LayerMask.GetMask("Control")))
+                if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE, LayerMask.GetMask("RayTarget")))
                 {
                     current_ray_target = hit.collider.gameObject;
                     cooldown = 0.0f;
@@ -422,14 +416,14 @@ public class ControlScript : MonoBehaviour
         ray_target_check_coroutine = null;
     }
 
-    //called by controlCheck() every frame
+    //called by controlCheck() every frame, checks if trying to unsit/shift then checks for RayTargets
     private void checkForControlsAndInputs()
     {
         if (plr_camera != null)
         {
             if (!paused && is_active)
             {
-                //check for unseating and shifting
+                //-----------------------------------------------CHECK FOR UNSEATING/SHIFTING--------------------------------------------------
                 if (player_prefab.GetComponent<PlayerMove>().isShifting() == false)
                 {
                     //check if trying to unseat
@@ -437,7 +431,7 @@ public class ControlScript : MonoBehaviour
                     {
                         is_sitting = false;
 
-                        myAnimationController.setIKActive(false);
+                        my_animation_controller.setIKActive(false);
 
                         control_info.SetActive(false);
                         secondary_info.SetActive(false);
@@ -460,64 +454,34 @@ public class ControlScript : MonoBehaviour
                     }
                 }
 
+                //----------------------------------------------------CHECK FOR RAYTARGETS------------------------------------------------------
                 if (current_ray_target != null) //check if raycast hit something
                 {
-                    if (current_ray_target.layer == 6) //the ray hit a control (Layer 6 = Control)
+                    if (current_ray_target.layer == 6) //the ray hit a control or sensor descriptor (Layer 6 = RayTarget)
                     {
-                        IIKTargetable target_IK = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
-                        //If the ray target has a specific IK target, then use the IK target
-                        if (target_IK != null)
+                        //---------------------------------------------------HANDLE UI----------------------------------------------------------
+                        IControllable target_control = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IControllable;
+
+                        HUDInfo temp_info = null;
+
+                        if (target_control != null) //IControllable
                         {
-                            //Debug.Log(Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up));
-                            if (Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up) > 0)
-                            //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
-                            {
-                                //Set IK on and move the right arm target
-                                myAnimationController.setIKRightArm(true);
-                                //Vector3 pos = target_IK.getIKTarget().position;
-
-                                myAnimationController.setRightArmIKPosition(target_IK.getIKTarget().position);
-                                myAnimationController.setRightArmIKRotation(target_IK.getIKTarget().rotation);
-                            }
-                            else
-                            {
-                                //Set IK on and move the left arm target
-                                myAnimationController.setIKLeftArm(true);
-                                myAnimationController.setLeftArmIKPosition(target_IK.getIKTarget().position);
-                                myAnimationController.setLeftArmIKRotation(target_IK.getIKTarget().rotation);
-                            }
+                            temp_info = target_control.getHUDinfo(current_ray_target.gameObject);
                         }
-                        //Otherwise fallback to normal IK mode
-                        else
+                        else //IDescribable
                         {
-                            if (Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up) > 0)
-                            //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
-                            {
-                                //Set IK on and move the right arm target
-                                myAnimationController.setIKRightArm(true);
-                                myAnimationController.setRightArmIKPosition(current_ray_target.transform.position);
-                                myAnimationController.setIKLeftArm(false);
-                            }
-                            else
-                            {
-                                //Set IK on and move the left arm target
-                                myAnimationController.setIKLeftArm(true);
-                                myAnimationController.setLeftArmIKPosition(current_ray_target.transform.position);
-                                myAnimationController.setIKRightArm(false);
-                            }
+                            IDescribable target_descriptor = sensor_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IDescribable;
+                            temp_info = target_descriptor.getHUDinfo(current_ray_target.gameObject);
                         }
-                        IControllable target_control =
-                            (IControllable)control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name); //get corresponding class
 
-                        HUDInfo temp_info = target_control.getHUDinfo(current_ray_target.gameObject);
-
+                        //check if current HUDInfo is different from RayTarget HUDInfo
                         if (control_title.GetComponent<TMP_Text>().text.CompareTo(temp_info.getName()) != 0 || current_info.numOptions() != temp_info.numOptions())
                         {
                             control_title.GetComponent<TMP_Text>().SetText(temp_info.getName()); //set title of that control
                             current_info = temp_info;
                             if (HUD_setting < 3) //trapezoid or minimized
                             {
-                                createButtons();
+                                initializeControlInfo();
                             }
 
                             //determine whether to show or hide the power indicator
@@ -535,24 +499,30 @@ public class ControlScript : MonoBehaviour
                             }
                         }
 
-                        //check if trying to show/hide info
-                        if (UnityEngine.Input.GetKeyDown(KeyCode.Tab) && HUD_setting == 0)
+                        //handle info showing/hiding
+                        secondary_info.transform.GetChild(1).gameObject.SetActive(temp_info.hasInfo());
+                        if (temp_info.hasInfo() == true)
                         {
-                            bool currently_visible = secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.activeSelf;
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.SetActive(!currently_visible);
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(1).gameObject.SetActive(currently_visible);
+                            //check if trying to show/hide info with tab key
+                            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab) && HUD_setting == 0)
+                            {
+                                bool currently_visible = secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.activeSelf;
+                                secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.SetActive(!currently_visible);
+                                secondary_info.transform.GetChild(1).GetChild(1).GetChild(1).gameObject.SetActive(currently_visible);
 
-                            if (currently_visible == true)
-                            {
-                                secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -880f);
-                            }
-                            else
-                            {
-                                secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -60f);
+                                if (currently_visible == true)
+                                {
+                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -880f);
+                                }
+                                else
+                                {
+                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -60f);
+                                }
                             }
                         }
 
-                        if (temp_info.getConsumesPower() && temp_info.getPowerConsumption() != displayed_power)
+                        //check if need to update the blue power dots in the bottom right for power-consuming controls
+                        if (temp_info.getConsumesPower() == true && temp_info.getPowerConsumption() != displayed_power)
                         {
                             float tmp_pwr = (temp_info.getPowerConsumption() * 2.0f);
                             for (int i = 0; i <= 4; i++)
@@ -564,6 +534,58 @@ public class ControlScript : MonoBehaviour
                             displayed_power = temp_info.getPowerConsumption();
                         }
 
+                        //---------------------------------------------------HANDLE IK----------------------------------------------------------
+                        if (temp_info.numOptions() > 0) //IControllable, move hand
+                        {
+                            IIKTargetable target_IK = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
+                                                                                                                                                          //if the ray target has a specific IK target, then use the IK target
+                            if (target_IK != null)
+                            {
+                                //Debug.Log(Vector3.SignedAngle(player_prefab.transform.forward, plr_camera.transform.forward, player_prefab.transform.up));
+                                if (Vector3.SignedAngle(player_prefab.transform.forward, plr_camera.transform.forward, player_prefab.transform.up) > 0)
+                                //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
+                                {
+                                    //turn IK on and move the right arm target
+                                    my_animation_controller.setIKRightArm(true);
+                                    //Vector3 pos = target_IK.getIKTarget().position;
+                                    my_animation_controller.setRightArmIKPosition(target_IK.getIKTarget().position);
+                                    my_animation_controller.setRightArmIKRotation(target_IK.getIKTarget().rotation);
+                                }
+                                else
+                                {
+                                    //turn IK on and move the left arm target
+                                    my_animation_controller.setIKLeftArm(true);
+                                    my_animation_controller.setLeftArmIKPosition(target_IK.getIKTarget().position);
+                                    my_animation_controller.setLeftArmIKRotation(target_IK.getIKTarget().rotation);
+                                }
+                            }
+                            //otherwise fallback to normal IK mode
+                            else
+                            {
+                                if (Vector3.SignedAngle(player_prefab.transform.forward, plr_camera.transform.forward, player_prefab.transform.up) > 0)
+                                //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
+                                {
+                                    //turn IK on and move the right arm target
+                                    my_animation_controller.setIKRightArm(true);
+                                    my_animation_controller.setRightArmIKPosition(current_ray_target.transform.position);
+                                    my_animation_controller.setIKLeftArm(false);
+                                }
+                                else
+                                {
+                                    //turn IK on and move the left arm target
+                                    my_animation_controller.setIKLeftArm(true);
+                                    my_animation_controller.setLeftArmIKPosition(current_ray_target.transform.position);
+                                    my_animation_controller.setIKRightArm(false);
+                                }
+                            }
+                        }
+                        else //IDescribable, turn IK off
+                        {
+                            my_animation_controller.setIKRightArm(false);
+                            my_animation_controller.setIKLeftArm(false);
+                        }
+
+                        //---------------------------------------------------HANDLE INPUTS----------------------------------------------------------
                         List<KeyCode> current_inputs = new List<KeyCode>(); //get all inputted keys
                         for (int b = 0; b < current_info.numOptions(); b++)
                         {
@@ -573,14 +595,14 @@ public class ControlScript : MonoBehaviour
                             {
                                 if (curr_button.getTogglable() == false)
                                 {
-                                    if (UnityEngine.Input.GetKey(input_options[curr_button.getControlIndex()][i]))
+                                    if (UnityEngine.Input.GetKey(input_options[curr_button.getControlIndex()][i])) //GetKey
                                     {
                                         pressed = true;
                                     }
                                 }
                                 else
                                 {
-                                    if (UnityEngine.Input.GetKeyDown(input_options[curr_button.getControlIndex()][i]))
+                                    if (UnityEngine.Input.GetKeyDown(input_options[curr_button.getControlIndex()][i])) //GetKeyDown
                                     {
                                         pressed = true;
                                     }
@@ -597,17 +619,21 @@ public class ControlScript : MonoBehaviour
                                 curr_button.darken(Time.deltaTime);
                             }
                         }
+
+                        //-------------------------------------------FINAL ADJUSTMENTS--------------------------------------------------------------
                         control_info.SetActive(true); //show UI indicator
-                        secondary_info.SetActive(HUD_setting == 0); //show secondary UI
-                        secondary_info.transform.GetChild(1).gameObject.SetActive(true);
+                        secondary_info.SetActive(HUD_setting == 0); //show secondary UI if default view
                         float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-                        target_control.handleInputs(current_inputs, current_ray_target, dt, curr_pos); //call when all inputs have been checked
+                        if (target_control != null)
+                        {
+                            target_control.handleInputs(current_inputs, current_ray_target, dt, curr_pos); //call when all inputs have been checked
+                        }
                         return;
                     }
                 }
             }
-            myAnimationController.setIKRightArm(false);
-            myAnimationController.setIKLeftArm(false);
+            my_animation_controller.setIKRightArm(false);
+            my_animation_controller.setIKLeftArm(false);
 
             secondary_info.SetActive(is_active == true && paused == false && HUD_setting == 0);
             secondary_info.transform.GetChild(1).gameObject.SetActive(false);
