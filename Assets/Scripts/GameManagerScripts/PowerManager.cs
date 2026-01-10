@@ -402,7 +402,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            if (index < 2)
+            if (index != 2)
             {
                 sensor_handler.GetComponent<StatusIndicators>().displayOverconsumptionPositionIndicator(index, 1.0f - (anim_time / TIME_TO_POWER_LOSS));
             }
@@ -447,7 +447,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
             {
                 StopCoroutine(overconsumption_coroutines[i]);
                 overconsumption_coroutines[i] = null;
-                if (i < 2)
+                if (i != 2)
                 {
                     sensor_handler.GetComponent<StatusIndicators>().resetOverconsumptionPositionIndicator(i);
                 }
@@ -611,7 +611,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
             overconsumption_warning_sound.Stop();
         }
 
-        if (index < 2)
+        if (index != 2)
         {
             sensor_handler.GetComponent<StatusIndicators>().resetOverconsumptionPositionIndicator(index);
         }
@@ -716,6 +716,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         captain_modules.Add(control_handler.GetComponent("ShipBeacon")); //8
         captain_modules.Add(control_handler.GetComponent("ShipOverride")); //9
         captain_modules.Add(control_handler.GetComponent("EmergencyLights")); //10
+        captain_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //11
         positional_modules[3] = captain_modules;
     }
 }

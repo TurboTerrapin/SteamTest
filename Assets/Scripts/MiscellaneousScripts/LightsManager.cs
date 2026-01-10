@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 1/8/2026
+    Last Updated: 1/10/2026
 */
 
 using System.Collections;
@@ -27,7 +27,7 @@ public class LightsManager : MonoBehaviour
 
     public GameObject default_lights;
     public GameObject emergency_lights;
-    public GameObject light_strip;
+    public GameObject light_strips;
 
     private GameObject[] light_groups = new GameObject[2] { null, null };
     private ShipStatus ship_status;
@@ -103,8 +103,17 @@ public class LightsManager : MonoBehaviour
         enabled_lights[0] = true;
         enabled_lights[1] = false;
 
-        //enable light strip
-        light_strip.GetComponent<Renderer>().material = lit_neon;
+        //enable light strips
+        changeLightStrips(lit_neon);
+    }
+
+    //helper method that changes every light strip's material
+    private void changeLightStrips(Material to_change_to)
+    {
+        foreach (Transform strip in light_strips.transform)
+        {
+            strip.GetComponent<Renderer>().material = to_change_to;
+        }
     }
 
 
@@ -210,8 +219,8 @@ public class LightsManager : MonoBehaviour
         enabled_lights[0] = true;
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, DEFAULT_LIGHT_INTENSITY[0]));
 
-        //enable light strip
-        light_strip.GetComponent<Renderer>().material = lit_neon;
+        //enable light strips
+        changeLightStrips(lit_neon);
     }  
 
     public void disableDefaultLights()
@@ -220,8 +229,8 @@ public class LightsManager : MonoBehaviour
         enabled_lights[0] = false;
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, 0.0f));
 
-        //disable light strip
-        light_strip.GetComponent<Renderer>().material = pure_black;
+        //disable light strips
+        changeLightStrips(pure_black);
     }
 
     public void enableRedAlert()
@@ -240,7 +249,7 @@ public class LightsManager : MonoBehaviour
         //change light strip color
         if (enabled_lights[0] == true)
         {
-            light_strip.GetComponent<Renderer>().material = lit_red;
+            changeLightStrips(lit_red);
         }
     }
 
@@ -260,7 +269,7 @@ public class LightsManager : MonoBehaviour
         //change light strip color
         if (enabled_lights[0] == true)
         {
-            light_strip.GetComponent<Renderer>().material = lit_neon;
+            changeLightStrips(lit_neon);
         }
     }
 

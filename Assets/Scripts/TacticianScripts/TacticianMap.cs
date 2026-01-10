@@ -9,31 +9,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TacticianMap : MonoBehaviour, IPowerable, IDescribable
+public class TacticianMap : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float MAP_UPDATE_DELAY = 1.5f; //updates every 1.5 seconds
     private static float MAP_CUTOFF = 0.138f;
     private static float MAP_SIZE_RELATIVE_TO_BOUNDARY = 0.5f; //40% the size of the boundary
     private static float MAP_CENTER_SIZE = 100.0f;
-
-    //list of all ray target names
-    private List<string> RAY_TARGETS = new List<string>()
-    {
-        "proximity_map"
-    };
-
-    //module titles 
-    private static string[] INFO_TITLES = new string[]
-    {
-        "PROXIMITY MAP"
-    };
-
-    //module additional info, or "" if none
-    private static string[] INFO_DESCS = new string[]
-    {
-        "",
-    };
 
     public GameObject map_display;
 
@@ -48,7 +30,6 @@ public class TacticianMap : MonoBehaviour, IPowerable, IDescribable
     private Vector2[] corresponding_locations = new Vector2[0];
     private Coroutine map_updater_coroutine = null;
     private Coroutine item_flasher_coroutine = null;
-    private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
 
     void Start()
     {
@@ -56,20 +37,6 @@ public class TacticianMap : MonoBehaviour, IPowerable, IDescribable
         world_root = GameObject.FindGameObjectWithTag("WorldRoot");
         map_center_icon = map_display.transform.GetChild(1).GetChild(0).gameObject;
         map_options = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<MapOptions>();
-
-        for (int i = 0; i < INFO_TITLES.Length; i++)
-        {
-            corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
-            if (INFO_DESCS[i].CompareTo("") != 0)
-            {
-                corresponding_infos[i].setInfo(INFO_DESCS[i]);
-            }
-        }
-    }
-
-    public HUDInfo getHUDinfo(GameObject current_target)
-    {
-        return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
     }
 
     IEnumerator itemFlasher()
