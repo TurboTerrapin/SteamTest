@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 1/10/2026
+    Last Updated: 1/11/2026
 */
 
 using System.Collections;
@@ -13,7 +13,7 @@ public class LightsManager : MonoBehaviour
 {
     //CLASS CONSTANTS (0 IS DEFAULT, 1 IS EMERGENCY LIGHTS)
     private static float[] LIGHT_CHANGE_TIME = new float[2] { 0.5f, 0.5f };
-    private static float[] DEFAULT_LIGHT_INTENSITY = new float[2] { 12.0f, 5.0f };
+    private static float[] DEFAULT_LIGHT_INTENSITY = new float[2] { 15.0f, 10.0f };
     private static Color[] DEFAULT_LIGHT_COLOR = new Color[] { new Color(0.66f, 0.92f, 1.0f), new Color(0.87f, 0.96f, 1.0f) };
     private static Material[] DEFAULT_LIGHT_MATERIAL = new Material[2] { null, null };
     private static float[] RED_ALERT_LIGHT_INTENSITY = new float[2] { 10.0f, 10.0f };

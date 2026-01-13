@@ -1,8 +1,8 @@
 /*
-    ShipOverride.cs
+    ComputerOverride.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 1/12/2026
 */
 
 using System.Collections;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
+public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.2f; //how long the switch takes to be flipped
@@ -24,11 +24,8 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[8];
 
-    public List<Material> lit_materials = null;
-    public List<Material> unlit_materials = null;
-
+    public List<GameObject> override_displays = null;
     public GameObject override_switches;
-    public GameObject override_lit_indicators;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -38,6 +35,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     private List<string> ray_targets = new List<string> { "override_switch_a1", "override_switch_a2", "override_switch_a3", "override_switch_a4", "override_switch_b1", "override_switch_b2", "override_switch_b3", "override_switch_b4" };
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], true);
@@ -77,14 +75,15 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
 
     private void displayAdjustment(int index)
     {
+        //adjust corresponding color indicator
+        Color c = override_displays[index / 4].transform.GetChild(index % 4).GetComponent<UnityEngine.UI.RawImage>().color;
+        c.a = 0.2f;
         if (enabled_overrides[index] == true)
         {
-            override_lit_indicators.transform.GetChild(index).GetComponent<Renderer>().material = lit_materials[index];
+            c.a = 1.0f;
         }
-        else
-        {
-            override_lit_indicators.transform.GetChild(index).GetComponent<Renderer>().material = unlit_materials[index];
-        }
+        override_displays[index / 4].transform.GetChild(index % 4).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        override_displays[index / 4].transform.GetChild(index % 4).GetChild(1).gameObject.SetActive(enabled_overrides[index]);
     }
 
     IEnumerator overrideChange(int override_to_change)
@@ -111,9 +110,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
             }
 
             override_switches.transform.GetChild(override_to_change).localRotation =
-                Quaternion.Euler(Mathf.Lerp(320.0f, 260.0f, switch_percentage),
-                                 -90.0f,
-                                 180.0f);
+                Quaternion.Euler(Mathf.Lerp(320.0f, 260.0f, switch_percentage), -90.0f, 180.0f);
 
             yield return null;
         }
@@ -189,9 +186,7 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
             for (int i = 0; i < 8; i++)
             {
                 override_switches.transform.GetChild(i).localRotation =
-                    Quaternion.Euler(Mathf.Lerp(starting_rotations[i], 320.0f, 1.0f - (anim_time / power_off_time)),
-                                     -90.0f,
-                                     180.0f);
+                    Quaternion.Euler(Mathf.Lerp(starting_rotations[i], 320.0f, 1.0f - (anim_time / power_off_time)), -90.0f, 180.0f);
             }
 
             yield return null;
@@ -204,6 +199,8 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     public void powerOn(int position)
     {
         is_powered = true;
+        override_displays[0].SetActive(true);
+        override_displays[1].SetActive(true);
         for (int i = 0; i < 8; i++)
         {
             BUTTON_LISTS[i][0].updateInteractable(true);
@@ -213,6 +210,8 @@ public class ShipOverride : NetworkBehaviour, IControllable, IPowerable
     public void powerOff(int position, float time)
     {
         is_powered = false;
+        override_displays[0].SetActive(false);
+        override_displays[1].SetActive(false);
         hud_info.setPowerConsumption(0.0f);
 
         //return override switches to off

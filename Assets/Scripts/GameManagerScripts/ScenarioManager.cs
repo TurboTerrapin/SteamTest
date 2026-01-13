@@ -26,7 +26,8 @@ public class ScenarioManager : NetworkBehaviour
         ReachedEndpoint = 0,
         LeftBoundary = 1,
         ShipDestroyed = 2,
-        TimeRanOut = 3
+        TimeRanOut = 3,
+        SelfDestructed = 4
     }
 
     private enum Difficulty
@@ -128,10 +129,10 @@ public class ScenarioManager : NetworkBehaviour
     public void prepScenario(bool enable_stations)
     {
         //power on all stations (unless it's the first scenario)
-        if (enable_stations == true)
-        {
+        //if (enable_stations == true)
+        //{
             powerAllStationsRPC();
-        }
+        //}
 
         //assign the piloting system the new World Root
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
@@ -157,6 +158,7 @@ public class ScenarioManager : NetworkBehaviour
         enableScenarioTimer();
         GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().initializePowerRegulator();
         GameObject.Find("ControlHandler").GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
+        GameObject.Find("SensorHandler").GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
     }
 
     IEnumerator scenarioCountdown()
@@ -240,15 +242,19 @@ public class ScenarioManager : NetworkBehaviour
         //failure conditions
         if (reason == EndCondition.TimeRanOut)
         {
-            failure_report_message = "Stolen ship designated NCC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic 6-minute reset window.";
+            failure_report_message = "Stolen ship designated SEACC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic 6-minute reset window.";
         }
         else if (reason == EndCondition.LeftBoundary)
         {
-            failure_report_message = "Stolen ship designated NCC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. Four crew members were found alive and have been arrested.";
+            failure_report_message = "Stolen ship designated SEACC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. Four crew members were found alive and have been arrested.";
+        }
+        else if (reason == EndCondition.SelfDestructed)
+        {
+            failure_report_message = "Debris of stolen ship designated SEACC-3002 was found after apparent self-destruction. No survivors found and ship has been sent to SEACC authority for further investigation.";
         }
         else if (reason == EndCondition.ShipDestroyed)
         {
-            failure_report_message = "Stolen ship designated NCC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
+            failure_report_message = "Stolen ship designated SEACC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
 
             IScenario scenario_script = getScenarioScript();
             if (scenario_script != null)

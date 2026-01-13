@@ -4,7 +4,7 @@
     - Moves slider
     - Enables/disables emergency lights using LightsManager
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/12/2026
 */
 
 using System.Collections;
@@ -24,28 +24,29 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button> BUTTONS = new List<Button>();
 
-    public GameObject slider;
-    public GameObject display_canvas; //used to display the bars beneath the handle
+    public GameObject emergency_lights_dial;
+    public GameObject emergency_lights_display;
     public LightsManager lights_manager;
+
+    private Material lit_neon;
+    private Material unlit_neon;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
     private bool emergency_lights_enabled = false;
     private Coroutine emergency_lights_switch_coroutine = null;
-    private Vector3 initial_pos; //handle starting position (disabled)
-    private Vector3 final_pos = new Vector3(0.0334f, 0.01277f, 0.0f); //handle final position (enabled)
 
     private static HUDInfo hud_info = null;
 
     private void Start()
     {
+        lit_neon = transform.GetComponent<ShipBeacon>().lit_neon;
+        unlit_neon = transform.GetComponent<ShipBeacon>().unlit_neon;
+
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true)); //enable button
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);
-
-        initial_pos = slider.transform.localPosition; //sets the initial position
-        final_pos = initial_pos + final_pos;
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
@@ -56,10 +57,30 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     {
         return emergency_lights_enabled;
     }
+
     private void displayAdjustment(float fill_percentage)
     {
-        //update screen
-        display_canvas.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = fill_percentage;
+        //update switch light
+        if (emergency_lights_enabled == true)
+        {
+            emergency_lights_dial.transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
+        }
+        else
+        {
+            emergency_lights_dial.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+        }
+
+        //update display
+        Color c = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        if (fill_percentage == 0.0f)
+        {
+            c.a = 0.2f;
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            emergency_lights_display.transform.GetChild(i).GetChild(0).gameObject.SetActive((i / 4.0f) >= (fill_percentage));
+            emergency_lights_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
     }
 
     IEnumerator lightSwitch()
@@ -84,10 +105,8 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
                 switch_percentage = 1.0f - switch_percentage;
             }
 
-            slider.transform.localPosition =
-                new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, switch_percentage),
-                            Mathf.Lerp(initial_pos.y, final_pos.y, switch_percentage),
-                            Mathf.Lerp(initial_pos.z, final_pos.z, switch_percentage));
+            emergency_lights_dial.transform.localRotation =
+                Quaternion.Euler(emergency_lights_dial.transform.localEulerAngles.x, emergency_lights_dial.transform.localEulerAngles.y, Mathf.Lerp(0.0f, 90.0f, switch_percentage));
 
             displayAdjustment(switch_percentage);
 
@@ -100,6 +119,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
             transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);
+            displayAdjustment(1.0f);
         }
         else
         {
@@ -113,13 +133,18 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     //used by powerOff
     IEnumerator returnToZero(float power_off_time)
     {
+        float starting_rotation = emergency_lights_dial.transform.localRotation.eulerAngles.z;
         displayAdjustment(0.0f);
-        Vector3 start_pos = slider.transform.localPosition;
+
         float anim_time = power_off_time;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-            slider.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, 1.0f - (anim_time / power_off_time));
+            emergency_lights_dial.transform.localRotation =
+                Quaternion.Euler(emergency_lights_dial.transform.localEulerAngles.x, 
+                                 emergency_lights_dial.transform.localEulerAngles.y, 
+                                 Mathf.Lerp(starting_rotation, 0.0f, 1.0f - (anim_time / power_off_time)));
+
             yield return null;
         }
 

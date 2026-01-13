@@ -5,7 +5,7 @@
     - Handles flashing of circle
     - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
-    Last Updated: 12/9/2025
+    Last Updated: 1/12/2026
 */
 
 using System.Collections;
@@ -16,12 +16,12 @@ using Unity.Netcode;
 public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float SWITCH_TIME = 1.0f;
-    private static float FLASH_TIME = 2.0f;
+    private static float SWITCH_TIME = 0.5f;
+    private static float FLASH_TIME = 1.0f;
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "SHIP BEACON";
-    private static string INFO_MESSAGE = "Enables/disables transponder used for ship identification by foreign vessels.";
+    private static string INFO_MESSAGE = "Enables/disables transponder used for ship identification by foreign vessels. Also illuminates collectible items.";
     private List<string> CONTROL_DESCS = new List<string> { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button> BUTTONS = new List<Button>();
@@ -29,8 +29,8 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     public Material lit_neon;
     public Material unlit_neon;
 
-    public GameObject dial;
-    public GameObject beacon_display; //used to display the circle/flashing circle
+    public GameObject ship_beacon_dial;
+    public GameObject ship_beacon_display; //used to display the circle/flashing circle
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -63,11 +63,11 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         //update switch light
         if (beacon_enabled == true)
         {
-            dial.transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
+            ship_beacon_dial.transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
         }
         else
         {
-            dial.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+            ship_beacon_dial.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
         }
 
         //update screen
@@ -76,15 +76,15 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
             StopCoroutine(beacon_flash_coroutine);
         }
         beacon_flash_coroutine = null;
+        ship_beacon_display.transform.GetChild(0).gameObject.SetActive(beacon_enabled);
         if (beacon_enabled == true)
         {
+            ship_beacon_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
             beacon_flash_coroutine = StartCoroutine(beaconFlasher());
         }
         else
         {
-            //hide flashing beacon if not active
-            beacon_display.transform.GetChild(0).gameObject.SetActive(false);
-            beacon_display.transform.GetChild(1).gameObject.SetActive(false);
+            ship_beacon_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
         }
 
         //update items in space
@@ -111,8 +111,8 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     //infinite loop that runs when the beacon is active
     IEnumerator beaconFlasher()
     {
-        beacon_display.transform.GetChild(1).gameObject.SetActive(true);
-        GameObject flashing_beacon = beacon_display.transform.GetChild(0).gameObject;
+        ship_beacon_display.transform.GetChild(1).gameObject.SetActive(true);
+        GameObject flashing_beacon = ship_beacon_display.transform.GetChild(0).gameObject;
         GameObject cover_up = flashing_beacon.transform.GetChild(0).gameObject;
         flashing_beacon.SetActive(true);
         while (true)
@@ -124,10 +124,10 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
                 anim_time = Mathf.Max(0.0f, anim_time - dt);
 
                 float percent_to_full = 1.0f - (anim_time / FLASH_TIME);
-                float dot_size = Mathf.Lerp(0.0f, 0.03f, percent_to_full);
+                float dot_size = Mathf.Lerp(0.008f, 0.03f, percent_to_full);
 
                 flashing_beacon.GetComponent<RectTransform>().sizeDelta = new Vector2(dot_size, dot_size);
-                cover_up.GetComponent<RectTransform>().sizeDelta = new Vector2(dot_size - (0.01f * (1.0f - percent_to_full)), dot_size - (0.01f * (1.0f - percent_to_full)));
+                cover_up.GetComponent<RectTransform>().sizeDelta = new Vector2(dot_size - (0.012f * (1.0f - percent_to_full)), dot_size - (0.012f * (1.0f - percent_to_full)));
 
                 flashing_beacon.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, anim_time / FLASH_TIME);
                 yield return null;
@@ -158,10 +158,10 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
                 switch_percentage = 1.0f - switch_percentage;
             }
 
-            dial.transform.localRotation =
-                Quaternion.Euler(dial.transform.localEulerAngles.x,
-                            dial.transform.localEulerAngles.y,
-                            Mathf.Lerp(0.0f, 90.0f, switch_percentage));
+            ship_beacon_dial.transform.localRotation =
+                Quaternion.Euler(ship_beacon_dial.transform.localEulerAngles.x, 
+                                 ship_beacon_dial.transform.localEulerAngles.y, 
+                                 Mathf.Lerp(0.0f, 90.0f, switch_percentage));
 
             yield return null;
         }
@@ -204,15 +204,15 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     //used by powerOff
     IEnumerator returnToZero(float power_off_time)
     {
-        float starting_rotation = dial.transform.localRotation.eulerAngles.z;
+        float starting_rotation = ship_beacon_dial.transform.localRotation.eulerAngles.z;
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-            dial.transform.localRotation =
-                Quaternion.Euler(dial.transform.localEulerAngles.x,
-                                 dial.transform.localEulerAngles.y,
+            ship_beacon_dial.transform.localRotation =
+                Quaternion.Euler(ship_beacon_dial.transform.localEulerAngles.x, 
+                                 ship_beacon_dial.transform.localEulerAngles.y, 
                                  Mathf.Lerp(starting_rotation, 0.0f, 1.0f - (anim_time / power_off_time)));
 
             yield return null;
@@ -224,7 +224,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     public void powerOn(int position)
     {
         is_powered = true;
-        beacon_display.SetActive(true);
+        ship_beacon_display.SetActive(true);
         BUTTONS[0].updateInteractable(true);
     }
 
@@ -232,7 +232,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
         beacon_enabled = false;
-        beacon_display.SetActive(false);
+        ship_beacon_display.SetActive(false);
         BUTTONS[0].updateInteractable(false);
         BUTTONS[0].untoggle();
         BUTTONS[0].updateDesc(CONTROL_DESCS[0]);

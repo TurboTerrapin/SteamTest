@@ -1,9 +1,8 @@
 /*
     PrefixCodeManager.cs
     - Used to update the prefix codes on all four positions after a certain amount of time
-    - Runs on host client
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 1/13/2026
 */
 
 using System.Collections;
@@ -11,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 using TMPro;
+using TMPro.EditorUtilities;
 
 public class PrefixCodeManager : NetworkBehaviour, IPowerable
 {
@@ -47,9 +47,7 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
             prefix_codes[i] = Random.Range(0, 100);
         }
         transmitNewCodesRPC(prefix_codes[0], prefix_codes[1], prefix_codes[2], prefix_codes[3]);
-        transmitNewLoopRPC();
     }
-
 
     IEnumerator progressBarsUpdater()
     {
@@ -79,12 +77,11 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
         }
     }
 
-    private void Start()
+    public void initiatePrefixCodeManager()
     {
         if (NetworkManager.Singleton.IsHost)
         {
             generateNewCodes();
-            transmitNewLoopRPC();
         }
     }
 
@@ -117,20 +114,34 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
     [Rpc(SendTo.Everyone)]
     private void transmitNewCodesRPC(int a, int b, int c, int d)
     {
+        //set new codes
         prefix_codes[0] = a;
         prefix_codes[1] = b;
         prefix_codes[2] = c;
         prefix_codes[3] = d;
         displayCodes();
-    }
 
-    [Rpc(SendTo.Everyone)]
-    private void transmitNewLoopRPC()
-    {
+        //start bar loop
         if (progress_bars_coroutine != null)
         {
             StopCoroutine(progress_bars_coroutine);
         }
         progress_bars_coroutine = StartCoroutine(progressBarsUpdater());
+
+        //update self destruct code
+        int[] destruct_code = new int[4];
+        for (int i = 0; i < 2; i++)
+        {
+            string pos_code = prefix_codes[i].ToString();
+            if (pos_code.Length < 2)
+            {
+                pos_code = "0" + pos_code;
+            }
+            char[] pos_code_as_chars = pos_code.ToCharArray();
+            destruct_code[i * 2] = int.Parse(pos_code.Substring(0, 1));
+            destruct_code[(i * 2) + 1] = int.Parse(pos_code.Substring(1, 1));
+        }
+
+        GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<SelfDestruct>().setNewCode(DataConverter.arrayToString(destruct_code));
     }
 }

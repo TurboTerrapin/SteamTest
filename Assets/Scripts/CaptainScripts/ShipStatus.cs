@@ -90,6 +90,9 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
                 lights_manager.disableRedAlert();
             }
         }
+
+        //notify self destruct
+        transform.GetComponent<SelfDestruct>().onShipStatusChange();
     }
 
     IEnumerator statusShift()
