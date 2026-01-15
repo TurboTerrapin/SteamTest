@@ -278,6 +278,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
             power_distributions[position][i] = 0.0f;
         }
         power_consumptions[position] = getPowerConsumption(position);
+        checkForOverConsumption(position, power_consumptions[position]);
 
         List<Component> to_disable = positional_modules[position];
         

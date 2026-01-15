@@ -68,7 +68,7 @@ public class ControlScript : MonoBehaviour
         new KeyCode[] {KeyCode.Alpha4, KeyCode.Keypad4},
         new KeyCode[] {KeyCode.F},
         new KeyCode[] {KeyCode.Z},
-        new KeyCode[] {KeyCode.V},
+        new KeyCode[] {KeyCode.Space},
         new KeyCode[] {KeyCode.LeftShift, KeyCode.RightShift},
     };
 
@@ -338,6 +338,17 @@ public class ControlScript : MonoBehaviour
         my_animation_controller.setIKHead(true);
 
         secondary_info.SetActive(HUD_setting == 0);
+        secondary_info.transform.GetChild(0).GetChild(2).gameObject.SetActive(curr_pos != 3);
+        int offset = 120;
+        if (curr_pos != 3)
+        {
+            offset = 0;
+        }
+        for (int i = 0; i < 2; i++)
+        {
+            RectTransform rt = secondary_info.transform.GetChild(0).GetChild(i).GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, -770f - (120f * i) - offset);
+        }
         control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
         control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
         control_info.transform.GetChild(2).gameObject.SetActive(false);
@@ -512,11 +523,11 @@ public class ControlScript : MonoBehaviour
 
                                 if (currently_visible == true)
                                 {
-                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -880f);
+                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -880f);
                                 }
                                 else
                                 {
-                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1620f, -60f);
+                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -60f);
                                 }
                             }
                         }

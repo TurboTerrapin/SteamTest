@@ -5,7 +5,7 @@
     - Handles flashing of circle
     - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
-    Last Updated: 1/12/2026
+    Last Updated: 1/15/2026
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ using Unity.Netcode;
 public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float SWITCH_TIME = 0.5f;
+    private static float SWITCH_TIME = 1.0f;
     private static float FLASH_TIME = 1.0f;
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 

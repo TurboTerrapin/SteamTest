@@ -3,7 +3,7 @@
     - Handles slider
     - Enables/disables red alert
     Contributor(s): Jake Schott
-    Last Updated: 1/4/2026
+    Last Updated: 1/15/2026
 */
 
 using System.Collections;
@@ -125,8 +125,8 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 
         displayAdjustment();
 
-        BUTTONS[0].updateInteractable(curr_status > 0);
-        BUTTONS[1].updateInteractable(curr_status < 2);
+        BUTTONS[0].updateInteractable(curr_status > 0 && is_powered);
+        BUTTONS[1].updateInteractable(curr_status < 2 && is_powered);
         BUTTONS[0].untoggle();
         BUTTONS[1].untoggle();
 
@@ -174,6 +174,9 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     //used by powerOff
     IEnumerator returnToZero(float power_off_time)
     {
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+
         Vector3 start_pos = selector_lever.transform.localPosition;
         float anim_time = power_off_time;
         curr_status = 0;
@@ -208,6 +211,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         {
             indicators[i].SetActive(false);
         }
+
         hud_info.setPowerConsumption(0.0f);
 
         //return to normal status

@@ -2,7 +2,7 @@
     CargoJettion.cs
     - Launches item loaded in cargo bay
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/15/2026
 */
 
 using System.Collections;
@@ -16,7 +16,6 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
     private static float ARM_TIME = 1.5f;
     private static float PUSH_TIME = 1.0f;
     private static float COOLDOWN_TIME = 3.0f;
-    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "CARGO JETTISON";
     private static string INFO_MESSAGE = "Ejects whatever cargo is held in the cargo eject as loaded in the engineer position.";
@@ -30,6 +29,7 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
     public Material unlit_green;
 
     public GameObject dial;
+    public GameObject cargo_jettison_display;
     public GameObject active_indicator;
     public GameObject inactive_indicator;
 
@@ -103,8 +103,6 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
 
     IEnumerator ejectCargo()
     {
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
-
         dial.transform.localPosition = initial_pos;
         dial.transform.localRotation =
             Quaternion.Euler(dial.transform.localEulerAngles.x,
@@ -127,8 +125,6 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
 
             yield return null;
         }
-
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
 
         //bring the dial back and unrotate
         float cooldown_time = COOLDOWN_TIME;
@@ -194,6 +190,7 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
     public void powerOn(int position)
     {
         is_powered = true;
+        cargo_jettison_display.SetActive(true);
         inactive_indicator.GetComponent<Renderer>().material = lit_red;
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(cargo_eject_coroutine == null);
@@ -202,6 +199,7 @@ public class CargoJettison : NetworkBehaviour, IControllable, IPowerable
     public void powerOff(int position, float time)
     {
         is_powered = false;
+        cargo_jettison_display.SetActive(false);
         inactive_indicator.GetComponent<Renderer>().material = unlit_red;
         BUTTONS[0].updateInteractable(false);
         BUTTONS[0].untoggle();
