@@ -34,7 +34,6 @@ public class TractorBeam : NetworkBehaviour
     private Transform beamXform;
     private Material beamMaterial;
 
-    private float previousPower = -1f;
     private float currentPower = 0f;
     private float currentRange = 0f;
     public float maxRange = 100f;
@@ -181,13 +180,11 @@ public class TractorBeam : NetworkBehaviour
         if (currentPower > 0f)
         {
             DrawConeMesh(currentRange);
-            previousPower = currentPower;
         }
         else if (wasActive)
         {
             coneMesh.Clear(); // Clear mesh data
             activeTargetXforms.Clear(); // clear targets
-            previousPower = 0f;
         }
     }
 
@@ -203,7 +200,7 @@ public class TractorBeam : NetworkBehaviour
             // build gradient 
             Color baseColor = Color.Lerp(beamColorLow, beamColorHigh, currentPower);
             Color edgeColor = baseColor;
-            edgeColor.a *= 0.3f;
+            edgeColor.a *= 0.25f;
 
             vertices[0] = Vector3.zero;
             colors[0] = baseColor;
