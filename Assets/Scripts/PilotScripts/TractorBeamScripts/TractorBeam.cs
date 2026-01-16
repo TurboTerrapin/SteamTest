@@ -204,8 +204,6 @@ public class TractorBeam : NetworkBehaviour
             Color baseColor = Color.Lerp(beamColorLow, beamColorHigh, currentPower);
             Color edgeColor = baseColor;
             edgeColor.a *= 0.3f;
-            Color centerColor = baseColor;
-            centerColor.a *= 0.5f;
 
             vertices[0] = Vector3.zero;
             colors[0] = baseColor;
@@ -218,7 +216,7 @@ public class TractorBeam : NetworkBehaviour
             }
 
             vertices[totalVertices - 1] = new Vector3(0, 0, range);
-            colors[totalVertices - 1] = centerColor;
+            colors[totalVertices - 1] = edgeColor;
 
             coneMesh.vertices = vertices;
             coneMesh.uv = uvs;
