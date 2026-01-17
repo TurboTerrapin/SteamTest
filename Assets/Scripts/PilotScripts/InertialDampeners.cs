@@ -4,7 +4,7 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 1/16/2026
 */
 
 using System.Collections;
@@ -18,7 +18,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private static float SWITCH_TIME = 0.5f;
     private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 per dampener)
 
-    private string[] CONTROL_NAMES = new string[] { "PRIMARY INERTIAL DAMPENER", "SECONDARY INERTIAL DAMPENER", "TERTIARY INERTIAL DAMPENER" };
+    private string CONTROL_NAME = "INERTIAL DAMPENER";
     private static string INFO_MESSAGE = "Increases ship acceleration for thrusters and impulse throttle. Each dampener contributes 33% to maximum acceleration effect.";
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
@@ -40,7 +40,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[2].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -51,7 +51,6 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
-        hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 6);
 
         return hud_info;

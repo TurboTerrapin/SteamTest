@@ -104,7 +104,6 @@ public class SeatManager : NetworkBehaviour
         }
         else if (seat_indexes[pos] == SEAT_COORDINATES.Length) //seat to the right, send left
         {
-            Debug.Log("BLAMO!!!!");
             return false;
         }
 
@@ -135,6 +134,18 @@ public class SeatManager : NetworkBehaviour
         }
         transmitSeatOccupantChangeRPC(seat, player_manager.getPlayerIndex(), true);
         return true;
+    }
+
+    //returns true if able to shift left
+    public bool canShiftLeft(int pos)
+    {
+        return (seat_indexes[pos] > 0);
+    }
+
+    //returns true if able to shift right
+    public bool canShiftRight(int pos)
+    {
+        return (seat_indexes[pos] < (SEAT_COORDINATES[pos].Length - 1));
     }
 
     //returns the SEAT_COORDINATES index based on whether the seat is farthest left, farthest right, or if in the middle, look direction (left = false)

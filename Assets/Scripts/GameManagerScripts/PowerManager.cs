@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 12/9/2025
+    Last Updated: 1/16/2026
 */
 
 using System.Collections;
@@ -566,10 +566,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
             power_updater_coroutine = StartCoroutine(powerUpdater());
         }
 
-        //unlock the ability to power on all stations
+        //power all stations
         for (int i = 0; i < 4; i++)
         {
-            control_handler.GetComponent<PowerControl>().enableDial(i, false);
+            powerStation(i);
+            control_handler.GetComponent<PowerControl>().turnDial(i, true);
         }
 
         //start orange flashing for power dials (if a player is sitting at a position)

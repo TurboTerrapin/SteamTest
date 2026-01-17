@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class TractorBeamOptions : MonoBehaviour, IControllable, IPowerable
 {
-    private List<string> CONTROL_NAMES = new List<string>() { "TRACTOR BEAM ITEM INCINERATOR", "TRACTOR BEAM ITEM COLLECTOR" };
+    private List<string> CONTROL_NAMES = new List<string>() { "TRACTOR BEAM ITEM DESTROYER", "TRACTOR BEAM ITEM COLLECTOR" };
     private List<string> INFO_MESSAGES = new List<string>() { "Destroys the item held in the tractor beam item storing position.", "Collects and stores the item held in the tractor beam item storing position for later use." };
     private List<string> CONTROL_DESCS = new List<string>() {"DESTROY", "COLLECT"};
     private List<int> CONTROL_INDEXES = new List<int>() {6};

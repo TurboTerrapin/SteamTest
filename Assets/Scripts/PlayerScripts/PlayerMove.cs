@@ -6,7 +6,7 @@
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 11/22/2025
+    Last Updated: 1/16/2026
 */
 
 using System.Collections;
@@ -191,6 +191,7 @@ public class PlayerMove : NetworkBehaviour
         }
 
         shift_coroutine = StartCoroutine(shift(pos));
+        ControlScript.Instance.updateShiftIndicators();
     }
 
     //adjust the player prefab (bean) and tells SeatManager to adjust seat during a shift
@@ -219,8 +220,8 @@ public class PlayerMove : NetworkBehaviour
         seat_manager.updateSeatIndex(pos, new_seat_index);
 
         shift_coroutine = null;
+        ControlScript.Instance.updateShiftIndicators();
     }
-
 
     IEnumerator checkForMovement()
     {

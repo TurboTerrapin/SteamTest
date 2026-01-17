@@ -32,7 +32,7 @@ public class ControlScript : MonoBehaviour
     public GameObject controls_menu; //in the pause menu, not the trapezoid/list
     public GameObject control_script_holder; //empty GameObject that contains all the control scripts as components
     public GameObject sensor_script_holder; //empty GameObject that contains all the sensor scripts as components
-    public GameObject seat_script_holder; //empty GameObject that contains the seat script manager
+    public SeatManager seat_manager; //empty GameObject that contains the seat script manager
     private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
     private AnimationController my_animation_controller = null;
@@ -110,7 +110,7 @@ public class ControlScript : MonoBehaviour
         control_info.SetActive(false); //hide UI indicator to start
         control_script_holder = GameObject.FindWithTag("ControlHandler");
         sensor_script_holder = GameObject.FindGameObjectWithTag("SensorHandler");
-        seat_script_holder = GameObject.FindWithTag("SeatHandler");
+        seat_manager = GameObject.FindWithTag("SeatHandler").GetComponent<SeatManager>();
 
         //free player movement, start checking to sit down, begin the scenario
         is_active = true;
@@ -290,7 +290,7 @@ public class ControlScript : MonoBehaviour
     {
         if (!paused && is_active)
         {
-            int closest_seat = seat_script_holder.GetComponent<SeatManager>().checkSeats(player_prefab.transform.position);
+            int closest_seat = seat_manager.checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
             {
                 control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
@@ -300,7 +300,7 @@ public class ControlScript : MonoBehaviour
 
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to sit down
                 {
-                    is_sitting = seat_script_holder.GetComponent<SeatManager>().sitDown(closest_seat);
+                    is_sitting = seat_manager.sitDown(closest_seat);
                     if (is_sitting == true)
                     {
                         curr_pos = closest_seat;
@@ -321,6 +321,18 @@ public class ControlScript : MonoBehaviour
         control_info.SetActive(false);
     }
 
+    //updates shift direction UI indicator and get up indicator
+    public void updateShiftIndicators()
+    {
+        bool shifting = player_prefab.transform.GetComponent<PlayerMove>().isShifting();
+        secondary_info.transform.GetChild(0).GetChild(2).gameObject.SetActive(curr_pos != 3);
+        secondary_info.transform.GetChild(0).GetChild(2).GetChild(2).GetChild(0).gameObject.SetActive(seat_manager.canShiftLeft(curr_pos) && !shifting);
+        secondary_info.transform.GetChild(0).GetChild(2).GetChild(3).GetChild(0).gameObject.SetActive(seat_manager.canShiftRight(curr_pos) && !shifting);
+        secondary_info.transform.GetChild(0).GetChild(2).GetChild(4).GetChild(0).gameObject.SetActive(!shifting);
+        secondary_info.transform.GetChild(0).GetChild(1).GetChild(2).GetChild(0).gameObject.SetActive(!shifting);
+        secondary_info.transform.GetChild(0).GetChild(1).GetChild(3).GetChild(0).gameObject.SetActive(!shifting);
+    }
+
     //called by AnimatorHandler when sit down animation is completed
     public void assumePosition()
     {
@@ -338,17 +350,9 @@ public class ControlScript : MonoBehaviour
         my_animation_controller.setIKHead(true);
 
         secondary_info.SetActive(HUD_setting == 0);
-        secondary_info.transform.GetChild(0).GetChild(2).gameObject.SetActive(curr_pos != 3);
-        int offset = 120;
-        if (curr_pos != 3)
-        {
-            offset = 0;
-        }
-        for (int i = 0; i < 2; i++)
-        {
-            RectTransform rt = secondary_info.transform.GetChild(0).GetChild(i).GetComponent<RectTransform>();
-            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, -770f - (120f * i) - offset);
-        }
+        updateShiftIndicators();
+        secondary_info.transform.GetChild(1).gameObject.SetActive(false);
+
         control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
         control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
         control_info.transform.GetChild(2).gameObject.SetActive(false);
@@ -373,10 +377,16 @@ public class ControlScript : MonoBehaviour
         player_prefab.transform.position = player_prefab.transform.Find("Character").position - new Vector3(0.0f, 0.12f, 0.0f);
         player_prefab.GetComponent<PlayerMove>().initialize();
 
-        seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
+        seat_manager.getUp(curr_pos);
 
         curr_pos = -1;
         seat_check_coroutine = StartCoroutine(seatCheck());
+    }
+
+    //helper method that esimates the length of a control description based on the length of the description of that control's description
+    private int getControlInfoOffset(HUDInfo temp_info)
+    {
+        return Mathf.Max(100, temp_info.getInfo().Length * 4);
     }
 
     //runs on FixedUpdate() time (this code is meant to improve raycast consistency/avoid flickering)
@@ -501,6 +511,21 @@ public class ControlScript : MonoBehaviour
                             //set info frame title and description
                             secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<TMP_Text>().SetText(temp_info.getName());
                             secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(5).GetComponent<TMP_Text>().SetText(temp_info.getInfo());
+
+                            //resize based on length of control description
+                            int offset = getControlInfoOffset(temp_info);
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(5).GetComponent<RectTransform>().sizeDelta = new Vector2(535f, offset);
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(5).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -322f + (offset / 2));
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(4).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -284f + offset);
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(4).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -284f + offset);
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -145f + offset);
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -230f + (offset / 2));
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(600f, 365f + offset);
+                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -23f + offset);
+                            if (secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.activeSelf == true)
+                            {
+                                secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -530f + offset);
+                            }
                         }
                         else
                         {
@@ -523,11 +548,11 @@ public class ControlScript : MonoBehaviour
 
                                 if (currently_visible == true)
                                 {
-                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -880f);
+                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -890f);
                                 }
                                 else
                                 {
-                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -60f);
+                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -530f + getControlInfoOffset(temp_info));
                                 }
                             }
                         }
