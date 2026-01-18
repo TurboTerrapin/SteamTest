@@ -113,16 +113,19 @@ public class ScenarioManager : NetworkBehaviour
         endpoint_reached = false;
         scenario_number += 1;
 
-        if (SceneManager.GetActiveScene().name == "Cheeseballs")
-        {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-            return "RedLightGreenLight";
-        }
-        else
-        {
-            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
-            return "Cheeseballs";
-        }
+        //if (SceneManager.GetActiveScene().name == "Cheeseballs")
+        //{
+        //    SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+        //    return "RedLightGreenLight";
+        //}
+        //else
+        //{
+        //SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
+        //return "Cheeseballs";
+        //}
+
+        SceneSwapper.Instance.ChangeScene("AsteroidField", scenario_number);
+        return "AsteroidField";
     }
 
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
