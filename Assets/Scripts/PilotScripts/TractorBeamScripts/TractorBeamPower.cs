@@ -2,8 +2,8 @@
     TractorBeamPower.cs
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
-    Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Contributor(s): Jake Schott, Henryk Musial
+    Last Updated: 1/05/2026
 */
 
 using System.Collections;
@@ -14,6 +14,9 @@ using UnityEngine;
 
 public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
 {
+    // REFERENCES
+    public TractorBeam tractorBeam;
+
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 50.0f;
     private static float TRACTOR_BEAM_RANGE = 100.0f;
@@ -111,6 +114,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
             BUTTONS[0].updateInteractable(power > 0);
             BUTTONS[1].updateInteractable(power < 1);
             transmitTractorBeamPowerAdjustmentRPC(power);
+            tractorBeam.DrawBeam(power); //Redraw tractor beam cone
         }
     }
 
