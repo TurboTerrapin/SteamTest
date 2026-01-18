@@ -62,7 +62,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
         }
 
         //update lever position
-        lever.transform.localRotation = Quaternion.Euler(-150 + (80 * power), 0f, 0f);
+        lever.transform.localRotation = Quaternion.Euler(-150f + (80f * power), 0f, 0f);
 
         //update range
         string range_text = (Mathf.Round(power * TRACTOR_BEAM_RANGE * 10.0f) / 10.0f).ToString();
