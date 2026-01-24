@@ -9,7 +9,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class Probe : MonoBehaviour //IDamageable
+public class Probe : MonoBehaviour, IDamageable
 {
     public Material lit_orange;
     public Material pure_black;
@@ -23,12 +23,10 @@ public class Probe : MonoBehaviour //IDamageable
         probe_controller = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>();
     }
 
-    /*
     public void damage(float dam)
     {
         probe_controller.damageProbe(dam);
     }
-    */
 
     //orange flashing
     public void toggleSelfDestructVisual()

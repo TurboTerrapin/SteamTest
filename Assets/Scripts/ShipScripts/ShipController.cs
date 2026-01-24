@@ -3,12 +3,10 @@ using UnityEngine;
 
 [RequireComponent(typeof(PilotingSystem))]
 [RequireComponent(typeof(WeaponsSystem))]
-[RequireComponent(typeof(CollisionSystem))]
 public class ShipController : NetworkBehaviour
 {
     private PilotingSystem pilotingSystem;
     private WeaponsSystem weaponsSystem;
-    private CollisionSystem collisionSystem;
 
     private GameObject controlHandler;
     private bool shipReady = false;

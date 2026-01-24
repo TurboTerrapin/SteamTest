@@ -717,7 +717,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         captain_modules.Add(control_handler.GetComponent("ComputerOverride")); //7
         captain_modules.Add(control_handler.GetComponent("ShipBeacon")); //8
         captain_modules.Add(control_handler.GetComponent("EmergencyLights")); //9
-        captain_modules.Add(control_handler.GetComponent("CargoJettison")); //10
+        captain_modules.Add(control_handler.GetComponent("CargoEject")); //10
         captain_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //11
         positional_modules[3] = captain_modules;
     }

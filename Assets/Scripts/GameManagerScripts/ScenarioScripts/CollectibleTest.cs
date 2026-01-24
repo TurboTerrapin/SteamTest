@@ -69,6 +69,7 @@ public class CollectibleTest : NetworkBehaviour, IScenario
             curr_collectible.transform.localRotation = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
             curr_collectible.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             curr_collectible.GetComponent<NetworkObject>().TrySetParent(world_root);
+            curr_collectible.GetComponent<Collider>().excludeLayers = LayerMask.GetMask("None");
         }
     }
 

@@ -1,76 +1,53 @@
+/*
+    CollisionHandler.cs
+    - Deals with collision impacts
+    - Communicates to ShipHealth 
+    Contributor(s): Henryk Musial
+    Last Updated: 1/23/2026
+*/
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-[RequireComponent(typeof(ShipHealth))]
-public class CollisionSystem : NetworkBehaviour
+public class CollisionHandler : MonoBehaviour
 {
-    public float ASTEROID_DMG = 15.0f; 
+    private static float ASTEROID_DMG = 15.0f;
     // Add other collision object damage values here
 
+    public LightsManager lightsManager;
+    public List<Collider> shipColliders = new List<Collider>();
 
     private ShipHealth shipHealth;
-    public LightsManager lightsManager;
 
-
+    /*
     // Asteroid impact
     public GameObject spriteRendererPrefab = null;
     public List<Sprite> explosionSprites;
     public float frameRate = 60f;
+    */
 
-    
-    private List<BoxCollider> shipColliders = new List<BoxCollider>();
-
-    public override void OnNetworkSpawn()
+    private void Start()
     {
         shipHealth = GetComponent<ShipHealth>();
 
-        if (shipHealth == null)
+        // If not host, destroy this and colliders
+        if (NetworkManager.Singleton.IsHost == false)
         {
-            Debug.LogError($"ShipHealth missing on {gameObject.name}");
-        }
-        InitializeColliders();
-    }
-
-    private void InitializeColliders()
-    {
-        BoxCollider[] colliders = GetComponentsInChildren<BoxCollider>();
-        
-        foreach (BoxCollider collider in colliders)
-        {
-            if (collider.gameObject.name.Contains("Collider") &&  (collider.gameObject.name.Contains("Forward") || 
-                    collider.gameObject.name.Contains("Port") || collider.gameObject.name.Contains("Starboard") || 
-                        collider.gameObject.name.Contains("Aft"))) {
-
-                shipColliders.Add(collider);
-                collider.isTrigger = true;
-                CollisionForwarder forwarder = collider.gameObject.AddComponent<CollisionForwarder>();
-                forwarder.parentDetection = this;
-                
-                //Debug.Log($"Registered collider: {collider.gameObject.name}");
+            foreach (Collider collider in shipColliders)
+            {
+                GameObject.Destroy(collider.gameObject);
             }
-        }
-
-        if (shipColliders.Count == 0)
-        {
-            Debug.LogWarning("No ship colliders found!");
-        }
-        else
-        {
-            //Debug.Log($"Found {shipColliders.Count} ship colliders");
+            Destroy(this);
         }
     }
 
-    public void HandleCollision(Collider other, GameObject colliderObject)
+    public void HandleCollision(Collider shipSectionCollider, Collider impactObjectCollider)
     {
-  
-        if (!IsServer) return;
-
-        if (shipHealth == null || !other.CompareTag("Asteroid"))
-            return;
-
-        int sectionIndex = GetHitSectionIndex(colliderObject.name);
+        int sectionIndex = shipColliders.IndexOf(shipSectionCollider);
+        Debug.Log(shipColliders[sectionIndex].gameObject.name + " impacted a " + impactObjectCollider.gameObject.name);
+        /*
         if (sectionIndex != -1)
         {
             Vector3 impactCoord = other.ClosestPoint(colliderObject.transform.position);
@@ -94,9 +71,10 @@ public class CollisionSystem : NetworkBehaviour
             shipHealth.damageSection(ASTEROID_DMG, sectionIndex);
 
             Debug.Log($"[SERVER] Collision @ Section: {colliderObject.name}, Damage: {ASTEROID_DMG}");
-        }
+        }*/
     }
 
+    /*
     [ClientRpc]
     private void SpawnImpactVfxClientRpc(Vector3 coord)
     {
@@ -137,29 +115,5 @@ public class CollisionSystem : NetworkBehaviour
 
         Destroy(spriteObject);
     }
-
-    private int GetHitSectionIndex(string colliderName)
-    {
-        if (colliderName.Contains("ForwardCollider")) return 0;
-        if (colliderName.Contains("PortCollider")) return 1;
-        if (colliderName.Contains("StarboardCollider")) return 2;
-        if (colliderName.Contains("AftCollider")) return 3;
-
-        Debug.LogWarning("Error - Looking for " + colliderName);
-        return -1;
-    }
-}
-
-// forward collision events
-public class CollisionForwarder : MonoBehaviour
-{
-    public CollisionSystem parentDetection;
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (parentDetection != null)
-        {
-            parentDetection.HandleCollision(other, gameObject);
-        }
-    }
+    */
 }

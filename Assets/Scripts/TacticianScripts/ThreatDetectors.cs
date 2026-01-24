@@ -6,7 +6,6 @@
     Last Updated: 1/4/2025
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;

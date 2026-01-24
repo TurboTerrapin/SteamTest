@@ -68,6 +68,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         else
         {
             ship_beacon_dial.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+            displayCollectiblesLightChange(0.0f);
         }
 
         //update screen
@@ -86,7 +87,10 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         {
             ship_beacon_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
         }
+    }
 
+    private void displayCollectiblesLightChange(float intensity)
+    {
         //update items in space
         GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
         if (world_root == null)
@@ -102,7 +106,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
                 CollectibleItem test_collectible_item = item_components[c] as CollectibleItem;
                 if (test_collectible_item != null)
                 {
-                    test_collectible_item.setIlluminated(beacon_enabled);
+                    test_collectible_item.setIlluminationIntensity(intensity);
                 }
             }
         }
@@ -111,6 +115,8 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     //infinite loop that runs when the beacon is active
     IEnumerator beaconFlasher()
     {
+        float elapsed_time = 0.0f;
+
         ship_beacon_display.transform.GetChild(1).gameObject.SetActive(true);
         GameObject flashing_beacon = ship_beacon_display.transform.GetChild(0).gameObject;
         GameObject cover_up = flashing_beacon.transform.GetChild(0).gameObject;
@@ -130,6 +136,10 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
                 cover_up.GetComponent<RectTransform>().sizeDelta = new Vector2(dot_size - (0.012f * (1.0f - percent_to_full)), dot_size - (0.012f * (1.0f - percent_to_full)));
 
                 flashing_beacon.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, anim_time / FLASH_TIME);
+
+                elapsed_time += dt;
+                displayCollectiblesLightChange(Mathf.PingPong(elapsed_time, 1.0f));
+
                 yield return null;
             }
         }

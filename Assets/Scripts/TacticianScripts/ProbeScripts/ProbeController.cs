@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 12/29/2025
+    Last Updated: 1/20/2026
 */
 
 using System.Collections;
@@ -18,6 +18,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     private static float DEFAULT_PROBE_HEALTH = 150.0f; //starting/max health for probe
     private static float TURN_TIME = 0.5f;
     private static float FUNCTION_TIME = 2.0f; //how long it takes to launch or self-destruct the probe
+    private static float PROBE_TRANSFORM_ADJUSTMENT_TIME = 2.0f; //how long it takes for the probe to move forward
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };
@@ -83,6 +84,26 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         hud_info.setPowerConsumption(0.0f);
     }
 
+    //run by the host to push the launched probe away from the ship
+    IEnumerator probeTransformAdjustment()
+    {
+        float anim_time = PROBE_TRANSFORM_ADJUSTMENT_TIME;
+        while (current_probe != null && anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            current_probe.transform.localPosition = new Vector3(0.0f, current_probe.transform.localPosition.y, 5.0f + Mathf.Lerp(30.0f, 0.0f, anim_time / PROBE_TRANSFORM_ADJUSTMENT_TIME));
+
+            yield return null;
+        }
+        if (current_probe != null)
+        {
+            Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+            current_probe.GetComponent<NetworkObject>().TrySetParent(world_root);
+            current_probe.GetComponent<SphereCollider>().excludeLayers = LayerMask.GetMask("None");
+        }
+    }
+
     //spawns a probe, links probe to probe controls
     private void spawnProbe()
     {
@@ -94,14 +115,14 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             {
                 current_probe.GetComponent<NetworkObject>().Despawn(true);
             }
-            Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
             Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
-            current_probe = GameObject.Instantiate(probe_actual_prefab, world_root);
-            current_probe.transform.position = new Vector3(spaceship.position.x, spaceship.position.y + 8.0f, spaceship.position.z);
+            current_probe = GameObject.Instantiate(probe_actual_prefab, spaceship);
+            current_probe.transform.localPosition = new Vector3(0.0f, 5.0f, 5.0f);
             current_probe.transform.rotation = spaceship.rotation;
             current_probe.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
-            current_probe.GetComponent<NetworkObject>().TrySetParent(world_root);
+            current_probe.GetComponent<NetworkObject>().TrySetParent(spaceship);
             transmitProbeConnectionChangeRPC(true, true);
+            StartCoroutine(probeTransformAdjustment());
         }
 
         //set health to default

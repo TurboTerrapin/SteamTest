@@ -2,7 +2,7 @@
     CargoEjectLoader.cs
     - Handles the loading and unloading of items in the cargo eject launcher
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/23/2026
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SELECTION_ADJUSTMENT_TIME = 0.25f;
     private static float ITEM_TYPE_ADJUSTMENT_TIME = 0.5f;
-    private static float LOAD_CONFIRMATION_TIME = 1.0f;
+    private static float LOAD_CONFIRMATION_TIME = 0.8f;
 
     private string[] CONTROL_NAMES = new string[] { "CARGO EJECT ITEM TYPE SELECTOR", "CARGO EJECT ITEM VARIATION", "CARGO EJECT LOADER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Switches between normal items and torpedoes.", "Selects which item to load into cargo eject bay.", "Loads and unloads item from cargo eject bay." };
@@ -31,11 +31,13 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     public GameObject cargo_eject_load_dial;
 
     private EngineerInventory engineer_inventory;
+    private CargoEject cargo_eject;
 
     private bool is_powered = false;
     private int item_type_category = 0;
     private int item_variation_index = 0;
     private bool item_loaded = false;
+    private bool item_ejecting = false;
     private Vector3 item_type_switch_initial_position;
     private Vector3 item_type_switch_direction = new Vector3(-0.0182f, 0.0f, -0.0182f);
     private Coroutine item_type_adjustment_coroutine = null;
@@ -49,6 +51,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     private void Start()
     {
         engineer_inventory = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerInventory>();
+        cargo_eject = transform.GetComponent<CargoEject>();
 
         item_type_switch_initial_position = cargo_eject_item_type_switch.transform.localPosition;
 
@@ -105,9 +108,25 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         item_type_category = 0;
         item_variation_index = 0;
         displayAdjustment(false);
+        cargo_eject.deactivate();
     }
 
-    private void displayAdjustment(bool loading)
+    public Texture getCurrentItemImage()
+    {
+        return engineer_inventory.getItemTexture(item_type_category, item_variation_index);
+    }
+
+    public Color getCurrentItemColor()
+    {
+        return engineer_inventory.getItemColor(item_type_category, item_variation_index);
+    }
+
+    public int getEjectItemIndex()
+    {
+        return (item_type_category * EngineerInventory.ITEM_NAMES.Count) + item_variation_index;
+    }
+
+    private void displayAdjustment(bool adjusting)
     {
         string name_of_item = engineer_inventory.getItemName(item_type_category, item_variation_index);
 
@@ -119,9 +138,9 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
         Color item_color = engineer_inventory.getItemColor(item_type_category, item_variation_index);
 
-        //make transparent if none available
+        //make transparent if none available/loading
         float a = 1.0f;
-        if (engineer_inventory.getItemQuantity(item_type_category, item_variation_index) <= 0 || item_loaded == true || loading == true)
+        if (engineer_inventory.getItemQuantity(item_type_category, item_variation_index) <= 0 || item_loaded == true || adjusting == true)
         {
             a = 0.2f;
         }
@@ -158,13 +177,17 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
         //set quantity text
         quantity_text.color = item_color;
-        if (loading == true)
+        if (adjusting == true && item_loaded == false)
         {
             quantity_text.SetText("ITEM LOADING");
         }
-        else if (item_loaded == true)
+        else if (item_ejecting == false && item_loaded == true)
         {
             quantity_text.SetText("ITEM LOADED");
+        }
+        else if (adjusting == true && item_ejecting == true)
+        {
+            quantity_text.SetText("ITEM EJECTED");
         }
         else
         {
@@ -257,7 +280,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         float start_rotation = 0.0f;
 
         deactivateButtons();
-        displayAdjustment(is_loading);
+        displayAdjustment(true);
 
         if (is_loading == false)
         {
@@ -288,18 +311,34 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
         if (is_loading == true)
         {
+            cargo_eject.activate();
             BUTTON_LISTS[2][0].updateDesc(CONTROL_DESCS[4]);
         }
         else
         {
+            cargo_eject.deactivate();
             BUTTON_LISTS[2][0].updateDesc(CONTROL_DESCS[3]);
         }
 
         item_loaded = is_loading;
+        item_ejecting = false;
         cargo_eject_load_confirmation_coroutine = null;
 
         displayAdjustment(false);
         activateButtons();
+    }
+
+    //called by CargoEject on cargo ejection
+    public void onCargoEject()
+    {
+        item_ejecting = true;
+
+        if (cargo_eject_load_confirmation_coroutine != null)
+        {
+            StopCoroutine(cargo_eject_load_confirmation_coroutine);
+        }
+
+        cargo_eject_load_confirmation_coroutine = StartCoroutine(itemLoadConfirmation(false));
     }
 
     private bool getCurrentlyLoadable()

@@ -3,7 +3,7 @@
     - Stores information for a button
     - Handles button, divider GUI
     Contributor(s): Jake Schott
-    Last Updated: 10/19/2025
+    Last Updated: 1/18/2026
 */
 
 /*
@@ -58,7 +58,7 @@ public class Button
         new Vector2(1400f, 250f),
         new Vector2(1400f, 250f),
         new Vector2(2050f, 250f),
-        new Vector2(2200f, 250f)
+        new Vector2(2000f, 250f)
     };
 
     private static float[] title_sizes = new float[]
@@ -86,7 +86,7 @@ public class Button
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)},
         new Vector2[] {new Vector2(-748f, -45f), new Vector2(-260f, -45f), new Vector2(260f, -45f), new Vector2(748f, -45f)},
-        new Vector2[] {new Vector2(-873f, -45f), new Vector2(-485f, -45f), new Vector2(0f, -45f), new Vector2(485f, -45f), new Vector2(873f, -45f)}
+        new Vector2[] {new Vector2(-798f, -45f), new Vector2(-460f, -45f), new Vector2(0f, -45f), new Vector2(460f, -45f), new Vector2(798f, -45f)}
     };
 
     private static List<int[]> button_templates = new List<int[]>
@@ -114,7 +114,7 @@ public class Button
         new Vector2[] {new Vector2(600f, 80f)},
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f)},
         new Vector2[] {new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
-        new Vector2[] {new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(400f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f)},
+        new Vector2[] {new Vector2(250f, 80f), new Vector2(250f, 80f), new Vector2(400f, 80f), new Vector2(250f, 80f), new Vector2(250f, 80f)},
     };
 
     private static List<Vector2[]> divider_positions = new List<Vector2[]>
@@ -128,7 +128,7 @@ public class Button
         new Vector2[] {},
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {new Vector2(-504f, -45f), new Vector2(504f, -45f)},
-        new Vector2[] {new Vector2(-679f, -45f), new Vector2(679f, -45f)}
+        new Vector2[] {new Vector2(-629f, -45f), new Vector2(629f, -45f)}
     };
 
     //PRIVATE DATA MEMBERS
@@ -376,7 +376,7 @@ public class Button
             if (visual_button.transform.childCount > 0) //means trapezoid format
             {
                 Color temp_color =
-                    new Color(DARK_GRAY.r * (1 - percent_blue),
+                    new Color(DARK_GRAY.r * (1.0f - percent_blue),
                               DARK_GRAY.g + (LIGHT_BLUE.g - DARK_GRAY.g) * percent_blue,
                               DARK_GRAY.b + (LIGHT_BLUE.b - DARK_GRAY.b) * percent_blue,
                               transparency);

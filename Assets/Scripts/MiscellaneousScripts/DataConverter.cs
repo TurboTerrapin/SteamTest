@@ -1,6 +1,6 @@
 /*
     DataConverter.cs
-    - Used for sending strings across RPCs
+    - Used for sending strings and arrays across RPCs
     Contributor(s): Jake Schott
     Last Updated: 7/30/2025
 */

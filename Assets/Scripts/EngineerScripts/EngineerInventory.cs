@@ -31,7 +31,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
     //actual # of items in inventory (Probe, Escape Pod, Shield Battery, Cargo Container)
     private List<int> item_quantities = new List<int>() { 2, 4, 10, 2 };
     //actual # of torpedoes in inventory (Photon, Ion, Proton, Quantum, Superluminal, Chroniton)
-    private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 0, 0 };
+    private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 1, 1 };
 
     private void Start()
     {

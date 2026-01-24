@@ -4,7 +4,7 @@
     - Moves slider
     - Enables/disables emergency lights using LightsManager
     Contributor(s): Jake Schott
-    Last Updated: 1/15/2026
+    Last Updated: 1/19/2026
 */
 
 using System.Collections;
@@ -135,6 +135,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     {
         float starting_rotation = emergency_lights_dial.transform.localRotation.eulerAngles.z;
         displayAdjustment(0.0f);
+        lights_manager.disableEmergencyLights();
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)
@@ -173,7 +174,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         }
         hud_info.setPowerConsumption(0.0f);
 
-        //turn off lights
+        //return switch to default, turn off lights
         if (power_loss_coroutine != null)
         {
             StopCoroutine(power_loss_coroutine);
