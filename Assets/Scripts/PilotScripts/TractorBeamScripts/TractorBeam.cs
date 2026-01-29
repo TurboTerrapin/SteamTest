@@ -1,12 +1,13 @@
 /*
     TractorBeam.cs
     - Implements the tractor beam cone visualization and object attraction logic
+    - Communicates with TractorBeamOptions once item collected
     - Driven by TractorBeamPower.cs by power
-    
     Contributor(s): Henryk Musial
-    Last Updated: 01/12/2026
+    Last Updated: 1/29/2026
 */
 
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -15,53 +16,53 @@ public class TractorBeam : NetworkBehaviour
 {
     // REFERENCES
     public Transform beamOriginPoint;
+    public Material tractorBeamMaterial;
+    private TractorBeamPower tractorBeamPower;
+    private TractorBeamOptions tractorBeamOptions;
+    private GameObject beamObject;
 
-    // BEAM CONFIGURATION
-    // ****** Make these private once you pick the right colors****
-    public Color beamColorLow = new Color(0f, 0.84f, 1f, 0.3f);
-    public Color beamColorHigh = new Color(0f, 0.95f, 1f, 0.5f);
+    private float baseAttractionSpeed = 15f;
+    private float captureDistance = 8f; // Distance before object is considered captured
+    private float captureTransformAdjustmentTime = 1f; // How long it takes for the item to be brought in once capured
+    public AnimationCurve attractionCurve = AnimationCurve.EaseInOut(0f, 0.2f, 1f, 1f); // Attraction acceleration curve
+    private float beamRangeOffset = 11f; // Distance that the tractor beam origin point is set back inside the ship
 
-    private Transform cachedXform;
     private Vector3 beamOrigin;
     private Vector3 beamDirection;
 
-    public LayerMask attractableLayers = ~0; // Layer mask for objects that can be effected by tractor beam (~0 means all of them jake)
-    public float baseAttractionSpeed = 10f;
-    public float captureDistance = 1f; // Distance before object is considered captured
-    public AnimationCurve attractionCurve = AnimationCurve.EaseInOut(0f, 0.2f, 1f, 1f); // attraction acceleration curve
-
-    private GameObject beamObject;
-    private Transform beamXform;
-    private Material beamMaterial;
-
-    private float currentPower = 0f;
-    private float currentRange = 0f;
-    public float maxRange = 100f;
-
     private List<Transform> activeTargetXforms = new List<Transform>();
+    private Coroutine tractorBeamLoopCoroutine = null;
+    private Coroutine itemCaptureAdjustmentCoroutine = null;
 
     // CONE MESH DATA
     private Mesh coneMesh;
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
 
-    private float coneHalfAngle = 7.5f; // Halfangle (cone base diameter)
+    private bool itemCurrentlyCaptured = false;
+    private GameObject capturedItem = null;
+    private string capturedItemSerialNumber = "";
+
+    private float currentRange = 0f;
+    private bool currentlyAttracting = false;
+    private float coneHalfAngle = 12f; // Halfangle (cone base diameter)
     private int coneSegments = 32; // Cone res (# cone base vertices)
 
-    // precomputed angles for mesh generation
+    // Precomputed angles for mesh generation
     private float[] sinAngles;
     private float[] cosAngles;
     private float halfAngleRad;
 
-    // preallocated arrays for vertex & triangle data
+    // Preallocated arrays for vertex & triangle data
     private Vector3[] vertices;
     private Vector2[] uvs;
-    private Color[] colors;
     private int[] triangles;
 
-    private void Awake()
+    private void Start()
     {
-        cachedXform = transform;
+        tractorBeamPower = GetComponent<TractorBeamPower>();
+        tractorBeamOptions = GetComponent<TractorBeamOptions>();
+
         InitializeBeamObject();
         InitializeBeamMaterial();
         InitializeConeMesh();
@@ -69,7 +70,7 @@ public class TractorBeam : NetworkBehaviour
 
     private void InitializeBeamObject()
     {
-        // empty Gameobject for the beam mesh and set as a child of the tractorbeamorigin
+        // Empty GameObject for the beam mesh and set as a child of the TractorBeamOrigin
         beamObject = new GameObject("TractorBeam");
         Transform parentXform = beamOriginPoint; // Parent to beam origin point
 
@@ -77,8 +78,6 @@ public class TractorBeam : NetworkBehaviour
         beamObject.transform.localPosition = Vector3.zero;
         beamObject.transform.localRotation = Quaternion.identity;
         beamObject.transform.localScale = Vector3.one;
-
-        beamXform = beamObject.transform;
 
         // Add mesh components to the empty beam object
         meshFilter = beamObject.AddComponent<MeshFilter>();
@@ -91,37 +90,24 @@ public class TractorBeam : NetworkBehaviour
 
     private void InitializeBeamMaterial()
     {
-        // Setup tractor beam material
-        beamMaterial = new Material( Shader.Find("Particles/Standard Unlit")); // New standard unlit
-        beamMaterial.SetFloat("_Mode", 3); // Transparent render mode
-        beamMaterial.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha); // Use pixels alpha channel
-        beamMaterial.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha) ; // darken pixel based on alpha, then add beam pixel
-        beamMaterial.SetInt("_ZWrite", 0); // disable depth buffer
-        beamMaterial.DisableKeyword("_ALPHATEST_ON"); // Turn off alpha clipping (for partial trans)
-        beamMaterial.EnableKeyword("_ALPHABLEND_ON");
-        beamMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        beamMaterial.renderQueue = 3000; // Start of transparent draw in render order
-        beamMaterial.SetColor("_Color", beamColorLow);
-
         // Set the beam material 
-        meshRenderer.material = beamMaterial;
-        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // disable shadows
+        meshRenderer.material = tractorBeamMaterial;
+        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // Disable shadows
         meshRenderer.receiveShadows = false;
     }
 
     private void InitializeConeMesh()
     {
         halfAngleRad = coneHalfAngle * Mathf.Deg2Rad;
-        // apex + base circle vertices + base center
+        // Apex + base circle vertices + base center
         int totalVertices = 1 + coneSegments + 1;
 
         // Vertex data
         vertices = new Vector3[totalVertices]; // 3D positions
         uvs = new Vector2[totalVertices]; // tex uvs
-        colors = new Color[totalVertices]; // vert color data
         triangles = new int[coneSegments * 2 * 3];
 
-        // sin/cos angles
+        // Sin/cos angles
         sinAngles = new float[coneSegments];
         cosAngles = new float[coneSegments];
 
@@ -133,7 +119,7 @@ public class TractorBeam : NetworkBehaviour
         {
             float angle = (float)i / coneSegments * Mathf.PI * 2f;
 
-            // cache trig values
+            // Cache trig values
             sinAngles[i] = Mathf.Sin(angle);
             cosAngles[i] = Mathf.Cos(angle);
             uvs[1 + i] = new Vector2((cosAngles[i] + 1f) * 0.5f, 1f);
@@ -148,165 +134,116 @@ public class TractorBeam : NetworkBehaviour
             triangles[baseIndex + 2] = 1 + (i + 1) % coneSegments; // v3
         }
 
-        //base circle tris
+        // Base circle tris
         int baseTriStart = coneSegments * 3; // 3 vertices per triangle, 1 triangle per cone seg
         for (int i = 0; i < coneSegments; i++)
         {
             int baseIndex = baseTriStart + i * 3;
             triangles[baseIndex] = totalVertices - 1; //v1
-            triangles[baseIndex + 1] = 1 + (i + 1) % coneSegments; // v2
-            triangles[baseIndex + 2] = 1 + i; // v3
+            triangles[baseIndex + 1] = 1 + (i + 1) % coneSegments; //v2
+            triangles[baseIndex + 2] = 1 + i; //v3
+        }
+
+        // Flip normals
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            int temp = triangles[i + 1];
+            triangles[i + 1] = triangles[i + 2];
+            triangles[i + 2] = temp;
         }
     }
 
-    private void Update()
+    public void UpdateBeam(float power)
     {
-        if (currentPower > 0f) { // Run physics while beam is powered on
+        currentRange = (power * TractorBeamPower.TRACTOR_BEAM_RANGE) + beamRangeOffset;
+        DrawConeMesh();
+        if (tractorBeamLoopCoroutine == null && NetworkManager.Singleton.IsHost == true)
+        {
+            tractorBeamLoopCoroutine = StartCoroutine(TractorBeamLoop());
+        }
+    }
 
+    // Runs every frame while tractor beam power is greater than 0
+    private IEnumerator TractorBeamLoop()
+    {
+        while (tractorBeamPower.getTractorBeamPower() > 0.0f)
+        {
             beamOrigin = beamOriginPoint.position; // Update cached beam position
             beamDirection = beamOriginPoint.forward;
-
             FindTargets();
-            AttractTargets();
-        }
-    }
-    public void DrawBeam(float newPower)
-    {
-        bool wasActive = currentPower > 0f; // Tracks if the beam was just turned off
+            if (!itemCurrentlyCaptured)
+            {
+                AttractTargets(Mathf.Min(Time.deltaTime, 1.0f / 30.0f));
+            }
+            if (currentlyAttracting != activeTargetXforms.Count > 0)
+            {
+                currentlyAttracting = !currentlyAttracting;
+                OnLitIndicatorChangeRPC(currentlyAttracting);
+            }
 
-        currentPower = newPower;
-        currentRange = currentPower * maxRange;
+            yield return null;
+        }
 
-        if (currentPower > 0f)
-        {
-            DrawConeMesh(currentRange);
-        }
-        else if (wasActive)
-        {
-            coneMesh.Clear(); // Clear mesh data
-            activeTargetXforms.Clear(); // clear targets
-        }
+        activeTargetXforms.Clear();
+        coneMesh.Clear();
+        tractorBeamLoopCoroutine = null;
     }
 
-    private void DrawConeMesh(float range)
+    private void DrawConeMesh()
     {
         coneMesh.Clear();
 
-        if (range >= 0.01f) // Skip rebuilding 
+        float radius = currentRange * Mathf.Tan(halfAngleRad);
+        int totalVertices = 1 + coneSegments + 1;
+
+        vertices[0] = Vector3.zero;
+
+        // Build base
+        for (int i = 0; i < coneSegments; i++)
         {
-            float radius = range * Mathf.Tan(halfAngleRad);
-            int totalVertices = 1 + coneSegments + 1;
-
-            // build gradient 
-            Color baseColor = Color.Lerp(beamColorLow, beamColorHigh, currentPower);
-            Color edgeColor = baseColor;
-            edgeColor.a *= 0.25f;
-
-            vertices[0] = Vector3.zero;
-            colors[0] = baseColor;
-
-            // Build base
-            for (int i = 0; i < coneSegments; i++)
-            {
-                vertices[1 + i] = new Vector3(cosAngles[i] * radius, sinAngles[i] * radius, range);
-                colors[1 + i] = edgeColor;
-            }
-
-            vertices[totalVertices - 1] = new Vector3(0, 0, range);
-            colors[totalVertices - 1] = edgeColor;
-
-            coneMesh.vertices = vertices;
-            coneMesh.uv = uvs;
-            coneMesh.colors = colors;
-            coneMesh.triangles = triangles;
-            coneMesh.RecalculateNormals();
-            coneMesh.RecalculateBounds();
+            vertices[1 + i] = new Vector3(cosAngles[i] * radius, sinAngles[i] * radius, currentRange);
         }
+
+        vertices[totalVertices - 1] = new Vector3(0, 0, currentRange);
+
+        coneMesh.vertices = vertices;
+        coneMesh.uv = uvs;
+        coneMesh.triangles = triangles;
+        coneMesh.RecalculateNormals();
+        coneMesh.RecalculateBounds();
     }
 
     private void FindTargets()
     {
-        Collider[] potentialTargets = Physics.OverlapSphere(beamOrigin, currentRange, attractableLayers); // query all colliders within sphere surrounding cone 
+        Collider[] potentialTargets = Physics.OverlapSphere(beamOrigin, currentRange, LayerMask.GetMask("CollisionObjects")); // Query all colliders within sphere surrounding cone 
         HashSet<Transform> foundXforms = new HashSet<Transform>(); // O(1) access
 
         foreach (Collider collider in potentialTargets)
         {
-            if (IsValidTarget(collider)) // ** we can get rid of this once we define a specific layer and just use the distance check
-            { 
-                Transform targetXform = collider.transform;
-                foundXforms.Add(targetXform);
-
-                if (!activeTargetXforms.Contains(targetXform)) 
-                {
-                    // Add the new target to the list to track
-                    AddTarget(targetXform);
-                }
-            }
-        }
-
-        RemoveTargets(foundXforms); // Target fell out of cone bounds or destroyed
-    }
-
-    private bool IsValidTarget(Collider collider) // We can get rid of this entire method once we define what is a attractable object
-    {
-        if (collider == null)
-        {
-            return false;
-        }
-        else
-        {
-            Transform targetXform = collider.transform;
-
-            // so we dont attract the beam itself or the parentXform
-            bool isSelf = targetXform.IsChildOf(cachedXform) || cachedXform.IsChildOf(targetXform);
-            bool isBeam = (targetXform.IsChildOf(beamXform) || beamXform.IsChildOf(targetXform));
-
-            if (isSelf || isBeam)
+            if (collider.GetComponent<CollectibleItem>() != null)
             {
-                return false;
-            }
-            else
-            {
-                Vector3 toTarget = targetXform.position - beamOrigin;
+                Vector3 toTarget = collider.transform.position - beamOrigin;
                 float distance = toTarget.magnitude;
                 float angle = Vector3.Angle(beamDirection, toTarget);
+                if (distance <= (currentRange + 2f) && angle <= (coneHalfAngle + 2f))
+                {
+                    Transform targetXform = collider.transform;
+                    foundXforms.Add(targetXform);
 
-                // If not aleady captured, within beam reach & spread
-                if (distance >= captureDistance && distance <= currentRange && angle <= coneHalfAngle)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
+                    if (!activeTargetXforms.Contains(targetXform))
+                    {
+                        // Add the new target to the list to track
+                        activeTargetXforms.Add(targetXform);
+                    }
                 }
             }
         }
+
+        RemoveInactiveTargets(foundXforms); // Target fell out of cone bounds or destroyed
     }
 
-    private void AddTarget( Transform targetXform)
-    {
-        activeTargetXforms.Add(targetXform);
-
-        if (IsServer)
-        {
-            NetworkObject netObj = targetXform.GetComponent<NetworkObject>();
-            if (netObj == null) // check for networkobject
-            {
-               netObj = targetXform.GetComponentInParent<NetworkObject>();
-            }
-
-            ulong id = 0;
-            if (netObj != null)
-            {
-                id = netObj.NetworkObjectId;
-            }
-
-            //NotifyTargetCapturedRPC(id);
-        }
-    }
-
-    private void RemoveTargets(HashSet<Transform> validXforms )
+    // Iterates through active targets and removes non-valid members
+    private void RemoveInactiveTargets(HashSet<Transform> validXforms)
     {
         for (int i = activeTargetXforms.Count - 1; i >= 0; i--)
         {
@@ -319,12 +256,8 @@ public class TractorBeam : NetworkBehaviour
         }
     }
 
-
-    private void AttractTargets()
+    private void AttractTargets(float dt)
     {
-        // Assumes that the attractable objects have a networkObject and networktransform component
-        float dt = Time.deltaTime;
-
         for (int i = activeTargetXforms.Count - 1; i >= 0; i--)
         {
             Transform targetXform = activeTargetXforms[i];
@@ -335,26 +268,28 @@ public class TractorBeam : NetworkBehaviour
             }
             else
             {
-                Vector3 toOrigin = beamOrigin - targetXform.position; // The vector pointing to cone apex
-                float distance = toOrigin.magnitude; // distance to cone apex
+                float distance = Vector3.Distance(beamOrigin, targetXform.position) - beamRangeOffset;
 
-                if (distance < captureDistance)
+                if (distance <= captureDistance)
                 {
-                    targetCaptured(targetXform); // Run the logic for when we fully capture an object
+                    // Temporary
+                    string serialNumber = "";
+                    for (int x = 0; x < 5; x++)
+                    {
+                        serialNumber += Random.Range(0, 10) + " ";
+                    }
+
+                    OnTargetCapturedRPC(targetXform.GetComponent<NetworkObject>().NetworkObjectId, serialNumber);
+                    return; // Stop attracting, target found
                 }
                 else
                 {
                     float distanceNormalized = Mathf.Clamp01(distance / currentRange);
-                    float curveMultiplier = attractionCurve.Evaluate(distanceNormalized); // if you dont like the animation curve just use lerp or something and ditch acceleration surve
-                    float attractionStrength = baseAttractionSpeed * currentPower * curveMultiplier;
+                    float curveMultiplier = attractionCurve.Evaluate(distanceNormalized);
+                    float attractionStrength = baseAttractionSpeed * tractorBeamPower.getTractorBeamPower() * curveMultiplier;
 
-                    Vector3 direction = toOrigin.normalized; // normalized direction vector
+                    Vector3 direction = (beamOrigin - targetXform.position).normalized; // Normalized direction vector
                     Vector3 movement = direction * attractionStrength * dt; 
-
-                    if (movement.magnitude > distance - captureDistance) //prevent overshooting origin
-                    {
-                        movement = direction * (distance - captureDistance);
-                    }
 
                     targetXform.position += movement;
                 }
@@ -362,65 +297,81 @@ public class TractorBeam : NetworkBehaviour
         }
     }
 
-    private void targetCaptured(Transform target)
+    public GameObject GetCapturedItem()
     {
-        // ***Add collection  logic here in future ****
+        return capturedItem;
+    }
+
+    public string GetCapturedItemSerialNumber()
+    {
+        return capturedItemSerialNumber;
+    }
+
+    public void ClearCapturedItem()
+    {
+        itemCurrentlyCaptured = false;
+        capturedItem = null;
+        capturedItemSerialNumber = "";
+        itemCaptureAdjustmentCoroutine = null;
+        tractorBeamPower.onItemCapturedChange();
+    }
+
+    private IEnumerator TargetCaptureAdjustment()
+    {
+        float transformAdjustmentTime = captureTransformAdjustmentTime;
+        Vector3 startingPosition = capturedItem.transform.position;
+        while (capturedItem != null && transformAdjustmentTime > 0.0f)
+        {
+            transformAdjustmentTime = Mathf.Max(0.0f, transformAdjustmentTime - Time.deltaTime);
+
+            capturedItem.transform.position = Vector3.Lerp(beamOrigin, startingPosition,  transformAdjustmentTime / captureTransformAdjustmentTime);
+
+            yield return null;
+        }
+
+        if (capturedItem == null) // Item was destroyed
+        {
+            itemCurrentlyCaptured = false;
+        }
+
+        itemCaptureAdjustmentCoroutine = null;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void OnLitIndicatorChangeRPC(bool active)
+    {
+        tractorBeamPower.setTractorBeamStatusIndicators(active);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void OnTargetCapturedRPC(ulong itemID, string serialNumber)
+    {
+        itemCurrentlyCaptured = true;
+        capturedItemSerialNumber = serialNumber;
         
-        if (IsServer)
+        NetworkObject itemNetworkObject = GetNetworkObject(itemID);
+        if (itemNetworkObject == null)
         {
-            NetworkObject netObj = target.GetComponent<NetworkObject>();
-            if (netObj == null)
+            capturedItem = null;
+            return;
+        }
+        capturedItem = itemNetworkObject.gameObject;
+        capturedItem.tag = "Untagged";
+        
+        tractorBeamOptions.activate(capturedItem, capturedItemSerialNumber);
+        tractorBeamPower.onItemCapturedChange();
+
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            if (capturedItem.GetComponent<Probe>() != null)
             {
-                netObj = target.GetComponentInParent<NetworkObject>();
+                GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>().probeCollected();
             }
-
-            ulong id = 0; // default to 0
-            if (netObj != null)
-            {
-                id = netObj.NetworkObjectId;
-            }
-
-            //NotifyTargetFullyCapturedRPC(id);
+            capturedItem.GetComponent<NetworkObject>().TrySetParent(GameObject.FindGameObjectWithTag("Spaceship"), true);
+            capturedItem.GetComponent<Collider>().excludeLayers = LayerMask.NameToLayer("Everything");
+            capturedItem.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+            capturedItem.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+            itemCaptureAdjustmentCoroutine = StartCoroutine(TargetCaptureAdjustment());
         }
     }
-
-    [Rpc(SendTo.Everyone)]
-    private void NotifyTargetCapturedRPC(ulong networkObjectId)
-    {
-        // Called when an object initially enters the tractor beam
-        // placeholder used to trigger effects or notify other stuff
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void NotifyTargetFullyCapturedRPC(ulong networkObjectId)
-    {
-        // Called when an object reaches the beam origin
-        // placeholdr used to trigger collection logic
-    }
-
-    new private void OnDestroy() // Called when ship is destroyed
-    {
-        activeTargetXforms.Clear();
-
-        // Clean up run-time resources
-        if (coneMesh != null)
-        {
-            Destroy(coneMesh);
-        }
-        if (beamMaterial != null)
-        {
-            Destroy(beamMaterial);
-        }
-        if (beamObject != null)
-        {
-            Destroy(beamObject);
-        }
-    }
-
-    private void OnDisable()
-    {
-        activeTargetXforms.Clear();
-        coneMesh.Clear();
-    }
-
 }

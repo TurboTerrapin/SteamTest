@@ -13,7 +13,7 @@ using Unity.Netcode;
 
 public class CollisionHandler : MonoBehaviour
 {
-    private static float ASTEROID_DMG = 15.0f;
+    //private static float ASTEROID_DMG = 15.0f;
     // Add other collision object damage values here
 
     public LightsManager lightsManager;

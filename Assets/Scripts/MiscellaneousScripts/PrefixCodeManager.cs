@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 using TMPro;
-using TMPro.EditorUtilities;
 
 public class PrefixCodeManager : NetworkBehaviour, IPowerable
 {

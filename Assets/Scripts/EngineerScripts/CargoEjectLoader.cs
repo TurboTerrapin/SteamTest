@@ -126,6 +126,11 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         return (item_type_category * EngineerInventory.ITEM_NAMES.Count) + item_variation_index;
     }
 
+    public void onInventoryChange()
+    {
+        displayAdjustment(cargo_eject_load_confirmation_coroutine != null);
+    }
+
     private void displayAdjustment(bool adjusting)
     {
         string name_of_item = engineer_inventory.getItemName(item_type_category, item_variation_index);

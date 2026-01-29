@@ -332,7 +332,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         }
 
         //set color info
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             curr_colors[i] = temp_curr_colors[i];
         }

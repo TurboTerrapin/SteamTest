@@ -2,7 +2,7 @@
     EngineerInventory.cs
     - Handles keeping track of normal items and torpedo items for the whole ship
     Contributor(s): Jake Schott
-    Last Updated: 12/30/2025
+    Last Updated: 1/27/2026
 */
 
 using System.Collections.Generic;
@@ -25,6 +25,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
     public GameObject inventory_display;
 
     private ProbeController probe_controller;
+    private CargoEjectLoader cargo_eject_loader;
     private GameObject item_count_indicators;
     private GameObject torpedo_count_indicators;
 
@@ -36,6 +37,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
     private void Start()
     {
         probe_controller = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>();
+        cargo_eject_loader = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<CargoEjectLoader>();
         item_count_indicators = inventory_display.transform.GetChild(1).gameObject;
         torpedo_count_indicators = inventory_display.transform.GetChild(2).gameObject;
 
@@ -67,8 +69,6 @@ public class EngineerInventory : MonoBehaviour, IPowerable
                 item_indicators[i].transform.GetChild(c).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color(curr_color.r, curr_color.g, curr_color.b, a);
             }
         }
-
-        probe_controller.onInventoryChange(item_quantities[0]);
     }
 
     //helper method
@@ -187,6 +187,13 @@ public class EngineerInventory : MonoBehaviour, IPowerable
         return possible_items[item_category].Count; 
     }
 
+    //links to ProbeController and CargoEjectLoader
+    private void sendInventoryUpdates()
+    {
+        probe_controller.onInventoryChange(item_quantities[0]);
+        cargo_eject_loader.onInventoryChange();
+    }
+
     //adds the item (if the name is valid)
     public void addItem(string item_name)
     {
@@ -207,6 +214,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
             torpedo_quantities[item_index] += 1;
         }
         displayAdjustment();
+        sendInventoryUpdates();
     }
 
     //adds the item (if the category/index is valid)
@@ -226,6 +234,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
             torpedo_quantities[item_index] += 1;
         }
         displayAdjustment();
+        sendInventoryUpdates();
     }
 
     //removes an item if it exists (or stays at 0 if already 0)
@@ -248,6 +257,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
             torpedo_quantities[item_index] = Mathf.Max(0, torpedo_quantities[item_index] - 1);
         }
         displayAdjustment();
+        sendInventoryUpdates();
     }
 
     //removes the item (if the category/index is valid)
@@ -267,6 +277,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
             torpedo_quantities[item_index] = Mathf.Max(0, torpedo_quantities[item_index] - 1);
         }
         displayAdjustment();
+        sendInventoryUpdates();
     }
 
     //sets the quantity of an item
@@ -286,6 +297,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
             torpedo_quantities[item_index] = new_quantity;
         }
         displayAdjustment();
+        sendInventoryUpdates();
     }
 
     //returns the quantity of that item (or -1 if incorrect name)

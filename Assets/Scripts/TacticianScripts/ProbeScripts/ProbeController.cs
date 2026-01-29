@@ -354,6 +354,15 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    //called when a probe is collected
+    public void probeCollected()
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            transmitProbeConnectionChangeRPC(false, false);
+        }
+    }
+
     //returns true if probe is connected and in range
     public bool probeInRange()
     {

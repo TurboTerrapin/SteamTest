@@ -312,6 +312,7 @@ public class ScenarioManager : NetworkBehaviour
         //reset certain controls
         GameObject.Find("SensorHandler").GetComponent<EnergyPatternManager>().clearAllPatterns();
         GameObject.Find("SensorHandler").GetComponent<PilotSCA>().resetToDefault();
+        GameObject.Find("ControlHandler").GetComponent<TractorBeamOptions>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<DirectionalShifter>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<ThreatDetectors>().resetToDefault();
         GameObject.Find("ControlHandler").GetComponent<MapOptions>().resetToDefault();

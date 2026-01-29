@@ -19,6 +19,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     private static float COOLDOWN_TIME = 1.5f;
     private static float CARGO_TRANSFORM_ADJUSTMENT_TIME = 3.0f;
     private static Vector3 PUSH_DIRECTION = new Vector3(0.006f, -0.0151f, 0.0f);
+    private static float[] SPAWN_X_COORDINATES = new float[] { -8.0f, 8.0f }; //cargo spawn positions so they don't bump into each other
 
     private string CONTROL_NAME = "CARGO EJECT";
     private static string INFO_MESSAGE = "Ejects whatever cargo is held in the cargo eject as loaded in the engineer position.";
@@ -41,9 +42,9 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private bool is_active = false;
+    private int spawn_index = 0;
     private float dial_turn_percentage = 0.0f;
     private Vector3 initial_pos;
-
     private Coroutine dial_turn_coroutine = null;
     private Coroutine cargo_eject_coroutine = null;
 
@@ -170,7 +171,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            ejected_item.transform.localPosition = new Vector3(ejected_item.transform.localPosition.x, ejected_item.transform.localPosition.y, Mathf.Lerp(35.0f, 0.0f, anim_time / CARGO_TRANSFORM_ADJUSTMENT_TIME));
+            ejected_item.transform.localPosition = new Vector3(ejected_item.transform.localPosition.x, ejected_item.transform.localPosition.y, Mathf.Lerp(40.0f, 0.0f, anim_time / CARGO_TRANSFORM_ADJUSTMENT_TIME));
 
             yield return null;
         }
@@ -191,7 +192,12 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
             Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
             int eject_index = cargo_eject_loader.getEjectItemIndex();
             GameObject ejected_item = GameObject.Instantiate(ejectable_items[eject_index], spaceship);
-            ejected_item.transform.position = new Vector3(spaceship.position.x + Random.Range(-10.0f, 10.0f), spaceship.position.y - 8.0f + Random.Range(-2.0f, 2.0f), spaceship.position.z);
+            spawn_index += 1;
+            if (spawn_index > SPAWN_X_COORDINATES.Length - 1)
+            {
+                spawn_index = 0;
+            }
+            ejected_item.transform.position = new Vector3(spaceship.position.x + SPAWN_X_COORDINATES[spawn_index], spaceship.position.y - 7.0f, spaceship.position.z);
             ejected_item.transform.rotation = spaceship.rotation;
             Vector3 curr_rotation = ejected_item.transform.rotation.eulerAngles;
             ejected_item.transform.rotation = Quaternion.Euler(curr_rotation.x + Random.Range(-15.0f, 15.0f), curr_rotation.y + Random.Range(-15.0f, 15.0f), curr_rotation.z + Random.Range(-15.0f, 15.0f));

@@ -36,7 +36,6 @@ public class CollectibleItem : MonoBehaviour
         if (NetworkManager.Singleton.IsHost == false)
         {
             Component.Destroy(transform.GetComponent<Collider>());
-            Component.Destroy(transform.GetComponent<Rigidbody>());
         }
 
         if (lit_mesh != null)

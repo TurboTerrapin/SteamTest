@@ -15,7 +15,6 @@ public class Cheeseball : MonoBehaviour
         if (NetworkManager.Singleton.IsHost == false)
         {
             Component.Destroy(transform.GetComponent<Collider>());
-            Component.Destroy(transform.GetComponent<Rigidbody>());
         }
         Destroy(this);
     }
