@@ -86,16 +86,16 @@ public class PlayerMove : NetworkBehaviour
     {
         animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
         GameObject to_orient = seat_manager.getSitDownPosition(pos, transform.position);
-        animator.SetBool("IsLeft", seat_manager.getSitDownDirection(pos, transform.position));
-        animator.SetInteger("Seat", pos);
+        myAnimationController.setAnimatorBool("IsLeft", seat_manager.getSitDownDirection(pos, transform.position));
+        myAnimationController.setAnimatorInteger("Seat", pos);
         reposition_coroutine = StartCoroutine(repositionPlayer(to_orient.transform.localPosition + to_orient.transform.parent.localPosition, to_orient.transform.localRotation.eulerAngles.y, 0.2f));
 
         yield return reposition_coroutine;
         reposition_coroutine = null;
 
         animator.applyRootMotion = true;
-        animator.SetBool("SittingDown", true);
-        animator.SetBool("GettingUp", false); //trigger sit down animation
+        myAnimationController.setAnimatorBool("SittingDown", true);
+        myAnimationController.setAnimatorBool("GettingUp", false); //trigger sit down animation
     }
 
     public void getUp(int pos)
@@ -110,7 +110,7 @@ public class PlayerMove : NetworkBehaviour
         Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
 
         myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
-        animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
+        myAnimationController.setIKActive(false);
         transform.GetComponent<CameraMove>().lockCamera();
 
         Quaternion starting_rotation = camera_transform.localRotation;
@@ -133,8 +133,8 @@ public class PlayerMove : NetworkBehaviour
         yield return new WaitForSeconds(0.05f);
 
         camera_transform.parent = transform.GetComponent<CameraMove>().head_transform;
-        animator.SetBool("IsLeft", seat_manager.getGetUpDirection(pos));
-        animator.SetBool("GettingUp", true); //trigger get up animation
+        myAnimationController.setAnimatorBool("IsLeft", seat_manager.getGetUpDirection(pos));
+        myAnimationController.setAnimatorBool("GettingUp", true); //trigger get up animation
     }
 
     //orients player and camera for sit down
@@ -256,8 +256,8 @@ public class PlayerMove : NetworkBehaviour
     {
         Vector3 movement; //= Vector3.zero;
 
-        animator.SetFloat("Movement", moveDir.magnitude);
-        animator.SetFloat("Forward", moveDir.y);
+        myAnimationController.setAnimatorFloat("Movement", moveDir.magnitude);
+        myAnimationController.setAnimatorFloat("Forward", moveDir.y);
 
         if (transform.parent != null) //local movement
         {

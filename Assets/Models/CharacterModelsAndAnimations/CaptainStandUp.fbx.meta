@@ -38,15 +38,15 @@ ModelImporter:
       lastFrame: 120
       wrapMode: 0
       orientationOffsetY: 180
-      level: 0
+      level: 0.5
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
       keepOriginalOrientation: 1
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 1
@@ -54,7 +54,14 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000000000001000000010000000000000000000000000000000000000000000000000000000000000000000000
       curves: []
-      events: []
+      events:
+      - time: 1
+        functionName: onGetUpAnimationEnd
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: c8c0110d32b87e44b8a051e370bd9bd7, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {fileID: 31900000, guid: 1f4fa90a03c8948448ad0055f545a6e8, type: 2}

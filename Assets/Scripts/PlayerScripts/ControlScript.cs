@@ -469,6 +469,7 @@ public class ControlScript : MonoBehaviour
                         if (target_IK != null)
                         {
                             //Debug.Log(Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up));
+                            //Chooses the arm to move to the control by finding which side of the body the control is on
                             if (Vector3.SignedAngle(myPlayer.transform.forward, plr_camera.transform.forward, myPlayer.transform.up) > 0)
                             //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
                             {

@@ -9,13 +9,32 @@ public class AnimationController : MonoBehaviour
     [SerializeField]
     private AnimatorHandler myAnimatorHandler = null;
 
+    /*
     [SerializeField]
     private float x, y, z, w;
 
-    //private void Update()
-    //{
-    //    x = transform.localRotation.x; y = transform.localRotation.y; z = transform.localRotation.z; w = transform.localRotation.w;
-    //}
+    [SerializeField]
+    private float Movement, Forward, HandPose;
+
+    [SerializeField]
+    private bool SittingDown, GettingUp, IsLeft;
+
+    [SerializeField]
+    private int Seat;
+
+    private void Update()
+    {
+        //x = transform.localRotation.x; y = transform.localRotation.y; z = transform.localRotation.z; w = transform.localRotation.w;
+        SittingDown = myAnimator.GetBool("SittingDown");
+        GettingUp = myAnimator.GetBool("GettingUp");
+        Movement = myAnimator.GetFloat("Movement");
+        Forward = myAnimator.GetFloat("Forward");
+        Seat = myAnimator.GetInteger("Seat");
+        IsLeft = myAnimator.GetBool("IsLeft");
+        HandPose = myAnimator.GetFloat("HandPose");
+    }
+    */
+
 
     public void setIKActive(bool value)
     {
@@ -62,14 +81,34 @@ public class AnimationController : MonoBehaviour
     {
         myAnimator.transform.localPosition = pos;
     }
-    public void setCharacterPositionXY()
+    public void setCharacterPositionXZ()
     {
         myAnimator.transform.localPosition = new Vector3(0, -0.3f, 0);
     }
-    public void setCharacterPositionXY(Vector3 pos)
+    public void setCharacterPositionX(float pos)
+    {
+        myAnimator.transform.localPosition = new Vector3(pos, 0, 0);
+    }
+    public void setCharacterPositionZ(float pos)
+    {
+        myAnimator.transform.localPosition = new Vector3(0, 0, pos);
+    }
+    public void setCharacterPositionXZ(Vector3 pos)
     {
         pos = new Vector3(pos.x, myAnimator.transform.position.y, pos.z);
         myAnimator.transform.localPosition = pos;
+    }
+    public void setAnimatorBool(string name, bool value)
+    {
+        myAnimator.SetBool(name, value);
+    }
+    public void setAnimatorFloat(string name, float value)
+    {
+        myAnimator.SetFloat(name, value);
+    }
+    public void setAnimatorInteger(string name, int value)
+    {
+        myAnimator.SetInteger(name, value);
     }
 
     public void setPlayerRotationLock(bool value)

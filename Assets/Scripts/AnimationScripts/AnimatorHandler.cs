@@ -33,6 +33,7 @@ public class AnimatorHandler : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
+        animator.applyRootMotion = true;
     }
 
     public void setIKActive(bool value)
