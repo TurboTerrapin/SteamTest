@@ -1,15 +1,18 @@
 /*
-    EngineerInventory.cs
+    ShipInventory.cs
     - Handles keeping track of normal items and torpedo items for the whole ship
+    - Updates inventory display in engineer position
+    - Only the host accepts add/remove/set item queries and passes on to other clients
     Contributor(s): Jake Schott
-    Last Updated: 1/27/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
-public class EngineerInventory : MonoBehaviour, IPowerable
+public class ShipInventory : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     public static List<string> ITEM_NAMES = new List<string>() { "Probe", "Escape Pod", "Shield Battery", "Cargo Container" };
@@ -17,7 +20,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
     private static List<int> ITEM_WEIGHTS = new List<int>() { 1200, 3500, 500, 5000 };
     private static List<Vector2> ITEM_SIZES = new List<Vector2>() { new Vector2(3.6f, 3.6f), new Vector2(4.2f, 4.8f), new Vector2(3.3f, 4.1f), new Vector2(4.5f, 4.5f) };
 
-    public static List<string> TORPEDO_NAMES = new List<string>() { "Photon", "Proton", "Ion",  "Quantum", "Superluminal", "Chroniton" };
+    public static List<string> TORPEDO_NAMES = new List<string>() { "Photon", "Proton", "Ion", "Quantum", "Superluminal", "Chroniton" };
     private static List<int> TORPEDO_IDS = new List<int>() { 302025, 302022, 302001, 301995, 301997, 382000 };
     private static List<int> TORPEDO_WEIGHTS = new List<int>() { 5000, 3350, 6000, 1100, 500, 8900 };
     private static List<Vector2> TORPEDO_SIZES = new List<Vector2>() { new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.5f, 4.1f) };
@@ -26,6 +29,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
 
     private ProbeController probe_controller;
     private CargoEjectLoader cargo_eject_loader;
+    private ShieldStrength shield_strength;
     private GameObject item_count_indicators;
     private GameObject torpedo_count_indicators;
 
@@ -34,14 +38,87 @@ public class EngineerInventory : MonoBehaviour, IPowerable
     //actual # of torpedoes in inventory (Photon, Ion, Proton, Quantum, Superluminal, Chroniton)
     private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 1, 1 };
 
+    private List<string> used_serial_nums = new List<string>();
+    private Stack<string>[] item_serial_nums;
+    private Stack<string>[] torpedo_serial_nums;
+
     private void Start()
     {
         probe_controller = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>();
         cargo_eject_loader = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<CargoEjectLoader>();
+        shield_strength = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ShieldStrength>();
         item_count_indicators = inventory_display.transform.GetChild(1).gameObject;
         torpedo_count_indicators = inventory_display.transform.GetChild(2).gameObject;
 
+        //if host, initialize and begin handling serial numbers
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            item_serial_nums = new Stack<string>[item_quantities.Count];
+            torpedo_serial_nums = new Stack<string>[torpedo_quantities.Count];
+
+            //initialize items
+            for (int i = 0; i < item_quantities.Count; i++)
+            {
+                item_serial_nums[i] = new Stack<string>();
+                for (int x = 0; x < item_quantities[i]; x++)
+                {
+                    bool serial_num_found = false;
+                    string serial_num = "";
+                    while (serial_num_found == false)
+                    {
+                        serial_num = generateSerialNumber();
+                        serial_num_found = !serialNumberExists(serial_num);
+                    }
+                    item_serial_nums[i].Push(serial_num);
+                    used_serial_nums.Add(serial_num);
+                }
+            }
+
+            //initialize torpedoes
+            for (int i = 0; i < torpedo_quantities.Count; i++)
+            {
+                torpedo_serial_nums[i] = new Stack<string>();
+                for (int x = 0; x < torpedo_quantities[i]; x++)
+                {
+                    bool serial_num_found = false;
+                    string serial_num = "";
+                    while (serial_num_found == false)
+                    {
+                        serial_num = generateSerialNumber();
+                        serial_num_found = !serialNumberExists(serial_num);
+                    }
+                    torpedo_serial_nums[i].Push(serial_num);
+                    used_serial_nums.Add(serial_num);
+                }
+            }
+
+        }
+
         displayAdjustment();
+    }
+
+    //generates a new serial code at random
+    public string generateSerialNumber()
+    {
+        string serialNumber = "";
+        for (int x = 0; x < 5; x++)
+        {
+            serialNumber += Random.Range(0, 10) + " ";
+        }
+        return serialNumber;
+    }
+
+    //returns true if a serial number has been occupied
+    public bool serialNumberExists(string serial_num)
+    {
+        for (int i = 0; i < used_serial_nums.Count; i++)
+        {
+            if (serial_num.CompareTo(used_serial_nums[i]) == 0)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     //updates the entire inventory screen based on item_quantities and torpedo_quantities
@@ -184,7 +261,7 @@ public class EngineerInventory : MonoBehaviour, IPowerable
         }
 
         List<string>[] possible_items = new List<string>[] { ITEM_NAMES, TORPEDO_NAMES };
-        return possible_items[item_category].Count; 
+        return possible_items[item_category].Count;
     }
 
     //links to ProbeController and CargoEjectLoader
@@ -192,12 +269,82 @@ public class EngineerInventory : MonoBehaviour, IPowerable
     {
         probe_controller.onInventoryChange(item_quantities[0]);
         cargo_eject_loader.onInventoryChange();
+        shield_strength.onInventoryChange(item_quantities[2]);
+    }
+
+    private void addItemHelper(int item_category, int item_index, string serial_num)
+    {
+        int quantity = -1;
+
+        if (item_category == 0)
+        {
+            item_quantities[item_index] += 1;
+            quantity = item_quantities[item_index];
+            item_serial_nums[item_index].Push(serial_num);
+        }
+        else
+        {
+            torpedo_quantities[item_index] += 1;
+            quantity = torpedo_quantities[item_index];
+            torpedo_serial_nums[item_index].Push(serial_num);
+        }
+
+        itemInventoryUpdateRPC(item_category, item_index, quantity);
+    }
+
+    private void addItemsHelper(int item_category, int item_index, Stack<string> serial_nums)
+    {
+        int quantity = -1;
+
+        while (serial_nums.Count > 0)
+        {
+            string serial_num = serial_nums.Pop();
+            if (item_category == 0)
+            {
+                item_quantities[item_index] += 1;
+                quantity = item_quantities[item_index];
+                item_serial_nums[item_index].Push(serial_num);
+            }
+            else
+            {
+                torpedo_quantities[item_index] += 1;
+                quantity = torpedo_quantities[item_index];
+                torpedo_serial_nums[item_index].Push(serial_num);
+            }
+        }
+
+        itemInventoryUpdateRPC(item_category, item_index, quantity);
+    }
+
+    //adds as many items in the stack of serial numbers
+    public void addItems(int item_category, int item_index, Stack<string> serial_nums)
+    {
+        if (getItemTexture(item_category, item_index) == null || NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        addItemsHelper(item_category, item_index, serial_nums);
+    }
+
+    //adds as many items as in the stack of serial numbers
+    public void addItems(string item_name, Stack<string> serial_nums)
+    {
+        if (getItemTexture(item_name) == null || NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        int item_category = getItemCategoryFromName(item_name);
+        int item_index = getItemIndexFromName(item_name);
+
+        addItemsHelper(item_category, item_index, serial_nums);
     }
 
     //adds the item (if the name is valid)
-    public void addItem(string item_name)
+    public void addItem(string item_name, string serial_num)
     {
-        if (getItemTexture(item_name) == null)
+        if (getItemTexture(item_name) == null || NetworkManager.Singleton.IsHost == false)
         {
             return;
         }
@@ -205,85 +352,72 @@ public class EngineerInventory : MonoBehaviour, IPowerable
         int item_category = getItemCategoryFromName(item_name);
         int item_index = getItemIndexFromName(item_name);
 
-        if (item_category == 0)
-        {
-            item_quantities[item_index] += 1;
-        }
-        else
-        {
-            torpedo_quantities[item_index] += 1;
-        }
-        displayAdjustment();
-        sendInventoryUpdates();
+        addItemHelper(item_category, item_index, serial_num);
     }
 
     //adds the item (if the category/index is valid)
-    public void addItem(int item_category, int item_index)
+    public void addItem(int item_category, int item_index, string serial_num)
     {
-        if (getItemTexture(item_category, item_index) == null)
+        if (getItemTexture(item_category, item_index) == null || NetworkManager.Singleton.IsHost == false)
         {
             return;
         }
+
+        addItemHelper(item_category, item_index, serial_num);
+    }
+
+    //helper method for removeItem()
+    private string removeItemHelper(int item_category, int item_index)
+    {
+        int quantity = -1;
+        string serial_num = "";
 
         if (item_category == 0)
         {
-            item_quantities[item_index] += 1;
+            item_quantities[item_index] = Mathf.Max(0, item_quantities[item_index] - 1);
+            quantity = item_quantities[item_index];
+            serial_num = item_serial_nums[item_index].Pop();
         }
         else
         {
-            torpedo_quantities[item_index] += 1;
+            torpedo_quantities[item_index] = Mathf.Max(0, torpedo_quantities[item_index] - 1);
+            serial_num = torpedo_serial_nums[item_index].Pop();
         }
-        displayAdjustment();
-        sendInventoryUpdates();
+
+        itemInventoryUpdateRPC(item_category, item_index, quantity);
+
+        return serial_num;
     }
 
-    //removes an item if it exists (or stays at 0 if already 0)
-    public void removeItem(string item_name)
+    //removes an item if it exists (or stays at 0 if already 0) and returns corresponding serial number
+    public string removeItem(string item_name)
     {
-        if (getItemTexture(item_name) == null)
+        if (getItemTexture(item_name) == null || NetworkManager.Singleton.IsHost == false)
         {
-            return;
+            return "";
         }
 
         int item_category = getItemCategoryFromName(item_name);
         int item_index = getItemIndexFromName(item_name);
 
-        if (item_category == 0)
-        {
-            item_quantities[item_index] = Mathf.Max(0, item_quantities[item_index] - 1);
-        }
-        else
-        {
-            torpedo_quantities[item_index] = Mathf.Max(0, torpedo_quantities[item_index] - 1);
-        }
-        displayAdjustment();
-        sendInventoryUpdates();
+        return removeItemHelper(item_category, item_index);
     }
 
-    //removes the item (if the category/index is valid)
-    public void removeItem(int item_category, int item_index)
+    //removes the item (if the category/index is valid) and returns corresponding serial number
+    public string removeItem(int item_category, int item_index)
     {
-        if (getItemTexture(item_category, item_index) == null)
+        if (getItemTexture(item_category, item_index) == null || NetworkManager.Singleton.IsHost == false)
         {
-            return;
+            return "";
         }
 
-        if (item_category == 0)
-        {
-            item_quantities[item_index] = Mathf.Max(0, item_quantities[item_index] - 1);
-        }
-        else
-        {
-            torpedo_quantities[item_index] = Mathf.Max(0, torpedo_quantities[item_index] - 1);
-        }
-        displayAdjustment();
-        sendInventoryUpdates();
+        return removeItemHelper(item_category, item_index);
     }
 
     //sets the quantity of an item
     public void setItemQuantity(int item_category, int item_index, int new_quantity)
     {
-        if (getItemTexture(item_category, item_index) == null)
+        if (getItemTexture(item_category, item_index) == null || NetworkManager.Singleton.IsHost == false)
         {
             return;
         }
@@ -296,8 +430,8 @@ public class EngineerInventory : MonoBehaviour, IPowerable
         {
             torpedo_quantities[item_index] = new_quantity;
         }
-        displayAdjustment();
-        sendInventoryUpdates();
+
+        itemInventoryUpdateRPC(item_category, item_index, new_quantity);
     }
 
     //returns the quantity of that item (or -1 if incorrect name)
@@ -397,5 +531,20 @@ public class EngineerInventory : MonoBehaviour, IPowerable
     public void powerOff(int position, float time)
     {
         inventory_display.SetActive(false);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void itemInventoryUpdateRPC(int item_category, int item_index, int quantity)
+    {
+        if (item_category == 0)
+        {
+            item_quantities[item_index] = quantity;
+        }
+        else
+        {
+            torpedo_quantities[item_index] = quantity;
+        }
+        displayAdjustment();
+        sendInventoryUpdates();
     }
 }

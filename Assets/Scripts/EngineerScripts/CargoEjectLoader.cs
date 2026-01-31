@@ -2,7 +2,7 @@
     CargoEjectLoader.cs
     - Handles the loading and unloading of items in the cargo eject launcher
     Contributor(s): Jake Schott
-    Last Updated: 1/23/2026
+    Last Updated: 1/30/2026
 */
 
 using System.Collections;
@@ -30,7 +30,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     public GameObject cargo_eject_item_variation_switch;
     public GameObject cargo_eject_load_dial;
 
-    private EngineerInventory engineer_inventory;
+    private ShipInventory ship_inventory;
     private CargoEject cargo_eject;
 
     private bool is_powered = false;
@@ -38,6 +38,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     private int item_variation_index = 0;
     private bool item_loaded = false;
     private bool item_ejecting = false;
+    private string item_serial_num = "";
     private Vector3 item_type_switch_initial_position;
     private Vector3 item_type_switch_direction = new Vector3(-0.0182f, 0.0f, -0.0182f);
     private Coroutine item_type_adjustment_coroutine = null;
@@ -50,7 +51,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        engineer_inventory = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerInventory>();
+        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
         cargo_eject = transform.GetComponent<CargoEject>();
 
         item_type_switch_initial_position = cargo_eject_item_type_switch.transform.localPosition;
@@ -113,27 +114,39 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
     public Texture getCurrentItemImage()
     {
-        return engineer_inventory.getItemTexture(item_type_category, item_variation_index);
+        return ship_inventory.getItemTexture(item_type_category, item_variation_index);
     }
 
     public Color getCurrentItemColor()
     {
-        return engineer_inventory.getItemColor(item_type_category, item_variation_index);
+        return ship_inventory.getItemColor(item_type_category, item_variation_index);
+    }
+
+    public string getCurrentItemSerialNumber()
+    {
+        return item_serial_num;
     }
 
     public int getEjectItemIndex()
     {
-        return (item_type_category * EngineerInventory.ITEM_NAMES.Count) + item_variation_index;
+        return (item_type_category * ShipInventory.ITEM_NAMES.Count) + item_variation_index;
     }
 
     public void onInventoryChange()
     {
         displayAdjustment(cargo_eject_load_confirmation_coroutine != null);
+        if (is_powered == true)
+        {
+            if (cargo_eject_load_confirmation_coroutine == null && item_type_adjustment_coroutine == null && item_variation_adjustment_coroutine == null)
+            {
+                activateButtons();
+            }
+        }
     }
 
     private void displayAdjustment(bool adjusting)
     {
-        string name_of_item = engineer_inventory.getItemName(item_type_category, item_variation_index);
+        string name_of_item = ship_inventory.getItemName(item_type_category, item_variation_index);
 
         TMP_Text item_name = cargo_eject_load_display.transform.GetChild(0).GetComponent<TMP_Text>();
         TMP_Text item_id = cargo_eject_load_display.transform.GetChild(1).GetComponent<TMP_Text>();
@@ -141,11 +154,11 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         TMP_Text item_info = cargo_eject_load_display.transform.GetChild(3).GetComponent<TMP_Text>();
         TMP_Text quantity_text = cargo_eject_load_display.transform.GetChild(4).GetComponent<TMP_Text>();
 
-        Color item_color = engineer_inventory.getItemColor(item_type_category, item_variation_index);
+        Color item_color = ship_inventory.getItemColor(item_type_category, item_variation_index);
 
         //make transparent if none available/loading
         float a = 1.0f;
-        if (engineer_inventory.getItemQuantity(item_type_category, item_variation_index) <= 0 || item_loaded == true || adjusting == true)
+        if (ship_inventory.getItemQuantity(item_type_category, item_variation_index) <= 0 || item_loaded == true || adjusting == true)
         {
             a = 0.2f;
         }
@@ -162,16 +175,16 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
         //set id text
         item_id.color = item_color;
-        item_id.SetText("ITEM ID: " + engineer_inventory.getItemID(name_of_item));
+        item_id.SetText("ITEM ID: " + ship_inventory.getItemID(name_of_item));
 
         //set icon
         item_icon.color = item_color;
-        item_icon.texture = engineer_inventory.getItemTexture(item_type_category, item_variation_index);
+        item_icon.texture = ship_inventory.getItemTexture(item_type_category, item_variation_index);
 
         //set item info
         item_info.color = item_color;
-        Vector2 item_size = engineer_inventory.getItemSize(name_of_item);
-        item_info.SetText("WEIGHT: " + engineer_inventory.getItemWeight(name_of_item) + "kg\nHEIGHT: " + item_size.x + "m\nLENGTH: " + item_size.y + "m");
+        Vector2 item_size = ship_inventory.getItemSize(name_of_item);
+        item_info.SetText("WEIGHT: " + ship_inventory.getItemWeight(name_of_item) + "kg\nHEIGHT: " + item_size.x + "m\nLENGTH: " + item_size.y + "m");
 
         //change bar colors
         foreach (Transform bar in cargo_eject_load_display.transform.GetChild(6))
@@ -196,7 +209,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         }
         else
         {
-            string item_quantity = "QUANTITY: " + engineer_inventory.getItemQuantity(item_type_category, item_variation_index);
+            string item_quantity = "QUANTITY: " + ship_inventory.getItemQuantity(item_type_category, item_variation_index);
             quantity_text.SetText(item_quantity);
         }
     }
@@ -353,7 +366,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
             return false;
         }
 
-        if (engineer_inventory.getItemQuantity(item_type_category, item_variation_index) <= 0)
+        if (ship_inventory.getItemQuantity(item_type_category, item_variation_index) <= 0)
         {
             return false;
         }
@@ -411,7 +424,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
                     item_variation_index -= 1;
                     if (item_variation_index < 0)
                     {
-                        item_variation_index = engineer_inventory.getNumberOfItemVariations(item_type_category) - 1;
+                        item_variation_index = ship_inventory.getNumberOfItemVariations(item_type_category) - 1;
                     }
                     transmitItemVariationSwitchAdjustmentRPC(item_type_category, item_variation_index, true);
                 }
@@ -420,7 +433,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
                     BUTTON_LISTS[1][1].toggle();
                     BUTTON_LISTS[1][0].updateInteractable(false);
                     item_variation_index += 1;
-                    if (item_variation_index > engineer_inventory.getNumberOfItemVariations(item_type_category) - 1)
+                    if (item_variation_index > ship_inventory.getNumberOfItemVariations(item_type_category) - 1)
                     {
                         item_variation_index = 0;
                     }
@@ -432,7 +445,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (getCurrentlyLoadable() || item_loaded == true)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[3], inputs)) 
+                if (ControlScript.checkInputIndex(CONTROL_INDEXES[3], inputs))
                 {
                     BUTTON_LISTS[2][0].toggle(0.2f);
                     BUTTON_LISTS[2][0].updateInteractable(false);
@@ -527,13 +540,16 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         item_type_category = itc;
         item_variation_index = ivi;
 
-        if (load == true)
+        if (NetworkManager.Singleton.IsHost == true)
         {
-            engineer_inventory.removeItem(item_type_category, item_variation_index);
-        }
-        else
-        {
-            engineer_inventory.addItem(item_type_category, item_variation_index);
+            if (load == true)
+            {
+                item_serial_num = ship_inventory.removeItem(item_type_category, item_variation_index);
+            }
+            else
+            {
+                ship_inventory.addItem(item_type_category, item_variation_index, item_serial_num);
+            }
         }
 
         cargo_eject_load_confirmation_coroutine = StartCoroutine(itemLoadConfirmation(load));

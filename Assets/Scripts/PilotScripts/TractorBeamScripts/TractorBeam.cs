@@ -181,7 +181,7 @@ public class TractorBeam : NetworkBehaviour
                 OnLitIndicatorChangeRPC(currentlyAttracting);
             }
 
-            yield return null;
+            yield return new WaitForFixedUpdate();
         }
 
         activeTargetXforms.Clear();
@@ -220,7 +220,7 @@ public class TractorBeam : NetworkBehaviour
 
         foreach (Collider collider in potentialTargets)
         {
-            if (collider.GetComponent<CollectibleItem>() != null)
+            if (collider.GetComponent<ITractorBeamable>() != null)
             {
                 Vector3 toTarget = collider.transform.position - beamOrigin;
                 float distance = toTarget.magnitude;
@@ -272,13 +272,7 @@ public class TractorBeam : NetworkBehaviour
 
                 if (distance <= captureDistance)
                 {
-                    // Temporary
-                    string serialNumber = "";
-                    for (int x = 0; x < 5; x++)
-                    {
-                        serialNumber += Random.Range(0, 10) + " ";
-                    }
-
+                    string serialNumber = targetXform.GetComponent<CollectibleItem>().getSerialNumber();
                     OnTargetCapturedRPC(targetXform.GetComponent<NetworkObject>().NetworkObjectId, serialNumber);
                     return; // Stop attracting, target found
                 }

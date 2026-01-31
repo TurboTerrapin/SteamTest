@@ -2,10 +2,9 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/30/2026
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -37,7 +36,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     public GameObject torpedo_direction_slider;
     public GameObject torpedo_confirmation_switch;
 
-    private EngineerInventory engineer_inventory;
+    private ShipInventory ship_inventory;
 
     private bool is_powered = false;
     private int[] torpedo_bay_slots = new int[4] { -1, -1, -1, -1 };
@@ -55,7 +54,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        engineer_inventory = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerInventory>();
+        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
 
         torpedo_direction_slider_initial_position = torpedo_direction_slider.transform.localPosition;
 
@@ -98,11 +97,11 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         UnityEngine.UI.RawImage torpedo_icon = torpedo_selection_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
         TMP_Text torpedo_text = torpedo_selection_display.transform.GetChild(1).GetComponent<TMP_Text>();
 
-        Color torpedo_color = engineer_inventory.getItemColor(1, current_torpedo_selection);
+        Color torpedo_color = ship_inventory.getItemColor(1, current_torpedo_selection);
 
         //make transparent if none available
         float a = 1.0f;
-        if (engineer_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
+        if (ship_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
         {
             a = 0.2f;
         }
@@ -110,16 +109,16 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         //set icon
         torpedo_icon.color = torpedo_color;
-        torpedo_icon.texture = engineer_inventory.getItemTexture(1, current_torpedo_selection);
+        torpedo_icon.texture = ship_inventory.getItemTexture(1, current_torpedo_selection);
 
         //set text
         torpedo_text.color = torpedo_color;
-        torpedo_text.SetText((engineer_inventory.getItemName(1, current_torpedo_selection) + " TORPEDO").ToUpper());
+        torpedo_text.SetText((ship_inventory.getItemName(1, current_torpedo_selection) + " TORPEDO").ToUpper());
 
         //adjust lit indicator on confirmation switch
         if (is_powered == true)
         {
-            changeDialLitIndicator((engineer_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
+            changeDialLitIndicator((ship_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
         }
     }
 
@@ -144,7 +143,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         //adjust lit indicator on confirmation switch
         if (is_powered == true)
         {
-            changeDialLitIndicator((engineer_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
+            changeDialLitIndicator((ship_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
         }
     }
 
@@ -168,7 +167,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
             return false;
         }
 
-        if (engineer_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
+        if (ship_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
         {
             return false;
         }
@@ -294,8 +293,8 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
             if (i == 0)
             {
-                Texture torpedo_icon = engineer_inventory.getItemTexture(1, torpedo_type);
-                Color torpedo_color = engineer_inventory.getItemColor(1, torpedo_type);
+                Texture torpedo_icon = ship_inventory.getItemTexture(1, torpedo_type);
+                Color torpedo_color = ship_inventory.getItemColor(1, torpedo_type);
                 torpedo_color = new Color(torpedo_color.r, torpedo_color.g, torpedo_color.b, 1.0f);
 
                 //update both torpedo loader display and ship overview display
@@ -343,7 +342,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
                     current_torpedo_selection -= 1;
                     if (current_torpedo_selection < 0)
                     {
-                        current_torpedo_selection = engineer_inventory.getNumberOfItemVariations(1) - 1;
+                        current_torpedo_selection = ship_inventory.getNumberOfItemVariations(1) - 1;
                     }
                     transmitTorpedoSelectionAdjustmentRPC(current_torpedo_selection, true);
                 }
@@ -352,7 +351,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
                     BUTTON_LISTS[0][1].toggle();
                     BUTTON_LISTS[0][0].updateInteractable(false);
                     current_torpedo_selection += 1;
-                    if (current_torpedo_selection > engineer_inventory.getNumberOfItemVariations(1) - 1)
+                    if (current_torpedo_selection > ship_inventory.getNumberOfItemVariations(1) - 1)
                     {
                         current_torpedo_selection = 0;
                     }
@@ -468,7 +467,10 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     {
         torpedo_bay_slots[torpedo_bay] = torpedo_selection;
 
-        engineer_inventory.removeItem(1, torpedo_selection);
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            ship_inventory.removeItem(1, torpedo_selection);
+        }
 
         if (torpedo_confirmation_coroutine != null)
         {

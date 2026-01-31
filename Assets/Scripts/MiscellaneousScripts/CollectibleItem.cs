@@ -1,15 +1,16 @@
 /*
     CollectibleItem.cs
+    - Implements ITractorBeamable
     - Used for items that can be collected once pulled in by the tractor beam
     - Handles illuminating/hiding objects (activated/deactivated by ShipBeacon in captain position)
     Contributor(s): Jake Schott
-    Last Updated: 1/23/2026
-*/
+    Last Updated: 1/30/2026
+*/ 
 
 using Unity.Netcode;
 using UnityEngine;
 
-public class CollectibleItem : MonoBehaviour
+public class CollectibleItem : MonoBehaviour, ITractorBeamable
 {
     //CLASS CONSTANTS
     private static float BRIGHTNESS_FACTOR = 5.0f; //5 times brighter when ship beacon enabled
@@ -27,7 +28,7 @@ public class CollectibleItem : MonoBehaviour
 
     private Material starting_material;
     private float[] starting_light_intensities;
-    private int serial_num; //unique identifier
+    private string serial_num; //unique identifier
     private bool is_probe = false;
 
     private void Start()
@@ -96,6 +97,16 @@ public class CollectibleItem : MonoBehaviour
         }
     }
 
+    public Texture getItemTexture()
+    {
+        return GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>().getItemTexture(item_category, item_index);
+    }
+
+    public Color getItemColor()
+    {
+        return GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>().getItemColor(item_category, item_index);
+    }
+
     public int getItemCategory()
     {
         return item_category;
@@ -106,7 +117,7 @@ public class CollectibleItem : MonoBehaviour
         return item_index;
     }
 
-    public int getSerialNumber()
+    public string getSerialNumber()
     {
         return serial_num;
     }
@@ -129,14 +140,14 @@ public class CollectibleItem : MonoBehaviour
 
         if (item_category == 0)
         {
-            if (index >= EngineerInventory.ITEM_NAMES.Count)
+            if (index >= ShipInventory.ITEM_NAMES.Count)
             {
                 return;
             }
         }
         else
         {
-            if (index >= EngineerInventory.TORPEDO_NAMES.Count)
+            if (index >= ShipInventory.TORPEDO_NAMES.Count)
             {
                 return;
             }
@@ -145,13 +156,8 @@ public class CollectibleItem : MonoBehaviour
         item_index = index;
     }
 
-    public void setSerialNumber(int serial)
+    public void setSerialNumber(string serial)
     {
-        if (serial < 0 || serial > 99999)
-        {
-            return;
-        }
-
         serial_num = serial;
     }
 }

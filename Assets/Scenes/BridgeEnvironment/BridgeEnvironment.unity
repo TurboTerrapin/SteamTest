@@ -24659,7 +24659,6 @@ GameObject:
   - component: {fileID: 119684225}
   - component: {fileID: 119684216}
   - component: {fileID: 119684220}
-  - component: {fileID: 119684222}
   - component: {fileID: 119684221}
   m_Layer: 0
   m_Name: SensorHandler
@@ -24852,19 +24851,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   phaser_heat_display: {fileID: 1514793765}
---- !u!114 &119684222
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 119684208}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13d7800a77fd4264880ceb85aa322bd0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inventory_display: {fileID: 1331838815}
 --- !u!114 &119684223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41708,7 +41694,7 @@ GameObject:
   - component: {fileID: 204116774}
   - component: {fileID: 204116773}
   - component: {fileID: 204116775}
-  m_Layer: 10
+  m_Layer: 9
   m_Name: PortCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -41740,10 +41726,10 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 256
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 1535
+    m_Bits: 1791
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
@@ -52425,6 +52411,7 @@ GameObject:
   - component: {fileID: 271686954}
   - component: {fileID: 271686956}
   - component: {fileID: 271686960}
+  - component: {fileID: 271686964}
   - component: {fileID: 271686959}
   - component: {fileID: 271686958}
   - component: {fileID: 271686963}
@@ -52633,6 +52620,19 @@ MonoBehaviour:
   - {fileID: 204116773}
   - {fileID: 1757304822}
   - {fileID: 887096632}
+--- !u!114 &271686964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271686953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a51381a0e4555b242bbe36a8289096e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inventory_display: {fileID: 1331838815}
 --- !u!1 &272199716
 GameObject:
   m_ObjectHideFlags: 0
@@ -161889,7 +161889,7 @@ GameObject:
   - component: {fileID: 818934481}
   - component: {fileID: 818934480}
   - component: {fileID: 818934482}
-  m_Layer: 10
+  m_Layer: 9
   m_Name: ForwardCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -161921,10 +161921,10 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 256
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 1535
+    m_Bits: 1791
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
@@ -174391,7 +174391,7 @@ GameObject:
   - component: {fileID: 887096633}
   - component: {fileID: 887096632}
   - component: {fileID: 887096634}
-  m_Layer: 10
+  m_Layer: 9
   m_Name: AftCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -174423,10 +174423,10 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 256
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 1535
+    m_Bits: 1791
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
@@ -351204,7 +351204,7 @@ GameObject:
   - component: {fileID: 1757304823}
   - component: {fileID: 1757304822}
   - component: {fileID: 1757304824}
-  m_Layer: 10
+  m_Layer: 9
   m_Name: StarboardCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -351236,10 +351236,10 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 256
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 1535
+    m_Bits: 1791
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0

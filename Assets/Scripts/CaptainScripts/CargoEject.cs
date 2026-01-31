@@ -203,6 +203,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
             ejected_item.transform.rotation = Quaternion.Euler(curr_rotation.x + Random.Range(-15.0f, 15.0f), curr_rotation.y + Random.Range(-15.0f, 15.0f), curr_rotation.z + Random.Range(-15.0f, 15.0f));
             ejected_item.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             ejected_item.GetComponent<NetworkObject>().TrySetParent(spaceship);
+            ejected_item.GetComponent<CollectibleItem>().setSerialNumber(cargo_eject_loader.getCurrentItemSerialNumber());
             StartCoroutine(cargoTransformAdjustment(ejected_item));
         }
         deactivate();

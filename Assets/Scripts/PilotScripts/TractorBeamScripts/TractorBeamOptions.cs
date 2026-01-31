@@ -28,7 +28,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
     public List<GameObject> option_displays;
     public List<GameObject> option_dials;
     private TractorBeam tractor_beam;
-    private EngineerInventory engineer_inventory;
+    private ShipInventory ship_inventory;
 
     private bool is_powered = false;
     private bool[] is_active = { false, false };
@@ -46,7 +46,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
     private void Start()
     {
         tractor_beam = GetComponent<TractorBeam>();
-        engineer_inventory = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerInventory>();
+        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
@@ -83,8 +83,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
         {
             return Color.black;
         }
-        CollectibleItem ci = tractor_beam.GetCapturedItem().GetComponent<CollectibleItem>();
-        return engineer_inventory.getItemColor(ci.getItemCategory(), ci.getItemIndex());
+        return tractor_beam.GetCapturedItem().GetComponent<ITractorBeamable>().getItemColor();
     }
 
     public Texture getCapturedItemTexture()
@@ -93,8 +92,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
         {
             return null;
         }
-        CollectibleItem ci = tractor_beam.GetCapturedItem().GetComponent<CollectibleItem>();
-        return engineer_inventory.getItemTexture(ci.getItemCategory(), ci.getItemIndex());
+        return tractor_beam.GetCapturedItem().GetComponent<ITractorBeamable>().getItemTexture();
     }
 
     private void displayTransparencyUpdate(float a)
@@ -329,7 +327,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
                 if (index == 1) //collect
                 {
                     CollectibleItem ci = item.GetComponent<CollectibleItem>();
-                    engineer_inventory.addItem(ci.getItemCategory(), ci.getItemIndex());
+                    ship_inventory.addItem(ci.getItemCategory(), ci.getItemIndex(), ci.getSerialNumber());
                 }
                 tractor_beam.GetCapturedItem().GetComponent<NetworkObject>().Despawn(true);
             }

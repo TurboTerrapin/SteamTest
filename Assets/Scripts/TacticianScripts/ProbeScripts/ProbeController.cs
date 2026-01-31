@@ -34,7 +34,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 
     private Transform ship = null;
     private GameObject current_probe = null;
-    private EngineerInventory engineer_inventory = null;
+    private ShipInventory ship_inventory = null;
     private TacticianProbeInfo tactician_probe_info = null;
 
     private bool is_powered = false;
@@ -57,7 +57,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     {
         ship = GameObject.FindGameObjectWithTag("Spaceship").transform;
         tactician_probe_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianProbeInfo>();
-        engineer_inventory = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerInventory>();
+        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -105,7 +105,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     }
 
     //spawns a probe, links probe to probe controls
-    private void spawnProbe()
+    private void spawnProbe(string serial_num)
     {
         //spawn probe as a NetworkObject if host
         if (NetworkManager.Singleton.IsHost == true)
@@ -121,6 +121,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             current_probe.transform.rotation = spaceship.rotation;
             current_probe.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             current_probe.GetComponent<NetworkObject>().TrySetParent(spaceship);
+            current_probe.GetComponent<CollectibleItem>().setSerialNumber(serial_num);
             transmitProbeConnectionChangeRPC(true, true);
             StartCoroutine(probeTransformAdjustment());
         }
@@ -156,7 +157,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             bool able_to_turn = (is_powered == true && ray_target_index == dial_to_check);
             if (dial_to_check == 0)
             {
-                able_to_turn = (able_to_turn == true && engineer_inventory.getItemQuantity(0, 0) > 0);
+                able_to_turn = (able_to_turn == true && ship_inventory.getItemQuantity(0, 0) > 0);
             }
             if (dial_to_check == 1)
             {
@@ -246,7 +247,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 
         if (current_probe == null && is_powered == true)
         {
-            if (engineer_inventory.getItemQuantity("Probe") > 0)
+            if (ship_inventory.getItemQuantity("Probe") > 0)
             {
                 active_dial = 0;
             }
@@ -266,7 +267,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     IEnumerator probeLaunchSequence()
     {
         dial_turn_coroutine = StartCoroutine(dialReturn());
-        engineer_inventory.removeItem("Probe");
+        string serial_num = ship_inventory.removeItem("Probe");
 
         float anim_time = FUNCTION_TIME;
         while (anim_time > 0.0f)
@@ -279,7 +280,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             yield return null;
         }
 
-        spawnProbe();
+        spawnProbe(serial_num);
         updateDialDisplays();
 
         probe_function_coroutine = null;
@@ -317,7 +318,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             probe_dial_displays[i].transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.05f;
         }
 
-        if (engineer_inventory.getItemQuantity("Probe") > 0)
+        if (ship_inventory.getItemQuantity("Probe") > 0)
         {
             BUTTON_LISTS[0][0].updateInteractable(true);
             active_dial = 0;
@@ -447,7 +448,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         }
         else
         {
-            if (engineer_inventory.getItemQuantity("Probe") > 0)
+            if (ship_inventory.getItemQuantity("Probe") > 0)
             {
                 tactician_probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 1.0f);
             }
@@ -522,7 +523,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         }
         else
         {
-            if (engineer_inventory.getItemQuantity("Probe") > 0)
+            if (ship_inventory.getItemQuantity("Probe") > 0)
             {
                 active_dial = 0;
                 BUTTON_LISTS[0][0].updateInteractable(true);
