@@ -16,6 +16,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
     private static float BUTTON_PUSH_TIME = 0.25f;
     private static float TIMING_BAR_MOVE_SPEED = 0.15f;
     private static float FURTHEST_TIMING_BAR_POINT = 0.1f;
+    private static Vector3 BUTTON_PUSH_DIRECTION = new Vector3(0.002f, -0.004f, -0.002f);
     private static float[] STAGE_WIDTHS = new float[3] { 0.04f, 0.03f, 0.02f };
     private static float[] ARROW_LOCATIONS = new float[3] { -0.079f, 0.0f, 0.079f};
 
@@ -32,7 +33,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
     private GameObject timing_bar;
 
     private bool currently_active = false;
-    private Vector3 button_push_direction = new Vector3(0.002f, -0.004f, -0.002f);
+
     private Vector3[] initial_positions = new Vector3[3];
     private int active_button = 0;
     private int stage = 0;
@@ -146,7 +147,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
             prsc_buttons[i].transform.localPosition = initial_positions[i];
         }
 
-        Vector3 final_pos = initial_positions[index] + button_push_direction;
+        Vector3 final_pos = initial_positions[index] + BUTTON_PUSH_DIRECTION;
         for (int i = 0; i <= 1; i++)
         {
             float half_time = BUTTON_PUSH_TIME * 0.5f;

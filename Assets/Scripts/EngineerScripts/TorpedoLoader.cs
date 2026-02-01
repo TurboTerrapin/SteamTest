@@ -2,7 +2,7 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 1/30/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,16 +17,13 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     private static float SELECTION_ADJUSTMENT_TIME = 0.25f;
     private static float DIRECTION_ADJUSTMENT_TIME = 0.5f;
     private static float LOAD_CONFIRMATION_TIME = 2.0f;
+    private static Vector3 TORPEDO_BAY_ADJUSTMENT_DIRECTION = new Vector3(-0.059f, 0.0f, -0.059f);
 
     private string[] CONTROL_NAMES = new string[] { "TORPEDO TYPE SELECTOR", "TORPEDO BAY SELECTOR", "TORPEDO BAY LOADER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Selects which torpedo to load.", "Selects which bay to load the torpedo into.", "Confirms the torpedo type and bay (cannot be unloaded once loaded)." };
     private List<string> CONTROL_DESCS = new List<string> { "SELECT LEFT", "SELECT RIGHT", "SHIFT LEFT", "SHIFT RIGHT", "LOAD" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5, 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
-
-    public Material lit_green;
-    public Material lit_red;
-    public Material unlit_neon;
 
     public GameObject torpedo_selection_display;
     public GameObject torpedo_direction_display;
@@ -43,7 +40,6 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     private int current_torpedo_selection = 0;
     private int current_torpedo_bay = 0;
     private Vector3 torpedo_direction_slider_initial_position;
-    private Vector3 torpedo_bay_adjustment_direction = new Vector3(-0.059f, 0.0f, -0.059f);
     private Coroutine torpedo_direction_adjustment_coroutine = null;
     private Coroutine torpedo_selection_adjustment_coroutine = null;
     private Coroutine torpedo_confirmation_coroutine = null;
@@ -69,8 +65,6 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         hud_info.setButtons(BUTTON_LISTS[0], 7);
         hud_info.setInfo(INFO_MESSAGES[0]);
-
-        displayTorpedoSelectionAdjustment();
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -149,13 +143,13 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
     private void changeDialLitIndicator(bool is_green)
     {
-        if (is_green)
+        if (is_green == true)
         {
-            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = lit_green;
+            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
         }
         else
         {
-            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = lit_red;
+            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
         }
     }
 
@@ -235,7 +229,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     IEnumerator torpedoDirectionAdjustment()
     {
         Vector3 start_pos = torpedo_direction_slider.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(torpedo_direction_slider_initial_position, torpedo_direction_slider_initial_position + torpedo_bay_adjustment_direction, current_torpedo_bay / 3.0f);
+        Vector3 dest_pos = Vector3.Lerp(torpedo_direction_slider_initial_position, torpedo_direction_slider_initial_position + TORPEDO_BAY_ADJUSTMENT_DIRECTION, current_torpedo_bay / 3.0f);
 
         darkenTorpedoDirections();
 
@@ -428,7 +422,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
 
-        torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+        torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
 
         deactivateButtons();
 

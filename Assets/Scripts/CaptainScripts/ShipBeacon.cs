@@ -5,7 +5,7 @@
     - Handles flashing of circle
     - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
-    Last Updated: 1/15/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -25,9 +25,6 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
     private List<string> CONTROL_DESCS = new List<string> { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button> BUTTONS = new List<Button>();
-
-    public Material lit_neon;
-    public Material unlit_neon;
 
     public GameObject ship_beacon_dial;
     public GameObject ship_beacon_display; //used to display the circle/flashing circle
@@ -63,11 +60,11 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         //update switch light
         if (beacon_enabled == true)
         {
-            ship_beacon_dial.transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
+            ship_beacon_dial.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
         }
         else
         {
-            ship_beacon_dial.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+            ship_beacon_dial.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
             displayCollectiblesLightChange(0.0f);
         }
 
@@ -151,7 +148,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         if (enabling == false)
         {
             beacon_enabled = false;
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
             hud_info.setPowerConsumption(0.0f);
             displayAdjustment();
         }
@@ -179,7 +176,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
         if (enabling == true)
         {
             beacon_enabled = true;
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
             displayAdjustment();
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);

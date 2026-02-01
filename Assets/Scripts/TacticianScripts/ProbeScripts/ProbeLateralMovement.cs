@@ -4,7 +4,7 @@
     - Adjusts probe controller screen (the four directional arcs)
     - Affects probe position if host
     Contributor(s): Jake Schott
-    Last Updated: 12/30/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
     //CLASS CONSTANTS
     private static float BUTTON_SPEED = 10.0f;
     private static float PROBE_SPEED = 10.0f;
+    private static Vector3 LATERAL_BUTTON_MOVE_DIRECTION = new Vector3(0.0016f, -0.006f, 0.0016f);
 
     private string CONTROL_NAME = "PROBE LATERAL MOVEMENT";
     private static string INFO_MESSAGE = "Handles the forward, reverse, left, and right movements of an active probe.";
@@ -32,12 +33,12 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
     private Vector3[] initial_positions = new Vector3[4];
     private Vector3[] final_positions = new Vector3[4];
     private float[] lateral_movement_factors = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f }; //forward, reverse, left, right
-    private Vector3 lateral_button_move_direction = new Vector3(0.0016f, -0.006f, 0.0016f);
     private Coroutine lateral_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -53,13 +54,15 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
         for (int i = 0; i <= 3; i++)
         {
             initial_positions[i] = lateral_buttons[i].transform.localPosition;
-            final_positions[i] = lateral_buttons[i].transform.localPosition + lateral_button_move_direction;
+            final_positions[i] = lateral_buttons[i].transform.localPosition + LATERAL_BUTTON_MOVE_DIRECTION;
         }
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
     private void displayAdjustment()
     {
         //push lateral buttons, update circle
@@ -70,7 +73,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
         }
 
         //notify probe controller
-        transform.GetComponent<ProbeController>().onProbeDistanceChange();
+        GetComponent<ProbeController>().onProbeDistanceChange();
     }
 
     public void linkProbe(GameObject new_probe)

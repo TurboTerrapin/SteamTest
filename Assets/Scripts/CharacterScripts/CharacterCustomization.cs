@@ -29,7 +29,7 @@ public class CharacterCustomization : NetworkBehaviour
     private Color SkinColor = Color.white;
 
 
-    float timer = 0;
+    //float timer = 0;
 
     void Start()
     {

@@ -3,7 +3,7 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 11/10/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -57,13 +57,13 @@ public class PowerRegulator : NetworkBehaviour
         power_status_box_outline = power_status.transform.GetChild(4).GetComponent<UnityEngine.UI.RawImage>();
         power_bars = power_status.transform.GetChild(5).gameObject;
 
-        auxiliary_power = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<AuxiliaryPower>();
+        auxiliary_power = ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>();
 
         restartPowerBarUpdater();
     
         for (int i = 0; i < 6; i++)
         {
-            power_regulation_components[i] = (IPowerRegulable)GameObject.FindGameObjectWithTag("ControlHandler").GetComponent(power_regulation_component_names[i]);
+            power_regulation_components[i] = (IPowerRegulable)(ReferenceAssistor.Instance.module_handlers[2].GetComponent(power_regulation_component_names[i]));
 
             time_bars.Add(power_regulation_modules[i].transform.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>());
             warning_dots.Add(power_regulation_modules[i].transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.RawImage>());

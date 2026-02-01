@@ -3,7 +3,7 @@
     - Used to detect incoming phaser fire or torpedoes
     - Call adjustTorpedoWarning(true) or adjustPhaserWarning(true) if targeting torpedoes or phasers
     Contributor(s): Jake Schott
-    Last Updated: 1/4/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -71,7 +71,7 @@ public class ThreatDetectors : NetworkBehaviour, IControllable, IPowerable
                 consumed_power += (MAX_POWER_CONSUMPTION / 2.0f);
             }
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 

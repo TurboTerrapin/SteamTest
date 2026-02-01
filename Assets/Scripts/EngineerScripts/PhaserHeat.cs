@@ -1,5 +1,5 @@
 /*
-    EngineerPhaserHeat.cs
+    PhaserHeat.cs
     - Currently only enables/disables phaser heat screen
     Contributor(s): Jake Schott
     Last Updated: 9/3/2025
@@ -7,7 +7,7 @@
 
 using UnityEngine;
 
-public class EngineerPhaserHeat : MonoBehaviour, IPowerable
+public class PhaserHeat : MonoBehaviour, IPowerable
 {
     public GameObject phaser_heat_display;
 

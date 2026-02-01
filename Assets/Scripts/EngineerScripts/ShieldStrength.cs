@@ -3,7 +3,7 @@
     - Handles allocating shield battery to each of the four ship sections
     - Flips the switches
     Contributor(s): Jake Schott
-    Last Updated: 1/30/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -65,7 +65,19 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
 
     public void onInventoryChange(int available_batteries)
     {
+        if (is_powered == false)
+        {
+            return;
+        }
 
+        for (int i = 0; i < 4; i++)
+        {
+            if (shield_strength_adjustment_coroutines[i] == null)
+            {
+                BUTTON_LISTS[i][0].updateInteractable(shield_strengths[i] > 0);
+                BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 10 && available_batteries > 0);
+            }
+        }
     }
 
     public float getShieldStrength(int location)
@@ -113,7 +125,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
 
         //adjust power consumption
         hud_info.setPowerConsumption(getPowerConsumption());
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
     }
 
     private void highlightSection(int index, float a)
@@ -232,7 +244,6 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
             ship_inventory.addItems(0, 2, shield_battery_serial_nums);
         }
         hud_info.setPowerConsumption(0.0f);
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
     }
 
     [Rpc(SendTo.Everyone)]

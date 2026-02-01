@@ -4,7 +4,7 @@
     - Updates inventory display in engineer position
     - Only the host accepts add/remove/set item queries and passes on to other clients
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/1/2026
 */
 
 using System.Collections.Generic;
@@ -44,11 +44,11 @@ public class ShipInventory : NetworkBehaviour, IPowerable
 
     private void Start()
     {
-        probe_controller = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>();
-        cargo_eject_loader = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<CargoEjectLoader>();
-        shield_strength = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ShieldStrength>();
         item_count_indicators = inventory_display.transform.GetChild(1).gameObject;
         torpedo_count_indicators = inventory_display.transform.GetChild(2).gameObject;
+        probe_controller = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>();
+        cargo_eject_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>();
+        shield_strength = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ShieldStrength>();
 
         //if host, initialize and begin handling serial numbers
         if (NetworkManager.Singleton.IsHost == true)
@@ -294,6 +294,11 @@ public class ShipInventory : NetworkBehaviour, IPowerable
 
     private void addItemsHelper(int item_category, int item_index, Stack<string> serial_nums)
     {
+        if (serial_nums.Count == 0)
+        {
+            return;
+        }
+
         int quantity = -1;
 
         while (serial_nums.Count > 0)

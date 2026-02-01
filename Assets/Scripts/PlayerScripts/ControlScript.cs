@@ -30,11 +30,10 @@ public class ControlScript : MonoBehaviour
     public GameObject pause_menu;
     public GameObject settings_menu;
     public GameObject controls_menu; //in the pause menu, not the trapezoid/list
-    public GameObject control_script_holder; //empty GameObject that contains all the control scripts as components
-    public GameObject sensor_script_holder; //empty GameObject that contains all the sensor scripts as components
     public SeatManager seat_manager; //empty GameObject that contains the seat script manager
     private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
+
     private AnimationController my_animation_controller = null;
 
     //CLASS VARIABLES
@@ -108,8 +107,6 @@ public class ControlScript : MonoBehaviour
         //begin control interfacing
         unpause();
         control_info.SetActive(false); //hide UI indicator to start
-        control_script_holder = GameObject.FindWithTag("ControlHandler");
-        sensor_script_holder = GameObject.FindGameObjectWithTag("SensorHandler");
         seat_manager = GameObject.FindWithTag("SeatHandler").GetComponent<SeatManager>();
 
         //free player movement, start checking to sit down, begin the scenario
@@ -288,7 +285,7 @@ public class ControlScript : MonoBehaviour
     //called by seatCheck()
     private void checkForSeats()
     {
-        if (!paused && is_active)
+        if (!paused && is_active && player_prefab != null)
         {
             int closest_seat = seat_manager.checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
@@ -481,7 +478,12 @@ public class ControlScript : MonoBehaviour
                     if (current_ray_target.layer == 6) //the ray hit a control or sensor descriptor (Layer 6 = RayTarget)
                     {
                         //---------------------------------------------------HANDLE UI----------------------------------------------------------
-                        IControllable target_control = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IControllable;
+                        int script_holder = curr_pos;
+                        if (current_ray_target.transform.childCount > 1)
+                        {
+                            script_holder = 4; //exception for general modules
+                        }
+                        IControllable target_control = ReferenceAssistor.Instance.module_handlers[script_holder].GetComponent(current_ray_target.transform.GetChild(0).name) as IControllable;
 
                         HUDInfo temp_info = null;
 
@@ -491,7 +493,7 @@ public class ControlScript : MonoBehaviour
                         }
                         else //IDescribable
                         {
-                            IDescribable target_descriptor = sensor_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IDescribable;
+                            IDescribable target_descriptor = ReferenceAssistor.Instance.module_handlers[script_holder].GetComponent(current_ray_target.transform.GetChild(0).name) as IDescribable;
                             temp_info = target_descriptor.getHUDinfo(current_ray_target.gameObject);
                         }
 
@@ -573,7 +575,7 @@ public class ControlScript : MonoBehaviour
                         //---------------------------------------------------HANDLE IK----------------------------------------------------------
                         if (temp_info.numOptions() > 0) //IControllable, move hand
                         {
-                            IIKTargetable target_IK = control_script_holder.GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
+                            IIKTargetable target_IK = ReferenceAssistor.Instance.module_handlers[script_holder].GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
                                                                                                                                                           //if the ray target has a specific IK target, then use the IK target
                             if (target_IK != null)
                             {

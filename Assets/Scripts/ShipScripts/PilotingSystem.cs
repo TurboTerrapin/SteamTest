@@ -5,7 +5,7 @@
     - Handles boundary checking/handling
     - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
     Contributor(s): Henryk Musial
-    Last Updated: 8/13/2025
+    Last Updated: 2/1/2026
 */
 
 using System.Collections;
@@ -30,9 +30,9 @@ public class PilotingSystem : NetworkBehaviour
     private ShipSteering shipSteering;
     private HorizontalThrusters horizontalThrusters;
     private VerticalThrusters verticalThrusters;
-    private PilotNavigation pilotNavigation;
-    private TacticianMap tacticianMap;
-    private EngineerMap engineerMap;
+    private FlyingInstruments flyingInstruments;
+    private ProximityMap proximityMap;
+    private ScenarioMap scenarioMap;
     private ProbeController probeController;
 
     // Input values
@@ -72,9 +72,9 @@ public class PilotingSystem : NetworkBehaviour
         verticalThrusters = controlHandler.GetComponent<VerticalThrusters>();
         probeController = controlHandler.GetComponent<ProbeController>();
 
-        pilotNavigation = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>();
-        tacticianMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
-        engineerMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>();
+        flyingInstruments = ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>();
+        proximityMap = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProximityMap>();
+        scenarioMap = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
 
         return impulseThrottle && shipSteering &&
                horizontalThrusters && verticalThrusters;
@@ -399,7 +399,7 @@ public class PilotingSystem : NetworkBehaviour
         //update map
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
 
-        engineerMap.updateShipLocation();
+        scenarioMap.updateShipLocation();
 
         //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)
@@ -444,35 +444,35 @@ public class PilotingSystem : NetworkBehaviour
             boundaryCountdownCoroutine = null;
         }
         insideBoundary = withinBoundary;
-        engineerMap.updateShipBoundaryStatus(withinBoundary);
+        scenarioMap.updateShipBoundaryStatus(withinBoundary);
     }
 
     [Rpc(SendTo.Everyone)]
     private void ShipBoundaryCountdownChangeRPC(int countdownValue)
     {
-        engineerMap.updateShipBoundaryCountdownStatus(countdownValue);
+        scenarioMap.updateShipBoundaryCountdownStatus(countdownValue);
     }
 
     [Rpc(SendTo.Everyone)]
     private void ShipBoundaryAltitudeWarningChangeRPC(bool active, string msg)
     {
-        engineerMap.updateAltitudeWarning(active, msg);
+        scenarioMap.updateAltitudeWarning(active, msg);
     }
 
     [Rpc(SendTo.Everyone)]
     private void RotationChangeRPC()
     {
-        pilotNavigation.updateCourseHeadingScreen();
-        tacticianMap.rotateMap();
-        engineerMap.updateShipOrientation();
+        flyingInstruments.updateCourseHeadingScreen();
+        proximityMap.rotateMap();
+        scenarioMap.updateShipOrientation();
     }
 
     [Rpc(SendTo.Everyone)]
     private void AltitudeChangeRPC()
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
-        pilotNavigation.updateAltimeterScreen();
-        engineerMap.updateAltitude();
+        flyingInstruments.updateAltimeterScreen();
+        scenarioMap.updateAltitude();
 
         //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)

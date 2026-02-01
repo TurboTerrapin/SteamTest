@@ -1,16 +1,16 @@
 /*
-    PilotNavigation.cs
+    FlyingInstruments.cs
     - Updates course heading text and compass slider
     - Updates ship altimeter
     Contributor(s): Jake Schott
-    Last Updated: 1/5/2026
+    Last Updated: 2/1/2026
 */
 
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class PilotNavigation : MonoBehaviour, IPowerable, IDescribable
+public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
 {
     //list of all ray target names
     private List<string> RAY_TARGETS = new List<string>()
@@ -111,7 +111,7 @@ public class PilotNavigation : MonoBehaviour, IPowerable, IDescribable
             lower_half = false;
             if (current_altitude < 0.0f)
             {
-                lower_half = true;   
+                lower_half = true;
             }
         }
 

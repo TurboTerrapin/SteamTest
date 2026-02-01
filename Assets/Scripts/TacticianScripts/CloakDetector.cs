@@ -1,16 +1,16 @@
 /*
-    TacticianCloakDetector.cs
+    CloakDetector.cs
     - Handles tactician cloak detector
     - Has no interaction with the player
     Contributor(s): Jake Schott
-    Last Updated: 1/9/2026
+    Last Updated: 2/1/2026
 */
 
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-public class TacticianCloakDetector : MonoBehaviour, IPowerable, IDescribable
+public class CloakDetector : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private static float ANIMATION_PERIOD = 0.5f;
@@ -32,9 +32,6 @@ public class TacticianCloakDetector : MonoBehaviour, IPowerable, IDescribable
     {
         "Flashes rapidly when a cloaked ship is detected by ship sensors."
     };
-
-    public Material lit_purple;
-    public Material unlit_purple;
 
     public List<GameObject> cloak_detector_displays;
     public GameObject cloak_indicator;
@@ -140,11 +137,11 @@ public class TacticianCloakDetector : MonoBehaviour, IPowerable, IDescribable
 
             if (active == true)
             {
-                cloak_indicator.GetComponent<Renderer>().material = lit_purple;
+                cloak_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_purple;
             }
             else
             {
-                cloak_indicator.GetComponent<Renderer>().material = unlit_purple;
+                cloak_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_purple;
             }
 
             yield return null;
@@ -178,7 +175,7 @@ public class TacticianCloakDetector : MonoBehaviour, IPowerable, IDescribable
             StopCoroutine(cloak_indicator_coroutine);
             cloak_indicator_coroutine = null;
         }
-        cloak_indicator.GetComponent<Renderer>().material = unlit_purple;
+        cloak_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_purple;
         for (int i = 0; i < 2; i++)
         {
             cloak_detector_displays[i].SetActive(false);

@@ -2,7 +2,7 @@
     PowerRegulationModuleB.cs
     - Handles the lever pushing mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -14,6 +14,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
 {
     //CLASS CONSTANTS
     private static float STATE_CHANGE_TIME = 0.5f;
+    private static Vector3 SLIDER_PUSH_DIRECTION = new Vector3(0.027f, 0.027f, -0.027f);
 
     private string[] CONTROL_NAMES = new string[3] { "PRIMARY ANTI-MATTER INDUCER", "SECONDARY ANTI-MATTER INDUCER", "TERTIARY ANTI-MATTER INDUCER" };
     private static string INFO_MESSAGE = "Prime each slider until it is at its max setting to complete the module.";
@@ -25,7 +26,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
     public List<GameObject> prsb_sliders = null;
 
     private bool currently_active = false;
-    private Vector3 slider_push_direction = new Vector3(0.027f, 0.027f, -0.027f);
+
     private Vector3[] initial_positions = new Vector3[3];
     private float[] slide_percentages = new float[3] { 1.0f, 1.0f, 1.0f };
     private Coroutine[] slide_increase_coroutines = new Coroutine[3] { null, null, null };
@@ -40,7 +41,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
         for (int i = 0; i < 3; i++)
         {
             initial_positions[i] = prsb_sliders[i].transform.localPosition;
-            prsb_sliders[i].transform.localPosition = prsb_sliders[i].transform.localPosition + slider_push_direction;
+            prsb_sliders[i].transform.localPosition = prsb_sliders[i].transform.localPosition + SLIDER_PUSH_DIRECTION;
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         }
 
@@ -63,7 +64,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
         for (int i = 0; i < 3; i++)
         {
             //adjust slider
-            prsb_sliders[i].transform.localPosition = initial_positions[i] + (slider_push_direction * slide_percentages[i]);
+            prsb_sliders[i].transform.localPosition = initial_positions[i] + (SLIDER_PUSH_DIRECTION * slide_percentages[i]);
             
             //adjust bar
             prsb_display.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Max(0.02f, slide_percentages[i]);
@@ -100,7 +101,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
                 //adjust slider
                 float move_percentage = Mathf.Lerp(destination_percentage, starting_percentage[i], (anim_time / STATE_CHANGE_TIME));
                 slide_percentages[i] = move_percentage;
-                prsb_sliders[i].transform.localPosition = initial_positions[i] + (slider_push_direction * move_percentage);
+                prsb_sliders[i].transform.localPosition = initial_positions[i] + (SLIDER_PUSH_DIRECTION * move_percentage);
             }
 
             yield return null;

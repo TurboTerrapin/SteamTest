@@ -2,7 +2,7 @@
     SymbolToggle.cs
     - Slider that switches UniversalCommunicator input mode between symbols and numbers
     Contributor(s): Jake Schott
-    Last Updated: 12/31/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -37,7 +37,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
 
     private void Start()
     {
-        universal_communicator = transform.GetComponent<UniversalCommunicator>();
+        universal_communicator = GetComponent<UniversalCommunicator>();
         symbol_toggle_display = universal_communicator.symbol_toggle_display;
 
         hud_info = new HUDInfo(CONTROL_NAME);

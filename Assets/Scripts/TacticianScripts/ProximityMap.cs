@@ -1,15 +1,15 @@
 /*
-    TacticianMap.cs
+    ProximityMap.cs
     - Handles tactician radar map
     Contributor(s): Jake Schott
-    Last Updated: 1/9/2026
+    Last Updated: 2/1/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TacticianMap : MonoBehaviour, IPowerable
+public class ProximityMap : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float MAP_UPDATE_DELAY = 1.5f; //updates every 1.5 seconds
@@ -22,11 +22,11 @@ public class TacticianMap : MonoBehaviour, IPowerable
     private GameObject this_ship;
     private GameObject world_root;
     private GameObject map_center_icon;
-    private MapOptions map_options; //used for zooming
+    private ProximityMapOptions proximity_map_options; //used for zooming
 
     private float[] corresponding_sizes = new float[0];
     private GameObject[] corresponding_icons = new GameObject[0];
-    private Color[] corresponding_colors = new Color[0]; 
+    private Color[] corresponding_colors = new Color[0];
     private Vector2[] corresponding_locations = new Vector2[0];
     private Coroutine map_updater_coroutine = null;
     private Coroutine item_flasher_coroutine = null;
@@ -36,7 +36,7 @@ public class TacticianMap : MonoBehaviour, IPowerable
         this_ship = GameObject.FindGameObjectWithTag("Spaceship");
         world_root = GameObject.FindGameObjectWithTag("WorldRoot");
         map_center_icon = map_display.transform.GetChild(1).GetChild(0).gameObject;
-        map_options = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<MapOptions>();
+        proximity_map_options = GetComponent<ProximityMapOptions>();
     }
 
     IEnumerator itemFlasher()
@@ -72,7 +72,7 @@ public class TacticianMap : MonoBehaviour, IPowerable
 
     public void zoomMap()
     {
-        float zoom_percentage = map_options.getZoom(); //1.0 is full zoom; 0.0 is fully-zoomed out
+        float zoom_percentage = proximity_map_options.getZoom(); //1.0 is full zoom; 0.0 is fully-zoomed out
 
         //adjust background rings
         for (int i = 0; i < 7; i++)

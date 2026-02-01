@@ -2,7 +2,7 @@
     SelfDestruct.cs
     - Used to handle code input and initation/abort
     Contributor(s): Jake Schott
-    Last Updated: 1/12/2026
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -10,7 +10,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine.Rendering;
 
 public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
 {
@@ -292,7 +291,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
         //if currently destructing and no longer red alert, end destruct countdown
         if (NetworkManager.Singleton.IsHost == true)
         {
-            if (destruct_coroutine != null && transform.GetComponent<ShipStatus>().getCurrColor() < 2)
+            if (destruct_coroutine != null && GetComponent<ShipStatus>().getCurrColor() < 2)
             {
                 transmitDestructSequenceChangeRPC(false);
             }
@@ -331,7 +330,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
 
         checkCodeCorrectness();
         bool can_do_sequence_adjustment = (is_powered && sequence_change_coroutine == null);
-        can_do_sequence_adjustment = ((code_is_currently_correct && transform.GetComponent<ShipStatus>().getCurrColor() == 2) || destruct_coroutine != null);
+        can_do_sequence_adjustment = ((code_is_currently_correct && GetComponent<ShipStatus>().getCurrColor() == 2) || destruct_coroutine != null);
         BUTTON_LISTS[1][0].updateInteractable(can_do_sequence_adjustment);
     }
 
@@ -349,7 +348,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
         {
             if (digit_adjustment_coroutine == null && sequence_change_coroutine == null)
             {
-                if (destruct_coroutine != null || (code_is_currently_correct == true && transform.GetComponent<ShipStatus>().getCurrColor() == 2))
+                if (destruct_coroutine != null || (code_is_currently_correct == true && GetComponent<ShipStatus>().getCurrColor() == 2))
                 {
                     if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs))
                     {

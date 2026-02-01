@@ -3,7 +3,7 @@
     - Handles color slider
     - Updates characters
     Contributor(s): Jake Schott
-    Last Updated: 12/31/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -42,7 +42,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
 
     private void Start()
     {
-        universal_communicator = transform.GetComponent<UniversalCommunicator>();
+        universal_communicator = GetComponent<UniversalCommunicator>();
         color_selector_display = universal_communicator.color_selector_display;
 
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -133,7 +133,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        if (color_shift_coroutine == null && is_active == true && transform.GetComponent<UniversalCommunicator>().getIsPowered() == true)
+        if (color_shift_coroutine == null && is_active == true && universal_communicator.getIsPowered() == true)
         {
             bool shifted = false;
             if (curr_color < 3)

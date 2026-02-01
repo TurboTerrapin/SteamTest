@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 1/25/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -32,10 +32,6 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     public GameObject info_display;
     private GameObject range_display; 
     private GameObject item_captured_display;
-    private Material lit_green;
-    private Material lit_red;
-    private Material unlit_green;
-    private Material unlit_red;
     private TractorBeamOptions tractor_beam_options;
     private TractorBeam tractor_beam;
 
@@ -49,10 +45,6 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     {
         tractor_beam_options = GetComponent<TractorBeamOptions>();
         tractor_beam = GetComponent<TractorBeam>();
-        lit_green = GetComponent<TorpedoTrigger>().lit_green;
-        unlit_green = GetComponent<TorpedoTrigger>().unlit_green;
-        lit_red = GetComponent<TorpedoTrigger>().lit_red;
-        unlit_red = GetComponent<TorpedoTrigger>().unlit_red;
         range_display = info_display.transform.GetChild(0).gameObject;
         item_captured_display = info_display.transform.GetChild(1).gameObject;
 
@@ -140,20 +132,20 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     {
         if (is_powered == false || tractor_beam.GetCapturedItem() != null)
         {
-            tractor_beam_active_indicator.GetComponent<Renderer>().material = unlit_green;
-            tractor_beam_inactive_indicator.GetComponent<Renderer>().material = unlit_red;
+            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+            tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
             return;
         }
 
         if (active == true)
         {
-            tractor_beam_active_indicator.GetComponent<Renderer>().material = lit_green;
-            tractor_beam_inactive_indicator.GetComponent<Renderer>().material = unlit_red;
+            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
+            tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
         }
         else
         {
-            tractor_beam_active_indicator.GetComponent<Renderer>().material = unlit_green;
-            tractor_beam_inactive_indicator.GetComponent<Renderer>().material = lit_red;
+            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+            tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
         }
     }
 
@@ -243,7 +235,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     private void transmitTractorBeamPowerAdjustmentRPC(float pwr)
     {
         power = pwr;
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, pwr * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, pwr * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(pwr * MAX_POWER_CONSUMPTION);
         displayAdjustment();
     }

@@ -3,12 +3,11 @@
     - Handles inputs for impulse throttle
     - Moves throttle lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 12/14/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -28,7 +27,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     public GameObject impulse_bars_display; //used to display the bars beneath the handle
     public GameObject IK_target;
 
-    private PilotEngineInfo pilot_engine_info;
+    private EngineMonitoring engine_monitoring;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -45,7 +44,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private void Start()
     {
-        pilot_engine_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotEngineInfo>();
+        engine_monitoring = GetComponent<EngineMonitoring>();
 
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
@@ -91,7 +90,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         handle.transform.localPosition = Vector3.Lerp(initial_pos, final_pos, impulse);
 
         //update pilot position engine info
-        pilot_engine_info.impulseAdjustment();
+        engine_monitoring.impulseAdjustment();
     }
 
     private bool checkIfChangeNecessary()
@@ -222,7 +221,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     private void transmitImpulseAdjustmentRPC(float imp)
     {
         impulse = imp;
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, imp * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, imp * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(imp * MAX_POWER_CONSUMPTION);
         displayAdjustment();
     }

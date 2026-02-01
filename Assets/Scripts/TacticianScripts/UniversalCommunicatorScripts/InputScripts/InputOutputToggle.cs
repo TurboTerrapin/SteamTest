@@ -2,7 +2,7 @@
     InputOutputToggle.cs
     - Switch that switches between input/output mode
     Contributor(s): Jake Schott
-    Last Updated: 12/31/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -36,7 +36,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
 
     private void Start()
     {
-        universal_communicator = transform.GetComponent<UniversalCommunicator>();
+        universal_communicator = GetComponent<UniversalCommunicator>();
         input_output_display = universal_communicator.input_output_toggle_display;
 
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -123,7 +123,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (input_output_switch_coroutine == null && is_active == true && transform.GetComponent<UniversalCommunicator>().getIsPowered() == true)
+        if (input_output_switch_coroutine == null && is_active == true && universal_communicator.getIsPowered() == true)
         {
             if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
@@ -136,7 +136,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
     [Rpc(SendTo.Everyone)]
     private void transmitInputOutputSwitchRPC(bool current_mode)
     {
-        transform.GetComponent<UniversalCommunicator>().clearMessagePreview();
+        universal_communicator.clearMessagePreview();
         universal_communicator.setInputMode(current_mode);
         if (input_output_switch_coroutine != null && is_active == true)
         {

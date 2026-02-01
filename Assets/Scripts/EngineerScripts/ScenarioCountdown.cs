@@ -1,14 +1,14 @@
 /*
-    EngineerScenarioCountdown.cs
+    ScenarioCountdown.cs
     - Handles scenario countdown timer visual in engineer position (boundary expiration)
     Contributor(s): Jake Schott
-    Last Updated: 9/3/2025
+    Last Updated: 2/1/2026
 */
 
 using TMPro;
 using UnityEngine;
 
-public class EngineerScenarioCountdown : MonoBehaviour, IPowerable
+public class ScenarioCountdown : MonoBehaviour, IPowerable
 {
     public GameObject countdown_display;
 

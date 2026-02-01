@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     private static float SWITCH_TIME = 1.0f; //how long it takes to turn on/off the energy pattern display
     private static float SHIFT_TIME = 0.5f; //how long it takes to shift between configurations
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
+    private static Vector3 ENERGY_PATTERN_SLIDER_FINAL_POS = new Vector3(7.677f, -0.2442f, -8.2511f);
 
     private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER", "ENERGY PATTERN SHIFTER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Enables/disables the energy pattern viewer used to analyze spatial anomalies.", "Shifts energy pattern viewer between ship analysis, tractor beam analysis, or probe analysis." };
@@ -31,7 +32,6 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
 
     private EnergyPatternManager energy_pattern_manager;
     private Vector3 energy_pattern_slider_initial_pos;
-    private Vector3 energy_pattern_slider_final_pos = new Vector3(7.677f, -0.2442f, -8.2511f);
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -45,7 +45,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        energy_pattern_manager = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EnergyPatternManager>();
+        energy_pattern_manager = GetComponent<EnergyPatternManager>();
         energy_pattern_slider_initial_pos = energy_pattern_slider.transform.localPosition;
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
@@ -86,12 +86,12 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     {
         if (display_enabled == true)
         {
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
             hud_info.setPowerConsumption(0.0f);
         }
     }
@@ -147,7 +147,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     IEnumerator shiftChange()
     {
         Vector3 start_pos = energy_pattern_slider.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(energy_pattern_slider_initial_pos, energy_pattern_slider_final_pos, currently_viewing / 2.0f);
+        Vector3 dest_pos = Vector3.Lerp(energy_pattern_slider_initial_pos, ENERGY_PATTERN_SLIDER_FINAL_POS, currently_viewing / 2.0f);
         float anim_time = SHIFT_TIME;
         while (anim_time > 0.0f)
         {

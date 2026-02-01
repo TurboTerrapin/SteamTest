@@ -2,7 +2,7 @@
     CharacterInput.cs
     - Inputs a new numeric/symbol
     Contributor(s): Jake Schott
-    Last Updated: 12/31/2025
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -35,7 +35,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        universal_communicator = transform.GetComponent<UniversalCommunicator>();
+        universal_communicator = GetComponent<UniversalCommunicator>();
 
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -79,7 +79,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
 
             if (i == 0)
             {
-                transform.gameObject.GetComponent<UniversalCommunicator>().onInputChange();
+                universal_communicator.onInputChange();
             }
         }
 

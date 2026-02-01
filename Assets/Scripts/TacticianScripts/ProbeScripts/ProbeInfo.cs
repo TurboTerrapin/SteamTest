@@ -1,9 +1,8 @@
 /*
-    TacticianProbe.cs
-    - Enables/disables the 
-    - Has functions that takes
+    ProbeInfo.cs
+    - Handles animating probe screens
     Contributor(s): Jake Schott
-    Last Updated: 1/9/2026
+    Last Updated: 2/1/2026
 */
 
 using System.Collections.Generic;
@@ -11,7 +10,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TacticianProbeInfo : MonoBehaviour, IPowerable, IDescribable
+public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private Color BLUE = new Color(0.0f, 0.84f, 1.0f);

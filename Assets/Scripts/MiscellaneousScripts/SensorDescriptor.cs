@@ -16,16 +16,16 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "power_consumption",
         "prefix_code",
         "proximity_map",
-        "navigation_map",
+        "scenario_map",
         "boundary_countdown",
         "energy_pattern_overview",
         "energy_pattern_viewer",
         "power_distribution",
-        "phaser_temperatures",
+        "phaser_heat",
         "power_overview",
         "ship_overview",
         "ship_health",
-        "engineer_inventory"
+        "ship_inventory"
     };
 
     //module titles 

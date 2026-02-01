@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 12/16/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -28,9 +28,6 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
-    public Material lit_neon;
-    public Material unlit_neon;
-
     public GameObject engine_coolant_supply_display;
     public GameObject coolant_wheel;
     private GameObject flow; //the UI section that shows the engine coolant flow
@@ -38,7 +35,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private GameObject capacity; //the UI section that shows impulse capacity
 
     private PilotingSystem piloting_system;
-    private PilotEngineInfo pilot_engine_info;
+    private EngineMonitoring engine_monitoring;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -51,7 +48,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private void Start()
     {
         piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
-        pilot_engine_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotEngineInfo>();
+        engine_monitoring = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EngineMonitoring>();
 
         flow = engine_coolant_supply_display.transform.GetChild(0).gameObject;
         temperature = engine_coolant_supply_display.transform.GetChild(1).gameObject;
@@ -221,7 +218,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].updateInteractable(coolant_flow > 0.0f);
         BUTTONS[1].updateInteractable(coolant_flow < 1.0f);
 
-        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
+        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
         engine_coolant_supply_display.SetActive(true);
     }
 
@@ -233,7 +230,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[1].updateInteractable(false);
         hud_info.setPowerConsumption(0.0f);
 
-        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
         engine_coolant_supply_display.SetActive(false);
 
         //return the wheel to 0 position
@@ -248,7 +245,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private void transmitCoolantFlowAdjustmentRPC(float cf)
     {
         coolant_flow = cf;
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, cf * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, cf * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(cf * MAX_POWER_CONSUMPTION);
         displayCoolantFlowAdjustment();
     }
@@ -263,6 +260,6 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         }
 
         //update pilot position
-        pilot_engine_info.temperatureAdjustment();
+        engine_monitoring.temperatureAdjustment();
     }
 }

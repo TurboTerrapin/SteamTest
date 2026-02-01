@@ -2,7 +2,7 @@
     EmissionReducers.cs
     - Handles enabling/disabling of port and starboard engine emission reducers
     Contributor(s): Jake Schott
-    Last Updated: 12/14/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -22,9 +22,6 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
-
-    public Material lit_neon;
-    public Material unlit_neon;
 
     public List<GameObject> emission_switches = null;
     public GameObject emission_display;
@@ -48,12 +45,12 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
         hud_info.setButtons(BUTTON_LISTS[0], 6);
         hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 6);
-
         return hud_info;
     }
 
@@ -89,11 +86,11 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
         //update switch material
         if (enabled_reducers[reducer_to_change])
         {
-            emission_switches[reducer_to_change].transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
+            emission_switches[reducer_to_change].transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
         }
         else
         {
-            emission_switches[reducer_to_change].transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+            emission_switches[reducer_to_change].transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
         }
     }
 
@@ -108,7 +105,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
                 consumed_power += (MAX_POWER_CONSUMPTION * 0.5f);
             }
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 

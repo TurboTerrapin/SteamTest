@@ -3,7 +3,7 @@
     - Handles inputs for power allocation
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -24,12 +24,13 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
 
-    public PowerManager power_manager;
     public List<GameObject> allocation_dials;
     public List<GameObject> position_icon_displays;
     public List<GameObject> power_screen_displays; //the screen that shows the power allocation AND consumption
     public List<GameObject> allocation_circle_displays; //the circular screens around each dial
     public GameObject info_display;
+
+    private PowerManager power_manager;
     private GameObject units_counter;
     private GameObject units_circle_collection;
 
@@ -44,6 +45,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
+        power_manager = ReferenceAssistor.Instance.power_manager;
         units_counter = info_display.transform.GetChild(0).gameObject;
         units_circle_collection = info_display.transform.GetChild(1).gameObject;
 

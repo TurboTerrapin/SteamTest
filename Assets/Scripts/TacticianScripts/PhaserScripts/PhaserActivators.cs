@@ -2,7 +2,7 @@
     PhaserActivators.cs
     - Determines whether phasers are enabled or not
     Contributor(s): Jake Schott
-    Last Updated: 12/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -40,7 +40,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        phaser_intensities = transform.GetComponent<PhaserIntensities>();
+        phaser_intensities = GetComponent<PhaserIntensities>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -75,7 +75,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable
                 consumed_power += (MAX_POWER_CONSUMPTION / 3);
             }
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 

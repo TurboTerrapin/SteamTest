@@ -2,7 +2,7 @@
     EnergyPatternManager.cs
     - Handles energy patterns for ship, probe, and tractor beam
     Contributor(s): Jake Schott
-    Last Updated: 8/28/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -21,13 +21,13 @@ public class EnergyPatternManager : MonoBehaviour
     public List<GameObject> patterns = null; //ship, probe, and tractor beam
     public PatternData[] corresponding_pattern_data = new PatternData[3] {null, null, null};
 
-    private EnergyPattern energy_pattern_control_script; //the script that handles enabling/disabling/shifting
+    private EnergyPattern energy_pattern; //the script that handles enabling/disabling/shifting
     private Coroutine alert_flasher_coroutine = null;
     private Coroutine[] source_indicator_coroutines = { null, null, null };
 
     private void Start()
     {
-        energy_pattern_control_script = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<EnergyPattern>();
+        energy_pattern = GetComponent<EnergyPattern>();
     }
 
     //called by EnergyPattern (the engineer control that handles enabling/disabling/shifting)
@@ -79,10 +79,10 @@ public class EnergyPatternManager : MonoBehaviour
         corresponding_pattern_data[index] = pd;
         patterns[index].GetComponent<PatternVisualizer>().displayPattern(corresponding_pattern_data[index]);
         updateSourceIndicators();
-        patterns[index].transform.GetChild(0).gameObject.SetActive(energy_pattern_control_script.getDisplayEnabled() && energy_pattern_control_script.getCurrentlyViewing() == index);
+        patterns[index].transform.GetChild(0).gameObject.SetActive(energy_pattern.getDisplayEnabled() && energy_pattern.getCurrentlyViewing() == index);
 
         //handle orange blinker
-        if (energy_pattern_control_script.getDisplayEnabled() == false && alert_flasher_coroutine == null)
+        if (energy_pattern.getDisplayEnabled() == false && alert_flasher_coroutine == null)
         {
             alert_flasher_coroutine = StartCoroutine(alertFlasher());
         }
@@ -107,7 +107,7 @@ public class EnergyPatternManager : MonoBehaviour
         updateSourceIndicators();
 
         //handle orange blinker
-        if (energy_pattern_control_script.getDisplayEnabled() == false)
+        if (energy_pattern.getDisplayEnabled() == false)
         {
             if (corresponding_pattern_data[0] == null && corresponding_pattern_data[1] == null && corresponding_pattern_data[2] == null)
             {

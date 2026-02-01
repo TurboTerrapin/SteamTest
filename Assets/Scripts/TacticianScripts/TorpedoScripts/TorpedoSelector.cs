@@ -3,7 +3,7 @@
     - Handles torpedo slider
     - Updates arrow screen
     Contributor(s): Jake Schott
-    Last Updated: 12/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -15,6 +15,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.5f;
+    private static Vector3 FINAL_POS = new Vector3(0.0907f, 0.0f, 0.0f);
 
     private string CONTROL_NAME = "TORPEDO SELECTOR";
     private static string INFO_MESSAGE = "Handles selecting which torpedo bay/direction to use for the torpedo trigger.";
@@ -27,7 +28,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private Vector3 initial_pos;
-    private Vector3 final_pos = new Vector3(0.0907f, 0.0f, 0.0f);
+
     private int torpedo_option = 0;
     private Coroutine torpedo_shift_coroutine = null;
 
@@ -60,7 +61,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
         float animation_time = MOVE_TIME;
 
         Vector3 starting_pos = selector_lever.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(initial_pos, final_pos, torpedo_option / 3.0f);
+        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, torpedo_option / 3.0f);
 
         //move slider
         while (animation_time > 0.0f)

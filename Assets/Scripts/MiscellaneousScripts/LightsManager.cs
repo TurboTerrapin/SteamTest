@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 1/11/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -56,7 +56,7 @@ public class LightsManager : MonoBehaviour
         DEFAULT_LIGHT_MATERIAL[0] = lit_neon;
         DEFAULT_LIGHT_MATERIAL[1] = lit_off_white;
 
-        ship_status = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ShipStatus>();
+        ship_status = ReferenceAssistor.Instance.module_handlers[3].GetComponent<ShipStatus>();
     }
 
 

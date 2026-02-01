@@ -4,7 +4,7 @@
     - Moves slider
     - Enables/disables emergency lights using LightsManager
     Contributor(s): Jake Schott
-    Last Updated: 1/19/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -28,9 +28,6 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     public GameObject emergency_lights_display;
     public LightsManager lights_manager;
 
-    private Material lit_neon;
-    private Material unlit_neon;
-
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
     private bool emergency_lights_enabled = false;
@@ -40,9 +37,6 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        lit_neon = transform.GetComponent<ShipBeacon>().lit_neon;
-        unlit_neon = transform.GetComponent<ShipBeacon>().unlit_neon;
-
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true)); //enable button
         hud_info.setButtons(BUTTONS);
@@ -63,11 +57,11 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         //update switch light
         if (emergency_lights_enabled == true)
         {
-            emergency_lights_dial.transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
+            emergency_lights_dial.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
         }
         else
         {
-            emergency_lights_dial.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+            emergency_lights_dial.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
         }
 
         //update display
@@ -89,7 +83,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         if (enabling == false)
         {
             emergency_lights_enabled = false;
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
             hud_info.setPowerConsumption(0.0f);
         }
 
@@ -116,7 +110,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
         if (enabling == true)
         {
             emergency_lights_enabled = true;
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);
             displayAdjustment(1.0f);

@@ -2,7 +2,7 @@
     PowerRegulationModuleD.cs
     - Handles the horizontal slider mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -15,6 +15,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
     //CLASS CONSTANTS
     private static float STATE_CHANGE_TIME = 0.5f;
     private static float SLIDE_SPEED = 0.35f;
+    private static Vector3 SLIDE_DIRECTION = new Vector3(-0.13f, 0.0f, -0.13f);
 
     private string[] CONTROL_NAMES = new string[3] { "PRIMARY IMPULSE ENERGIZER", "SECONDARY IMPULSE ENERGIZER", "TERTIARY IMPULSE ENERGIZER" };
     private static string INFO_MESSAGE = "Align each slider with the corresponding color marker to complete the module.";
@@ -37,7 +38,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
 
     private bool currently_active = false;
     private Vector3[] initial_positions = new Vector3[3];
-    private Vector3 slide_direction = new Vector3(-0.13f, 0.0f, -0.13f);
+
     private float[] slider_percentages = new float[3]{ 0.0f, 0.0f, 0.0f };
     private Coroutine state_change_coroutine = null;
 
@@ -101,7 +102,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
         prsd_fill_bars[bar].fillAmount = Mathf.Max(0.01f, slider_percentages[bar]);
 
         //adjust slider
-        prsd_sliders[bar].transform.localPosition = Vector3.Lerp(initial_positions[bar], initial_positions[bar] + slide_direction, slider_percentages[bar]);
+        prsd_sliders[bar].transform.localPosition = Vector3.Lerp(initial_positions[bar], initial_positions[bar] + SLIDE_DIRECTION, slider_percentages[bar]);
 
         //adjust correct indicator
         changeCorrectIndicator(bar, checkIfBarIsCorrect(bar));
@@ -123,7 +124,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
                 //adjust slider
                 float slide_percentage = Mathf.Lerp(destination_positions[i], starting_positions[i], (anim_time / STATE_CHANGE_TIME));
                 slider_percentages[i] = slide_percentage;
-                prsd_sliders[i].transform.localPosition = Vector3.Lerp(initial_positions[i], initial_positions[i] + slide_direction, slider_percentages[i]);
+                prsd_sliders[i].transform.localPosition = Vector3.Lerp(initial_positions[i], initial_positions[i] + SLIDE_DIRECTION, slider_percentages[i]);
             }
 
             yield return null;

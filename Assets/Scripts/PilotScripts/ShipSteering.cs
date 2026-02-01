@@ -3,7 +3,7 @@
     - Handles inputs for steering wheel
     - Moves wheel accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 1/5/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -13,6 +13,7 @@ using UnityEngine;
 
 public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
 {
+    //CLASS CONSTANTS
     private const float maxAngularVelocity = 1.2f;
     private const float accelerationRate = 1.5f;
     private const float decelerationRate = 4.0f;
@@ -24,9 +25,6 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
     private List<string> CONTROL_DESCS = new List<string> { "TURN LEFT", "TURN RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
-
-    public Material lit_neon;
-    public Material unlit_neon;
 
     public GameObject wheel;
     public GameObject wheel_light;
@@ -201,7 +199,7 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].updateInteractable(true);
         BUTTONS[1].updateInteractable(true);
         fill_circle.SetActive(true);
-        wheel_light.GetComponent<Renderer>().material = lit_neon;
+        wheel_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
     }
 
     public void powerOff(int position, float time)
@@ -210,7 +208,7 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
         fill_circle.SetActive(false);
-        wheel_light.GetComponent<Renderer>().material = unlit_neon;
+        wheel_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
     }
 
     [Rpc(SendTo.Everyone)]

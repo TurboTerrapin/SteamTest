@@ -4,7 +4,7 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 1/16/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -85,9 +85,9 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private void adjustInertialDampenerModifiers()
     {
         float modifier = getInertialDampenerModifierValue();
-        transform.GetComponent<ImpulseThrottle>().adjustInertialDampenerModifier(modifier);
-        transform.GetComponent<HorizontalThrusters>().adjustInertialDampenerModifier(modifier);
-        transform.GetComponent<VerticalThrusters>().adjustInertialDampenerModifier(modifier);
+        GetComponent<ImpulseThrottle>().adjustInertialDampenerModifier(modifier);
+        GetComponent<HorizontalThrusters>().adjustInertialDampenerModifier(modifier);
+        GetComponent<VerticalThrusters>().adjustInertialDampenerModifier(modifier);
     }
 
     private void handlePowerConsumptionChange()
@@ -100,7 +100,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
                 consumed_power += (MAX_POWER_CONSUMPTION / 3.0f);
             }
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 

@@ -3,7 +3,7 @@
     - Meant to temporarily jam signals
     - Does nothing
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     private static float JAM_TIME = 10.0f; //seconds
     private static float RESET_TIME = 15.0f; //seconds
     private static float BUTTON_PUSH_TIME = 1.0f; //seconds
+    private static Vector3 BUTTON_FINAL_POS = new Vector3(-2.4599f, -0.6773f, 2.1674f);
     private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
     private static Color BLUE = new Color(0.0f, 0.84f, 1.0f, 1.0f);
     private static Color RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
@@ -28,10 +29,6 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button> BUTTONS = new List<Button>();
 
-    public Material lit_red;
-    public Material neon;
-    public Material unlit_blue;
-
     public GameObject signal_jam_button;
     public GameObject signal_jam_display;
     public GameObject signal_indicators;
@@ -41,7 +38,6 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     private Coroutine signal_jam_coroutine = null;
     private Coroutine bars_animation_coroutine = null;
     private Vector3 button_initial_pos;
-    private Vector3 button_final_pos = new Vector3(-2.4599f, -0.6773f, 2.1674f);
 
     private static HUDInfo hud_info = null;
 
@@ -54,6 +50,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
@@ -153,10 +150,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
                     push_percentage = (push_time / half_time);
                 }
 
-                signal_jam_button.transform.localPosition =
-                    new Vector3(Mathf.Lerp(button_initial_pos.x, button_final_pos.x, push_percentage),
-                                Mathf.Lerp(button_initial_pos.y, button_final_pos.y, push_percentage),
-                                Mathf.Lerp(button_initial_pos.z, button_final_pos.z, push_percentage));
+                signal_jam_button.transform.localPosition = Vector3.Lerp(button_initial_pos, BUTTON_FINAL_POS, push_percentage);
 
                 yield return null;
             }
@@ -175,11 +169,11 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         {
             for (int i = 0; i < signal_indicators.transform.childCount; i++)
             {
-                signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+                signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
             }
         }
 
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
 
         jam_time = JAM_TIME;
@@ -194,11 +188,11 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
                 {
                     if ((jam_time / JAM_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
                     {
-                        signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = unlit_blue;
+                        signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
                     }
                     else
                     {
-                        signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = lit_red;
+                        signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
                     }
                 }
             }
@@ -210,7 +204,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         bars_animation_coroutine = StartCoroutine(resetBars());
         colorChange(BLUE);
 
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, 0.0f);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, 0.0f);
         hud_info.setPowerConsumption(0.0f);
 
         float reset_time = RESET_TIME;
@@ -225,11 +219,11 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
                 {
                     if ((reset_time / RESET_TIME) <= (i * 1.0f / signal_indicators.transform.childCount))
                     {
-                        signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = neon;
+                        signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
                     }
                     else
                     {
-                        signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = unlit_blue;
+                        signal_indicators.transform.GetChild(signal_indicators.transform.childCount - 1 - i).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
                     }
                 }
             }
@@ -243,6 +237,18 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         signal_jam_coroutine = null;
     }
 
+    public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
+    {
+        if (signal_jam_coroutine == null && is_powered == true)
+        {
+            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            {
+                BUTTONS[0].toggle();
+                transmitSignalJamRPC();
+            }
+        }
+    }
+
     public void powerOn(int position)
     {
         is_powered = true;
@@ -252,14 +258,14 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
             BUTTONS[0].updateInteractable(true);
             for (int i = 0; i < signal_indicators.transform.childCount; i++)
             {
-                signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = neon;
+                signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
             }
         }
         else
         {
             if (jam_time > 0.0f)
             {
-                transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
+                ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
                 hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
             }
         }
@@ -272,22 +278,11 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].updateInteractable(false);
         for (int i = 0; i < signal_indicators.transform.childCount; i++)
         {
-            signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = unlit_blue;
+            signal_indicators.transform.GetChild(i).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
         }
         hud_info.setPowerConsumption(0.0f);
     }
 
-    public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
-    {
-        if (signal_jam_coroutine == null && is_powered == true)
-        {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
-            {
-                BUTTONS[0].toggle();
-                transmitSignalJamRPC();
-            }
-        }
-    }
 
     [Rpc(SendTo.Everyone)]
     private void transmitSignalJamRPC()

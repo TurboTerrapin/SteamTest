@@ -1,15 +1,15 @@
 /*
-    EngineerMap.cs
+    ScenarioMap.cs
     - Handles engineer map
     Contributor(s): Jake Schott
-    Last Updated: 9/3/2025
+    Last Updated: 2/1/2026
 */
 
 using System.Collections;
 using TMPro;
 using UnityEngine;
 
-public class EngineerMap : MonoBehaviour, IPowerable
+public class ScenarioMap : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static float FLASH_SPEED = 0.5f;
@@ -70,7 +70,7 @@ public class EngineerMap : MonoBehaviour, IPowerable
                         colorChange(new Color(SPRITE_RED.r, SPRITE_RED.g, SPRITE_RED.b, 0.45f + (0.55f * (1.0f - (anim_time / FLASH_SPEED)))));
                     }
                     yield return null;
-                } 
+                }
             }
         }
     }

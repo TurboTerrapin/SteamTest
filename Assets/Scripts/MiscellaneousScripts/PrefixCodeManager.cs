@@ -2,7 +2,7 @@
     PrefixCodeManager.cs
     - Used to update the prefix codes on all four positions after a certain amount of time
     Contributor(s): Jake Schott
-    Last Updated: 1/13/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -141,6 +141,6 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
             destruct_code[(i * 2) + 1] = int.Parse(pos_code.Substring(1, 1));
         }
 
-        GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<SelfDestruct>().setNewCode(DataConverter.arrayToString(destruct_code));
+        ReferenceAssistor.Instance.module_handlers[3].GetComponent<SelfDestruct>().setNewCode(DataConverter.arrayToString(destruct_code));
     }
 }

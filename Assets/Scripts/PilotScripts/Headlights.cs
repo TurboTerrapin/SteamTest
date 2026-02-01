@@ -4,7 +4,7 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 11/12/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.25f;
     private static float DELAY_TIME = 0.1f;
+    private static Vector3 FINAL_POS = new Vector3(0.0f, 0.0593f, 0.1451f);
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     private string CONTROL_NAME = "HEADLIGHTS";
@@ -33,7 +34,6 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     private Coroutine power_loss_coroutine = null;
     private int headlight_configuration = 0;
     private Vector3 initial_pos;
-    private Vector3 final_pos;
     private Coroutine headlight_shift_coroutine = null;
     private Coroutine headlight_adjustment_coroutine = null;
 
@@ -50,7 +50,6 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = slider.transform.localPosition;
-        final_pos = new Vector3(0.0f, 0.0593f, 0.1451f);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -74,7 +73,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         float animation_time = MOVE_TIME;
 
         Vector3 starting_pos = slider.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(initial_pos, final_pos, headlight_configuration / 7.0f);
+        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, headlight_configuration / 7.0f);
 
         float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
         float dest_a = Mathf.Lerp(0.0f, 0.5f, headlight_configuration / 7.0f);
@@ -248,7 +247,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     private void transmitTractorHeadlightAdjustmentRPC(int headlight_config)
     {
         headlight_configuration = headlight_config;
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, (headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, (headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption((headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
         if (headlight_shift_coroutine != null)
         {

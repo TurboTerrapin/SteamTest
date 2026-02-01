@@ -2,7 +2,7 @@
     CharacterDelete.cs
     - Acts as a backspace for the UniversalCommunicator
     Contributor(s): Jake Schott
-    Last Updated: 1/2/2026
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -31,9 +31,10 @@ public class CharacterDelete : NetworkBehaviour, IControllable
     private Coroutine character_delete_coroutine = null;
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
-        universal_communicator = transform.GetComponent<UniversalCommunicator>();
+        universal_communicator = GetComponent<UniversalCommunicator>();
 
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -43,6 +44,7 @@ public class CharacterDelete : NetworkBehaviour, IControllable
         //set initial position
         initial_pos = delete_button.transform.localPosition;
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;

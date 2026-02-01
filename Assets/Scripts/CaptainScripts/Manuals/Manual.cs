@@ -2,7 +2,7 @@
     Manual.cs
     - Parent class for ShipManual and CommunicationsManual
     Contributor(s): Jake Schott
-    Last Updated: 8/24/2025
+    Last Updated: 1/31/2026
 */
 
 using UnityEngine;
@@ -179,14 +179,14 @@ public class Manual : MonoBehaviour, IPowerable
     {
         is_powered = true;
         currently_enabled = false;
-        transform.GetComponent<ManualOnOff>().reactivate(manual_index);
+        GetComponent<ManualOnOff>().reactivate(manual_index);
     }
 
     public void powerOff(int position, float time)
     {
         is_powered = false;
         currently_enabled = false;
-        transform.GetComponent<ManualOnOff>().disableManual(manual_index, time);
+        GetComponent<ManualOnOff>().disableManual(manual_index, time);
         cancelActivation();
     }
 }

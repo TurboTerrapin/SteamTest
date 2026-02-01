@@ -4,7 +4,7 @@
     - Communicates with TractorBeamOptions once item collected
     - Driven by TractorBeamPower.cs by power
     Contributor(s): Henryk Musial
-    Last Updated: 1/29/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -359,7 +359,7 @@ public class TractorBeam : NetworkBehaviour
         {
             if (capturedItem.GetComponent<Probe>() != null)
             {
-                GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>().probeCollected();
+                ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>().probeCollected();
             }
             capturedItem.GetComponent<NetworkObject>().TrySetParent(GameObject.FindGameObjectWithTag("Spaceship"), true);
             capturedItem.GetComponent<Collider>().excludeLayers = LayerMask.NameToLayer("Everything");

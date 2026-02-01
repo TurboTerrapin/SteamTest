@@ -6,7 +6,6 @@
     Last Updated: 10/21/2025
 */
 
-
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -34,6 +33,7 @@ public class Warp : MonoBehaviour, IControllable, IPowerable
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;

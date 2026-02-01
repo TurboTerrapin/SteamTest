@@ -2,7 +2,7 @@
     CargoEjectLoader.cs
     - Handles the loading and unloading of items in the cargo eject launcher
     Contributor(s): Jake Schott
-    Last Updated: 1/30/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     private static float SELECTION_ADJUSTMENT_TIME = 0.25f;
     private static float ITEM_TYPE_ADJUSTMENT_TIME = 0.5f;
     private static float LOAD_CONFIRMATION_TIME = 0.8f;
+    private static Vector3 ITEM_TYPE_SWITCH_DIRECTION = new Vector3(-0.0182f, 0.0f, -0.0182f);
 
     private string[] CONTROL_NAMES = new string[] { "CARGO EJECT ITEM TYPE SELECTOR", "CARGO EJECT ITEM VARIATION", "CARGO EJECT LOADER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Switches between normal items and torpedoes.", "Selects which item to load into cargo eject bay.", "Loads and unloads item from cargo eject bay." };
@@ -40,7 +41,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     private bool item_ejecting = false;
     private string item_serial_num = "";
     private Vector3 item_type_switch_initial_position;
-    private Vector3 item_type_switch_direction = new Vector3(-0.0182f, 0.0f, -0.0182f);
     private Coroutine item_type_adjustment_coroutine = null;
     private Coroutine item_variation_adjustment_coroutine = null;
     private Coroutine cargo_eject_load_confirmation_coroutine = null;
@@ -52,7 +52,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
     private void Start()
     {
         ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
-        cargo_eject = transform.GetComponent<CargoEject>();
+        cargo_eject = ReferenceAssistor.Instance.module_handlers[3].GetComponent<CargoEject>();
 
         item_type_switch_initial_position = cargo_eject_item_type_switch.transform.localPosition;
 
@@ -224,7 +224,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
 
         if (item_type_category == 1)
         {
-            dest_pos += item_type_switch_direction;
+            dest_pos += ITEM_TYPE_SWITCH_DIRECTION;
         }
 
         float anim_time = ITEM_TYPE_ADJUSTMENT_TIME;

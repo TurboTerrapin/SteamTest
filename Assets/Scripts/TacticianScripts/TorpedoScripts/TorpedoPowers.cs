@@ -3,7 +3,7 @@
     - Moves torpedo power levers
     - Adjusts torpedo power screens
     Contributor(s): Jake Schott
-    Last Updated: 12/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.35f;
     private static float MAX_POWER_CONSUMPTION = 0.4f; //0.4 means 4 circles
+    private static Vector3 FINAL_LEVER_DIRECTION = new Vector3(0.0842f, 0.0308f, 0f); //handle final position (100% power)
 
     private string[] CONTROL_NAMES = new string[] { "FORWARD TORPEDO POWER", "PORT TORPEDO POWER", "STARBOARD TORPEDO POWER", "AFT TORPEDO POWER" };
     private static string INFO_MESSAGE = "Handles power control on the corresponding torpedo bay. Greater power improves damage capability.";
@@ -32,7 +33,6 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
     private float[] power_levels = new float[] { 0.0f, 0.0f, 0.0f, 0.0f };
     private Vector3[] initial_positions = new Vector3[4]; //handle starting position (0% power)
     private Vector3[] final_positions = new Vector3[4]; //handle starting position (0% power)
-    private Vector3 final_lever_direction = new Vector3(0.0842f, 0.0308f, 0f); //handle final position (100% power)
 
     private List<string> ray_targets = new List<string> { "forward_torpedo_power", "port_torpedo_power", "starboard_torpedo_power", "aft_torpedo_power" };
 
@@ -49,7 +49,7 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
 
             //set positions
             initial_positions[i] = torpedo_power_levers.transform.GetChild(i).localPosition;
-            final_positions[i] = torpedo_power_levers.transform.GetChild(i).localPosition + final_lever_direction;
+            final_positions[i] = torpedo_power_levers.transform.GetChild(i).localPosition + FINAL_LEVER_DIRECTION;
         }
 
         hud_info.setButtons(BUTTON_LISTS[0], 7);
@@ -71,7 +71,7 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
         {
             consumed_power += (power_levels[i] * 0.25f * MAX_POWER_CONSUMPTION);
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 

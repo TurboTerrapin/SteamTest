@@ -1,9 +1,9 @@
 /*
-    PilotSCA.cs
+    SpatialCompositionAnalyzer.cs
     - Updates SCA reset bar
     - Updates SCA circular screen
     Contributor(s): Jake Schott
-    Last Updated: 1/5/2026
+    Last Updated: 2/1/2026
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class PilotSCA : NetworkBehaviour, IPowerable, IDescribable
+public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private static float RESET_TIMER = 10.0f; //seconds
@@ -43,7 +43,7 @@ public class PilotSCA : NetworkBehaviour, IPowerable, IDescribable
         "Flashes orange when there is an unusual reading on the spatial composition analyzer."
     };
 
-    public GameObject reset_bar; 
+    public GameObject reset_bar;
     public GameObject notifier;
     public GameObject SCA_display;
 
@@ -173,7 +173,6 @@ public class PilotSCA : NetworkBehaviour, IPowerable, IDescribable
         transmitNewMoleculesRPC(canvas_rotation, DataConverter.arrayToString(current_indices), DataConverter.arrayToString(current_locs), DataConverter.arrayToString(current_rots));
         transmitNewLoopRPC();
     }
-
 
     IEnumerator resetBarUpdater()
     {

@@ -1,16 +1,16 @@
 /*
-    PilotEngineInfo.cs
+    EngineMonitoring.cs
     - Updates speed and engine capacity temperature screens (next to Spatial Composition Analyzer)
     - Adjusts engine sound
     Contributor(s): Jake Schott
-    Last Updated: 1/5/2026
+    Last Updated: 2/1/2026
 */
 
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class PilotEngineInfo : MonoBehaviour, IPowerable, IDescribable
+public class EngineMonitoring : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
     private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(0.84f, 0.62f, 0.0f), new Color(1.0f, 0.0f, 0.0f) }; //blue, orange, red
@@ -50,8 +50,8 @@ public class PilotEngineInfo : MonoBehaviour, IPowerable, IDescribable
 
     private void Start()
     {
-        impulse_throttle = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ImpulseThrottle>();
-        engine_coolant_supply = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<EngineCoolantSupply>();
+        impulse_throttle = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
+        engine_coolant_supply = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>();
 
         for (int i = 0; i < INFO_TITLES.Length; i++)
         {

@@ -5,10 +5,9 @@
     - Updates frequency text
     - Handles the actual receiving/broadcasting of UniversalCommunicator messages
     Contributor(s): Jake Schott
-    Last Updated: 12/31/2025
+    Last Updated: 1/31/2026
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -21,13 +20,6 @@ public class TransmissionHandler : NetworkBehaviour
     private static float WAVE_SPEED = 0.05f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
     private static int FREQUENCY_COUNT = 12; //the # of frequency options
-
-    public Material lit_neon;
-    public Material lit_green;
-    public Material lit_red;
-    public Material unlit_neon;
-    public Material unlit_red;
-    public Material unlit_green;
 
     public GameObject frequency_display;
     public GameObject wave_display;
@@ -67,10 +59,10 @@ public class TransmissionHandler : NetworkBehaviour
         waves = wave_display.transform.GetChild(0).gameObject;
         alert_indicator = frequency_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
         frequency_text = frequency_display.transform.GetChild(1).GetComponent<TMP_Text>();
-        universal_communicator = transform.GetComponent<UniversalCommunicator>();
-        input_output_toggle = transform.GetComponent<InputOutputToggle>();
-        signal_options = transform.GetComponent<SignalOptions>();
-        frequency_adjuster = transform.gameObject.GetComponent<FrequencyAdjuster>();
+        universal_communicator = GetComponent<UniversalCommunicator>();
+        input_output_toggle = GetComponent<InputOutputToggle>();
+        signal_options = GetComponent<SignalOptions>();
+        frequency_adjuster = GetComponent<FrequencyAdjuster>();
 
         for (int i = 0; i < FREQUENCY_COUNT; i++)
         {
@@ -271,7 +263,7 @@ public class TransmissionHandler : NetworkBehaviour
     {
         foreach (Transform light in progress_indicators.transform) 
         {
-            light.GetComponent<Renderer>().material = unlit_neon;
+            light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
         }
     }
 
@@ -330,7 +322,7 @@ public class TransmissionHandler : NetworkBehaviour
                 {
                     if (UnityEngine.Random.Range(0, 2) == 0)
                     {
-                        progress_indicators.transform.GetChild(x).GetComponent<Renderer>().material = lit_neon;
+                        progress_indicators.transform.GetChild(x).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
                     }
                 }
                 yield return new WaitForSeconds(0.05f);
@@ -371,22 +363,22 @@ public class TransmissionHandler : NetworkBehaviour
 
         if (successful_transmission == true)
         {
-            success_indicator.GetComponent<Renderer>().material = lit_green;
+            success_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
         }
         else
         {
-            failure_indicator.GetComponent<Renderer>().material = lit_red;
+            failure_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
         }
 
         yield return new WaitForSeconds(0.5f);
 
         //stop consuming power
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
-        transform.GetComponent<SignalOptions>().getHUDinfo().setPowerConsumption(0.0f);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+        signal_options.getHUDinfo().setPowerConsumption(0.0f);
 
         //reset warning lights
-        success_indicator.GetComponent<Renderer>().material = unlit_green;
-        failure_indicator.GetComponent<Renderer>().material = unlit_red;
+        success_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+        failure_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
 
         //reset dial glass
         displayTransmissionStatus(index, 0.2f);
@@ -430,10 +422,10 @@ public class TransmissionHandler : NetworkBehaviour
             StopCoroutine(signal_transmission_coroutine);
             signal_transmission_coroutine = null;
             signal_options.getHUDinfo().setPowerConsumption(0.0f);
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
             resetProgressIndicators();
-            success_indicator.GetComponent<Renderer>().material = unlit_green;
-            failure_indicator.GetComponent<Renderer>().material = unlit_red;
+            success_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+            failure_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
         }
     }
 
@@ -482,7 +474,7 @@ public class TransmissionHandler : NetworkBehaviour
         input_output_toggle.deactivate();
 
         //update power consumption
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
         signal_options.getHUDinfo().setPowerConsumption(MAX_POWER_CONSUMPTION);
 
         //update glass next to signal dial

@@ -2,7 +2,7 @@
     PhaserFrequency.cs
     - Handles inputs for engineer phaser frequency adjustment
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -16,6 +16,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float DIAL_SPEED = 100.0f;
     private static float FREQUENCY_SWITCH_SPEED = 10.0f;
+    private Vector3 PHASER_FREQ_SLIDER_FINAL_POS = new Vector3(7.7154f, -0.1597f, -8.3744f);
     private static float SWITCH_TIME = 0.5f;
     private static int[] MIN_FREQUENCIES = { 40, 20 }; //long-range, short-range
     private static int[] MAX_FREQUENCIES = { 70, 90 }; //long-range, short-range
@@ -31,7 +32,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
     public GameObject phaser_frequency_dial;
 
     private Vector3 phaser_freq_slider_initial_pos; //slider starting position (long-range phaser)
-    private Vector3 phaser_freq_slider_final_pos = new Vector3(7.7154f, -0.1597f, -8.3744f);
+
 
     private bool is_powered = false;
     private int phaser_to_adjust = 0; //0 is long-range, 1 is short-range
@@ -80,7 +81,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
     IEnumerator phaserToAdjustSwitch()
     {
         Vector3 start_pos = phaser_frequency_slider.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(phaser_freq_slider_initial_pos, phaser_freq_slider_final_pos, phaser_to_adjust);
+        Vector3 dest_pos = Vector3.Lerp(phaser_freq_slider_initial_pos, PHASER_FREQ_SLIDER_FINAL_POS, phaser_to_adjust);
         float anim_time = SWITCH_TIME;
         while (anim_time > 0.0f)
         {

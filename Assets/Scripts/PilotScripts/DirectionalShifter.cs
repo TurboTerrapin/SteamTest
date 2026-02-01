@@ -3,7 +3,7 @@
     - Handles shifting between forward and reverse
     - Moves shift lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.6f;
     private static float DELAY_TIME = 1.0f;
+    private static Vector3 REVERSE_POS = new Vector3(0.2816f, -1.3416f, 19.1194f);
 
     private string CONTROL_NAME = "DIRECTIONAL SHIFTER";
     private static string INFO_MESSAGE = "Handles the direction the ship travels at impulse speed. Can only be used when stationary.";
@@ -32,7 +33,6 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     private bool in_reverse = false; //true means in reverse, false means forward
     private float shift_percentage = 1.0f; //1 is forward, 0 is reverse
     private Vector3 forward_pos;
-    private Vector3 reverse_pos = new Vector3(0.2816f, -1.3416f, 19.1194f);
     private List<KeyCode> keys_down = new List<KeyCode>();
     private Coroutine shift_adjuster_coroutine;
 
@@ -53,7 +53,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     {
         if (shift_adjuster_coroutine == null)
         {
-            BUTTONS[0].updateInteractable(transform.GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f && is_powered == true);
+            BUTTONS[0].updateInteractable(GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f && is_powered == true);
         }
         return hud_info;
     }
@@ -72,9 +72,9 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         }
 
         lever.transform.localPosition =
-            new Vector3(Mathf.Lerp(reverse_pos.x, forward_pos.x, percent_to_top),
-                        Mathf.Lerp(reverse_pos.y, forward_pos.y, percent_to_top),
-                        Mathf.Lerp(reverse_pos.z, forward_pos.z, percent_to_center));
+            new Vector3(Mathf.Lerp(REVERSE_POS.x, forward_pos.x, percent_to_top),
+                        Mathf.Lerp(REVERSE_POS.y, forward_pos.y, percent_to_top),
+                        Mathf.Lerp(REVERSE_POS.z, forward_pos.z, percent_to_center));
 
         forward_indicator.SetActive(!in_reverse && is_powered);
         reverse_indicator.SetActive(in_reverse && is_powered);
@@ -187,7 +187,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        if (shift_adjuster_coroutine == null && transform.GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f)
+        if (shift_adjuster_coroutine == null && GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f)
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {

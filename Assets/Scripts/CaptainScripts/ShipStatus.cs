@@ -3,7 +3,7 @@
     - Handles slider
     - Enables/disables red alert
     Contributor(s): Jake Schott
-    Last Updated: 1/15/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -76,10 +76,10 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             indicators[i].SetActive(is_powered);
         }
 
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<StatusIndicators>().displayShipStatus(COLOR_OPTIONS[curr_status]);
+        ReferenceAssistor.Instance.module_handlers[4].GetComponent<StatusIndicators>().displayShipStatus(COLOR_OPTIONS[curr_status]);
 
         //change lights
-        if (GameObject.Find("PowerHandler").GetComponent<PowerManager>().getShipHasPower() == true)
+        if (ReferenceAssistor.Instance.power_manager.getShipHasPower() == true)
         {
             if (curr_status == 2)
             {
@@ -92,7 +92,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         }
 
         //notify self destruct
-        transform.GetComponent<SelfDestruct>().onShipStatusChange();
+        GetComponent<SelfDestruct>().onShipStatusChange();
     }
 
     IEnumerator statusShift()
@@ -114,12 +114,12 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 
         if (curr_status > 0)
         {
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
             hud_info.setPowerConsumption(0.0f);
         }
 

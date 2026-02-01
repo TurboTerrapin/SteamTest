@@ -35,6 +35,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);

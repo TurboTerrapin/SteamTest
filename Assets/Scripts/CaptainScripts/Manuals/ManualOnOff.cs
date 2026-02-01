@@ -2,7 +2,7 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -34,8 +34,8 @@ public class ManualOnOff : NetworkBehaviour, IControllable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        manuals[0] = transform.GetComponent<ShipManual>();
-        manuals[1] = transform.GetComponent<CommunicationsManual>();
+        manuals[0] = GetComponent<ShipManual>();
+        manuals[1] = GetComponent<CommunicationsManual>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -74,7 +74,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         {
             consumed_power += getManualPowerConsumption(i);
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
     }
 
     public void reactivate(int index)
@@ -110,14 +110,14 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 
         if (index == 0)
         {
-            transform.GetComponent<ShipManual>().powerSwitch(false, 0);
+            GetComponent<ShipManual>().powerSwitch(false, 0);
             target_colliders[0].SetActive(true);
             target_colliders[1].SetActive(false);
 
         }
         else
         {
-            transform.GetComponent<CommunicationsManual>().powerSwitch(false);
+            GetComponent<CommunicationsManual>().powerSwitch(false);
             target_colliders[2].SetActive(true);
             target_colliders[3].SetActive(false);
         }
@@ -173,13 +173,13 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 
         if (manual_index == 0) //ShipManual
         {
-            transform.GetComponent<ShipManual>().powerSwitch(to_switch_to, msg);
+            GetComponent<ShipManual>().powerSwitch(to_switch_to, msg);
             target_colliders[0].SetActive(!to_switch_to);
             target_colliders[1].SetActive(to_switch_to);
         }
         else //CommunicationsManual
         {
-            transform.GetComponent<CommunicationsManual>().powerSwitch(to_switch_to);
+            GetComponent<CommunicationsManual>().powerSwitch(to_switch_to);
             target_colliders[2].SetActive(!to_switch_to);
             target_colliders[3].SetActive(to_switch_to);
         }

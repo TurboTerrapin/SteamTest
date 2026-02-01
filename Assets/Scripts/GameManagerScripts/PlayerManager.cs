@@ -3,7 +3,7 @@
     - Handles loading and managing of players
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 9/6/2025
+    Last Updated: 2/1/2026
 */
 
 using System.Collections;
@@ -309,11 +309,11 @@ public class PlayerManager : NetworkBehaviour
     //when paths are generated, ship is relocated into entrance path, thus requiring an update to ship screens
     public void handleShipRepositioning()
     {
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateAltimeterScreen();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>().updateCourseHeadingScreen();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateAltitude();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipLocation();
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>().updateShipOrientation();
+        ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateAltimeterScreen();
+        ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateCourseHeadingScreen();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>().updateAltitude();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>().updateShipLocation();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>().updateShipOrientation();
     }
 
     [Rpc(SendTo.Everyone)]

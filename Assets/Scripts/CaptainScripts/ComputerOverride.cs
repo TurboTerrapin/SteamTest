@@ -2,7 +2,7 @@
     ComputerOverride.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 1/12/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -69,7 +69,7 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
                 consumed_power += (MAX_POWER_CONSUMPTION / 8);
             }
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 

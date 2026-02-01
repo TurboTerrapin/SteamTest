@@ -3,7 +3,7 @@
     - Alerts ProbeController.cs when damaged
     - Handles visual things
     Contributor(s): Jake Schott
-    Last Updated: 12/29/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -20,7 +20,7 @@ public class Probe : MonoBehaviour, IDamageable
 
     private void Start()
     {
-        probe_controller = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ProbeController>();
+        probe_controller = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>();
     }
 
     public void damage(float dam)

@@ -35,7 +35,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     private Transform ship = null;
     private GameObject current_probe = null;
     private ShipInventory ship_inventory = null;
-    private TacticianProbeInfo tactician_probe_info = null;
+    private ProbeInfo probe_info = null;
 
     private bool is_powered = false;
     private bool probe_connected = false;
@@ -56,7 +56,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     private void Start()
     {
         ship = GameObject.FindGameObjectWithTag("Spaceship").transform;
-        tactician_probe_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianProbeInfo>();
+        probe_info = GetComponent<ProbeInfo>();
         ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
@@ -80,7 +80,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     //called any time a probe is destroyed
     public void onProbeDestroyed()
     {
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
         hud_info.setPowerConsumption(0.0f);
     }
 
@@ -132,7 +132,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         //handle new power consumption
         if (is_powered == true)
         {
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
     }
@@ -216,34 +216,34 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 
     private void activateProbeControlSwitches()
     {
-        transform.GetComponent<ProbeLateralMovement>().linkProbe(current_probe);
-        transform.GetComponent<ProbeVerticalMovement>().linkProbe(current_probe);
-        transform.GetComponent<ProbeOrientation>().linkProbe(current_probe);
+        GetComponent<ProbeLateralMovement>().linkProbe(current_probe);
+        GetComponent<ProbeVerticalMovement>().linkProbe(current_probe);
+        GetComponent<ProbeOrientation>().linkProbe(current_probe);
     }
 
     public void linkProbe()
     {
         BUTTON_LISTS[1][0].updateInteractable(true);
         activateProbeControlSwitches();
-        tactician_probe_info.onProbeLinked();
+        probe_info.onProbeLinked();
         onProbeDistanceChange();
-        tactician_probe_info.displayProbeAltitude(current_probe.transform.position.y);
+        probe_info.displayProbeAltitude(current_probe.transform.position.y);
         active_dial = 1;
         updateDialDisplays();
     }
 
     private void deactivateProbeControlSwitches()
     {
-        transform.GetComponent<ProbeLateralMovement>().unlinkProbe();
-        transform.GetComponent<ProbeVerticalMovement>().unlinkProbe();
-        transform.GetComponent<ProbeOrientation>().unlinkProbe();
+        GetComponent<ProbeLateralMovement>().unlinkProbe();
+        GetComponent<ProbeVerticalMovement>().unlinkProbe();
+        GetComponent<ProbeOrientation>().unlinkProbe();
     }
 
     public void unlinkProbe()
     {
         BUTTON_LISTS[1][0].updateInteractable(false);
         deactivateProbeControlSwitches();
-        tactician_probe_info.onProbeUnlinked();
+        probe_info.onProbeUnlinked();
 
         if (current_probe == null && is_powered == true)
         {
@@ -267,7 +267,11 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     IEnumerator probeLaunchSequence()
     {
         dial_turn_coroutine = StartCoroutine(dialReturn());
-        string serial_num = ship_inventory.removeItem("Probe");
+        string serial_num = "";
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            serial_num = ship_inventory.removeItem("Probe");
+        }
 
         float anim_time = FUNCTION_TIME;
         while (anim_time > 0.0f)
@@ -275,7 +279,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
             float percent_loaded = 1.0f - (anim_time / FUNCTION_TIME);
-            tactician_probe_info.displayProbeLaunchProgress(percent_loaded);
+            probe_info.displayProbeLaunchProgress(percent_loaded);
 
             yield return null;
         }
@@ -303,7 +307,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
             float percent_loaded = 1.0f - (anim_time / FUNCTION_TIME);
-            tactician_probe_info.displayProbeDestructProgress(percent_loaded);
+            probe_info.displayProbeDestructProgress(percent_loaded);
 
             yield return null;
         }
@@ -399,12 +403,12 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             if (probeInRange() == true)
             {
                 //update screens
-                tactician_probe_info.disableProbeOutOfRangeWarning();
-                tactician_probe_info.displayProbeRange(1.0f - Mathf.Max(0.0f, (bounded_distance - 25.0f) / (RANGE - 25.0f)));
+                probe_info.disableProbeOutOfRangeWarning();
+                probe_info.displayProbeRange(1.0f - Mathf.Max(0.0f, (bounded_distance - 25.0f) / (RANGE - 25.0f)));
             }
             else
             {
-                tactician_probe_info.enableProbeOutOfRangeWarning();
+                probe_info.enableProbeOutOfRangeWarning();
             }
         }
 
@@ -437,24 +441,24 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         {
             if (probe_connected == true)
             {
-                tactician_probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 1.0f);
-                tactician_probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 1, 1.0f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 1.0f);
+                probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 1, 1.0f);
             }
             else
             {
-                tactician_probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 2, 0.2f);
-                tactician_probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 2, 0.2f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 2, 0.2f);
+                probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 2, 0.2f);
             }
         }
         else
         {
             if (ship_inventory.getItemQuantity("Probe") > 0)
             {
-                tactician_probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 1.0f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 1.0f);
             }
             else
             {
-                tactician_probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 0.2f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 0.2f);
             }
             probe_dial_displays[1].SetActive(false);
         }
@@ -518,7 +522,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
                 active_dial = -1;
             }
             BUTTON_LISTS[1][0].updateInteractable(probeInRange());
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
@@ -549,7 +553,6 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         {
             BUTTON_LISTS[i][0].updateInteractable(false);
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
         hud_info.setPowerConsumption(0.0f);
     }
 
@@ -576,7 +579,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     private void transmitProbeHealthChangeRPC(float new_health)
     {
         probe_health = new_health;
-        tactician_probe_info.displayProbeHealth(probe_health / DEFAULT_PROBE_HEALTH);
+        probe_info.displayProbeHealth(probe_health / DEFAULT_PROBE_HEALTH);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -600,12 +603,12 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             unlinkProbe();
             if (probe_intact == true)
             {
-                tactician_probe_info.onProbeOutOfRangeDisconnect();
+                probe_info.onProbeOutOfRangeDisconnect();
             }
             else
             {
-                transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
-                hud_info.setPowerConsumption(0.0f);
+               ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
+               hud_info.setPowerConsumption(0.0f);
             }
         }
         updateDialDisplays();

@@ -2,7 +2,7 @@
     CargoEject.cs
     - Launches item loaded in cargo bay
     Contributor(s): Jake Schott
-    Last Updated: 1/23/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -27,11 +27,6 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 11 };
     private List<Button> BUTTONS = new List<Button>(0);
 
-    public Material lit_red;
-    public Material lit_green;
-    public Material unlit_red;
-    public Material unlit_green;
-
     public GameObject dial;
     public GameObject cargo_jettison_display;
     public GameObject active_indicator;
@@ -54,7 +49,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        cargo_eject_loader = transform.GetComponent<CargoEjectLoader>();
+        cargo_eject_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>();
 
         hud_info = new HUDInfo(CONTROL_NAME);
 
@@ -95,8 +90,8 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
 
         if (is_powered == true)
         {
-            active_indicator.GetComponent<Renderer>().material = lit_green;
-            inactive_indicator.GetComponent<Renderer>().material = unlit_red;
+            active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
+            inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
         }
 
         BUTTONS[1].updateInteractable(is_powered && cargo_eject_coroutine == null);
@@ -112,8 +107,8 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
 
         if (is_powered == true)
         {
-            active_indicator.GetComponent<Renderer>().material = unlit_green;
-            inactive_indicator.GetComponent<Renderer>().material = lit_red;
+            active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+            inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
         }
 
         BUTTONS[0].updateInteractable(false);
@@ -304,8 +299,8 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
         cargo_jettison_display.SetActive(false);
-        active_indicator.GetComponent<Renderer>().material = unlit_green;
-        inactive_indicator.GetComponent<Renderer>().material = unlit_red;
+        active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+        inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
         BUTTONS[0].updateInteractable(false);
         BUTTONS[0].untoggle();
         BUTTONS[1].updateInteractable(false);

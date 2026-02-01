@@ -1,9 +1,9 @@
 /*
-    MapOptions.cs
+    ProximityMapOptions.cs
     - Handles inputs for map zoom, map configuration
-    - Zooms the lines for the map, tells TacticianMap to zoom the objects accordingly
+    - Zooms the lines for the map, tells ProximityMap to zoom the objects accordingly
     Contributor(s): Jake Schott
-    Last Updated: 1/8/2026
+    Last Updated: 2/1/2026
 */
 
 using Unity.Netcode;
@@ -11,16 +11,18 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MapOptions : NetworkBehaviour, IControllable, IPowerable
+public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float ZOOM_SPEED = 1.0f;
     private static float PUSH_TIME = 0.25f;
+    private Vector3 CONFIG_BUTTON_FINAL_POS = new Vector3(0.0f, -0.0056f, 0.0023f);
+    private Vector3 SLIDER_FINAL_POS = new Vector3(0.0f, -0.0394f, -0.0934f);
 
     private string CONTROL_NAME = "PROXIMITY MAP";
     private static string INFO_MESSAGE = "Handles proximity map settings. Map modes include obstacle view, collectible item view, and ship view.";
-    private List<string> CONTROL_DESCS = new List<string> {"CHANGE MODE", "ZOOM OUT", "ZOOM IN"};
-    private List<int> CONTROL_INDEXES = new List<int>() {6, 4, 5 };
+    private List<string> CONTROL_DESCS = new List<string> { "CHANGE MODE", "ZOOM OUT", "ZOOM IN" };
+    private List<int> CONTROL_INDEXES = new List<int>() { 6, 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject slider;
@@ -28,25 +30,20 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
     public GameObject config_display;
     public GameObject map_display;
 
-    private TacticianMap tactician_map;
+    private ProximityMap proximity_map;
 
     private bool is_powered = false;
-
     private Vector3 config_button_initial_pos;
-    private Vector3 config_button_final_pos = new Vector3(0.0f, -0.0056f, 0.0023f);
-
-    //zoom settings
     private float zoom = 1.0f;
     private Vector3 slider_initial_pos; //slider starting position (100% zoom)
-    private Vector3 slider_final_pos = new Vector3(0.0f, -0.0394f, -0.0934f);
-    
     private int map_config = 0;
     private Coroutine map_config_coroutine = null;
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
-        tactician_map = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
+        proximity_map = GetComponent<ProximityMap>();
 
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -59,6 +56,7 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
         slider_initial_pos = slider.transform.localPosition;
         config_button_initial_pos = config_button.transform.localPosition;
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
@@ -87,7 +85,7 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
                     push_percentage = (push_time / half_time);
                 }
 
-                config_button.transform.localPosition = Vector3.Lerp(config_button_initial_pos, config_button_final_pos, push_percentage);
+                config_button.transform.localPosition = Vector3.Lerp(config_button_initial_pos, CONFIG_BUTTON_FINAL_POS, push_percentage);
 
                 yield return null;
             }
@@ -98,7 +96,7 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
                 displayMapConfigAdjustment();
             }
         }
-        
+
         BUTTONS[0].updateInteractable(true);
 
         map_config_coroutine = null;
@@ -107,10 +105,10 @@ public class MapOptions : NetworkBehaviour, IControllable, IPowerable
     private void displayZoomAdjustment()
     {
         //zoom items
-        tactician_map.zoomMap();
+        proximity_map.zoomMap();
 
         //update zoom slider position
-        slider.transform.localPosition = Vector3.Lerp(slider_initial_pos, slider_final_pos, 1.0f - zoom);
+        slider.transform.localPosition = Vector3.Lerp(slider_initial_pos, SLIDER_FINAL_POS, 1.0f - zoom);
     }
 
     private void displayMapConfigAdjustment()

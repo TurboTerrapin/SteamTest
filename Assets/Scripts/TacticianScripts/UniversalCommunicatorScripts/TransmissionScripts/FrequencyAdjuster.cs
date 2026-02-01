@@ -2,7 +2,7 @@
     FrequencyAdjuster.cs
     - Switches frequencies
     Contributor(s): Jake Schott
-    Last Updated: 12/31/2025
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -33,7 +33,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
 
     private void Start()
     {
-        transmission_handler = transform.GetComponent<TransmissionHandler>();  
+        transmission_handler = GetComponent<TransmissionHandler>();  
 
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));

@@ -6,7 +6,7 @@
     - Handles giving sit down/get up directions for physical seats
     - Handles storing/giving seat indexes (where they are shifted)
     Contributor(s): Jake Schott
-    Last Updated: 12/9/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ public class SeatManager : NetworkBehaviour
     private void Start()
     {
         player_manager = GameObject.Find("PlayerManager").GetComponent<PlayerManager>();
-        power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
+        power_control = ReferenceAssistor.Instance.module_handlers[4].GetComponent<PowerControl>();
     }
 
     //returns -1 if no unoccupied seats within SIT_RANGE, otherwise returns index (0-3) of position available

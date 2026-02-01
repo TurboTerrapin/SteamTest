@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser intensity screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 1/9/2026
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.25f;
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
+    private static Vector3 PHASER_SLIDE_DIRECTION = new Vector3(0.0f, 0.1078f, 0.2626f);
 
     private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASER", "SHORT-RANGE PHASERS" };
     private static string INFO_MESSAGE = "Adjusts the intensity of the corresponding phasers to increase or decrease damage.";
@@ -32,14 +33,13 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
     private float[] phaser_intensities = new float[2] { 0.0f, 0.0f };
     private Vector3[] phaser_slider_initial_positions = new Vector3[2];
     private Vector3[] phaser_slider_final_positions = new Vector3[2];
-    private Vector3 phaser_slide_direction = new Vector3(0.0f, 0.1078f, 0.2626f);
 
     private List<string> ray_targets = new List<string> { "long_range_phasers", "short_range_phasers" };
 
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        phaser_activators = transform.GetComponent<PhaserActivators>();
+        phaser_activators = GetComponent<PhaserActivators>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -51,7 +51,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
 
             //set positions
             phaser_slider_initial_positions[i] = phaser_sliders[i].transform.localPosition;
-            phaser_slider_final_positions[i] = phaser_sliders[i].transform.localPosition + phaser_slide_direction;
+            phaser_slider_final_positions[i] = phaser_sliders[i].transform.localPosition + PHASER_SLIDE_DIRECTION;
         }
 
         hud_info.setButtons(BUTTON_LISTS[0], 7);
@@ -97,7 +97,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
         {
             consumed_power += (phaser_intensities[i] * 0.5f * MAX_POWER_CONSUMPTION);
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 

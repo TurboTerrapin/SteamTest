@@ -2,15 +2,14 @@
     ProbeVerticalMovement.cs
     - Turns lever
     - Affects probe if host
-    - Tells TacticianProbeInfo to update altimeter
+    - Tells ProbeInfo to update altimeter
     Contributor(s): Jake Schott
-    Last Updated: 12/25/2025
+    Last Updated: 2/1/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ProbeVerticalMovement : NetworkBehaviour, IControllable
@@ -22,11 +21,11 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
     private string CONTROL_NAME = "PROBE VERTICAL MOVEMENT";
     private static string INFO_MESSAGE = "Handles the up and down movement of an active probe.";
     private List<string> CONTROL_DESCS = new List<string> {"DESCEND", "ASCEND"};
-    private List<int> CONTROL_INDEXES = new List<int>() {2,0};
+    private List<int> CONTROL_INDEXES = new List<int>(){ 2,0 };
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject vertical_lever;
-    private TacticianProbeInfo tactician_probe_info;
+    private ProbeInfo probe_info;
 
     private bool is_active = false;
     private GameObject probe;
@@ -39,7 +38,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 
     private void Start()
     {
-        tactician_probe_info = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianProbeInfo>();
+        probe_info = GetComponent<ProbeInfo>();
 
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
@@ -59,12 +58,12 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         vertical_lever.transform.localRotation = Quaternion.Euler(-114.0f + vertical_lever_angle, 45.0f, 90.0f);
 
         //notify probe controller
-        transform.GetComponent<ProbeController>().onProbeDistanceChange();
+        GetComponent<ProbeController>().onProbeDistanceChange();
 
         //update altimeter
         if (probe != null)
         {
-            tactician_probe_info.displayProbeAltitude(probe.transform.position.y);
+            probe_info.displayProbeAltitude(probe.transform.position.y);
         }
     }
 
@@ -76,7 +75,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
             BUTTONS[i].updateInteractable(true);
         }
         activate();
-        tactician_probe_info.displayProbeAltitude(probe.transform.position.y);
+        probe_info.displayProbeAltitude(probe.transform.position.y);
     }
 
     public void unlinkProbe()
