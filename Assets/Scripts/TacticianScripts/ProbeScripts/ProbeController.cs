@@ -99,7 +99,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         if (current_probe != null)
         {
             Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
-            current_probe.GetComponent<NetworkObject>().TrySetParent(world_root);
+            current_probe.GetComponent<NetworkObject>().TrySetParent(world_root, true);
             current_probe.GetComponent<SphereCollider>().excludeLayers = LayerMask.GetMask("None");
         }
     }
@@ -120,7 +120,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             current_probe.transform.localPosition = new Vector3(0.0f, 5.0f, 5.0f);
             current_probe.transform.rotation = spaceship.rotation;
             current_probe.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
-            current_probe.GetComponent<NetworkObject>().TrySetParent(spaceship);
+            current_probe.GetComponent<NetworkObject>().TrySetParent(spaceship, true);
             current_probe.GetComponent<CollectibleItem>().setSerialNumber(serial_num);
             transmitProbeConnectionChangeRPC(true, true);
             StartCoroutine(probeTransformAdjustment());

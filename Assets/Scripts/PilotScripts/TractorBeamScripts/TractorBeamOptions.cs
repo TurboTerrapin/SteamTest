@@ -302,16 +302,19 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    [Rpc(SendTo.Everyone)]
     private void transmitDialTurnAdjustmentRPC(float dp_destroy, float dp_collect)
     {
         dial_turn_percentages[0] = dp_destroy;
         dial_turn_percentages[1] = dp_collect;
         for (int i = 0; i < 2; i++)
         {
+            Debug.Log(dial_turn_percentages[i]);
             displayDialAdjustment(i);
         }
     }
 
+    [Rpc(SendTo.Everyone)]
     private void transmitItemAdjustmentRPC(int index)
     {
         if (dial_turn_coroutine != null)
@@ -331,9 +334,9 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
                 }
                 tractor_beam.GetCapturedItem().GetComponent<NetworkObject>().Despawn(true);
             }
-            tractor_beam.ClearCapturedItem();
         }
 
+        tractor_beam.ClearCapturedItem();
         deactivate();
         dial_turn_coroutine = StartCoroutine(dialReturn());
     }

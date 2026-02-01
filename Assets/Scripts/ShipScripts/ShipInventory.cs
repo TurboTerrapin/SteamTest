@@ -386,6 +386,7 @@ public class ShipInventory : NetworkBehaviour, IPowerable
         else
         {
             torpedo_quantities[item_index] = Mathf.Max(0, torpedo_quantities[item_index] - 1);
+            quantity = torpedo_quantities[item_index];
             serial_num = torpedo_serial_nums[item_index].Pop();
         }
 

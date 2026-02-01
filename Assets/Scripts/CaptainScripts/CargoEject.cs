@@ -173,7 +173,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         if (ejected_item != null)
         {
             Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
-            ejected_item.GetComponent<NetworkObject>().TrySetParent(world_root);
+            ejected_item.GetComponent<NetworkObject>().TrySetParent(world_root, true);
             Collider c = ejected_item.GetComponent<Collider>();
             c.excludeLayers = LayerMask.GetMask("None");
         }
@@ -197,7 +197,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
             Vector3 curr_rotation = ejected_item.transform.rotation.eulerAngles;
             ejected_item.transform.rotation = Quaternion.Euler(curr_rotation.x + Random.Range(-15.0f, 15.0f), curr_rotation.y + Random.Range(-15.0f, 15.0f), curr_rotation.z + Random.Range(-15.0f, 15.0f));
             ejected_item.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
-            ejected_item.GetComponent<NetworkObject>().TrySetParent(spaceship);
+            ejected_item.GetComponent<NetworkObject>().TrySetParent(spaceship, true);
             ejected_item.GetComponent<CollectibleItem>().setSerialNumber(cargo_eject_loader.getCurrentItemSerialNumber());
             StartCoroutine(cargoTransformAdjustment(ejected_item));
         }
