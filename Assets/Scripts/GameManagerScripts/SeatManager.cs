@@ -6,10 +6,11 @@
     - Handles giving sit down/get up directions for physical seats
     - Handles storing/giving seat indexes (where they are shifted)
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/1/2026
 */
 
 using System.Collections.Generic;
+using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -26,11 +27,13 @@ public class SeatManager : NetworkBehaviour
 
     //GAME OBJECTS
     public List<GameObject> physical_seats = null;
+    public List<GameObject> seat_prefabs = null;
     private PlayerManager player_manager;
     private PowerControl power_control;
 
     private int[] occupied_seats = new int[4] { -1, -1, -1, -1 }; //corresponds to player index (ex. if occupied_seats[0] is 1, that means player #2 is in the pilot seat)
     private int[] seat_indexes = new int[4] { 1, 0, 0, -1 }; //goes left-to-right from 0 to # of possible seat positions (minus one), -1 for captain because no shifting
+    private ulong[] seat_ids = new ulong[4] { 0, 0, 0, 0 }; //nasty hack
 
     private void Start()
     {
@@ -132,7 +135,7 @@ public class SeatManager : NetworkBehaviour
         {
             return false;
         }
-        transmitSeatOccupantChangeRPC(seat, player_manager.getPlayerIndex(), true);
+        transmitSeatOccupantChangeRPC(seat, NetworkManager.Singleton.LocalClientId, player_manager.getPlayerIndex(), true);
         return true;
     }
 
@@ -175,12 +178,6 @@ public class SeatManager : NetworkBehaviour
         return seat_indexes[pos] - 1; //left
     }
 
-    //called by shifting player after shift to seat transform
-    public void updateSeatLocation(int seat, Vector3 new_seat_loc)
-    {
-        transmitSeatLocationChangeRPC(seat, new_seat_loc);
-    }
-
     //called by shifting player after shift to a new SEAT_LOCATION
     public void updateSeatIndex(int seat, int new_seat_index)
     {
@@ -192,25 +189,74 @@ public class SeatManager : NetworkBehaviour
     {
         if (occupied_seats[seat] == player_manager.getPlayerIndex())
         {
-            transmitSeatOccupantChangeRPC(seat, player_manager.getPlayerIndex(), false);
+            transmitSeatOccupantChangeRPC(seat, NetworkManager.Singleton.LocalClientId, player_manager.getPlayerIndex(), false);
             return true;
         }
         return false;
     }
 
-   
+    private void replaceSeatPrefab(int seat) 
+    {
+        if (seat == 3)
+        {
+            return;
+        }
+
+        if (physical_seats[seat].GetComponent<NetworkObject>() != null)
+        {
+            if (physical_seats[seat].GetComponent<NetworkObject>().NetworkObjectId == seat_ids[seat])
+            {
+                Debug.Log("Same seat");
+                return;
+            }
+        }
+
+        Debug.Log("Seat replaced");
+        if (physical_seats[seat].GetComponent<NetworkObject>() == null)
+        {
+            GameObject.Destroy(physical_seats[seat]);
+        }
+        else
+        {
+            if (NetworkManager.Singleton.IsHost == true)
+            {
+                physical_seats[seat].GetComponent<NetworkObject>().Despawn(true);
+            }
+        }
+        physical_seats[seat] = GetNetworkObject(seat_ids[seat]).gameObject;
+        physical_seats[seat].GetComponent<ClientNetworkTransform>().Interpolate = true;
+        physical_seats[seat].transform.GetChild(3).gameObject.SetActive(true);
+    }
+
+    public void beginShift(int seat) 
+    {
+        transmitShiftBeginRPC(seat);
+    }
+
     [Rpc(SendTo.Everyone)]
-    private void transmitSeatOccupantChangeRPC(int seat, int occupant, bool occupied)
+    private void transmitSeatOccupantChangeRPC(int seat, ulong client_id, int occupant, bool occupied)
     {
         if (occupied == true)
         {
             occupied_seats[seat] = occupant;
             player_manager.freezePlayer(occupant);
+            if (seat < 3)
+            {
+                if (NetworkManager.Singleton.IsHost == true)
+                {
+                    GameObject new_seat = GameObject.Instantiate(seat_prefabs[seat], physical_seats[3].transform.parent);
+                    new_seat.transform.localPosition = new Vector3(SEAT_COORDINATES[seat][seat_indexes[seat]].x, 0.0f, SEAT_COORDINATES[seat][seat_indexes[seat]].y);
+                    new_seat.GetComponent<NetworkObject>().SpawnWithOwnership(client_id, false);
+                    new_seat.GetComponent<NetworkObject>().TrySetParent(physical_seats[3].transform.parent.gameObject, true);
+                    transmitSeatPrefabSpawnRPC(seat, new_seat.GetComponent<NetworkObject>().NetworkObjectId);
+                }
+            }
         }
         else
         {
             occupied_seats[seat] = -1;
             player_manager.unfreezePlayer(occupant);
+            replaceSeatPrefab(seat);
         }
         bool[] curr_seats = new bool[4];
         for (int i = 0; i < 4; i++)
@@ -227,8 +273,14 @@ public class SeatManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitSeatLocationChangeRPC(int seat, Vector3 new_seat_loc)
+    private void transmitSeatPrefabSpawnRPC(int seat, ulong seat_id)
     {
-        physical_seats[seat].transform.localPosition = new_seat_loc;
+        seat_ids[seat] = seat_id;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void transmitShiftBeginRPC(int seat)
+    {
+        replaceSeatPrefab(seat);
     }
 }

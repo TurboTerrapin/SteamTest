@@ -207,12 +207,17 @@ public class PlayerMove : NetworkBehaviour
         float total_shift_time = Vector3.Distance(start_pos, end_pos) / SHIFT_SPEED;
         float shift_time = total_shift_time;
 
+        seat_manager.beginShift(pos);
+
         while (shift_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             shift_time = Mathf.Max(0.0f, shift_time - dt);
             transform.localPosition = Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time) - offset;
-            seat_manager.updateSeatLocation(pos, Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time));
+            if (seat_manager.physical_seats[pos] != null)
+            {
+                seat_manager.physical_seats[pos].transform.localPosition = Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time);
+            }
 
             yield return null;
         }

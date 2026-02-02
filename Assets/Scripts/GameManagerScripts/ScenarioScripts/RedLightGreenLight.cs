@@ -99,11 +99,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         scenarioManager = GameObject.FindWithTag("ScenarioManager").GetComponent<ScenarioManager>();
 
-        GameObject controlHandler = GameObject.FindWithTag("ControlHandler");
-        impulse = controlHandler.GetComponent<ImpulseThrottle>();
+        impulse = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
 
-        GameObject sensorHandler = GameObject.FindWithTag("SensorHandler");
-        energyPatternManager = sensorHandler.GetComponent<EnergyPatternManager>();
+        energyPatternManager = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPatternManager>();
 
         spaceship = GameObject.FindWithTag("Spaceship");
         shipHealth = spaceship.GetComponent<ShipHealth>();
