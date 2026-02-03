@@ -71,7 +71,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
             }
             else
             {
-                current_section.GetChild(1).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.84f, 0.62f, 0.0f);
+                current_section.GetChild(1).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.47f, 0.0f);
             }
         }
 

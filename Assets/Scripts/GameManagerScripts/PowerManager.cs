@@ -35,7 +35,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public AudioSource power_off_sound;
     public AudioSource power_on_sound;
 
-    private GameObject module_handlers;
     private PowerAllocation power_allocation;
     private PowerControl power_control;
     private StatusIndicators status_indicators;
@@ -57,7 +56,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
     private void Start()
     {
-        module_handlers = GameObject.FindGameObjectWithTag("ModuleHandlers");
         power_allocation = ReferenceAssistor.Instance.module_handlers[2].GetComponent<PowerAllocation>();
         power_control = ReferenceAssistor.Instance.module_handlers[4].GetComponent<PowerControl>();
         status_indicators = ReferenceAssistor.Instance.module_handlers[4].GetComponent<StatusIndicators>();

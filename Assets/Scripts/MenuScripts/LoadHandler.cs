@@ -2,7 +2,7 @@
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
     Contributor(s): Jake Schott
-    Last Updated: 10/14/2025
+    Last Updated: 2/3/2026
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ using UnityEngine.SceneManagement;
 public class LoadHandler : NetworkBehaviour
 {
     //LOAD CIRCLE SETTINGS
-    private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
+    private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(1.0f, 0.47f, 0f) };
     private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 200.0f, 70.0f };
 
     private GameObject load_screen;

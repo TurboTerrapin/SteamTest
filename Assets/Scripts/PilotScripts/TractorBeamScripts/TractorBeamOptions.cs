@@ -309,7 +309,6 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
         dial_turn_percentages[1] = dp_collect;
         for (int i = 0; i < 2; i++)
         {
-            Debug.Log(dial_turn_percentages[i]);
             displayDialAdjustment(i);
         }
     }

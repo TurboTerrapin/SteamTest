@@ -20,7 +20,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private static float IMPULSE_SPEED_CHANGE_FACTOR = 4.0f; //goes 1/4 as fast when engines are overheated
     private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.005f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
-    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(0.84f, 0.62f, 0.0f), new Color(1.0f, 0.0f, 0.0f)}; //blue, orange, red
+    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f)}; //blue, orange, red
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
     private static string INFO_MESSAGE = "Regulates engines to prevent overheating and engine slowdown.";

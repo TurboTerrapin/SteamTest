@@ -2,7 +2,7 @@
     ProbeInfo.cs
     - Handles animating probe screens
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 2/3/2026
 */
 
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
     //CLASS CONSTANTS
     private Color BLUE = new Color(0.0f, 0.84f, 1.0f);
     private Color RED = new Color(1.0f, 0.0f, 0.0f);
-    private Color ORANGE = new Color(0.84f, 0.62f, 0.0f);
+    private Color ORANGE = new Color(1.0f, 0.47f, 0.0f);
 
     //list of all ray target names
     private List<string> RAY_TARGETS = new List<string>()

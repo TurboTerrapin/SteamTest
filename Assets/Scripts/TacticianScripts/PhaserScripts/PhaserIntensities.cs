@@ -110,7 +110,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
         Color phaser_color = new Color(0.0f, 0.84f, 1.0f);
         if (index == 1)
         {
-            phaser_color = new Color(0.85f, 0.62f, 0.0f);
+            phaser_color = new Color(1.0f, 0.47f, 0.0f);
         }
         float tmp_pwr = phaser_intensities[index];
         for (int i = 0; i <= 19; i++)

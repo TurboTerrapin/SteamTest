@@ -206,12 +206,10 @@ public class SeatManager : NetworkBehaviour
         {
             if (physical_seats[seat].GetComponent<NetworkObject>().NetworkObjectId == seat_ids[seat])
             {
-                Debug.Log("Same seat");
                 return;
             }
         }
 
-        Debug.Log("Seat replaced");
         if (physical_seats[seat].GetComponent<NetworkObject>() == null)
         {
             GameObject.Destroy(physical_seats[seat]);

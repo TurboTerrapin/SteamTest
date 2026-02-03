@@ -269,11 +269,11 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 
                     if (x == 0)
                     {
-                        orange_color = new Color(0.84f, 0.62f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / PLAYER_NOTIFIER_REFRESH))));
+                        orange_color = new Color(1.0f, 0.47f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / PLAYER_NOTIFIER_REFRESH))));
                     }
                     else
                     {
-                        orange_color = new Color(0.84f, 0.62f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / PLAYER_NOTIFIER_REFRESH))));
+                        orange_color = new Color(1.0f, 0.47f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / PLAYER_NOTIFIER_REFRESH))));
                     }
 
                     for (int i = 0; i < 4; i++)

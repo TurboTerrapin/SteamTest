@@ -13,7 +13,7 @@ using UnityEngine;
 public class EngineMonitoring : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
-    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(0.84f, 0.62f, 0.0f), new Color(1.0f, 0.0f, 0.0f) }; //blue, orange, red
+    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f) }; //blue, orange, red
     private static string[] STATE_NAMES = new string[3] { "NOMINAL", "REDUCED", "MINIMAL" };
 
     //list of all ray target names

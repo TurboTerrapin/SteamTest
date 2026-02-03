@@ -222,11 +222,11 @@ public class EnergyPatternManager : MonoBehaviour
                     anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
                     if (i == 0)
                     {
-                        enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.84f, 0.62f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / ENABLED_BLINKER_REFRESH))));
+                        enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.47f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / ENABLED_BLINKER_REFRESH))));
                     }
                     else
                     {
-                        enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.84f, 0.62f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / ENABLED_BLINKER_REFRESH))));
+                        enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.47f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / ENABLED_BLINKER_REFRESH))));
                     }
                     yield return null;
                 }

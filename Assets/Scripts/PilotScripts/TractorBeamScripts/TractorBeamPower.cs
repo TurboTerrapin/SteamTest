@@ -119,6 +119,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = tractor_beam_options.getCapturedItemTexture();
             c.a = 1.0f;
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
+            item_captured_display.transform.GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
             setTractorBeamStatusIndicators(false);
         }
         else
