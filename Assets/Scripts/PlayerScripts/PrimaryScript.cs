@@ -387,7 +387,10 @@ public class PrimaryScript : MonoBehaviour
                 primary_info.SetActive(false);
             }
 
-            GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
+            if (HUD_setting == 0)
+            {
+                GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
+            }
 
             return;
         }
@@ -523,7 +526,10 @@ public class PrimaryScript : MonoBehaviour
             if (!paused && is_active)
             {
                 //-----------------------------------------------SECONDARY INFO HELP MENU CHECK------------------------------------------------
-                GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
+                if (HUD_setting == 0)
+                {
+                    GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
+                }
 
                 //-----------------------------------------------CHECK FOR UNSEATING/SHIFTING--------------------------------------------------
                 if (player_prefab.GetComponent<PlayerMove>().isShifting() == false)
