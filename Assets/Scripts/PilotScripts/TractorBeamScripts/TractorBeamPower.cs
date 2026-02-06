@@ -12,7 +12,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
+public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 50.0f;
@@ -28,6 +28,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     public GameObject lever;
     public GameObject bars_display; //used to display the bars beneath the handle
     public GameObject info_display; //used to display range in meters, visual indicator
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -45,6 +46,10 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget()
+    {
+        return IK_target.transform;
     }
 
     private void displayAdjustment()

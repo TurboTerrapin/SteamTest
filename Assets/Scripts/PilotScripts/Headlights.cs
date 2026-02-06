@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class Headlights : NetworkBehaviour, IControllable, IPowerable
+public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.25f;
@@ -28,6 +28,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     public GameObject slider;
     public GameObject headlights_display;
     public GameObject ship_headlights;
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -55,7 +56,10 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget()
+    {
+        return IK_target.transform;
+    }
     private void setHeadlights(float a, float range, float scale)
     {
         foreach (Transform light in ship_headlights.transform)

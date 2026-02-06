@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
+public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.6f;
@@ -28,6 +28,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
     public GameObject reverse_indicator;
     private GameObject spaceship;
     private CourseHeading course_heading;
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private bool in_reverse = false; //true means in reverse, false means forward
@@ -59,7 +60,10 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         }
         return hud_info;
     }
-
+    public Transform getIKTarget()
+    {
+        return IK_target.transform;
+    }
     private void displayAdjustment()
     {
         float percent_to_top = Mathf.Min(1.0f, Mathf.Max(0.0f, (shift_percentage - 0.4f) / 0.2f));

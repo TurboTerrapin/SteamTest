@@ -357,15 +357,17 @@ public class ControlScript : MonoBehaviour
     public void relinquishPosition()
     {
         player_prefab.GetComponent<CameraMove>().parentRotationLock = false;
-        float[] rotations = new float[] { 0.0f, 0.0f, 135.0f, 180.0f };
+        float[] rotations = new float[] { 0.0f, 0.0f, 135.0f, 0.0f };
         player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(rotations[curr_pos], 30.0f));
         player_prefab.GetComponent<CameraMove>().captainMode = false;
+
+        //Set IK so that only the head follows the mouse, turn the arms off
         myAnimationController.setIKActive(true);
         myAnimationController.setIKHead(true);
         myAnimationController.setIKLeftArm(false);
         myAnimationController.setIKRightArm(false);
 
-        player_prefab.transform.position = player_prefab.transform.Find("Character").position - new Vector3(0.0f, 0.12f, 0.0f);
+        player_prefab.transform.position = player_prefab.transform.Find("Character").position - new Vector3(0.0f, 0.0f, 0.0f);
         player_prefab.GetComponent<PlayerMove>().initialize();
 
         seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);

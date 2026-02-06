@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
+public class CourseHeading : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     private const float maxAngularVelocity = 1.2f;
     private const float accelerationRate = 1.5f;
@@ -31,6 +31,7 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
     public GameObject wheel;
     public GameObject wheel_light;
     public GameObject fill_circle;
+    public GameObject IK_target;
 
     // State variables
     private float angularVelocity = 0f;
@@ -56,7 +57,10 @@ public class CourseHeading : NetworkBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget()
+    {
+        return IK_target.transform;
+    }
     public float getSteeringValue() => steering_input;
 
     //called by DirectionalShifter when switching ship direction

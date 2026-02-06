@@ -98,6 +98,12 @@ public class AnimationController : MonoBehaviour
         pos = new Vector3(pos.x, myAnimator.transform.position.y, pos.z);
         myAnimator.transform.localPosition = pos;
     }
+    public void setCharacterRotationUp(float rot)
+    {
+        myAnimatorHandler.setCharacterRotationUp(rot);
+    }
+
+
     public void setAnimatorBool(string name, bool value)
     {
         myAnimator.SetBool(name, value);

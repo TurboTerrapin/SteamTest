@@ -60,7 +60,7 @@ public class CharacterCustomization : NetworkBehaviour
         SkinColor = newColor;
     }
 
-
+    // ------ LOAD CUSTOMIZATION DATA FROM FILE ------
     public void LoadCharacterData()
     {
         if (PlayerPrefs.HasKey("CustomizeCharacterData"))

@@ -109,7 +109,7 @@ public class PlayerMove : NetworkBehaviour
     {
         Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
 
-        myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
+        //myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
         myAnimationController.setIKActive(false);
         transform.GetComponent<CameraMove>().lockCamera();
 

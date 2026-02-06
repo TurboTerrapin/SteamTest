@@ -89,6 +89,14 @@ public class AnimatorHandler : MonoBehaviour
 
     }
 
+    public void setCharacterRotationUp(float rot)
+    {
+        //transform.parent.localRotation *= Quaternion.AngleAxis(rot, transform.up);
+        transform.localRotation *= Quaternion.AngleAxis(rot, transform.up);
+        //transform.localRotation = Quaternion.Euler(0, rot, 0);
+        Debug.Log("Tried Rotation of object " + transform.name);
+    }
+
     //called on last frame of get up animations
     public void onGetUpAnimationEnd()
     {
@@ -104,7 +112,7 @@ public class AnimatorHandler : MonoBehaviour
                 animator.StopPlayback();
 
                 Vector3 char_position = transform.position;
-                transform.parent.position = char_position + new Vector3(0.0f, -0.12f, 0.0f);
+                //transform.parent.position = char_position + new Vector3(0.0f, -0.12f, 0.0f);
                 transform.position = char_position;
             }
 
@@ -121,7 +129,7 @@ public class AnimatorHandler : MonoBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            transform.localPosition = Vector3.Lerp(new Vector3(0.0f, 0.12f, 0.0f), this_pos, anim_time / 0.15f);
+            transform.localPosition = Vector3.Lerp(new Vector3(0.0f, 0.0f, 0.0f), this_pos, anim_time / 0.1f);
             
             yield return null;
         }
