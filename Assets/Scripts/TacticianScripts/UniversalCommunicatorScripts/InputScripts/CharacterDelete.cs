@@ -109,7 +109,7 @@ public class CharacterDelete : NetworkBehaviour, IControllable
     {
         if (character_delete_coroutine == null && is_active == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTONS[0].toggle(0.1f);
                 universal_communicator.deleteLastCharacter();

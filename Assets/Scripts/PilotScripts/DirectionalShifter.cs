@@ -91,7 +91,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
 
-            bool shifting = ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true;
+            bool shifting = PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true;
             float temp_shift_percentage = shift_percentage;
 
             if (shifting == true)
@@ -191,7 +191,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
                 {
                     shift_adjuster_coroutine = StartCoroutine(shiftAdjuster());
                     return;

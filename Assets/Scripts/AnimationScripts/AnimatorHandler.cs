@@ -83,7 +83,7 @@ public class AnimatorHandler : MonoBehaviour
     {
         if (transform.parent.GetComponent<NetworkObject>().IsOwner == true)
         {
-            ControlScript.Instance.assumePosition();
+            PrimaryScript.Instance.assumePosition();
         }
 
     }
@@ -127,10 +127,8 @@ public class AnimatorHandler : MonoBehaviour
 
         animator.SetBool("GettingUp", false);
         animator.SetBool("SittingDown", false);
-        ControlScript.Instance.relinquishPosition();
+        PrimaryScript.Instance.relinquishPosition();
     }
-
-
 
     private Vector3 currentR;
     private Vector3 currentL;

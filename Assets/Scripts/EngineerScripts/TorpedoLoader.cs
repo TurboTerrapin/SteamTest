@@ -329,7 +329,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (torpedo_selection_adjustment_coroutine == null)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //left
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //left
                 {
                     BUTTON_LISTS[0][0].toggle();
                     BUTTON_LISTS[0][1].updateInteractable(false);
@@ -340,7 +340,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
                     }
                     transmitTorpedoSelectionAdjustmentRPC(current_torpedo_selection, true);
                 }
-                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //right
+                else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //right
                 {
                     BUTTON_LISTS[0][1].toggle();
                     BUTTON_LISTS[0][0].updateInteractable(false);
@@ -357,14 +357,14 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (torpedo_direction_adjustment_coroutine == null)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && current_torpedo_bay > 0) //left
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && current_torpedo_bay > 0) //left
                 {
                     BUTTON_LISTS[1][0].toggle();
                     BUTTON_LISTS[1][1].updateInteractable(false);
                     current_torpedo_bay -= 1;
                     transmitTorpedoBayDirectionAdjustmentRPC(current_torpedo_bay);
                 }
-                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && current_torpedo_bay < 3) //right
+                else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && current_torpedo_bay < 3) //right
                 {
                     BUTTON_LISTS[1][1].toggle();
                     BUTTON_LISTS[1][0].updateInteractable(false);
@@ -377,7 +377,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (getCurrentlyLoadable() == true)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //confirm load
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //confirm load
                 {
                     BUTTON_LISTS[2][0].toggle(0.2f);
                     BUTTON_LISTS[2][0].updateInteractable(false);

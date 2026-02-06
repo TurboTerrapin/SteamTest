@@ -202,7 +202,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
                 return;
             }
 
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && curr_manual.getCurrentlyAnimating() == false)
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && curr_manual.getCurrentlyAnimating() == false)
             {
                 BUTTON_LISTS[manual_index][0].toggle(0.2f);
                 int welcome_message = transform.GetComponent<ShipManual>().pickWelcomeMessage();

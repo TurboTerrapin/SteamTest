@@ -79,11 +79,11 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable
         }
 
         int angle_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
         {
             angle_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrement
         {
             angle_direction -= 1;
         }

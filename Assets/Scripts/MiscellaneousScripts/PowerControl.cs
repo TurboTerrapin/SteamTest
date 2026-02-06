@@ -292,7 +292,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         int index = ray_targets.IndexOf(current_target.name);
         if (active_dials[index] == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle(0.2f);
                 transmitPowerControlRPC(index, !power_manager.getPowerEnabled(index));

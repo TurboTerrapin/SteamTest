@@ -1,12 +1,12 @@
 /*
-    ControlScript.cs
+    PrimaryScript.cs
     - Only runs after scene is loaded in as BridgeEnvironment
     - Handles sitting down/up AND control interactions
     - Manages the HUD display for control interaction
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     - Handles transmitting IK targets for hand movement animations
     Contributor(s): Jake Schott, John Aylward
-    Last Updated: 2/1/2026
+    Last Updated: 2/5/2026
 */
 
 using UnityEngine;
@@ -14,34 +14,38 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-public class ControlScript : MonoBehaviour
+public class PrimaryScript : MonoBehaviour
 {
     //CLASS CONSTANTS
     private static float RAYCAST_RANGE = 1.5f;
     private static string[] POSITION_NAMES = { "PILOT", "TACTICIAN", "ENGINEER", "CAPTAIN" };
 
     //GAME OBJECTS
-    public GameObject cursor; //the diamond in the center of the screen
-    public GameObject control_info; //UI indicator that you are looking at a control
-    public GameObject secondary_info; //UI indicators on the left and right sides of the screen (only visible in default mode)
-    public GameObject control_title; //title at the top of the UI trapezoid indicator
-    public GameObject seat_title; //title at the top of the rounded UI seat indicator
-    public GameObject buttons_panel; //contains all the buttons/dividers inside the trapezoid
-    public GameObject pause_menu;
-    public GameObject settings_menu;
-    public GameObject controls_menu; //in the pause menu, not the trapezoid/list
-    public SeatManager seat_manager; //empty GameObject that contains the seat script manager
+    private GameObject player_UI_canvas;
+    private GameObject cursor;
+    private GameObject primary_info;
+    private GameObject trapezoidal_frame;
+    private GameObject minimized_list_frame;
+    private TMP_Text control_title;
+    private GameObject sit_frame;
+
+    private GameObject pause_default_menu;
+    private GameObject pause_controls_menu;
+    private GameObject pause_settings_menu;
+
     private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
 
     private AnimationController my_animation_controller = null;
+    private SeatManager seat_manager; //empty GameObject that contains the seat script manager
 
     //CLASS VARIABLES
     private HUDInfo current_info;
     private GameObject current_ray_target = null;
+    private bool control_update_flag = false;
     private int curr_pos = -1; //0 is Pilot, 1 is Tactician, 2 is Engineer, 3 is Captain
-    private float displayed_power = 0.0f; //used for the power indicator in the bottom right (5 circles)
     private bool is_sitting = false;
+    private Coroutine intro_yield_coroutine = null;
     private Coroutine seat_check_coroutine = null;
     private Coroutine control_check_coroutine = null;
     private Coroutine ray_target_check_coroutine = null;
@@ -83,10 +87,21 @@ public class ControlScript : MonoBehaviour
         return false;
     }
 
-    public static ControlScript Instance { get; private set; }
+    public static PrimaryScript Instance { get; private set; }
 
-    void Start()
+    private void Awake()
     {
+        player_UI_canvas = gameObject;
+        cursor = player_UI_canvas.transform.GetChild(0).gameObject;
+        primary_info = player_UI_canvas.transform.GetChild(1).gameObject;
+        trapezoidal_frame = primary_info.transform.GetChild(0).gameObject;
+        minimized_list_frame = primary_info.transform.GetChild(1).gameObject;
+        sit_frame = primary_info.transform.GetChild(2).gameObject;
+        control_title = trapezoidal_frame.transform.GetChild(3).GetComponent<TMP_Text>();
+        pause_default_menu = player_UI_canvas.transform.GetChild(4).GetChild(0).gameObject;
+        pause_settings_menu = player_UI_canvas.transform.GetChild(4).GetChild(1).gameObject;
+        pause_controls_menu = player_UI_canvas.transform.GetChild(4).GetChild(2).gameObject;
+
         //make an instance so can be referenced
         if (Instance != null)
         {
@@ -105,41 +120,75 @@ public class ControlScript : MonoBehaviour
         player_prefab.transform.GetComponent<CameraMove>().initialize();
 
         //begin control interfacing
-        unpause();
-        control_info.SetActive(false); //hide UI indicator to start
+        primary_info.SetActive(false);
         seat_manager = GameObject.FindWithTag("SeatHandler").GetComponent<SeatManager>();
 
         //free player movement, start checking to sit down, begin the scenario
-        is_active = true;
         can_pause = true;
         player_prefab.GetComponent<PlayerMove>().initialize();
+        if (HUD_setting == 0)
+        {
+            GetComponent<SecondaryScript>().displayIntroGraphic(1.0f);
+            intro_yield_coroutine = StartCoroutine(introYield());
+        }
+        else
+        {
+            onIntroComplete();
+            unpause();
+        }
+    }
+
+    //called after intro 
+    private void onIntroComplete()
+    {
+        activate();
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
 
-    //used to clear buttons and minimized list entries
+    IEnumerator introYield()
+    {
+        do
+        {
+            yield return null;
+        }
+        while (GetComponent<SecondaryScript>().isDisplayingIntroGraphic() == true);
+
+        while (Input.GetKeyDown(KeyCode.Space) == false)
+        {
+            yield return null;
+        }
+
+        intro_yield_coroutine = null;
+
+        GetComponent<SecondaryScript>().endIntroGraphicReveal();
+        onIntroComplete();
+        unpause();
+    }
+
+    //used to clear trapezoid buttons and minimized list entries
     private void clearButtons()
     {
         //clear trapezoid buttons
-        for (int i = control_info.transform.GetChild(0).GetChild(4).childCount - 1; i >= 2; i--)
+        for (int i = trapezoidal_frame.transform.GetChild(4).childCount - 1; i >= 2; i--)
         {
-            GameObject to_destroy = control_info.transform.GetChild(0).GetChild(4).GetChild(i).gameObject;
+            GameObject to_destroy = primary_info.transform.GetChild(0).GetChild(4).GetChild(i).gameObject;
             UnityEngine.Object.Destroy(to_destroy);
         }
 
-        //clear list entries
-        for (int i = control_info.transform.GetChild(1).childCount - 1; i >= 1; i--)
+        //clear minimized list entries
+        for (int i = minimized_list_frame.transform.childCount - 1; i >= 1; i--)
         {
-            GameObject to_destroy = control_info.transform.GetChild(1).GetChild(i).gameObject;
+            GameObject to_destroy = minimized_list_frame.transform.GetChild(i).gameObject;
             UnityEngine.Object.Destroy(to_destroy);
         }
     }
 
     //used to instantiate buttons/list entries for either trapezoid or minimized list
-    private void initializeControlInfo()
+    private void initializePrimaryInfo()
     {
         //hide both UI indicators
-        control_info.transform.GetChild(0).gameObject.SetActive(false); //make the trapezoid invisible
-        control_info.transform.GetChild(1).gameObject.SetActive(false); //make the list visible
+        trapezoidal_frame.SetActive(false); //make the trapezoid invisible
+        minimized_list_frame.SetActive(false); //make the list visible
 
         //get rid of existing buttons and list entries
         clearButtons();
@@ -147,13 +196,13 @@ public class ControlScript : MonoBehaviour
         //if trapezoid or minimized list, then create visual buttons/list entries
         if (HUD_setting < 3)
         {
-            control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
-            control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
+            trapezoidal_frame.SetActive(HUD_setting < 2); //trapezoid
+            minimized_list_frame.SetActive(HUD_setting == 2); //minimized list
 
-            GameObject frame = control_info.transform.GetChild(0).gameObject; //trapezoid
+            GameObject frame = trapezoidal_frame;
             if (HUD_setting == 2) //if minimized list
             {
-                frame = control_info.transform.GetChild(1).gameObject;
+                frame = minimized_list_frame;
             }
 
             for (int i = 0; i < current_info.numOptions(); i++)
@@ -161,7 +210,7 @@ public class ControlScript : MonoBehaviour
                 current_info.getButtons()[i].createVisual(HUD_setting, current_info.getLayout(), i, frame);
             }
 
-            //if no buttons, apply descriptor using HUDInfo
+            //if no buttons (aka IDescribable instead of IControllable), apply descriptor using HUDInfo
             if (current_info.numOptions() == 0)
             {
                 if (HUD_setting < 2)
@@ -190,11 +239,16 @@ public class ControlScript : MonoBehaviour
             {
                 HUD_setting = new_hud;
             }
-            control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2 && is_sitting == true); //trapezoid
-            control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2); //minimized list
-            control_info.transform.GetChild(2).gameObject.SetActive(HUD_setting < 2 && is_sitting == false); //rounded seat indicator
-            control_title.GetComponent<TMP_Text>().SetText(""); //forces an update
+            trapezoidal_frame.SetActive(HUD_setting < 2 && is_sitting == true); //trapezoid
+            minimized_list_frame.gameObject.SetActive(HUD_setting == 2); //minimized list
+            sit_frame.SetActive(HUD_setting < 2 && is_sitting == false); //rounded seat indicator
+            control_update_flag = true; //forces an update
         }
+    }
+
+    public void setCursorVisibility(bool visibility)
+    {
+        cursor.SetActive(visibility);
     }
 
     public bool isPaused()
@@ -211,20 +265,29 @@ public class ControlScript : MonoBehaviour
     {
         UnityEngine.Cursor.visible = true;
         UnityEngine.Cursor.lockState = CursorLockMode.None;
-        pause_menu.SetActive(true);
-        settings_menu.SetActive(false);
-        controls_menu.SetActive(false);
+        pause_default_menu.SetActive(true);
+        pause_settings_menu.SetActive(false);
+        pause_controls_menu.SetActive(false);
+        GetComponent<SecondaryScript>().checkInfoOverlayInputs(true);
+        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(false);
         paused = true;
         cursor.SetActive(false);
+        if (intro_yield_coroutine != null)
+        {
+            StopCoroutine(intro_yield_coroutine);
+            intro_yield_coroutine = null;
+            GetComponent<SecondaryScript>().endIntroGraphicReveal();
+            onIntroComplete();
+        }
     }
 
     public void unpause()
     {
         UnityEngine.Cursor.visible = false;
         UnityEngine.Cursor.lockState = CursorLockMode.Locked;
-        pause_menu.SetActive(false);
-        settings_menu.SetActive(false);
-        controls_menu.SetActive(false);
+        pause_default_menu.SetActive(false);
+        pause_settings_menu.SetActive(false);
+        pause_controls_menu.SetActive(false);
         paused = false;
         if (is_active == true)
         {
@@ -232,6 +295,21 @@ public class ControlScript : MonoBehaviour
             {
                 cursor.SetActive(true);
             }
+            GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(HUD_setting == 0);
+        }
+    }
+
+    public void activate()
+    {
+        if (intro_yield_coroutine != null)
+        {
+            return;
+        }
+        is_active = true;
+        can_pause = true;
+        if (paused == false)
+        {
+            unpause();
         }
     }
 
@@ -239,6 +317,7 @@ public class ControlScript : MonoBehaviour
     {
         is_active = false;
         can_pause = allow_pausing;
+        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(false);
         if (allow_pausing == false && paused == true)
         {
             unpause();
@@ -251,16 +330,6 @@ public class ControlScript : MonoBehaviour
         cursor.SetActive(false);
     }
 
-    public void reactivate()
-    {
-        is_active = true;
-        can_pause = true;
-        if (paused == false)
-        {
-            unpause();
-        }
-    }
-
     public bool isSitting()
     {
         return is_sitting;
@@ -269,6 +338,11 @@ public class ControlScript : MonoBehaviour
     public int currentSeat()
     {
         return curr_pos;
+    }
+
+    public void onShiftChange()
+    {
+        GetComponent<SecondaryScript>().updateShiftIndicators(player_prefab.GetComponent<PlayerMove>().isShifting(), curr_pos, seat_manager);
     }
 
     //runs on Update() time
@@ -290,10 +364,10 @@ public class ControlScript : MonoBehaviour
             int closest_seat = seat_manager.checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
             {
-                control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
-                control_info.transform.GetChild(2).gameObject.SetActive(HUD_setting < 2);
-                seat_title.GetComponent<TMP_Text>().SetText(POSITION_NAMES[closest_seat] + " POSITION");
-                control_info.SetActive(true);
+                sit_frame.SetActive(HUD_setting < 2);
+                sit_frame.transform.GetChild(3).GetComponent<TMP_Text>().SetText(POSITION_NAMES[closest_seat] + " POSITION");
+                minimized_list_frame.SetActive(HUD_setting == 2);
+                primary_info.SetActive(true);
 
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to sit down
                 {
@@ -301,7 +375,7 @@ public class ControlScript : MonoBehaviour
                     if (is_sitting == true)
                     {
                         curr_pos = closest_seat;
-                        control_info.SetActive(false);
+                        primary_info.SetActive(false);
                         player_prefab.GetComponent<CameraMove>().lockCamera();
                         player_prefab.GetComponent<CameraMove>().camera_transform.parent = player_prefab.GetComponent<CameraMove>().head_transform;
                         player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
@@ -310,24 +384,14 @@ public class ControlScript : MonoBehaviour
             }
             else //can't sit
             {
-                control_info.SetActive(false);
+                primary_info.SetActive(false);
             }
+
+            GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
 
             return;
         }
-        control_info.SetActive(false);
-    }
-
-    //updates shift direction UI indicator and get up indicator
-    public void updateShiftIndicators()
-    {
-        bool shifting = player_prefab.transform.GetComponent<PlayerMove>().isShifting();
-        secondary_info.transform.GetChild(0).GetChild(2).gameObject.SetActive(curr_pos != 3);
-        secondary_info.transform.GetChild(0).GetChild(2).GetChild(2).GetChild(0).gameObject.SetActive(seat_manager.canShiftLeft(curr_pos) && !shifting);
-        secondary_info.transform.GetChild(0).GetChild(2).GetChild(3).GetChild(0).gameObject.SetActive(seat_manager.canShiftRight(curr_pos) && !shifting);
-        secondary_info.transform.GetChild(0).GetChild(2).GetChild(4).GetChild(0).gameObject.SetActive(!shifting);
-        secondary_info.transform.GetChild(0).GetChild(1).GetChild(2).GetChild(0).gameObject.SetActive(!shifting);
-        secondary_info.transform.GetChild(0).GetChild(1).GetChild(3).GetChild(0).gameObject.SetActive(!shifting);
+        primary_info.SetActive(false);
     }
 
     //called by AnimatorHandler when sit down animation is completed
@@ -346,20 +410,18 @@ public class ControlScript : MonoBehaviour
         my_animation_controller.setIKActive(true);
         my_animation_controller.setIKHead(true);
 
-        secondary_info.SetActive(HUD_setting == 0);
-        updateShiftIndicators();
-        secondary_info.transform.GetChild(1).gameObject.SetActive(false);
+        onShiftChange();
 
-        control_info.transform.GetChild(0).gameObject.SetActive(HUD_setting < 2);
-        control_info.transform.GetChild(1).gameObject.SetActive(HUD_setting == 2);
-        control_info.transform.GetChild(2).gameObject.SetActive(false);
-        control_info.transform.GetChild(1).GetChild(0).gameObject.SetActive(false);
+        trapezoidal_frame.SetActive(HUD_setting < 2);
+        sit_frame.SetActive(false);
+        minimized_list_frame.gameObject.SetActive(HUD_setting == 2);
+        minimized_list_frame.transform.GetChild(0).gameObject.SetActive(false);
 
         ray_target_check_coroutine = StartCoroutine(rayCheck());
         control_check_coroutine = StartCoroutine(controlCheck());
     }
 
-    //called by AnimatorHandler when get up animation is completed
+    //called by AnimatorHandler on end of get up
     public void relinquishPosition()
     {
         player_prefab.GetComponent<CameraMove>().parentRotationLock = false;
@@ -377,13 +439,28 @@ public class ControlScript : MonoBehaviour
         seat_manager.getUp(curr_pos);
 
         curr_pos = -1;
+        current_ray_target = null;
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
 
-    //helper method that esimates the length of a control description based on the length of the description of that control's description
-    private int getControlInfoOffset(HUDInfo temp_info)
+    //called by checkForControlsAndInputs() on start of get up
+    private void getUp()
     {
-        return Mathf.Max(100, temp_info.getInfo().Length * 4);
+        is_sitting = false;
+
+        my_animation_controller.setIKActive(false);
+
+        primary_info.SetActive(false);
+        GetComponent<SecondaryScript>().togglePositionOverlayVisibility(false);
+        GetComponent<SecondaryScript>().toggleRightSideVisibility(false);
+
+        trapezoidal_frame.SetActive(false);
+        minimized_list_frame.SetActive(false);
+        minimized_list_frame.transform.GetChild(0).gameObject.SetActive(true);
+        control_title.GetComponent<TMP_Text>().SetText("");
+        clearButtons();
+
+        player_prefab.GetComponent<PlayerMove>().getUp(curr_pos);
     }
 
     //runs on FixedUpdate() time (this code is meant to improve raycast consistency/avoid flickering)
@@ -397,7 +474,11 @@ public class ControlScript : MonoBehaviour
             {
                 if (Physics.Raycast(new Ray(plr_camera.transform.position, plr_camera.transform.forward), out RaycastHit hit, RAYCAST_RANGE, LayerMask.GetMask("RayTarget")))
                 {
-                    current_ray_target = hit.collider.gameObject;
+                    if (current_ray_target == null || current_ray_target.name.CompareTo(hit.collider.gameObject.name) != 0)
+                    {
+                        current_ray_target = hit.collider.gameObject;
+                        control_update_flag = true;
+                    }
                     cooldown = 0.0f;
                 }
                 else
@@ -441,26 +522,16 @@ public class ControlScript : MonoBehaviour
         {
             if (!paused && is_active)
             {
+                //-----------------------------------------------SECONDARY INFO HELP MENU CHECK------------------------------------------------
+                GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
+
                 //-----------------------------------------------CHECK FOR UNSEATING/SHIFTING--------------------------------------------------
                 if (player_prefab.GetComponent<PlayerMove>().isShifting() == false)
                 {
                     //check if trying to unseat
                     if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up
                     {
-                        is_sitting = false;
-
-                        my_animation_controller.setIKActive(false);
-
-                        control_info.SetActive(false);
-                        secondary_info.SetActive(false);
-
-                        control_info.transform.GetChild(0).gameObject.SetActive(false);
-                        control_info.transform.GetChild(1).gameObject.SetActive(false);
-                        control_info.transform.GetChild(1).GetChild(0).gameObject.SetActive(true);
-                        control_title.GetComponent<TMP_Text>().SetText("");
-                        clearButtons();
-
-                        player_prefab.GetComponent<PlayerMove>().getUp(curr_pos);
+                        getUp();
 
                         return;
                     }
@@ -498,36 +569,16 @@ public class ControlScript : MonoBehaviour
                         }
 
                         //check if current HUDInfo is different from RayTarget HUDInfo
-                        if (control_title.GetComponent<TMP_Text>().text.CompareTo(temp_info.getName()) != 0 || current_info.numOptions() != temp_info.numOptions())
+                        if (control_update_flag == true)
                         {
+                            control_update_flag = false;
                             control_title.GetComponent<TMP_Text>().SetText(temp_info.getName()); //set title of that control
                             current_info = temp_info;
                             if (HUD_setting < 3) //trapezoid or minimized
                             {
-                                initializeControlInfo();
+                                initializePrimaryInfo();
                             }
-
-                            //determine whether to show or hide the power indicator
-                            secondary_info.transform.GetChild(1).GetChild(0).gameObject.SetActive(temp_info.getConsumesPower());
-
-                            //set info frame title and description
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<TMP_Text>().SetText(temp_info.getName());
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(5).GetComponent<TMP_Text>().SetText(temp_info.getInfo());
-
-                            //resize based on length of control description
-                            int offset = getControlInfoOffset(temp_info);
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(5).GetComponent<RectTransform>().sizeDelta = new Vector2(535f, offset);
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(5).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -322f + (offset / 2));
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(4).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -284f + offset);
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(4).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -284f + offset);
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -145f + offset);
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -230f + (offset / 2));
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(600f, 365f + offset);
-                            secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -23f + offset);
-                            if (secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.activeSelf == true)
-                            {
-                                secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -530f + offset);
-                            }
+                            GetComponent<SecondaryScript>().updateSecondaryControlInformation(temp_info);
                         }
                         else
                         {
@@ -538,45 +589,26 @@ public class ControlScript : MonoBehaviour
                         }
 
                         //handle info showing/hiding
-                        secondary_info.transform.GetChild(1).gameObject.SetActive(temp_info.hasInfo());
                         if (temp_info.hasInfo() == true)
                         {
                             //check if trying to show/hide info with tab key
                             if (UnityEngine.Input.GetKeyDown(KeyCode.Tab) && HUD_setting == 0)
                             {
-                                bool currently_visible = secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.activeSelf;
-                                secondary_info.transform.GetChild(1).GetChild(1).GetChild(0).gameObject.SetActive(!currently_visible);
-                                secondary_info.transform.GetChild(1).GetChild(1).GetChild(1).gameObject.SetActive(currently_visible);
-
-                                if (currently_visible == true)
-                                {
-                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -890f);
-                                }
-                                else
-                                {
-                                    secondary_info.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -530f + getControlInfoOffset(temp_info));
-                                }
+                                GetComponent<SecondaryScript>().toggleControlInformationVisibility(temp_info);
                             }
                         }
 
-                        //check if need to update the blue power dots in the bottom right for power-consuming controls
-                        if (temp_info.getConsumesPower() == true && temp_info.getPowerConsumption() != displayed_power)
+                        //handle power consumption for power-consuming controls
+                        if (temp_info.getConsumesPower() == true)
                         {
-                            float tmp_pwr = (temp_info.getPowerConsumption() * 2.0f);
-                            for (int i = 0; i <= 4; i++)
-                            {
-                                tmp_pwr = (temp_info.getPowerConsumption() * 2.0f) - (0.2f * i);
-                                float a = tmp_pwr / 0.2f;
-                                secondary_info.transform.GetChild(1).GetChild(0).GetChild(4).GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = a;
-                            }
-                            displayed_power = temp_info.getPowerConsumption();
+                            GetComponent<SecondaryScript>().updatePowerConsumption(temp_info);
                         }
 
                         //---------------------------------------------------HANDLE IK----------------------------------------------------------
                         if (temp_info.numOptions() > 0) //IControllable, move hand
                         {
                             IIKTargetable target_IK = ReferenceAssistor.Instance.module_handlers[script_holder].GetComponent(current_ray_target.transform.GetChild(0).name) as IIKTargetable; //get corresponding class
-                                                                                                                                                          //if the ray target has a specific IK target, then use the IK target
+                                                                                                                                                                                              //if the ray target has a specific IK target, then use the IK target
                             if (target_IK != null)
                             {
                                 //Debug.Log(Vector3.SignedAngle(player_prefab.transform.forward, plr_camera.transform.forward, player_prefab.transform.up));
@@ -659,8 +691,8 @@ public class ControlScript : MonoBehaviour
                         }
 
                         //-------------------------------------------FINAL ADJUSTMENTS--------------------------------------------------------------
-                        control_info.SetActive(true); //show UI indicator
-                        secondary_info.SetActive(HUD_setting == 0); //show secondary UI if default view
+                        primary_info.SetActive(true); //show UI indicator
+                        GetComponent<SecondaryScript>().togglePositionOverlayVisibility(HUD_setting == 0);
                         float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
                         if (target_control != null)
                         {
@@ -673,10 +705,8 @@ public class ControlScript : MonoBehaviour
             my_animation_controller.setIKRightArm(false);
             my_animation_controller.setIKLeftArm(false);
 
-            secondary_info.SetActive(is_active == true && paused == false && HUD_setting == 0);
-            secondary_info.transform.GetChild(1).gameObject.SetActive(false);
-            control_info.SetActive(false); //hide UI indicator if not looking at a control
-            control_title.GetComponent<TMP_Text>().SetText(""); //forces an update if not looking at a control
+            GetComponent<SecondaryScript>().toggleRightSideVisibility(false);
+            primary_info.SetActive(false); //hide UI indicator if not looking at a control
         }
     }
 }

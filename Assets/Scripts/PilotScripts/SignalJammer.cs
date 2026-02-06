@@ -241,7 +241,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     {
         if (signal_jam_coroutine == null && is_powered == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTONS[0].toggle();
                 transmitSignalJamRPC();

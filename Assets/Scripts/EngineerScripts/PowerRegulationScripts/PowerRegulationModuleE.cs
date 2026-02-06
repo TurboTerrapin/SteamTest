@@ -246,13 +246,13 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
 
         if (code_input_coroutine == null && BUTTON_LISTS[0][0].getInteractable() == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //green
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //green
             {
                 BUTTON_LISTS[target_index][0].toggle();
                 BUTTON_LISTS[target_index][1].updateInteractable(false);
                 codeInputRPC(target_index + 5, stage);
             }
-            else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //blue
+            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //blue
             {
                 BUTTON_LISTS[target_index][1].toggle();
                 BUTTON_LISTS[target_index][0].updateInteractable(false);

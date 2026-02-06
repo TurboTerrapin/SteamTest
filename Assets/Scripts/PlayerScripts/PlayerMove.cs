@@ -191,7 +191,7 @@ public class PlayerMove : NetworkBehaviour
         }
 
         shift_coroutine = StartCoroutine(shift(pos));
-        ControlScript.Instance.updateShiftIndicators();
+        PrimaryScript.Instance.onShiftChange();
     }
 
     //adjust the player prefab (bean) and tells SeatManager to adjust seat during a shift
@@ -225,7 +225,7 @@ public class PlayerMove : NetworkBehaviour
         seat_manager.updateSeatIndex(pos, new_seat_index);
 
         shift_coroutine = null;
-        ControlScript.Instance.updateShiftIndicators();
+        PrimaryScript.Instance.onShiftChange();
     }
 
     IEnumerator checkForMovement()

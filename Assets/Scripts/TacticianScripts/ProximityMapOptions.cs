@@ -131,11 +131,11 @@ public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable
 
         //check zoom inputs
         int zoom_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //E to increment
         {
             zoom_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs))  //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs))  //Q to decrement
         {
             zoom_direction -= 1;
         }
@@ -157,7 +157,7 @@ public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable
         //check map config button
         if (map_config_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTONS[0].toggle(0.2f);
                 map_config++;

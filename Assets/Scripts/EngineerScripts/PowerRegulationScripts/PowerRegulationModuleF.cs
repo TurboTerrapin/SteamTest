@@ -222,7 +222,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
 
         if (turn_coroutine == null && BUTTONS[0].getInteractable() == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //crank left
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //crank left
             {
                 BUTTONS[0].toggle();
                 BUTTONS[1].updateInteractable(false);
@@ -233,7 +233,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
                 }
                 crankTurnRPC(new_turn_config, stage);
             }
-            else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //crank right
+            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //crank right
             {
                 BUTTONS[1].toggle();
                 BUTTONS[0].updateInteractable(false);

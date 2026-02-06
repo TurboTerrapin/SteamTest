@@ -146,7 +146,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             bool shifted = false;
             if (curr_status < 2)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //shift up
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //shift up
                 {
                     shifted = true;
                     BUTTONS[1].toggle();
@@ -159,7 +159,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             {
                 if (curr_status > 0)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //shift down
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //shift down
                     {
                         BUTTONS[0].toggle();
                         BUTTONS[1].updateInteractable(false);

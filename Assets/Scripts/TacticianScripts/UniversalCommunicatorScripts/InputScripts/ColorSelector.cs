@@ -138,7 +138,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
             bool shifted = false;
             if (curr_color < 3)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //shift right
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //shift right
                 {
                     shifted = true;
                     BUTTONS[1].toggle();
@@ -151,7 +151,7 @@ public class ColorSelector : NetworkBehaviour, IControllable
             {
                 if (curr_color > 0)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //shift left
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //shift left
                     {
                         BUTTONS[0].toggle();
                         BUTTONS[1].updateInteractable(false);

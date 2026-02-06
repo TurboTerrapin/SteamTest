@@ -4,7 +4,7 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/5/2026
 */
 
 using System.Collections;
@@ -183,7 +183,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 
         if (dampener_switch_coroutines[index] == null && is_powered == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle(0.2f);
                 BUTTON_LISTS[index][0].updateInteractable(false);

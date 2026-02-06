@@ -125,7 +125,7 @@ public class InputOutputToggle : NetworkBehaviour, IControllable
     {
         if (input_output_switch_coroutine == null && is_active == true && universal_communicator.getIsPowered() == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTONS[0].toggle(0.2f);
                 transmitInputOutputSwitchRPC(universal_communicator.getInputMode());

@@ -150,11 +150,11 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable
         }
 
         int phaser_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && phaser_intensities[index] < 1.0f) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && phaser_intensities[index] < 1.0f) //E to increment
         {
             phaser_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && phaser_intensities[index] > 0.0f)  //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && phaser_intensities[index] > 0.0f)  //Q to decrement
         {
             phaser_direction -= 1;
         }

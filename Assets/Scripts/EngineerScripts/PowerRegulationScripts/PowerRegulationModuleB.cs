@@ -186,7 +186,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
         int target_index = ray_targets.IndexOf(current_target.name);
         if (slide_percentages[target_index] < 1.0f)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && BUTTON_LISTS[target_index][0].getInteractable() == true) //push slider up
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && BUTTON_LISTS[target_index][0].getInteractable() == true) //push slider up
             {
                 BUTTON_LISTS[target_index][0].toggle();
                 BUTTON_LISTS[target_index][0].updateInteractable(false);

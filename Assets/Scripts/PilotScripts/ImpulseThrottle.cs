@@ -99,15 +99,15 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         {
             return false;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
         {
             return false;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)
         {
             return true;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f)
         {
             return true;
         }
@@ -120,11 +120,11 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         while (checkIfChangeNecessary())
         {
             int impulse_direction = 0;
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f) //E to increment
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f) //E to increment
             {
                 impulse_direction += 1;
             }
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)  //Q to decrement
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)  //Q to decrement
             {
                 impulse_direction -= 1;
             }

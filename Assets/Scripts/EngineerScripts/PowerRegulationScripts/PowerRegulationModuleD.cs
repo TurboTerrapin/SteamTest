@@ -197,11 +197,11 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
         int target_index = ray_targets.IndexOf(current_target.name);
 
         int slide_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
         {
             slide_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //Q to decrement
         {
             slide_direction -= 1;
         }

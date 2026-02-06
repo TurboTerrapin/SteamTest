@@ -197,7 +197,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
             return;
         }
 
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //click to enable/disable
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //click to enable/disable
         {
             if (beacon_switch_coroutine == null)
             {

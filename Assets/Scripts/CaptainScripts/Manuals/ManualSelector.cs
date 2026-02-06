@@ -170,7 +170,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
         {
             for (int i = 0; i <= 5; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && curr_manual.isValidInput(i) == true)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && curr_manual.isValidInput(i) == true)
                 {
                     BUTTON_LISTS[manual_index][i].toggle();
                     for (int x = 0; x <= 5; x++)

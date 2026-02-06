@@ -194,14 +194,14 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         int target_index = ray_targets.IndexOf(current_target.name);
         if (shield_strength_adjustment_coroutines[target_index] == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && shield_strengths[target_index] > 0) //decrease
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && shield_strengths[target_index] > 0) //decrease
             {
                 BUTTON_LISTS[target_index][0].toggle();
                 BUTTON_LISTS[target_index][1].updateInteractable(false);
 
                 transmitShieldStrengthChangeRPC(target_index, shield_strengths[target_index] - 1);
             }
-            else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && shield_strengths[target_index] < 10 && ship_inventory.getItemQuantity(0, 2) > 0) //increase
+            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && shield_strengths[target_index] < 10 && ship_inventory.getItemQuantity(0, 2) > 0) //increase
             {
                 BUTTON_LISTS[target_index][1].toggle();
                 BUTTON_LISTS[target_index][0].updateInteractable(false);

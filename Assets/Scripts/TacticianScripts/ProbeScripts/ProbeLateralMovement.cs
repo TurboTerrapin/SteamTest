@@ -118,7 +118,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
             //check inputs/return buttons to default
             for (int i = 0; i <= 3; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && probe != null && is_active == true)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && probe != null && is_active == true)
                 {
                     lateral_movement_factors[i] = Mathf.Min(1.0f, lateral_movement_factors[i] + dt * BUTTON_SPEED);
                 }
@@ -169,7 +169,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
                 {
                     lateral_adjustment_coroutine = StartCoroutine(lateralAdjustment());
                     return;

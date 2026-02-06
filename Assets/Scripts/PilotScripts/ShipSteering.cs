@@ -82,16 +82,16 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
             int inputDirection = 0;
             bool isPlayerInputActive = false;
 
-            if (!(ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)))
+            if (!(PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)))
             {
                 if (is_powered == true)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //E
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //E
                     {
                         inputDirection = 1;
                         isPlayerInputActive = true;
                     }
-                    else if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //Q
+                    else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //Q
                     {
                         inputDirection = -1;
                         isPlayerInputActive = true;

@@ -139,7 +139,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
 
     IEnumerator buttonPush(int index)
     {
-        int curr_seat = ControlScript.Instance.currentSeat();
+        int curr_seat = PrimaryScript.Instance.currentSeat();
 
         for (int i = 0; i < 3; i++)
         {
@@ -225,7 +225,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
         int target_index = ray_targets.IndexOf(current_target.name);
         if (button_push_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //press button
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //press button
             {
                 BUTTON_LISTS[target_index][0].toggle(0.1f);
                 BUTTON_LISTS[target_index][0].updateInteractable(false);

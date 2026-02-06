@@ -104,11 +104,11 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 
             if (is_active == true)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && probe != null)
                 {
                     vertical_direction += 1;
                 }
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && probe != null)
                 {
                     vertical_direction -= 1;
                 }
@@ -180,7 +180,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
                 {
                     vertical_adjustment_coroutine = StartCoroutine(verticalAdjustment());
                     return;

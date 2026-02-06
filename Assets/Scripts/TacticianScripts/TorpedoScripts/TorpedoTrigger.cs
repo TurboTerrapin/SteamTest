@@ -147,7 +147,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 
             float before_trigger_percentage = trigger_percentage;
 
-            bool arming = ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down);
+            bool arming = PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down);
             if (arming == true && is_powered == true)
             {
                 trigger_percentage = Mathf.Min(1.0f, ((trigger_percentage * ARM_TIME) + dt) / ARM_TIME);
@@ -181,7 +181,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
         keys_down = inputs;
         if (trigger_arm_coroutine == null && torpedo_fire_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs))
             {
                 trigger_arm_coroutine = StartCoroutine(triggerArming());
             }
@@ -190,7 +190,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
         {
             if (trigger_percentage >= 1.0f && torpedo_fire_coroutine == null)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
                 {
                     BUTTONS[0].toggle(0.2f);
                     BUTTONS[1].updateInteractable(false);

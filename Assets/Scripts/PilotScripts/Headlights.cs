@@ -115,10 +115,10 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
         {
             return false;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && headlight_configuration > 0){
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && headlight_configuration > 0){
             return true;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && headlight_configuration < 7)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && headlight_configuration < 7)
         {
             return true;
         }
@@ -132,7 +132,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
             bool shifted = false;
             if (headlight_configuration < 7)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && is_powered == true) //brighten
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && is_powered == true) //brighten
                 {
                     shifted = true;
                     BUTTONS[1].toggle();
@@ -145,7 +145,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable
             {
                 if (headlight_configuration > 0)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true) //dim
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true) //dim
                     {
                         BUTTONS[0].toggle();
                         BUTTONS[1].updateInteractable(false);

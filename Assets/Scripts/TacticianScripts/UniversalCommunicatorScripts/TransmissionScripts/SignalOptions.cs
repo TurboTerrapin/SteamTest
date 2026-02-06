@@ -145,7 +145,7 @@ public class SignalOptions : NetworkBehaviour, IControllable
 
         ray_target_index = ray_targets.IndexOf(current_target.name);
 
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
         {
             if (dial_turn_coroutine == null)
             {

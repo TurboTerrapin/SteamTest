@@ -112,7 +112,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
 
         if (phaser_switch_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //phaser switch
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //phaser switch
             {
                 BUTTONS[0].toggle(0.2f);
                 BUTTONS[1].updateInteractable(false);
@@ -122,11 +122,11 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
             else
             {
                 int dial_direction = 0;
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //E to increment
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //E to increment
                 {
                     dial_direction += 1;
                 }
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //Q to decrement
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //Q to decrement
                 {
                     dial_direction -= 1;
                 }

@@ -107,11 +107,11 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
         int index = ray_targets.IndexOf(current_target.name);
 
         int power_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && power_levels[index] < 1.0f) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && power_levels[index] < 1.0f) //E to increment
         {
             power_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && power_levels[index] > 0.0f)  //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && power_levels[index] > 0.0f)  //Q to decrement
         {
             power_direction -= 1;
         }

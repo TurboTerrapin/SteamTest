@@ -149,7 +149,7 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
 
         if (override_switch_coroutines[index] == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle();
                 transmitOverrideChangeRPC(index, enabled_overrides[index]);

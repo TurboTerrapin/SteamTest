@@ -131,7 +131,7 @@ public class BESettingsController : MonoBehaviour
     public void HandleHUDDropdownClicked(int index)
     {
         // Gets the ControlScript component
-        ControlScript x = control_script_holder.GetComponent<ControlScript>();
+        PrimaryScript x = control_script_holder.GetComponent<PrimaryScript>();
 
         // Sends the index to the control script
         x.setHUD(index);

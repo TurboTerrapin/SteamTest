@@ -53,7 +53,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
             //check inputs and adjust thruster/button percentages
             for (int i = 0; i < 2; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && is_powered == true)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && is_powered == true)
                 {
                     thruster_percentage[i] = Mathf.Min(1.0f, thruster_percentage[i] + (dt * MOVE_SPEED * (1.0f + (1.5f * inertial_dampener_modifier))));
                     button_push_percentage[i] = Mathf.Min(1.0f, button_push_percentage[i] + (dt * MOVE_SPEED * PUSH_SPEED));
@@ -123,7 +123,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
                 {
                     thruster_coroutine = StartCoroutine(adjustingThrust());
                     return;

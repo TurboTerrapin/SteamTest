@@ -215,7 +215,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
                     {
                         index += 1;
                     }
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[index], keys_down))
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[index], keys_down))
                     {
                         cursor_movement_factors[i] = Mathf.Min(1.0f, cursor_movement_factors[i] + dt * BUTTON_SPEED);
                     }
@@ -305,7 +305,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         keys_down = inputs;
         if (cursor_confirm_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs))
             {
                 BUTTONS[2].toggle();
                 BUTTONS[2].updateInteractable(false);
@@ -317,7 +317,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && i != 2)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && i != 2)
                 {
                     cursor_adjustment_coroutine = StartCoroutine(cursorAdjustment());
                     return;

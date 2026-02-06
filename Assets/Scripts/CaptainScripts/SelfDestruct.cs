@@ -350,7 +350,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
             {
                 if (destruct_coroutine != null || (code_is_currently_correct == true && GetComponent<ShipStatus>().getCurrColor() == 2))
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs))
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs))
                     {
                         BUTTON_LISTS[1][0].toggle(0.2f);
                         BUTTON_LISTS[1][0].updateInteractable(false);
@@ -367,7 +367,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
         {
             for (int i = 0; i < 2; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
                 {
                     BUTTON_LISTS[0][i].toggle(0.1f);
                     bool increase = true;

@@ -61,11 +61,11 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable
         }
 
         int dial_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
         {
             dial_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrement
         {
             dial_direction -= 1;
         }

@@ -397,7 +397,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (item_loaded == false)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //switch
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //switch
                 {
                     BUTTON_LISTS[0][0].toggle();
                     BUTTON_LISTS[0][0].updateInteractable(false);
@@ -417,7 +417,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (item_loaded == false)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //left
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //left
                 {
                     BUTTON_LISTS[1][0].toggle();
                     BUTTON_LISTS[1][1].updateInteractable(false);
@@ -428,7 +428,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
                     }
                     transmitItemVariationSwitchAdjustmentRPC(item_type_category, item_variation_index, true);
                 }
-                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //right
+                else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //right
                 {
                     BUTTON_LISTS[1][1].toggle();
                     BUTTON_LISTS[1][0].updateInteractable(false);
@@ -445,7 +445,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (getCurrentlyLoadable() || item_loaded == true)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[3], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[3], inputs))
                 {
                     BUTTON_LISTS[2][0].toggle(0.2f);
                     BUTTON_LISTS[2][0].updateInteractable(false);

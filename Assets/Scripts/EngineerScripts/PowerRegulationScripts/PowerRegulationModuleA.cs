@@ -207,11 +207,11 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
         int target_index = ray_targets.IndexOf(current_target.name);
 
         int knob_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
         {
             knob_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //Q to decrement
         {
             knob_direction -= 1;
         }

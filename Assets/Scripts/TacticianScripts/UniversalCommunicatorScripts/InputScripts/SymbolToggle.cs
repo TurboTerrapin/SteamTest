@@ -135,7 +135,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable
     {
         if (symbol_switch_coroutine == null && is_active == true && universal_communicator.getIsPowered() == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTONS[0].toggle();
                 transmitSymbolSwitchRPC(symbol_mode);

@@ -227,7 +227,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable
 
         if (phaser_switch_coroutines[index] == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle();
                 transmitPhaserPowerRPC(index, phaser_is_enabled[index]);

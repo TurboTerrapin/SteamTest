@@ -207,14 +207,14 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         int target_index = ray_targets.IndexOf(current_target.name);
         if (allocation_adjustment_coroutines[target_index] == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && allocated_units[target_index] > 0) //decrease
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && allocated_units[target_index] > 0) //decrease
             {
                 BUTTON_LISTS[target_index][0].toggle(TURN_TIME);
                 BUTTON_LISTS[target_index][1].updateInteractable(false);
                 available_units += 1;
                 transmitAllocationChangeRPC(target_index, allocated_units[target_index] - 1, available_units);
             }
-            else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && allocated_units[target_index] < 10 && available_units > 0) //increase
+            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && allocated_units[target_index] < 10 && available_units > 0) //increase
             {
                 BUTTON_LISTS[target_index][1].toggle(TURN_TIME);
                 BUTTON_LISTS[target_index][0].updateInteractable(false);

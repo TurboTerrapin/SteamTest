@@ -191,7 +191,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         {
             if (target_index == 0) //check power
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
                 {
                     BUTTON_LISTS[0][0].toggle(0.2f);
                     BUTTON_LISTS[1][0].updateInteractable(false);
@@ -203,13 +203,13 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
             {
                 if (display_enabled == true)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && currently_viewing < 2)
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && currently_viewing < 2)
                     {
                         BUTTON_LISTS[1][0].toggle();
                         BUTTON_LISTS[1][1].updateInteractable(false);
                         transmitEnergyPatternShiftChangeRPC(currently_viewing + 1);
                     }
-                    else if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs) && currently_viewing > 0)
+                    else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs) && currently_viewing > 0)
                     {
                         BUTTON_LISTS[1][1].toggle();
                         BUTTON_LISTS[1][0].updateInteractable(false);

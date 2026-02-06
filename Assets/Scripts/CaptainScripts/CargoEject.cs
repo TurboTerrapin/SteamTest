@@ -138,7 +138,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
 
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && is_powered == true && is_active == true)
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && is_powered == true && is_active == true)
             {
                 dial_turn_percentage = Mathf.Min(1.0f, dial_turn_percentage + (dt / ARM_TIME));
             }
@@ -260,7 +260,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         //check for eject
         if (dial_turn_percentage >= 1.0f && cargo_eject_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTONS[0].toggle(0.2f);
                 BUTTONS[0].updateInteractable(false);
@@ -273,7 +273,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         //check for dial turn
         if (dial_turn_percentage == 0.0f && cargo_eject_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs))
             {
                 if (dial_turn_coroutine == null)
                 {

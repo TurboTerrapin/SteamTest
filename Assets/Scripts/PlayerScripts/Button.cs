@@ -174,7 +174,7 @@ public class Button
         button_desc = new_desc;
         if (visual_button != null)
         {
-            string key = ControlScript.input_options[control_index][0].ToString();
+            string key = PrimaryScript.input_options[control_index][0].ToString();
             if (key == "Mouse0")
             {
                 key = "LMB";
@@ -234,7 +234,7 @@ public class Button
         {
             if (visual_button.transform.childCount > 0) //ensures trapezoid format
             {
-                ControlScript.Instance.transform.GetComponent<ButtonHelper>().toggleHelper(this, toggle_length);
+                PrimaryScript.Instance.transform.GetComponent<ButtonHelper>().toggleHelper(this, toggle_length);
             }
         }
     }
@@ -256,7 +256,7 @@ public class Button
 
     public void createVisual(int HUD_setting, int layout, int order_index, GameObject frame)
     {
-        string key = ControlScript.input_options[control_index][0].ToString();
+        string key = PrimaryScript.input_options[control_index][0].ToString();
         if (key == "Mouse0")
         {
             key = "LMB";

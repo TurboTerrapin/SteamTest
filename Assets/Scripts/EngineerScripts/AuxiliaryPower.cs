@@ -134,7 +134,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
             return;
         }
 
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) == true)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) == true)
         {
             BUTTONS[0].toggle(0.25f);
             BUTTONS[0].updateInteractable(false);

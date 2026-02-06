@@ -163,7 +163,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             {
                 able_to_turn = (able_to_turn == true && probe_connected == true);
             }
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && able_to_turn) //check if turning
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && able_to_turn) //check if turning
             {
                 dial_turn_percentages[dial_to_check] = Mathf.Min(1.0f, dial_turn_percentages[dial_to_check] + (dt / TURN_TIME));
             }
@@ -568,7 +568,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 
         if (dial_turn_coroutine == null && probe_function_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && ray_target_index == active_dial)
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && ray_target_index == active_dial)
             {
                 dial_turn_coroutine = StartCoroutine(dialActivation());
             }

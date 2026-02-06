@@ -155,7 +155,7 @@ public class UniversalSettingsController : MonoBehaviour
         if (control_script_holder != null)
         {
             // Gets the ControlScript component
-            ControlScript x = control_script_holder.GetComponent<ControlScript>();
+            PrimaryScript x = control_script_holder.GetComponent<PrimaryScript>();
 
             if (x != null)
             {

@@ -161,7 +161,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
             {
                 bool able_to_turn = (is_powered == true && ray_target_index == i && is_active[i]);
 
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && able_to_turn) //check if turning
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && able_to_turn) //check if turning
                 {
                     dial_turn_percentages[i] = Mathf.Min(1.0f, dial_turn_percentages[i] + (dt / TURN_TIME));
                 }
@@ -265,7 +265,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable
 
         if (dial_turn_coroutine == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 dial_turn_coroutine = StartCoroutine(dialActivation());
             }

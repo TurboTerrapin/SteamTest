@@ -163,11 +163,11 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
         }
 
         int power_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to increment
         {
             power_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrement
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrement
         {
             power_direction -= 1;
         }

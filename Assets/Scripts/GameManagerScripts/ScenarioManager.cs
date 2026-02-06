@@ -310,7 +310,6 @@ public class ScenarioManager : NetworkBehaviour
         lights_manager.resetLights();
 
         //reset certain controls
-        ReferenceAssistor.Instance.module_handlers[0].GetComponent<EnergyPatternManager>().clearAllPatterns();
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<SpatialCompositionAnalyzer>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<TractorBeamOptions>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<DirectionalShifter>().resetToDefault();
@@ -319,6 +318,7 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<LongRangeDirection>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<TorpedoSelector>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPatternManager>().clearAllPatterns();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
@@ -342,7 +342,7 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
 
         //stop checking for controls/seats
-        ControlScript.Instance.deactivate(true, false);
+        PrimaryScript.Instance.deactivate(true, false);
 
         //show transition
         scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
@@ -371,7 +371,7 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
 
         //stop checking for controls/seats
-        ControlScript.Instance.deactivate(false, true);
+        PrimaryScript.Instance.deactivate(false, true);
 
         //display death screen using scenario number sn and death message frm
         failure_handler.GetComponent<FailureHandler>().displayDeathScreen(player_manager.GetComponent<PlayerManager>().getPlayerNames(), sn, frm);

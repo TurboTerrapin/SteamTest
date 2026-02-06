@@ -183,7 +183,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
             return;
         }
 
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //click to enable/disable
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //click to enable/disable
         {
             if (emergency_lights_switch_coroutine == null)
             {

@@ -171,11 +171,11 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         }
 
         int turn_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to to increase
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to to increase
         {
             turn_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrease
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrease
         {
             turn_direction -= 1;
         }

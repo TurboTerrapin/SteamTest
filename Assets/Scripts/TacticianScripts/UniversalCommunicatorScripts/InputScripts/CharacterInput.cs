@@ -110,7 +110,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
             return;
         }
 
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
         {
             BUTTONS[0].toggle(0.1f);
             universal_communicator.inputCharacter(ray_targets.IndexOf(current_target.name));

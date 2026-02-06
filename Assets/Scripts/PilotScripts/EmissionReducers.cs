@@ -180,7 +180,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
 
         if (reducer_switch_coroutines[index] == null && is_powered == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle();
                 transmitReducerChangeRPC(index, !enabled_reducers[index]);

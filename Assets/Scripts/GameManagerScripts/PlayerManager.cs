@@ -167,11 +167,10 @@ public class PlayerManager : NetworkBehaviour
             if (player_prefabs[i] != null)
             {
                 unfreezePlayer(i);
-
             }
         }
-        ControlScript.Instance.unlockPlayer(local_player);
-        load_handler.endLoad();
+        PrimaryScript.Instance.unlockPlayer(local_player);
+        load_handler.endLoad(true);
         audio_manager.GetComponent<AudioManager>().InitializeAudio();
         if (NetworkManager.Singleton.IsHost == true)
         {
@@ -319,7 +318,7 @@ public class PlayerManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void startScenarioRPC()
     {
-        //if host, begin the scenario (timer)
+        //if host, begin the scenario
         if (NetworkManager.Singleton.IsHost == true)
         {
             GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
@@ -328,11 +327,12 @@ public class PlayerManager : NetworkBehaviour
         //end transition (whether looking at the cinematic shot or load screen)
         scenario_transitioner.GetComponent<TransitionHandler>().EndTransition();
 
+
         //end load (whether looking at the cinematic shot or load screen)
-        load_handler.endLoad();
+        load_handler.endLoad(false);
 
         //reactivate control/seat checking
-        ControlScript.Instance.reactivate();
+        PrimaryScript.Instance.activate();
 
         //reactivate camera
         local_player.transform.GetComponent<CameraMove>().reactivateCamera();

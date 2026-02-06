@@ -249,7 +249,7 @@ public class ThreatDetectors : NetworkBehaviour, IControllable, IPowerable
 
         if (detector_switch_coroutines[index] == null && is_powered == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle(0.2f);
                 BUTTON_LISTS[index][0].updateInteractable(false);
