@@ -16,7 +16,6 @@ using UnityEngine.UI;
 public class UniversalCommunicator : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
-    private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
     private static float POINTER_SPEED = 0.2f;
 
     public GameObject character_input_glasses;
@@ -124,13 +123,13 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
             if (code_is_symbol[i] == 0) //symbol
             {
                 input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().texture = getCharacterDisplay(code_index[i]).transform.GetChild(1).gameObject.GetComponent<RawImage>().texture;
-                input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[code_color[i]];
+                input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
                 input_view.transform.GetChild(i + 8).gameObject.SetActive(true);
             }
             else //numeric
             {
                 input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().SetText(getCharacterDisplay(code_index[i]).transform.GetChild(0).gameObject.GetComponent<TMP_Text>().text);
-                input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().color = COLOR_OPTIONS[code_color[i]];
+                input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
                 input_view.transform.GetChild(i).gameObject.SetActive(true);
             }
         }
@@ -154,7 +153,7 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         //show transmission handler
         for (int i = 0; i < code_index.Count; i++)
         {
-            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[code_color[i]];
+            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
             message_preview_display.transform.GetChild(i).gameObject.SetActive(true);
         }
 

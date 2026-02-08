@@ -141,6 +141,7 @@ public class PrimaryScript : MonoBehaviour
     //called after intro 
     private void onIntroComplete()
     {
+        GetComponent<SecondaryScript>().endIntroGraphicReveal();
         activate();
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
@@ -160,7 +161,6 @@ public class PrimaryScript : MonoBehaviour
 
         intro_yield_coroutine = null;
 
-        GetComponent<SecondaryScript>().endIntroGraphicReveal();
         onIntroComplete();
         unpause();
     }
@@ -288,6 +288,7 @@ public class PrimaryScript : MonoBehaviour
         pause_default_menu.SetActive(false);
         pause_settings_menu.SetActive(false);
         pause_controls_menu.SetActive(false);
+        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(HUD_setting == 0);
         paused = false;
         if (is_active == true)
         {
@@ -295,7 +296,6 @@ public class PrimaryScript : MonoBehaviour
             {
                 cursor.SetActive(true);
             }
-            GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(HUD_setting == 0);
         }
     }
 

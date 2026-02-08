@@ -47,7 +47,7 @@ public class Probe : MonoBehaviour, IDamageable
             transform.GetChild(0).gameObject.SetActive(true);
             foreach (Transform light in transform.GetChild(0))
             {
-                light.GetComponent<Light>().color = new Color(0.84f, 0.67f, 0.0f);
+                light.GetComponent<Light>().color = new Color(1.0f, 0.47f, 0.0f);
             }
             yield return new WaitForSeconds(0.1f);
             

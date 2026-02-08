@@ -3,7 +3,7 @@
     - Handles color slider
     - Updates characters
     Contributor(s): Jake Schott
-    Last Updated: 2/3/2026
+    Last Updated: 2/7/2026
 */
 
 using System.Collections;
@@ -15,7 +15,6 @@ using TMPro;
 public class ColorSelector : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
-    Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(1.0f, 0.47f, 0f) };
     private static float MOVE_TIME = 0.4f;
     private static Vector3 FINAL_POS = new Vector3(0.09f, 0.0f, 0.0f);
 
@@ -83,8 +82,8 @@ public class ColorSelector : NetworkBehaviour, IControllable
         for (int i = 0; i < 12; i++)
         {
             GameObject cd = universal_communicator.getCharacterDisplay(i);
-            cd.transform.GetChild(0).gameObject.GetComponent<TMP_Text>().color = COLOR_OPTIONS[curr_color];
-            cd.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[curr_color];
+            cd.transform.GetChild(0).gameObject.GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[curr_color];
+            cd.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[curr_color];
         }
 
         for (int i = 0; i < 4; i++)

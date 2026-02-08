@@ -1,13 +1,12 @@
 /*
     PowerControl.cs
-    - Handles power-on/power-off procedure
-    - Handles orange flashing in all four positions if a player is seated, power is available, but they are not activating the power dial
+    - Handles power dials
+    - Handles indicator flashing in all four positions if a player is seated, power is available, but they are not activating the power dial
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 12/9/2025
+    Last Updated: 2/7/2026
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -17,7 +16,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float TURN_TIME = 1.0f;
-    private static float PLAYER_NOTIFIER_REFRESH = 0.5f;
+    private static float PLAYER_NOTIFIER_REFRESH_SPEED = 3.0f;
 
     private string CONTROL_NAME = "POSITION POWER";
     private static string INFO_MESSAGE = "Controls the enabled status of all controls at the corresponding position (only when ship power is available).";
@@ -67,11 +66,11 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     private void changeIndicator(int index, bool active)
     {
         dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(active);
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f);
+        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         for (int i = 0; i < light_indicator_groups.Count; i++)
         {
             light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).gameObject.SetActive(active);
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f);
+            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         }
     }
 
@@ -227,7 +226,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     }
 
     //helper method used to update the orange flashing lights
-    private void updateNotifierIndicator(int index, Color orange_color)
+    private void updateNotifierIndicator(int index, float a)
     {
         //do nothing if power is enabled at that position
         if (power_manager.getPowerEnabled(index) == true)
@@ -242,13 +241,16 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
             light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
         }
 
-        //update the color (alpha)
+        Color c = ReferenceAssistor.COLOR_OPTIONS[index];
+        c.a = a;
+        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+
+        //update the position color for every power control module
         if (current_seats[index] == true)
         {
             for (int i = 0; i < 4; i++)
             {
-                dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = orange_color;
-                light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = orange_color;
+                light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
             }
         }
     }
@@ -256,34 +258,19 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     //infinite loop that handles flashing the orange indicators when a player is sitting at a position with the power on but not turning the dial (works for all four positions)
     IEnumerator playerNotifier()
     {
-        float anim_time = PLAYER_NOTIFIER_REFRESH;
-        Color orange_color;
+        float elapsed_time = 0.0f;
+
         while (true)
         {
-            for (int x = 0; x < 2; x++)
+            elapsed_time += Time.deltaTime * PLAYER_NOTIFIER_REFRESH_SPEED;
+
+            float a = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
+            for (int i = 0; i < 4; i++)
             {
-                anim_time = PLAYER_NOTIFIER_REFRESH;
-                while (anim_time > 0.0f)
-                {
-                    anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-
-                    if (x == 0)
-                    {
-                        orange_color = new Color(1.0f, 0.47f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / PLAYER_NOTIFIER_REFRESH))));
-                    }
-                    else
-                    {
-                        orange_color = new Color(1.0f, 0.47f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / PLAYER_NOTIFIER_REFRESH))));
-                    }
-
-                    for (int i = 0; i < 4; i++)
-                    {
-                        updateNotifierIndicator(i, orange_color);
-                    }
-
-                    yield return null;
-                }
+                updateNotifierIndicator(i, a);
             }
+
+            yield return null;
         }
     }
 
