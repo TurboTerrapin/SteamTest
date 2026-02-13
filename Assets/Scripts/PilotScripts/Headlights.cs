@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
+public class Headlights : NetworkBehaviour, IControllable, IPowerable //IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.25f;
