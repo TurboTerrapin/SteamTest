@@ -389,7 +389,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   camera_transform: {fileID: 8180901403564875568}
-  head_transform: {fileID: 3603337162174284039}
+  head_transform: {fileID: 9205947212310833813}
   parentRotationLock: 0
   captainMode: 0
 --- !u!1 &5259488574847259791
@@ -660,6 +660,37 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &7648900209038245580
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9205947212310833813}
+  m_Layer: 0
+  m_Name: CameraPivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9205947212310833813
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7648900209038245580}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.0011579901, z: 0.0008700005}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3603337162174284039}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7738883358200894698
 GameObject:
   m_ObjectHideFlags: 0
@@ -872,6 +903,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8950480641416126531, guid: 27f0dddf90b4e264e87d1b2927078c1f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1496114576827646016}
+    - targetCorrespondingSourceObject: {fileID: -8950480641416126531, guid: 27f0dddf90b4e264e87d1b2927078c1f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9205947212310833813}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 27f0dddf90b4e264e87d1b2927078c1f, type: 3}
       insertIndex: -1
