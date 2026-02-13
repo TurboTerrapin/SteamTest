@@ -348,9 +348,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //hide warning bar
         engineer_power_displays[position].transform.GetChild(0).gameObject.SetActive(false);
 
-        //change colors of position icon and label to blue
-        engineer_power_displays[position].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-        engineer_power_displays[position].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        //change colors of position icon and label
+        engineer_power_displays[position].transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[position];
+        engineer_power_displays[position].transform.GetChild(12).GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[position];
 
         //get power allocation for that position
         int max_allocation = (int)(power_allocation.getPowerAllocation(position) * 10.0f);
@@ -689,19 +689,20 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ScenarioCountdown")); //2
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PhaserFrequency")); //3
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EnergyPattern")); //4
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //5
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ScenarioMap")); //5
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //6
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PhaserHeat")); //7
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //8
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //7
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PhaserHeat")); //8
         engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //9
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ShieldStrength")); //10
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("TorpedoLoader")); //11
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EngineCoolantSupply")); //12
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipInventory")); //13
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("CargoEjectLoader")); //14
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ComputerRegulator")); //15
-        engineer_modules.Add(this); //16
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //17
+        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //10
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ShieldStrength")); //11
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("TorpedoLoader")); //12
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EngineCoolantSupply")); //13
+        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipInventory")); //14
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("CargoEjectLoader")); //15
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ComputerRegulator")); //16
+        engineer_modules.Add(this); //17
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //18
         positional_modules[2] = engineer_modules;
     }
 

@@ -8,6 +8,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
     private string[] CONTROL_NAMES = new string[] { "FORWARD", "PORT", "STARBOARD", "AFT" };
     private static string INFO_MESSAGE = "Use shield batteries from ship inventory to adjust shield strength in forward, port, starboard, and aft sections.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
-    private List<int> CONTROL_INDEXES = new List<int>() { 2, 0 };
+    private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
 
     public GameObject shield_strength_display;
@@ -75,8 +76,25 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
             if (shield_strength_adjustment_coroutines[i] == null)
             {
                 BUTTON_LISTS[i][0].updateInteractable(shield_strengths[i] > 0);
-                BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 10 && available_batteries > 0);
+                BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 5 && available_batteries > 0);
             }
+        }
+
+        float a = 1.0f;
+        if (available_batteries <= 0)
+        {
+            a = 0.08f;
+        }
+
+        shield_strength_display.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        if (available_batteries == 1)
+        {
+            shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().SetText("1 BATTERY AVAILABLE");
+        }
+        else
+        {
+            shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().SetText(available_batteries + " BATTERIES AVAILABLE");
         }
     }
 
@@ -90,7 +108,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         float total_consumption = 0.0f;
         for (int i = 0; i < 4; i++)
         {
-            total_consumption += getShieldStrength(i) * (MAX_POWER_CONSUMPTION / 40.0f);
+            total_consumption += getShieldStrength(i) * (MAX_POWER_CONSUMPTION / 20.0f);
         }
         return total_consumption;
     }
@@ -101,7 +119,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         float a = 1.0f;
         if (enabled == false)
         {
-            a = 0.04f;
+            a = 0.08f;
         }
         bar.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
     }
@@ -109,12 +127,24 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
     private void displayAdjustment(int index)
     {
         //adjust bars
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 5; i++)
         {
             barChange(shield_strength_display.transform.GetChild(0).GetChild(index).GetChild(i).gameObject, i < shield_strengths[index]);
         }
 
-        float shield_strength_percentage = (shield_strengths[index] / 10.0f);
+        //adjust arrow
+        shield_strength_display.transform.GetChild(0).GetChild(index).GetChild(6).GetChild(0).gameObject.SetActive(shield_strengths[index] > 0);
+
+        //adjust percentage
+        float a = 0.08f;
+        if (shield_strengths[index] > 0)
+        {
+            a = 1.0f;
+        }
+        shield_strength_display.transform.GetChild(0).GetChild(index).GetChild(5).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        shield_strength_display.transform.GetChild(0).GetChild(index).GetChild(5).GetComponent<TMP_Text>().SetText((shield_strengths[index] * 20).ToString() + "%");
+
+        float shield_strength_percentage = (shield_strengths[index] / 5.0f);
 
         //adjust dots on ship overview screen
         foreach (Transform dot in shield_indicators.transform.GetChild(index))
@@ -126,11 +156,6 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         //adjust power consumption
         hud_info.setPowerConsumption(getPowerConsumption());
         ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
-    }
-
-    private void highlightSection(int index, float a)
-    {
-        shield_strength_display.transform.GetChild(1).GetChild(index).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
     }
 
     //turns the dial and calls displayAdjustment()
@@ -165,12 +190,9 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
 
             if (i == 0 && is_powered == true)
             {
-                highlightSection(index, 1.0f);
                 displayAdjustment(index);
             }
         }
-
-        highlightSection(index, 0.2f);
 
         BUTTON_LISTS[index][0].untoggle();
         BUTTON_LISTS[index][1].untoggle();
@@ -178,7 +200,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         for (int i = 0; i < 4; i++)
         {
             BUTTON_LISTS[i][0].updateInteractable(shield_strengths[i] > 0 && is_powered);
-            BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 10 && ship_inventory.getItemQuantity(0, 2) > 0 && is_powered);
+            BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 5 && ship_inventory.getItemQuantity(0, 2) > 0 && is_powered);
         }
 
         shield_strength_adjustment_coroutines[index] = null;
@@ -201,7 +223,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
 
                 transmitShieldStrengthChangeRPC(target_index, shield_strengths[target_index] - 1);
             }
-            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && shield_strengths[target_index] < 10 && ship_inventory.getItemQuantity(0, 2) > 0) //increase
+            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && shield_strengths[target_index] < 5 && ship_inventory.getItemQuantity(0, 2) > 0) //increase
             {
                 BUTTON_LISTS[target_index][1].toggle();
                 BUTTON_LISTS[target_index][0].updateInteractable(false);
@@ -218,7 +240,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         for (int i = 0; i < 4; i++)
         {
             BUTTON_LISTS[i][0].updateInteractable(shield_strengths[i] > 0);
-            BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 10 && ship_inventory.getItemQuantity(0, 2) > 0);
+            BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 5 && ship_inventory.getItemQuantity(0, 2) > 0);
         }
     }
 

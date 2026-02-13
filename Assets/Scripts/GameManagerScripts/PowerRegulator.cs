@@ -15,8 +15,8 @@ using UnityEngine;
 public class PowerRegulator : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static float DEPLETION_TIME = 25.0f; //how long it takes for a single control to go from enabled to disabled
-    private static float NEUTRAL_TIME = 20.0f; //randomizes between this number and 5 seconds less
+    private static float[] DEPLETION_TIME = new float[] { 40.0f, 35.0f, 28.0f, 20.0f }; //how long it takes for a single control to go from enabled to disabled
+    private static float[] NEUTRAL_TIME = new float[] { 30.0f, 25.0f, 20.0f, 10.0f }; //randomizes between this number and 5 seconds less
     private static float POWER_BAR_UPDATE_SPEED = 1.0f; //how fast the power bars update
     private static float DEPLETION_WARNING_FLASH_SPEED = 0.25f; //how often the warning light flashes
     private static Color[] POWER_STATUS_COLORS = new Color[3]{ new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f) };
@@ -168,7 +168,7 @@ public class PowerRegulator : NetworkBehaviour
         restartPowerBarUpdater();
         updatePowerStatus(getPowerStatusState());
 
-        auxiliary_power.activate();
+        auxiliary_power.activate(transform.GetComponent<PowerManager>().getShipHasPower());
     }
 
     //enables all depleted power sources (and stops depletion on all depleting sources), restores power
@@ -220,7 +220,7 @@ public class PowerRegulator : NetworkBehaviour
 
         if (getPowerSourcesEnabled() < 6)
         {
-            auxiliary_power.activate();
+            auxiliary_power.activate(transform.GetComponent<PowerManager>().getShipHasPower());
         }
         else
         {
@@ -312,7 +312,8 @@ public class PowerRegulator : NetworkBehaviour
     //waits a random amount of time (NEUTRAL_TIME - 5 seconds to NEUTRAL_TIME) to deplete a random power source
     IEnumerator neutralState()
     {
-        yield return new WaitForSeconds(Random.Range(NEUTRAL_TIME - 5.0f, NEUTRAL_TIME));
+        float neutral_time = NEUTRAL_TIME[GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty()];
+        yield return new WaitForSeconds(Random.Range(neutral_time - 5.0f, neutral_time));
 
         //begin depleting a new power source
         if (getPowerSourcesEnabled() > 0)
@@ -328,29 +329,21 @@ public class PowerRegulator : NetworkBehaviour
     //flashes the orange lights for all power sources that are depleted/depleting
     IEnumerator depletionWarningFlasher()
     {
+        float elapsed_time = 0.0f;
         while (true)
         {
-            for (int i = 0; i < 2; i++)
+            elapsed_time += Time.deltaTime * DEPLETION_WARNING_FLASH_SPEED;
+            float a = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
+            Color warning_color = new Color(1.0f, 0.47f, 0.0f, a);
+            for (int x = 0; x < 6; x++)
             {
-                float anim_time = DEPLETION_WARNING_FLASH_SPEED;
-                while (anim_time > 0.0f)
+                if (enabled_power_sources[x] == false || power_source_depletion_coroutines[x] != null)
                 {
-                    anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-                    Color warning_color = new Color(1.0f, 0.47f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / DEPLETION_WARNING_FLASH_SPEED))));
-                    if (i == 1)
-                    {
-                        warning_color = new Color(1.0f, 0.47f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / DEPLETION_WARNING_FLASH_SPEED))));
-                    }
-                    for (int x = 0; x < 6; x++)
-                    {
-                        if (enabled_power_sources[x] == false || power_source_depletion_coroutines[x] != null)
-                        {
-                            warning_dots[x].color = warning_color;
-                        }
-                    }
-                    yield return null;
+                    warning_dots[x].color = warning_color;
                 }
             }
+
+            yield return null;
         }
     }
 
@@ -391,14 +384,15 @@ public class PowerRegulator : NetworkBehaviour
     IEnumerator powerDepletion(int source_index)
     {
         UnityEngine.UI.Image time_bar = power_regulation_modules[source_index].transform.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>();
-        time_bar.color = new Color(1.0f, 0.47f, 0f);
+        time_bar.color = new Color(1.0f, 0.47f, 0.0f);
         time_bar.fillAmount = 1.0f;
 
-        float anim_time = DEPLETION_TIME;
+        float depletion_time = DEPLETION_TIME[GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty()];
+        float anim_time = depletion_time;
 
         while (anim_time > 0.0f)
         {
-            time_bar.fillAmount = (anim_time / DEPLETION_TIME);
+            time_bar.fillAmount = (anim_time / depletion_time);
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
             yield return null;
         }
@@ -458,6 +452,7 @@ public class PowerRegulator : NetworkBehaviour
         for (int i = 0; i < 6; i++)
         {
             power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().color = POWER_STATUS_COLORS[state];
+            power_bars.transform.GetChild(i).GetChild(0).GetComponent<TMP_Text>().color = POWER_STATUS_COLORS[state];
         }
 
         //show/hide power restoration message
@@ -481,7 +476,7 @@ public class PowerRegulator : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void initiateDepletionRPC(int to_deplete)
     {
-        auxiliary_power.activate();
+        auxiliary_power.activate(transform.GetComponent<PowerManager>().getShipHasPower());
 
         if (power_source_depletion_coroutines[to_deplete] != null)
         {
@@ -512,7 +507,7 @@ public class PowerRegulator : NetworkBehaviour
 
         if (getPowerSourcesEnabled() < 6)
         {
-            auxiliary_power.activate();
+            auxiliary_power.activate(transform.GetComponent<PowerManager>().getShipHasPower());
         }
         else
         {

@@ -21,7 +21,7 @@ using Steamworks;
 public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
     //CLASS CONSTANTS
-    private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
+    private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(1.0f, 0.47f, 0f) };
     private static string DEATH_MESSAGE = "Stolen ship NCC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
 
     private GameObject PlayerPrefab;
@@ -29,7 +29,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     bool ScenarioEndpointReached = false;
     private ScenarioManager scenarioManager;
     private ImpulseThrottle impulse;
-    private EnergyPatternManager energyPatternManager;
+    private EnergyPattern energyPattern;
     private ShipHealth shipHealth;
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
@@ -101,7 +101,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         impulse = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
 
-        energyPatternManager = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPatternManager>();
+        energyPattern = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>();
 
         spaceship = GameObject.FindWithTag("Spaceship");
         shipHealth = spaceship.GetComponent<ShipHealth>();
@@ -143,7 +143,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     IEnumerator GreenLightState()
     {
         //contract energy pattern
-        energyPatternManager.resizePattern(0, true, 0.5f);
+        energyPattern.resizePattern(true, 0.5f);
         if (NetworkManager.Singleton.IsHost)
         {
             yield return new WaitForSeconds(Random.Range(15.0f, 30.0f));
@@ -154,7 +154,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     IEnumerator EndGreenLight(float end_time)
     {
         //expand energy pattern
-        energyPatternManager.resizePattern(0, false, end_time);
+        energyPattern.resizePattern(false, end_time);
         yield return new WaitForSeconds(end_time);
         if (NetworkManager.Singleton.IsHost && ScenarioEndpointReached == false)
         {
@@ -340,7 +340,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         RLGLpattern.setCenter(center_texture, getCenterColorAsColor(), center_speed);
         RLGLpattern.setRings(4, getRingColorsAsColor(), ring_textures, ring_is_solid, ring_speeds);
 
-        energyPatternManager.setPattern(0, RLGLpattern);
+        energyPattern.setPattern(RLGLpattern);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -358,7 +358,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         setColorInfo();
 
-        energyPatternManager.updateColors(0, getRingColorsAsColor(), getCenterColorAsColor(), 1.0f);
+        energyPattern.updateColors(getRingColorsAsColor(), getCenterColorAsColor(), 1.0f);
 
         resetCoroutines();
         greenLightCoroutine = StartCoroutine(GreenLightState());

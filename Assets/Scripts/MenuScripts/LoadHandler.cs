@@ -1,8 +1,9 @@
 /*
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
+    - ALSO HOLDS/HANDLES THE GAME DIFFICULTY
     Contributor(s): Jake Schott
-    Last Updated: 2/5/2026
+    Last Updated: 2/7/2026
 */
 
 using System.Collections;
@@ -18,12 +19,14 @@ public class LoadHandler : NetworkBehaviour
     private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(1.0f, 0.47f, 0f) };
     private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 200.0f, 70.0f };
 
+    private int difficulty = -1;
+
     private GameObject load_screen;
     private GameObject load_ring;
     private Coroutine fade_black_coroutine = null;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
 
-    void Start()
+    private void Start()
     {
         //used to ensure there is ever only one LoadHandler
         transform.name = "TempLoadHandler";
@@ -110,6 +113,21 @@ public class LoadHandler : NetworkBehaviour
         {
             load_screen.SetActive(false);
         }
+    }
+
+    public void updateDifficulty(int new_difficulty)
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        updateDifficultyRPC(new_difficulty);
+    }
+
+    public int getDifficulty()
+    {
+        return difficulty;
     }
 
     //randomizes the colors for the load circle
@@ -259,6 +277,19 @@ public class LoadHandler : NetworkBehaviour
     public void startLoadForAllPlayers()
     {
         allPlayersLoadRPC(); //triggers below RPC
+    }
+
+    //called by host when change in difficulty
+    [Rpc(SendTo.Everyone)]
+    private void updateDifficultyRPC(int new_difficulty)
+    {
+        difficulty = new_difficulty;
+
+        GameObject campaignLobby = GameObject.Find("CampaignLobby");
+        if (campaignLobby != null)
+        {
+            campaignLobby.GetComponent<CampaignLobbyController>().DisplayDifficultyChange(new_difficulty);
+        }
     }
 
     //only called when loading into the start of a game (there is a waiting period when the host loads into BridgeEnvironment compared to clients)

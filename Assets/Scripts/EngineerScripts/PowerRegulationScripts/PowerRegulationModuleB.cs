@@ -190,7 +190,7 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
             {
                 BUTTON_LISTS[target_index][0].toggle();
                 BUTTON_LISTS[target_index][0].updateInteractable(false);
-                transmitSlideAdjustmentRPC(target_index, Mathf.Min(1.0f, slide_percentages[target_index] + 0.08f));
+                transmitSlideAdjustmentRPC(target_index, Mathf.Min(1.0f, slide_percentages[target_index] + 0.1f));
             }
         }
     }

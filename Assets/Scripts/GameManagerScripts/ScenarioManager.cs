@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    public const int COUNTDOWN_TIME = 360; //how long each round lasts before scenario failure
+    private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, EngineerMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
@@ -113,7 +113,7 @@ public class ScenarioManager : NetworkBehaviour
         endpoint_reached = false;
         scenario_number += 1;
 
-        if (SceneManager.GetActiveScene().name == "Cheeseballs")
+        if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
             return "RedLightGreenLight";
@@ -163,7 +163,7 @@ public class ScenarioManager : NetworkBehaviour
 
     IEnumerator scenarioCountdown()
     {
-        int time_remaining = COUNTDOWN_TIME;
+        int time_remaining = COUNTDOWN_TIME[GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty()];
         countdownUpdateRPC(time_remaining);
         while (time_remaining > 0)
         {
@@ -318,9 +318,8 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<LongRangeDirection>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<TorpedoSelector>().resetToDefault();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPatternManager>().clearAllPatterns();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>().resetToDefault();

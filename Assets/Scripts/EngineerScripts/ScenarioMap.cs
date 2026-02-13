@@ -2,7 +2,7 @@
     ScenarioMap.cs
     - Handles engineer map
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 2/10/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     private static Color SPRITE_RED = new Color(0.96f, 0.25f, 0.28f, 1.0f); //sprite renderer shows color differently
 
     public GameObject navigation_display;
+    public GameObject heading_display;
     public GameObject navigation_information;
     public GameObject altitude_label;
 
@@ -160,10 +161,16 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         exit_path.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -90.0f + exit_rot);
     }
 
-    public void updateShipOrientation()
+    //updates ship triangle on map, compass triangle, current heading, and target heading
+    public void updateShipOrientation(float ship_rotation, string current_heading, string target_heading)
     {
-        float ship_rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation.eulerAngles.y;
         ship_icon.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, ship_rotation);
+
+        ship_rotation += 90.0f;
+        heading_display.transform.GetChild(2).GetChild(0).transform.localRotation = Quaternion.Euler(0.0f, 180.0f, ship_rotation);
+
+        heading_display.transform.GetChild(3).GetChild(0).GetComponent<TMP_Text>().SetText(current_heading);
+        heading_display.transform.GetChild(4).GetChild(0).GetComponent<TMP_Text>().SetText(target_heading);
     }
 
     public void updateShipLocation()
@@ -196,11 +203,16 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     public void powerOn(int position)
     {
+        if (navigation_display.activeSelf == true)
+        {
+            heading_display.SetActive(true);
+        }
         navigation_display.SetActive(true);
     }
 
     public void powerOff(int position, float time)
     {
         navigation_display.SetActive(false);
+        heading_display.SetActive(false);
     }
 }

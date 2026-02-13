@@ -30,6 +30,7 @@ public class ShipInventory : NetworkBehaviour, IPowerable
     private ProbeController probe_controller;
     private CargoEjectLoader cargo_eject_loader;
     private ShieldStrength shield_strength;
+    private TorpedoLoader torpedo_loader;
     private GameObject item_count_indicators;
     private GameObject torpedo_count_indicators;
 
@@ -49,6 +50,7 @@ public class ShipInventory : NetworkBehaviour, IPowerable
         probe_controller = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>();
         cargo_eject_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>();
         shield_strength = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ShieldStrength>();
+        torpedo_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>();
 
         //if host, initialize and begin handling serial numbers
         if (NetworkManager.Singleton.IsHost == true)
@@ -270,6 +272,7 @@ public class ShipInventory : NetworkBehaviour, IPowerable
         probe_controller.onInventoryChange(item_quantities[0]);
         cargo_eject_loader.onInventoryChange();
         shield_strength.onInventoryChange(item_quantities[2]);
+        torpedo_loader.onInventoryChange();
     }
 
     private void addItemHelper(int item_category, int item_index, string serial_num)
