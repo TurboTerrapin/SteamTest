@@ -367,7 +367,7 @@ public class ControlScript : MonoBehaviour
         myAnimationController.setIKLeftArm(false);
         myAnimationController.setIKRightArm(false);
 
-        player_prefab.transform.position = player_prefab.transform.Find("Character").position - new Vector3(0.0f, 0.0f, 0.0f);
+        player_prefab.transform.position = player_prefab.transform.Find("CharacterModel").position - new Vector3(0.0f, 0.0f, 0.0f);
         player_prefab.GetComponent<PlayerMove>().initialize();
 
         seat_script_holder.GetComponent<SeatManager>().getUp(curr_pos);
