@@ -152,16 +152,16 @@ public class CameraMove : MonoBehaviour
         if (!transform.gameObject.GetComponent<PlayerMove>().IsOwner) return;
 
         //Handle pause/unpause
-        if (Input.GetKeyDown(KeyCode.Escape) && ControlScript.Instance.canPause())
+        if (Input.GetKeyDown(KeyCode.Escape) && PrimaryScript.Instance.canPause())
         {
-            if (!ControlScript.Instance.isPaused())
+            if (!PrimaryScript.Instance.isPaused())
             {
-                ControlScript.Instance.pause();
+                PrimaryScript.Instance.pause();
                 rb.angularVelocity = Vector3.zero;
             }
             else
             {
-                ControlScript.Instance.unpause();
+                PrimaryScript.Instance.unpause();
             }
         }
 
@@ -170,7 +170,7 @@ public class CameraMove : MonoBehaviour
         {
             MouseMove();
         }
-        if (!ControlScript.Instance.isPaused())
+        if (!PrimaryScript.Instance.isPaused())
         {
             if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.Mouse1))
             {

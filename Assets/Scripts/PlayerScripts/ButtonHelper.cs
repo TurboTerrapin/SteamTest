@@ -2,7 +2,7 @@
     ButtonHelper.cs
     - Assists button animations when necessary
     - Basically only used for IEnumerator
-    - Attached to UIPlayerCanvasd
+    - Attached to UIPlayerCanvas
     Contributor(s): Jake Schott
     Last Updated: 9/1/2025
 */

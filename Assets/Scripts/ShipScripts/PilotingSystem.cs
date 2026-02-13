@@ -5,7 +5,7 @@
     - Handles boundary checking/handling
     - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
     Contributor(s): Henryk Musial
-    Last Updated: 8/13/2025
+    Last Updated: 2/1/2026
 */
 
 using System.Collections;
@@ -15,9 +15,6 @@ using UnityEngine;
 
 public class PilotingSystem : NetworkBehaviour
 {
-    [Header("Control References")]
-    private GameObject controlHandler;
-
     [Header("Speed Settings")]
     private float maxThrusterSpeed = 6f;
     private float maxImpulseForwardSpeed = 50f;
@@ -30,12 +27,13 @@ public class PilotingSystem : NetworkBehaviour
 
     // Component references
     private ImpulseThrottle impulseThrottle;
-    private CourseHeading courseHeading;
+    private ShipSteering shipSteering;
     private HorizontalThrusters horizontalThrusters;
     private VerticalThrusters verticalThrusters;
-    private PilotNavigation pilotNavigation;
-    private TacticianMap tacticianMap;
-    private EngineerMap engineerMap;
+    private FlyingInstruments flyingInstruments;
+    private ProximityMap proximityMap;
+    private ScenarioMap scenarioMap;
+    private ProbeController probeController;
 
     // Input values
     private float currentImpulse;
@@ -69,15 +67,16 @@ public class PilotingSystem : NetworkBehaviour
     public bool AssignControlReferences(GameObject controlHandler)
     {
         impulseThrottle = controlHandler.GetComponent<ImpulseThrottle>();
-        courseHeading = controlHandler.GetComponent<CourseHeading>();
+        shipSteering = controlHandler.GetComponent<ShipSteering>();
         horizontalThrusters = controlHandler.GetComponent<HorizontalThrusters>();
         verticalThrusters = controlHandler.GetComponent<VerticalThrusters>();
+        probeController = controlHandler.GetComponent<ProbeController>();
 
-        pilotNavigation = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<PilotNavigation>();
-        tacticianMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<TacticianMap>();
-        engineerMap = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerMap>();
+        flyingInstruments = ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>();
+        proximityMap = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProximityMap>();
+        scenarioMap = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
 
-        return impulseThrottle && courseHeading &&
+        return impulseThrottle && shipSteering &&
                horizontalThrusters && verticalThrusters;
     }
 
@@ -96,7 +95,7 @@ public class PilotingSystem : NetworkBehaviour
     public void UpdateInput()
     {
         currentImpulse = impulseThrottle.getCurrentImpulse();
-        steeringInput = courseHeading.getSteeringValue();
+        steeringInput = shipSteering.getSteeringValue();
         horizontalThrust = horizontalThrusters.getHorizontalThrusterState();
         verticalThrust = verticalThrusters.getVerticalThrusterState();
     }
@@ -318,11 +317,7 @@ public class PilotingSystem : NetworkBehaviour
     private void ProbeDistanceChangeRPC()
     {
         //update probe (if it exists)
-        GameObject probe = GameObject.FindGameObjectWithTag("Probe");
-        if (probe != null)
-        {
-            probe.GetComponent<Probe>().updateDistance();
-        }
+        probeController.onProbeDistanceChange();
     }
 
     private void BoundaryCheck(GameObject worldRoot)
@@ -404,7 +399,7 @@ public class PilotingSystem : NetworkBehaviour
         //update map
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
 
-        engineerMap.updateShipLocation();
+        scenarioMap.updateShipLocation();
 
         //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)
@@ -449,35 +444,35 @@ public class PilotingSystem : NetworkBehaviour
             boundaryCountdownCoroutine = null;
         }
         insideBoundary = withinBoundary;
-        engineerMap.updateShipBoundaryStatus(withinBoundary);
+        scenarioMap.updateShipBoundaryStatus(withinBoundary);
     }
 
     [Rpc(SendTo.Everyone)]
     private void ShipBoundaryCountdownChangeRPC(int countdownValue)
     {
-        engineerMap.updateShipBoundaryCountdownStatus(countdownValue);
+        scenarioMap.updateShipBoundaryCountdownStatus(countdownValue);
     }
 
     [Rpc(SendTo.Everyone)]
     private void ShipBoundaryAltitudeWarningChangeRPC(bool active, string msg)
     {
-        engineerMap.updateAltitudeWarning(active, msg);
+        scenarioMap.updateAltitudeWarning(active, msg);
     }
 
     [Rpc(SendTo.Everyone)]
     private void RotationChangeRPC()
     {
-        pilotNavigation.updateCourseHeadingScreen();
-        tacticianMap.rotateMap();
-        engineerMap.updateShipOrientation();
+        flyingInstruments.updateCourseHeadingScreen();
+        proximityMap.rotateMap();
+        scenarioMap.updateShipOrientation();
     }
 
     [Rpc(SendTo.Everyone)]
     private void AltitudeChangeRPC()
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
-        pilotNavigation.updateAltimeterScreen();
-        engineerMap.updateAltitude();
+        flyingInstruments.updateAltimeterScreen();
+        scenarioMap.updateAltitude();
 
         //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)

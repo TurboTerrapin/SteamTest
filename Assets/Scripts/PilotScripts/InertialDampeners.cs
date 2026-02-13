@@ -4,14 +4,13 @@
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     - Each one has an equal, 33% effect on both thrusters and impulse throttle (all three enabled means 100% effect)
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 2/5/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static Unity.Burst.Intrinsics.X86.Avx;
 
 public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 {
@@ -19,7 +18,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private static float SWITCH_TIME = 0.5f;
     private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 per dampener)
 
-    private string[] CONTROL_NAMES = new string[] { "PRIMARY INERTIAL DAMPENER", "SECONDARY INERTIAL DAMPENER", "TERTIARY INERTIAL DAMPENER" };
+    private string CONTROL_NAME = "INERTIAL DAMPENER";
     private static string INFO_MESSAGE = "Increases ship acceleration for thrusters and impulse throttle. Each dampener contributes 33% to maximum acceleration effect.";
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
@@ -38,9 +37,10 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private List<string> ray_targets = new List<string> { "primary_inertial_dampener", "secondary_inertial_dampener", "tertiary_inertial_dampener" };
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[2].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -51,7 +51,6 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
-        hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 6);
 
         return hud_info;
@@ -73,7 +72,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private float getInertialDampenerModifierValue()
     {
         float modifier = 0.0f;
-        for (int i = 0; i <= 2; i++)
+        for (int i = 0; i < 3; i++)
         {
             if (dampener_enabled_percentage[i] >= 1.0f)
             {
@@ -86,9 +85,9 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
     private void adjustInertialDampenerModifiers()
     {
         float modifier = getInertialDampenerModifierValue();
-        transform.GetComponent<ImpulseThrottle>().adjustInertialDampenerModifier(modifier);
-        transform.GetComponent<HorizontalThrusters>().adjustInertialDampenerModifier(modifier);
-        transform.GetComponent<VerticalThrusters>().adjustInertialDampenerModifier(modifier);
+        GetComponent<ImpulseThrottle>().adjustInertialDampenerModifier(modifier);
+        GetComponent<HorizontalThrusters>().adjustInertialDampenerModifier(modifier);
+        GetComponent<VerticalThrusters>().adjustInertialDampenerModifier(modifier);
     }
 
     private void handlePowerConsumptionChange()
@@ -101,7 +100,7 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
                 consumed_power += (MAX_POWER_CONSUMPTION / 3.0f);
             }
         }
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
         hud_info.setPowerConsumption(consumed_power);
     }
 
@@ -184,14 +183,13 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
 
         if (dampener_switch_coroutines[index] == null && is_powered == true)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
             {
                 BUTTON_LISTS[index][0].toggle(0.2f);
                 BUTTON_LISTS[index][0].updateInteractable(false);
                 transmitInertialDampenerRPC(index, dampener_is_enabled[index]);
             }
         }
-
     }
 
     //used by powerOff
@@ -200,6 +198,8 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
         float[] starting_rotations = new float[3] { 0.0f, 0.0f, 0.0f };
         for (int i = 0; i < 3; i++)
         {
+            starting_rotations[i] = Mathf.Lerp(90.0f, 180.0f, dampener_enabled_percentage[i]);
+
             if (dampener_switch_coroutines[i] != null)
             {
                 StopCoroutine(dampener_switch_coroutines[i]);
@@ -210,8 +210,6 @@ public class InertialDampeners : NetworkBehaviour, IControllable, IPowerable
             BUTTON_LISTS[i][0].untoggle();
             dampener_is_enabled[i] = false;
             dampener_enabled_percentage[i] = 0.0f;
-
-            starting_rotations[i] = dampener_switches.transform.GetChild(i).localRotation.eulerAngles.z;
         }
         dampener_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
 

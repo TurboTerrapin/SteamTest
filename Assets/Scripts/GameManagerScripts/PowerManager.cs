@@ -4,10 +4,9 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 11/10/2025
+    Last Updated: 1/31/2026
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -27,7 +26,6 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public List<GameObject> engineer_power_displays = null;
     public List<GameObject> power_warnings = null;
 
-    public PowerAllocation power_allocation;
     public LightsManager lights_manager;
     public BackgroundAnimator background_animator;
 
@@ -37,8 +35,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public AudioSource power_off_sound;
     public AudioSource power_on_sound;
 
-    private GameObject control_handler;
-    private GameObject sensor_handler;
+    private PowerAllocation power_allocation;
+    private PowerControl power_control;
+    private StatusIndicators status_indicators;
 
     private bool ship_has_power = true;
 
@@ -57,8 +56,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
     private void Start()
     {
-        control_handler = GameObject.FindGameObjectWithTag("ControlHandler");
-        sensor_handler = GameObject.FindGameObjectWithTag("SensorHandler");
+        power_allocation = ReferenceAssistor.Instance.module_handlers[2].GetComponent<PowerAllocation>();
+        power_control = ReferenceAssistor.Instance.module_handlers[4].GetComponent<PowerControl>();
+        status_indicators = ReferenceAssistor.Instance.module_handlers[4].GetComponent<StatusIndicators>();
 
         addPilotModules(); //positional_modules[0]
         addTacticianModules(); //positional_modules[1]
@@ -195,14 +195,14 @@ public class PowerManager : NetworkBehaviour, IPowerable
             yield return new WaitForSeconds(POWER_ON_TIME / to_power_on.Count);
         }
 
-        control_handler.GetComponent<PowerControl>().enableDial(position, true);
+        power_control.enableDial(position, true);
         power_change_coroutines[position] = null;
     }
 
     //powers down every control instantly, finishes in POWER_OFF_TIME (throttles return to 0 position in POWER_OFF_TIME)
     IEnumerator powerDownSequence(List<Component> to_disable, int position)
     {
-        control_handler.GetComponent<PowerControl>().turnDial(position, false);
+        power_control.turnDial(position, false);
         for (int i = 0; i < to_disable.Count; i++)
         {
             IPowerable current_module = (IPowerable)to_disable[i];
@@ -213,7 +213,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         if (ship_has_power == true)
         {
-            control_handler.GetComponent<PowerControl>().enableDial(position, false);
+            power_control.enableDial(position, false);
         }
         power_change_coroutines[position] = null;
     }
@@ -279,6 +279,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
             power_distributions[position][i] = 0.0f;
         }
         power_consumptions[position] = getPowerConsumption(position);
+        checkForOverConsumption(position, power_consumptions[position]);
 
         List<Component> to_disable = positional_modules[position];
         
@@ -403,9 +404,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            if (index < 2)
+            if (index != 2)
             {
-                sensor_handler.GetComponent<StatusIndicators>().displayOverconsumptionPositionIndicator(index, 1.0f - (anim_time / TIME_TO_POWER_LOSS));
+                status_indicators.displayOverconsumptionPositionIndicator(index, 1.0f - (anim_time / TIME_TO_POWER_LOSS));
             }
             power_loss_bar.GetComponent<UnityEngine.UI.Image>().fillAmount = (anim_time / TIME_TO_POWER_LOSS);
 
@@ -429,6 +430,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         overconsumption_warning_sound.Stop();
         background_animator.disableAllScreens();
 
+        //stop orange flashing at positions where a player is sitting but power dial is not active
+        power_control.updatePlayerNotifiers();
+
         //stop updating power consumption
         if (power_updater_coroutine != null)
         {
@@ -439,15 +443,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //power down all stations
         for (int i = 0; i < 4; i++)
         {
-            control_handler.GetComponent<PowerControl>().disableDial(i);
+            power_control.disableDial(i);
             disableStation(i);
             if (overconsumption_coroutines[i] != null)
             {
                 StopCoroutine(overconsumption_coroutines[i]);
                 overconsumption_coroutines[i] = null;
-                if (i < 2)
+                if (i != 2)
                 {
-                    sensor_handler.GetComponent<StatusIndicators>().resetOverconsumptionPositionIndicator(i);
+                    status_indicators.resetOverconsumptionPositionIndicator(i);
                 }
                 resetEngineerPositionDisplay(i);
             }
@@ -563,11 +567,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
             power_updater_coroutine = StartCoroutine(powerUpdater());
         }
 
-        //unlock the ability to power on all stations
+        //power all stations
         for (int i = 0; i < 4; i++)
         {
-            control_handler.GetComponent<PowerControl>().enableDial(i, false);
+            powerStation(i);
+            power_control.turnDial(i, true);
         }
+
+        //start orange flashing for power dials (if a player is sitting at a position)
+        power_control.updatePlayerNotifiers();
 
         power_restart_coroutine = null;
     }
@@ -606,9 +614,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
             overconsumption_warning_sound.Stop();
         }
 
-        if (index < 2)
+        if (index != 2)
         {
-            sensor_handler.GetComponent<StatusIndicators>().resetOverconsumptionPositionIndicator(index);
+            status_indicators.resetOverconsumptionPositionIndicator(index);
         }
         resetEngineerPositionDisplay(index);
     }
@@ -628,90 +636,89 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private void addPilotModules()
     {
         List<Component> pilot_modules = new List<Component>();
-        pilot_modules.Add(control_handler.GetComponent("SignalJammer")); //1
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("SignalJammer")); //1
         pilot_modules.Add(this); //2
-        pilot_modules.Add(control_handler.GetComponent("Shields")); //3
-        pilot_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
-        pilot_modules.Add(control_handler.GetComponent("DirectionalShifter")); //5
-        pilot_modules.Add(control_handler.GetComponent("TractorBeamOptions")); //6
-        pilot_modules.Add(sensor_handler.GetComponent("PilotTractorBeamProgress")); //7
-        pilot_modules.Add(sensor_handler.GetComponent("PilotSCA")); //8
-        pilot_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //9
-        pilot_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //10
-        pilot_modules.Add(control_handler.GetComponent("TractorBeamPower")); //11
-        pilot_modules.Add(control_handler.GetComponent("InertialDampeners")); //12
-        pilot_modules.Add(control_handler.GetComponent("Headlights")); //13
-        pilot_modules.Add(control_handler.GetComponent("Warp")); //14
-        pilot_modules.Add(control_handler.GetComponent("VerticalThrusters")); //15
-        pilot_modules.Add(sensor_handler.GetComponent("PilotNavigation")); //16
-        pilot_modules.Add(control_handler.GetComponent("CourseHeading")); //17
-        pilot_modules.Add(control_handler.GetComponent("HorizontalThrusters")); //18
-        pilot_modules.Add(sensor_handler.GetComponent("PilotNavigation")); //19
-        pilot_modules.Add(control_handler.GetComponent("ImpulseThrottle")); //20
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("EmissionReducers")); //3
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //4
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("DirectionalShifter")); //5
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("TractorBeamOptions")); //6
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("EngineMonitoring")); //7
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("SpatialCompositionAnalyzer")); //8
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //9
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //10
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("TractorBeamPower")); //11
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("InertialDampeners")); //12
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("Headlights")); //13
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("Warp")); //14
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("VerticalThrusters")); //15
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("FlyingInstruments")); //16
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("ShipSteering")); //17
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("HorizontalThrusters")); //18
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("FlyingInstruments")); //19
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("ImpulseThrottle")); //20
         positional_modules[0] = pilot_modules;
     }
 
     private void addTacticianModules()
     {
         List<Component> tactician_modules = new List<Component>();
-        tactician_modules.Add(control_handler.GetComponent("TorpedoPower")); //1
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoPowers")); //1
         tactician_modules.Add(this); //2
-        tactician_modules.Add(control_handler.GetComponent("ProbeOrientation")); //3
-        tactician_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //4
-        tactician_modules.Add(control_handler.GetComponent("TransmissionHandler")); //5
-        tactician_modules.Add(sensor_handler.GetComponent("TacticianProbeInfo")); //6
-        tactician_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //7
-        tactician_modules.Add(sensor_handler.GetComponent("StatusIndicators")); //8
-        tactician_modules.Add(control_handler.GetComponent("ProbeVerticalMovement")); //9
-        tactician_modules.Add(control_handler.GetComponent("ProbeLateralMovement")); //10
-        tactician_modules.Add(control_handler.GetComponent("PhaserTemperatures")); //11
-        tactician_modules.Add(control_handler.GetComponent("UniversalCommunicator")); //12
-        tactician_modules.Add(control_handler.GetComponent("LongRangeDirection")); //13
-        tactician_modules.Add(control_handler.GetComponent("TorpedoSelector")); //14
-        tactician_modules.Add(sensor_handler.GetComponent("TacticianMap")); //15
-        tactician_modules.Add(control_handler.GetComponent("MapOptions")); //16
-        tactician_modules.Add(control_handler.GetComponent("TorpedoTrigger")); //17
-        tactician_modules.Add(control_handler.GetComponent("ProbeOptions")); //18
-        tactician_modules.Add(control_handler.GetComponent("PhaserPowers")); //19
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("CloakDetector")); //3
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //4
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProbeController")); //5
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProbeInfo")); //6
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //7
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //8
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("UniversalCommunicator")); //9
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("PhaserIntensities")); //10
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("PhaserActivators")); //11
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("LongRangeDirection")); //12
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProximityMap")); //13
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoTrigger")); //14
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProximityMapOptions")); //15
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoSelector")); //16
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ThreatDetectors")); //17
         positional_modules[1] = tactician_modules;
     }
 
     private void addEngineerModules()
     {
         List<Component> engineer_modules = new List<Component>();
-        engineer_modules.Add(sensor_handler.GetComponent("EngineerMap")); //1
-        engineer_modules.Add(sensor_handler.GetComponent("EngineerScenarioCountdown")); //2
-        engineer_modules.Add(control_handler.GetComponent("PhaserFrequency")); //3
-        engineer_modules.Add(control_handler.GetComponent("EnergyPattern")); //4
-        engineer_modules.Add(control_handler.GetComponent("PowerAllocation")); //5
-        engineer_modules.Add(control_handler.GetComponent("PowerAllocation")); //6
-        engineer_modules.Add(sensor_handler.GetComponent("EngineerPhaserHeat")); //7
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ScenarioMap")); //1
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ScenarioCountdown")); //2
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PhaserFrequency")); //3
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EnergyPattern")); //4
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //5
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //6
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PhaserHeat")); //7
         engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //8
         engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //9
-        engineer_modules.Add(control_handler.GetComponent("ShieldStrength")); //10
-        engineer_modules.Add(control_handler.GetComponent("TorpedoLoader")); //11
-        engineer_modules.Add(control_handler.GetComponent("EngineCoolantSupply")); //12
-        engineer_modules.Add(sensor_handler.GetComponent("EngineerInventory")); //13
-        engineer_modules.Add(control_handler.GetComponent("CargoEjectLoader")); //14
-        engineer_modules.Add(control_handler.GetComponent("ComputerRegulator")); //15
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ShieldStrength")); //10
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("TorpedoLoader")); //11
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EngineCoolantSupply")); //12
+        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipInventory")); //13
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("CargoEjectLoader")); //14
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ComputerRegulator")); //15
         engineer_modules.Add(this); //16
-        engineer_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //17
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //17
         positional_modules[2] = engineer_modules;
     }
 
     private void addCaptainModules()
     {
         List<Component> captain_modules = new List<Component>();
-        captain_modules.Add(control_handler.GetComponent("ShipStatus")); //1
-        captain_modules.Add(control_handler.GetComponent("SelfDestruct")); //2
-        captain_modules.Add(control_handler.GetComponent("ShipManual")); //3
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipStatus")); //1
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("SelfDestruct")); //2
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipManual")); //3
         captain_modules.Add(this); //4
-        captain_modules.Add(sensor_handler.GetComponent("PrefixCodeManager")); //5
-        captain_modules.Add(control_handler.GetComponent("CommunicationsManual")); //6
-        captain_modules.Add(control_handler.GetComponent("CargoJettison")); //7
-        captain_modules.Add(control_handler.GetComponent("ShipBeacon")); //8
-        captain_modules.Add(control_handler.GetComponent("ShipOverride")); //9
-        captain_modules.Add(control_handler.GetComponent("EmergencyLights")); //10
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //5
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("CommunicationsManual")); //6
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerOverride")); //7
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //8
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //9
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("CargoEject")); //10
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //11
         positional_modules[3] = captain_modules;
     }
 }

@@ -2,10 +2,9 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -18,16 +17,13 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     private static float SELECTION_ADJUSTMENT_TIME = 0.25f;
     private static float DIRECTION_ADJUSTMENT_TIME = 0.5f;
     private static float LOAD_CONFIRMATION_TIME = 2.0f;
+    private static Vector3 TORPEDO_BAY_ADJUSTMENT_DIRECTION = new Vector3(-0.059f, 0.0f, -0.059f);
 
     private string[] CONTROL_NAMES = new string[] { "TORPEDO TYPE SELECTOR", "TORPEDO BAY SELECTOR", "TORPEDO BAY LOADER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Selects which torpedo to load.", "Selects which bay to load the torpedo into.", "Confirms the torpedo type and bay (cannot be unloaded once loaded)." };
     private List<string> CONTROL_DESCS = new List<string> { "SELECT LEFT", "SELECT RIGHT", "SHIFT LEFT", "SHIFT RIGHT", "LOAD" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5, 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
-
-    public Material lit_green;
-    public Material lit_red;
-    public Material unlit_neon;
 
     public GameObject torpedo_selection_display;
     public GameObject torpedo_direction_display;
@@ -37,14 +33,13 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     public GameObject torpedo_direction_slider;
     public GameObject torpedo_confirmation_switch;
 
-    private EngineerInventory engineer_inventory;
+    private ShipInventory ship_inventory;
 
     private bool is_powered = false;
     private int[] torpedo_bay_slots = new int[4] { -1, -1, -1, -1 };
     private int current_torpedo_selection = 0;
     private int current_torpedo_bay = 0;
     private Vector3 torpedo_direction_slider_initial_position;
-    private Vector3 torpedo_bay_adjustment_direction = new Vector3(-0.059f, 0.0f, -0.059f);
     private Coroutine torpedo_direction_adjustment_coroutine = null;
     private Coroutine torpedo_selection_adjustment_coroutine = null;
     private Coroutine torpedo_confirmation_coroutine = null;
@@ -55,7 +50,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
-        engineer_inventory = GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<EngineerInventory>();
+        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
 
         torpedo_direction_slider_initial_position = torpedo_direction_slider.transform.localPosition;
 
@@ -70,8 +65,6 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         hud_info.setButtons(BUTTON_LISTS[0], 7);
         hud_info.setInfo(INFO_MESSAGES[0]);
-
-        displayTorpedoSelectionAdjustment();
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -98,11 +91,11 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         UnityEngine.UI.RawImage torpedo_icon = torpedo_selection_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
         TMP_Text torpedo_text = torpedo_selection_display.transform.GetChild(1).GetComponent<TMP_Text>();
 
-        Color torpedo_color = engineer_inventory.getItemColor(1, current_torpedo_selection);
+        Color torpedo_color = ship_inventory.getItemColor(1, current_torpedo_selection);
 
         //make transparent if none available
         float a = 1.0f;
-        if (engineer_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
+        if (ship_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
         {
             a = 0.2f;
         }
@@ -110,16 +103,16 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         //set icon
         torpedo_icon.color = torpedo_color;
-        torpedo_icon.texture = engineer_inventory.getItemTexture(1, current_torpedo_selection);
+        torpedo_icon.texture = ship_inventory.getItemTexture(1, current_torpedo_selection);
 
         //set text
         torpedo_text.color = torpedo_color;
-        torpedo_text.SetText((engineer_inventory.getItemName(1, current_torpedo_selection) + " TORPEDO").ToUpper());
+        torpedo_text.SetText((ship_inventory.getItemName(1, current_torpedo_selection) + " TORPEDO").ToUpper());
 
         //adjust lit indicator on confirmation switch
         if (is_powered == true)
         {
-            changeDialLitIndicator((engineer_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
+            changeDialLitIndicator((ship_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
         }
     }
 
@@ -144,19 +137,19 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         //adjust lit indicator on confirmation switch
         if (is_powered == true)
         {
-            changeDialLitIndicator((engineer_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
+            changeDialLitIndicator((ship_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
         }
     }
 
     private void changeDialLitIndicator(bool is_green)
     {
-        if (is_green)
+        if (is_green == true)
         {
-            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = lit_green;
+            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
         }
         else
         {
-            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = lit_red;
+            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
         }
     }
 
@@ -168,7 +161,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
             return false;
         }
 
-        if (engineer_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
+        if (ship_inventory.getItemQuantity(1, current_torpedo_selection) <= 0)
         {
             return false;
         }
@@ -236,7 +229,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     IEnumerator torpedoDirectionAdjustment()
     {
         Vector3 start_pos = torpedo_direction_slider.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(torpedo_direction_slider_initial_position, torpedo_direction_slider_initial_position + torpedo_bay_adjustment_direction, current_torpedo_bay / 3.0f);
+        Vector3 dest_pos = Vector3.Lerp(torpedo_direction_slider_initial_position, torpedo_direction_slider_initial_position + TORPEDO_BAY_ADJUSTMENT_DIRECTION, current_torpedo_bay / 3.0f);
 
         darkenTorpedoDirections();
 
@@ -294,8 +287,8 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
             if (i == 0)
             {
-                Texture torpedo_icon = engineer_inventory.getItemTexture(1, torpedo_type);
-                Color torpedo_color = engineer_inventory.getItemColor(1, torpedo_type);
+                Texture torpedo_icon = ship_inventory.getItemTexture(1, torpedo_type);
+                Color torpedo_color = ship_inventory.getItemColor(1, torpedo_type);
                 torpedo_color = new Color(torpedo_color.r, torpedo_color.g, torpedo_color.b, 1.0f);
 
                 //update both torpedo loader display and ship overview display
@@ -336,23 +329,23 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (torpedo_selection_adjustment_coroutine == null)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //left
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //left
                 {
                     BUTTON_LISTS[0][0].toggle();
                     BUTTON_LISTS[0][1].updateInteractable(false);
                     current_torpedo_selection -= 1;
                     if (current_torpedo_selection < 0)
                     {
-                        current_torpedo_selection = engineer_inventory.getNumberOfItemVariations(1) - 1;
+                        current_torpedo_selection = ship_inventory.getNumberOfItemVariations(1) - 1;
                     }
                     transmitTorpedoSelectionAdjustmentRPC(current_torpedo_selection, true);
                 }
-                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //right
+                else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //right
                 {
                     BUTTON_LISTS[0][1].toggle();
                     BUTTON_LISTS[0][0].updateInteractable(false);
                     current_torpedo_selection += 1;
-                    if (current_torpedo_selection > engineer_inventory.getNumberOfItemVariations(1) - 1)
+                    if (current_torpedo_selection > ship_inventory.getNumberOfItemVariations(1) - 1)
                     {
                         current_torpedo_selection = 0;
                     }
@@ -364,14 +357,14 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (torpedo_direction_adjustment_coroutine == null)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && current_torpedo_bay > 0) //left
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && current_torpedo_bay > 0) //left
                 {
                     BUTTON_LISTS[1][0].toggle();
                     BUTTON_LISTS[1][1].updateInteractable(false);
                     current_torpedo_bay -= 1;
                     transmitTorpedoBayDirectionAdjustmentRPC(current_torpedo_bay);
                 }
-                else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && current_torpedo_bay < 3) //right
+                else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && current_torpedo_bay < 3) //right
                 {
                     BUTTON_LISTS[1][1].toggle();
                     BUTTON_LISTS[1][0].updateInteractable(false);
@@ -384,7 +377,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         {
             if (getCurrentlyLoadable() == true)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //confirm load
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //confirm load
                 {
                     BUTTON_LISTS[2][0].toggle(0.2f);
                     BUTTON_LISTS[2][0].updateInteractable(false);
@@ -429,7 +422,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     {
         is_powered = false;
 
-        torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+        torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
 
         deactivateButtons();
 
@@ -468,7 +461,10 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     {
         torpedo_bay_slots[torpedo_bay] = torpedo_selection;
 
-        engineer_inventory.removeItem(1, torpedo_selection);
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            ship_inventory.removeItem(1, torpedo_selection);
+        }
 
         if (torpedo_confirmation_coroutine != null)
         {

@@ -3,7 +3,7 @@
     - Handles shifting between forward and reverse
     - Moves shift lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -11,11 +11,12 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
+public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.6f;
     private static float DELAY_TIME = 1.0f;
+    private static Vector3 REVERSE_POS = new Vector3(0.2816f, -1.3416f, 19.1194f);
 
     private string CONTROL_NAME = "DIRECTIONAL SHIFTER";
     private static string INFO_MESSAGE = "Handles the direction the ship travels at impulse speed. Can only be used when stationary.";
@@ -27,14 +28,11 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
     public GameObject forward_indicator;
     public GameObject reverse_indicator;
     private GameObject spaceship;
-    private CourseHeading course_heading;
-    public GameObject IK_target;
 
     private bool is_powered = false;
     private bool in_reverse = false; //true means in reverse, false means forward
     private float shift_percentage = 1.0f; //1 is forward, 0 is reverse
     private Vector3 forward_pos;
-    private Vector3 reverse_pos = new Vector3(0.2816f, -1.3416f, 19.1194f);
     private List<KeyCode> keys_down = new List<KeyCode>();
     private Coroutine shift_adjuster_coroutine;
 
@@ -47,7 +45,6 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
         hud_info.setInfo(INFO_MESSAGE);
 
         spaceship = GameObject.FindGameObjectWithTag("Spaceship");
-        course_heading = transform.GetComponent<CourseHeading>();
 
         forward_pos = lever.transform.localPosition;
     }
@@ -56,14 +53,11 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
     {
         if (shift_adjuster_coroutine == null)
         {
-            BUTTONS[0].updateInteractable(transform.GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f && is_powered == true);
+            BUTTONS[0].updateInteractable(GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f && is_powered == true);
         }
         return hud_info;
     }
-    public Transform getIKTarget()
-    {
-        return IK_target.transform;
-    }
+
     private void displayAdjustment()
     {
         float percent_to_top = Mathf.Min(1.0f, Mathf.Max(0.0f, (shift_percentage - 0.4f) / 0.2f));
@@ -78,15 +72,12 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
         }
 
         lever.transform.localPosition =
-            new Vector3(Mathf.Lerp(reverse_pos.x, forward_pos.x, percent_to_top),
-                        Mathf.Lerp(reverse_pos.y, forward_pos.y, percent_to_top),
-                        Mathf.Lerp(reverse_pos.z, forward_pos.z, percent_to_center));
+            new Vector3(Mathf.Lerp(REVERSE_POS.x, forward_pos.x, percent_to_top),
+                        Mathf.Lerp(REVERSE_POS.y, forward_pos.y, percent_to_top),
+                        Mathf.Lerp(REVERSE_POS.z, forward_pos.z, percent_to_center));
 
         forward_indicator.SetActive(!in_reverse && is_powered);
         reverse_indicator.SetActive(in_reverse && is_powered);
-
-        //used to switch DECREASE/INCREASE to INCREASE/DECREASE when in reverse
-        course_heading.switchControlDescs(in_reverse);
     }
 
     private bool checkNeutralState()
@@ -100,7 +91,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
 
-            bool shifting = ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true;
+            bool shifting = PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true;
             float temp_shift_percentage = shift_percentage;
 
             if (shifting == true)
@@ -196,11 +187,11 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
-        if (shift_adjuster_coroutine == null && transform.GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f)
+        if (shift_adjuster_coroutine == null && GetComponent<ImpulseThrottle>().getCurrentImpulse() == 0.0f)
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
                 {
                     shift_adjuster_coroutine = StartCoroutine(shiftAdjuster());
                     return;

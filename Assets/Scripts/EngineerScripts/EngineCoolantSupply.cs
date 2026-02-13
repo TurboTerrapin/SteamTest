@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -20,15 +20,13 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private static float IMPULSE_SPEED_CHANGE_FACTOR = 4.0f; //goes 1/4 as fast when engines are overheated
     private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.005f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
+    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f)}; //blue, orange, red
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
     private static string INFO_MESSAGE = "Regulates engines to prevent overheating and engine slowdown.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
-
-    public Material lit_neon;
-    public Material unlit_neon;
 
     public GameObject engine_coolant_supply_display;
     public GameObject coolant_wheel;
@@ -37,6 +35,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private GameObject capacity; //the UI section that shows impulse capacity
 
     private PilotingSystem piloting_system;
+    private EngineMonitoring engine_monitoring;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -49,6 +48,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private void Start()
     {
         piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
+        engine_monitoring = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EngineMonitoring>();
 
         flow = engine_coolant_supply_display.transform.GetChild(0).gameObject;
         temperature = engine_coolant_supply_display.transform.GetChild(1).gameObject;
@@ -100,14 +100,14 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         capacity.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = impulse_capacity;
 
         //display engine temperature
-        Color status_color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        Color status_color = COLOR_OPTIONS[0];
         if (engine_temperature >= 1.0f)
         {
-            status_color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+            status_color = COLOR_OPTIONS[2];
         }
         else if (engine_temperature > 0.5)
         {
-            status_color = new Color(0.84f, 0.62f, 0.0f, 1.0f);
+            status_color = COLOR_OPTIONS[1];
         }
 
         float engine_temp = Mathf.Max(0.02f, engine_temperature);
@@ -133,13 +133,20 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
             {
                 engine_temperature = Mathf.Max(0.0f, engine_temperature + (difference * Time.deltaTime));
             }
-            if (is_powered == true)
-            {
-                transmitEngineTemperatureChangeRPC(engine_temperature);
-            }
-            piloting_system.AdjustMaxImpulseSpeed(Mathf.Lerp(1.0f, 1.0f / IMPULSE_SPEED_CHANGE_FACTOR, engine_temperature));
+            transmitEngineTemperatureChangeRPC(engine_temperature);
+            piloting_system.AdjustMaxImpulseSpeed(getMaxImpulseSpeedBasedOnEngineTemperature());
             yield return null;
         }
+    }
+
+    public float getMaxImpulseSpeedBasedOnEngineTemperature()
+    {
+        return Mathf.Lerp(1.0f, 1.0f / IMPULSE_SPEED_CHANGE_FACTOR, engine_temperature);
+    }
+
+    public float getEngineTemperature()
+    {
+        return Mathf.Max(0.02f, engine_temperature);
     }
 
     public void initializeEngineTemperatureIncreaser()
@@ -164,11 +171,11 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         }
 
         int turn_direction = 0;
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to to increase
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to to increase
         {
             turn_direction += 1;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrease
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrease
         {
             turn_direction -= 1;
         }
@@ -211,7 +218,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[0].updateInteractable(coolant_flow > 0.0f);
         BUTTONS[1].updateInteractable(coolant_flow < 1.0f);
 
-        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = lit_neon;
+        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
         engine_coolant_supply_display.SetActive(true);
     }
 
@@ -223,7 +230,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         BUTTONS[1].updateInteractable(false);
         hud_info.setPowerConsumption(0.0f);
 
-        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = unlit_neon;
+        coolant_wheel.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
         engine_coolant_supply_display.SetActive(false);
 
         //return the wheel to 0 position
@@ -238,7 +245,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private void transmitCoolantFlowAdjustmentRPC(float cf)
     {
         coolant_flow = cf;
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(2, this.GetType().Name, cf * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, cf * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(cf * MAX_POWER_CONSUMPTION);
         displayCoolantFlowAdjustment();
     }
@@ -247,6 +254,12 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private void transmitEngineTemperatureChangeRPC(float et)
     {
         engine_temperature = et;
-        displayEngineTemperatureAdjustment();
+        if (is_powered == true)
+        {
+            displayEngineTemperatureAdjustment();
+        }
+
+        //update pilot position
+        engine_monitoring.temperatureAdjustment();
     }
 }

@@ -4,7 +4,7 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 11/12/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.25f;
     private static float DELAY_TIME = 0.1f;
+    private static Vector3 FINAL_POS = new Vector3(0.0f, 0.0593f, 0.1451f);
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     private string CONTROL_NAME = "HEADLIGHTS";
@@ -34,13 +35,13 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     private Coroutine power_loss_coroutine = null;
     private int headlight_configuration = 0;
     private Vector3 initial_pos;
-    private Vector3 final_pos;
     private Coroutine headlight_shift_coroutine = null;
     private Coroutine headlight_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME, true);
@@ -50,8 +51,8 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = slider.transform.localPosition;
-        final_pos = new Vector3(0.2817f, -1.2825f, 19.2646f);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
@@ -76,7 +77,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         float animation_time = MOVE_TIME;
 
         Vector3 starting_pos = slider.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(initial_pos, final_pos, headlight_configuration / 7.0f);
+        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, headlight_configuration / 7.0f);
 
         float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
         float dest_a = Mathf.Lerp(0.0f, 0.5f, headlight_configuration / 7.0f);
@@ -118,10 +119,10 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         {
             return false;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && headlight_configuration > 0){
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && headlight_configuration > 0){
             return true;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && headlight_configuration < 7)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && headlight_configuration < 7)
         {
             return true;
         }
@@ -135,7 +136,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             bool shifted = false;
             if (headlight_configuration < 7)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && is_powered == true) //brighten
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && is_powered == true) //brighten
                 {
                     shifted = true;
                     BUTTONS[1].toggle();
@@ -148,7 +149,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             {
                 if (headlight_configuration > 0)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true) //dim
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && is_powered == true) //dim
                     {
                         BUTTONS[0].toggle();
                         BUTTONS[1].updateInteractable(false);
@@ -250,7 +251,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     private void transmitTractorHeadlightAdjustmentRPC(int headlight_config)
     {
         headlight_configuration = headlight_config;
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, (headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, (headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption((headlight_configuration / 7.0f) * MAX_POWER_CONSUMPTION);
         if (headlight_shift_coroutine != null)
         {

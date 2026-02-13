@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using Steamworks;
-using NUnit.Framework.Constraints;
 
 public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
@@ -83,12 +82,12 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     private List<Color> getRingColorsAsColor()
     {
-        List<Color> to_return = new List<Color>();
+        List<Color> toReturn = new List<Color>();
         for (int i = 0; i < 4; i++)
         {
-            to_return.Add(COLOR_OPTIONS[curr_colors[i]]);
+            toReturn.Add(COLOR_OPTIONS[curr_colors[i]]);
         }
-        return to_return;
+        return toReturn;
     }
 
     private Color getCenterColorAsColor()
@@ -100,11 +99,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         scenarioManager = GameObject.FindWithTag("ScenarioManager").GetComponent<ScenarioManager>();
 
-        GameObject controlHandler = GameObject.FindWithTag("ControlHandler");
-        impulse = controlHandler.GetComponent<ImpulseThrottle>();
+        impulse = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
 
-        GameObject sensorHandler = GameObject.FindWithTag("SensorHandler");
-        energyPatternManager = sensorHandler.GetComponent<EnergyPatternManager>();
+        energyPatternManager = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPatternManager>();
 
         spaceship = GameObject.FindWithTag("Spaceship");
         shipHealth = spaceship.GetComponent<ShipHealth>();
@@ -333,7 +330,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         }
 
         //set color info
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             curr_colors[i] = temp_curr_colors[i];
         }

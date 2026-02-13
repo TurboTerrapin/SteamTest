@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 11/10/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -13,11 +13,11 @@ public class LightsManager : MonoBehaviour
 {
     //CLASS CONSTANTS (0 IS DEFAULT, 1 IS EMERGENCY LIGHTS)
     private static float[] LIGHT_CHANGE_TIME = new float[2] { 0.5f, 0.5f };
-    private static float[] DEFAULT_LIGHT_INTENSITY = new float[2] { 20.0f, 10.0f };
-    private static Color[] DEFAULT_LIGHT_COLOR = new Color[] { new Color(0.22f, 0.80f, 0.97f), new Color(0.59f, 0.86f, 0.96f)};
+    private static float[] DEFAULT_LIGHT_INTENSITY = new float[2] { 15.0f, 10.0f };
+    private static Color[] DEFAULT_LIGHT_COLOR = new Color[] { new Color(0.66f, 0.92f, 1.0f), new Color(0.87f, 0.96f, 1.0f) };
     private static Material[] DEFAULT_LIGHT_MATERIAL = new Material[2] { null, null };
-    private static float[] RED_ALERT_LIGHT_INTENSITY = new float[2] { 5.0f, 10.0f };
-    private static Color[] RED_ALERT_LIGHT_COLOR = new Color[] { new Color(1.0f, 0.0f, 0.0f), new Color(0.8f, 0.02f, 0.0f)};
+    private static float[] RED_ALERT_LIGHT_INTENSITY = new float[2] { 10.0f, 10.0f };
+    private static Color[] RED_ALERT_LIGHT_COLOR = new Color[] { new Color(1.0f, 0.0f, 0.0f), new Color(0.8f, 0.02f, 0.0f) };
 
     public Material lit_neon;
     public Material unlit_neon;
@@ -27,7 +27,7 @@ public class LightsManager : MonoBehaviour
 
     public GameObject default_lights;
     public GameObject emergency_lights;
-    public GameObject light_strip;
+    public GameObject light_strips;
 
     private GameObject[] light_groups = new GameObject[2] { null, null };
     private ShipStatus ship_status;
@@ -56,7 +56,7 @@ public class LightsManager : MonoBehaviour
         DEFAULT_LIGHT_MATERIAL[0] = lit_neon;
         DEFAULT_LIGHT_MATERIAL[1] = lit_off_white;
 
-        ship_status = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<ShipStatus>();
+        ship_status = ReferenceAssistor.Instance.module_handlers[3].GetComponent<ShipStatus>();
     }
 
 
@@ -103,8 +103,17 @@ public class LightsManager : MonoBehaviour
         enabled_lights[0] = true;
         enabled_lights[1] = false;
 
-        //enable light strip
-        light_strip.GetComponent<Renderer>().material = lit_neon;
+        //enable light strips
+        changeLightStrips(lit_neon);
+    }
+
+    //helper method that changes every light strip's material
+    private void changeLightStrips(Material to_change_to)
+    {
+        foreach (Transform strip in light_strips.transform)
+        {
+            strip.GetComponent<Renderer>().material = to_change_to;
+        }
     }
 
 
@@ -210,8 +219,8 @@ public class LightsManager : MonoBehaviour
         enabled_lights[0] = true;
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, DEFAULT_LIGHT_INTENSITY[0]));
 
-        //enable light strip
-        light_strip.GetComponent<Renderer>().material = lit_neon;
+        //enable light strips
+        changeLightStrips(lit_neon);
     }  
 
     public void disableDefaultLights()
@@ -220,8 +229,8 @@ public class LightsManager : MonoBehaviour
         enabled_lights[0] = false;
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, 0.0f));
 
-        //disable light strip
-        light_strip.GetComponent<Renderer>().material = pure_black;
+        //disable light strips
+        changeLightStrips(pure_black);
     }
 
     public void enableRedAlert()
@@ -236,6 +245,12 @@ public class LightsManager : MonoBehaviour
             }
             changeLightColors(light_groups[i].transform, RED_ALERT_LIGHT_COLOR[i]);
         }
+
+        //change light strip color
+        if (enabled_lights[0] == true)
+        {
+            changeLightStrips(lit_red);
+        }
     }
 
     public void disableRedAlert()
@@ -249,6 +264,12 @@ public class LightsManager : MonoBehaviour
                 changeLightIntensities(light_groups[i].transform, DEFAULT_LIGHT_INTENSITY[i]);
             }
             changeLightColors(light_groups[i].transform, DEFAULT_LIGHT_COLOR[i]);
+        }
+
+        //change light strip color
+        if (enabled_lights[0] == true)
+        {
+            changeLightStrips(lit_neon);
         }
     }
 

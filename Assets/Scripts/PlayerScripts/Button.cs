@@ -3,7 +3,7 @@
     - Stores information for a button
     - Handles button, divider GUI
     Contributor(s): Jake Schott
-    Last Updated: 10/19/2025
+    Last Updated: 1/18/2026
 */
 
 /*
@@ -54,11 +54,11 @@ public class Button
         new Vector2(1800f, 250f),
         new Vector2(2300f, 250f),
         new Vector2(1600f, 350f),
-        new Vector2(1600f, 250f),
+        new Vector2(1750f, 250f),
         new Vector2(1400f, 250f),
         new Vector2(1400f, 250f),
         new Vector2(2050f, 250f),
-        new Vector2(2200f, 250f)
+        new Vector2(2000f, 250f)
     };
 
     private static float[] title_sizes = new float[]
@@ -68,7 +68,7 @@ public class Button
         700f,
         1000f,
         900f,
-        700f,
+        1000f,
         1200f,
         1150f,
         1000f,
@@ -82,11 +82,11 @@ public class Button
         new Vector2[] {new Vector2(-600f, -45f), new Vector2(0f, -45f), new Vector2(600f, -45f)},
         new Vector2[] {new Vector2(-863f, -45f), new Vector2(-288f, -45f), new Vector2(288f, -45f), new Vector2(863f, -45f)},
         new Vector2[] {new Vector2(-315f, 15f), new Vector2(315f, 15f), new Vector2(-582f, -90f), new Vector2(-194f, -90f), new Vector2(194f, -90f), new Vector2(582f, -90f)},
-        new Vector2[] {new Vector2(-510f, -45f), new Vector2(48f, -45f), new Vector2(536f, -45f)},
+        new Vector2[] {new Vector2(-520f, -45f), new Vector2(113f, -45f), new Vector2(601f, -45f)},
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)},
         new Vector2[] {new Vector2(-748f, -45f), new Vector2(-260f, -45f), new Vector2(260f, -45f), new Vector2(748f, -45f)},
-        new Vector2[] {new Vector2(-873f, -45f), new Vector2(-485f, -45f), new Vector2(0f, -45f), new Vector2(485f, -45f), new Vector2(873f, -45f)}
+        new Vector2[] {new Vector2(-798f, -45f), new Vector2(-460f, -45f), new Vector2(0f, -45f), new Vector2(460f, -45f), new Vector2(798f, -45f)}
     };
 
     private static List<int[]> button_templates = new List<int[]>
@@ -110,11 +110,11 @@ public class Button
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(500f, 80f)},
         new Vector2[] {new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f)},
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f)},
-        new Vector2[] {new Vector2(450f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
+        new Vector2[] {new Vector2(560f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
         new Vector2[] {new Vector2(600f, 80f)},
         new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f)},
         new Vector2[] {new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
-        new Vector2[] {new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(400f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f)},
+        new Vector2[] {new Vector2(250f, 80f), new Vector2(250f, 80f), new Vector2(400f, 80f), new Vector2(250f, 80f), new Vector2(250f, 80f)},
     };
 
     private static List<Vector2[]> divider_positions = new List<Vector2[]>
@@ -124,11 +124,11 @@ public class Button
         new Vector2[] {},
         new Vector2[] {},
         new Vector2[] {new Vector2(-388f, -90f), new Vector2(0f, -90f), new Vector2(388f, -90f)},
-        new Vector2[] {new Vector2(292f, -45f)},
+        new Vector2[] {new Vector2(357f, -45f)},
         new Vector2[] {},
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {new Vector2(-504f, -45f), new Vector2(504f, -45f)},
-        new Vector2[] {new Vector2(-679f, -45f), new Vector2(679f, -45f)}
+        new Vector2[] {new Vector2(-629f, -45f), new Vector2(629f, -45f)}
     };
 
     //PRIVATE DATA MEMBERS
@@ -148,28 +148,33 @@ public class Button
         this.interactable = interactable;
         this.togglable = togglable;
     }
+
     public int getControlIndex()
     {
         return control_index;
     }
+
     public bool getInteractable()
     {
         return interactable;
     }
+
     public bool getTogglable()
     {
         return togglable;
     }
+
     public bool getToggled()
     {
         return currently_toggled;
     }
+
     public void updateDesc(string new_desc)
     {
         button_desc = new_desc;
         if (visual_button != null)
         {
-            string key = ControlScript.input_options[control_index][0].ToString();
+            string key = PrimaryScript.input_options[control_index][0].ToString();
             if (key == "Mouse0")
             {
                 key = "LMB";
@@ -218,6 +223,7 @@ public class Button
             }
         }
     }
+
     public void toggle(float toggle_length)
     {
         currently_toggled = true;
@@ -228,10 +234,11 @@ public class Button
         {
             if (visual_button.transform.childCount > 0) //ensures trapezoid format
             {
-                ControlScript.Instance.transform.GetComponent<ButtonHelper>().toggleHelper(this, toggle_length);
+                PrimaryScript.Instance.transform.GetComponent<ButtonHelper>().toggleHelper(this, toggle_length);
             }
         }
     }
+
     public void toggle()
     {
         currently_toggled = true;
@@ -239,15 +246,17 @@ public class Button
         updateColor(0.36f);
         updateInteractable(false);
     }
+
     public void untoggle()
     {
         currently_toggled = false;
         percent_blue = 0.0f;
         updateInteractable(interactable);
     }
+
     public void createVisual(int HUD_setting, int layout, int order_index, GameObject frame)
     {
-        string key = ControlScript.input_options[control_index][0].ToString();
+        string key = PrimaryScript.input_options[control_index][0].ToString();
         if (key == "Mouse0")
         {
             key = "LMB";
@@ -317,6 +326,8 @@ public class Button
                 }
                 //handle title size
                 frame.transform.GetChild(3).GetComponent<RectTransform>().sizeDelta = new Vector2(title_sizes[layout], 80f);
+                //position title
+                frame.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -65f);
             }
 
             //make transparent if non-interactable
@@ -365,7 +376,7 @@ public class Button
             if (visual_button.transform.childCount > 0) //means trapezoid format
             {
                 Color temp_color =
-                    new Color(DARK_GRAY.r * (1 - percent_blue),
+                    new Color(DARK_GRAY.r * (1.0f - percent_blue),
                               DARK_GRAY.g + (LIGHT_BLUE.g - DARK_GRAY.g) * percent_blue,
                               DARK_GRAY.b + (LIGHT_BLUE.b - DARK_GRAY.b) * percent_blue,
                               transparency);

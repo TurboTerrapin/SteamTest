@@ -13,7 +13,7 @@ public class MainMenuController : MonoBehaviour
         GameObject LoadHandler = GameObject.Find("LoadHandler");
         if (LoadHandler != null)
         {
-            LoadHandler.GetComponent<LoadHandler>().endLoad();
+            LoadHandler.GetComponent<LoadHandler>().endLoad(false);
         }
     }
 

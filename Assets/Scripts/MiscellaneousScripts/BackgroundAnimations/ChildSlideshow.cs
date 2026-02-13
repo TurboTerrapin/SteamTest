@@ -54,7 +54,7 @@ public class ChildSlideshow : MonoBehaviour, IAnimable
         }
         for (int i = 0; i < transform.childCount; i++)
         {
-        bool active = slideshow_percentage >= slideshow_bottom_thresholds[i] && slideshow_percentage <= slideshow_top_thresholds[i];
+            bool active = slideshow_percentage >= slideshow_bottom_thresholds[i] && slideshow_percentage <= slideshow_top_thresholds[i];
             if (transparency_mode == false)
             {
                 transform.GetChild(i).gameObject.SetActive(active);

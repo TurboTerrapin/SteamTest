@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 10/17/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -26,7 +26,8 @@ public class ScenarioManager : NetworkBehaviour
         ReachedEndpoint = 0,
         LeftBoundary = 1,
         ShipDestroyed = 2,
-        TimeRanOut = 3
+        TimeRanOut = 3,
+        SelfDestructed = 4
     }
 
     private enum Difficulty
@@ -42,8 +43,8 @@ public class ScenarioManager : NetworkBehaviour
     public GameObject scenario_transitioner;
     public GameObject failure_handler;
 
-    private EngineerScenarioCountdown scenario_countdown;
-    private EngineerMap engineer_map;
+    private ScenarioCountdown scenario_countdown;
+    private ScenarioMap scenario_map;
     private PowerManager power_manager;
     private PowerControl power_control;
     private LightsManager lights_manager;
@@ -63,10 +64,10 @@ public class ScenarioManager : NetworkBehaviour
 
     private void Start()
     {
-        scenario_countdown = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerScenarioCountdown>();
-        engineer_map = GameObject.FindWithTag("SensorHandler").GetComponent<EngineerMap>();
-        power_manager = GameObject.Find("PowerHandler").GetComponent<PowerManager>();
-        power_control = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<PowerControl>();
+        scenario_countdown = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioCountdown>();
+        scenario_map = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
+        power_manager = ReferenceAssistor.Instance.power_manager;
+        power_control = ReferenceAssistor.Instance.module_handlers[4].GetComponent<PowerControl>();
         lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
         background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
     }
@@ -111,15 +112,16 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
-        if (SceneManager.GetActiveScene().name == "RedLightGreenLight")
-        {
-            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
-            return "Cheeseballs";
-        }
-        else
+
+        if (SceneManager.GetActiveScene().name == "Cheeseballs")
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
             return "RedLightGreenLight";
+        }
+        else
+        {
+            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
+            return "Cheeseballs";
         }
     }
 
@@ -127,17 +129,19 @@ public class ScenarioManager : NetworkBehaviour
     public void prepScenario(bool enable_stations)
     {
         //power on all stations (unless it's the first scenario)
-        if (enable_stations == true)
-        {
+        //if (enable_stations == true)
+        //{
             powerAllStationsRPC();
-        }
+        //}
 
         //assign the piloting system the new World Root
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
-        GameObject WorldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
         
         //generate new entrance/exit path locations and angles
         generatePaths();
+
+        //reset transmission frequencies
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
 
         //check for a scenario script and handle any sort of scenario prep (ex. starting an energy pattern, spawning cheeseballs)
         scenario_handler = GameObject.FindWithTag("ScenarioHandler");
@@ -153,7 +157,8 @@ public class ScenarioManager : NetworkBehaviour
     {
         enableScenarioTimer();
         GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().initializePowerRegulator();
-        GameObject.Find("ControlHandler").GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
+        ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
     }
 
     IEnumerator scenarioCountdown()
@@ -237,15 +242,19 @@ public class ScenarioManager : NetworkBehaviour
         //failure conditions
         if (reason == EndCondition.TimeRanOut)
         {
-            failure_report_message = "Stolen ship designated NCC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic 6-minute reset window.";
+            failure_report_message = "Stolen ship designated SEACC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic 6-minute reset window.";
         }
         else if (reason == EndCondition.LeftBoundary)
         {
-            failure_report_message = "Stolen ship designated NCC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. Four crew members were found alive and have been arrested.";
+            failure_report_message = "Stolen ship designated SEACC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. Four crew members were found alive and have been arrested.";
+        }
+        else if (reason == EndCondition.SelfDestructed)
+        {
+            failure_report_message = "Debris of stolen ship designated SEACC-3002 was found after apparent self-destruction. No survivors found and ship has been sent to SEACC authority for further investigation.";
         }
         else if (reason == EndCondition.ShipDestroyed)
         {
-            failure_report_message = "Stolen ship designated NCC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
+            failure_report_message = "Stolen ship designated SEACC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
 
             IScenario scenario_script = getScenarioScript();
             if (scenario_script != null)
@@ -272,7 +281,7 @@ public class ScenarioManager : NetworkBehaviour
         exit_position = exit_pos;
         exit_rotation = exit_rot;
 
-        engineer_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
+        scenario_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
 
         //if host, position the ship to entrance position and let the network sync the transform
         if (NetworkManager.Singleton.IsHost == true)
@@ -301,23 +310,23 @@ public class ScenarioManager : NetworkBehaviour
         lights_manager.resetLights();
 
         //reset certain controls
-        GameObject.Find("SensorHandler").GetComponent<EnergyPatternManager>().clearAllPatterns();
-        GameObject.Find("SensorHandler").GetComponent<PilotSCA>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<DirectionalShifter>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<MapOptions>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<LongRangeDirection>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<TorpedoSelector>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<PhaserFrequency>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<EnergyPattern>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
-        GameObject.Find("ControlHandler").GetComponent<EngineCoolantSupply>().resetToDefault();
-        GameObject.Find("ControlHandler").GetComponent<CargoEjectLoader>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[0].GetComponent<SpatialCompositionAnalyzer>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[0].GetComponent<TractorBeamOptions>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[0].GetComponent<DirectionalShifter>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<ThreatDetectors>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProximityMapOptions>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<LongRangeDirection>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TorpedoSelector>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPatternManager>().clearAllPatterns();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>().resetToDefault();
 
         //destroy probe (if exists)
-        foreach (GameObject probe in GameObject.FindGameObjectsWithTag("Probe"))
-        {
-            probe.GetComponent<Probe>().damageProbe(9999.9f);
-        }
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>().damageProbe(9999.9f);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -333,7 +342,7 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
 
         //stop checking for controls/seats
-        ControlScript.Instance.deactivate(true, false);
+        PrimaryScript.Instance.deactivate(true, false);
 
         //show transition
         scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
@@ -362,7 +371,7 @@ public class ScenarioManager : NetworkBehaviour
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
 
         //stop checking for controls/seats
-        ControlScript.Instance.deactivate(false, true);
+        PrimaryScript.Instance.deactivate(false, true);
 
         //display death screen using scenario number sn and death message frm
         failure_handler.GetComponent<FailureHandler>().displayDeathScreen(player_manager.GetComponent<PlayerManager>().getPlayerNames(), sn, frm);

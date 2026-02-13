@@ -1,9 +1,8 @@
 /*
     ShipManual.cs
-    - Handles inputs for communicator keyboard
-    - Displays to code screen
+    - Handles enabling/disabling of ship manual
     Contributor(s): Jake Schott
-    Last Updated: 5/19/2025
+    Last Updated: 1/31/2026
 */
 
 using UnityEngine;
@@ -48,11 +47,11 @@ public class ShipManual : Manual
         home_screen.SetActive(true);
         curr_screen = home_screen;
         currently_enabled = true;
-        transform.GetComponent<ManualOnOff>().reactivate(manual_index);
+        GetComponent<ManualOnOff>().reactivate(manual_index);
         curr_button = home_screen.GetComponent<PanelInfo>().default_button;
         curr_button.GetComponent<IManualButton>().select();
         updateInteractableButtons();
-        transform.GetComponent<ManualSelector>().activate(manual_index);
+        GetComponent<ManualSelector>().activate(manual_index);
 
         power_on_coroutine = null;
     }
@@ -76,8 +75,8 @@ public class ShipManual : Manual
             {
                 curr_button.GetComponent<IManualButton>().deselect();
             }
-            transform.GetComponent<ManualOnOff>().reactivate(manual_index);
-            transform.GetComponent<ManualSelector>().deactivate(manual_index);
+            GetComponent<ManualOnOff>().reactivate(manual_index);
+            GetComponent<ManualSelector>().deactivate(manual_index);
         }
     }
 }

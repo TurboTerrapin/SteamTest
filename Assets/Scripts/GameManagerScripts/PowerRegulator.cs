@@ -3,7 +3,7 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 11/10/2025
+    Last Updated: 2/3/2026
 */
 
 using System.Collections;
@@ -19,7 +19,7 @@ public class PowerRegulator : NetworkBehaviour
     private static float NEUTRAL_TIME = 20.0f; //randomizes between this number and 5 seconds less
     private static float POWER_BAR_UPDATE_SPEED = 1.0f; //how fast the power bars update
     private static float DEPLETION_WARNING_FLASH_SPEED = 0.25f; //how often the warning light flashes
-    private static Color[] POWER_STATUS_COLORS = new Color[3]{ new Color(0.0f, 0.84f, 1.0f), new Color(0.84f, 0.62f, 0.0f), new Color(1.0f, 0.0f, 0.0f) };
+    private static Color[] POWER_STATUS_COLORS = new Color[3]{ new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f) };
     private static string[] POWER_STATUS_MESSAGES = new string[3]{ "NOMINAL", "CRITICAL", "OFFLINE" };
 
     public GameObject power_status;
@@ -57,13 +57,13 @@ public class PowerRegulator : NetworkBehaviour
         power_status_box_outline = power_status.transform.GetChild(4).GetComponent<UnityEngine.UI.RawImage>();
         power_bars = power_status.transform.GetChild(5).gameObject;
 
-        auxiliary_power = GameObject.FindGameObjectWithTag("ControlHandler").GetComponent<AuxiliaryPower>();
+        auxiliary_power = ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>();
 
         restartPowerBarUpdater();
     
         for (int i = 0; i < 6; i++)
         {
-            power_regulation_components[i] = (IPowerRegulable)GameObject.FindGameObjectWithTag("ControlHandler").GetComponent(power_regulation_component_names[i]);
+            power_regulation_components[i] = (IPowerRegulable)(ReferenceAssistor.Instance.module_handlers[2].GetComponent(power_regulation_component_names[i]));
 
             time_bars.Add(power_regulation_modules[i].transform.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>());
             warning_dots.Add(power_regulation_modules[i].transform.GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.RawImage>());
@@ -336,10 +336,10 @@ public class PowerRegulator : NetworkBehaviour
                 while (anim_time > 0.0f)
                 {
                     anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-                    Color warning_color = new Color(0.84f, 0.62f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / DEPLETION_WARNING_FLASH_SPEED))));
+                    Color warning_color = new Color(1.0f, 0.47f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / DEPLETION_WARNING_FLASH_SPEED))));
                     if (i == 1)
                     {
-                        warning_color = new Color(0.84f, 0.62f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / DEPLETION_WARNING_FLASH_SPEED))));
+                        warning_color = new Color(1.0f, 0.47f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / DEPLETION_WARNING_FLASH_SPEED))));
                     }
                     for (int x = 0; x < 6; x++)
                     {
@@ -391,7 +391,7 @@ public class PowerRegulator : NetworkBehaviour
     IEnumerator powerDepletion(int source_index)
     {
         UnityEngine.UI.Image time_bar = power_regulation_modules[source_index].transform.GetChild(1).GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>();
-        time_bar.color = new Color(0.84f, 0.62f, 0f);
+        time_bar.color = new Color(1.0f, 0.47f, 0f);
         time_bar.fillAmount = 1.0f;
 
         float anim_time = DEPLETION_TIME;

@@ -2,7 +2,7 @@
     MapItem.cs
     - Used for items that are detected on either the tactician radar or the engineer map
     Contributor(s): Jake Schott
-    Last Updated: 7/22/2025
+    Last Updated: 1/6/2026
 */
 
 using UnityEngine;
@@ -16,10 +16,9 @@ public class MapItem : MonoBehaviour
     [SerializeField]
     private bool is_visible = false;
     [SerializeField]
-    private Texture map_icon = null;
-    [SerializeField]
     private Color icon_color = Color.white;
-    private void setVisibility(bool v)
+
+    public void setVisibility(bool v)
     {
         is_visible = v;
     }
@@ -44,11 +43,6 @@ public class MapItem : MonoBehaviour
         return size;
     }
 
-    public Texture getIcon()
-    {
-        return map_icon;
-    }
-
     public Color getColor()
     {
         return icon_color;
@@ -63,6 +57,4 @@ public class MapItem : MonoBehaviour
     {
         return is_visible;
     }
-
-
 }

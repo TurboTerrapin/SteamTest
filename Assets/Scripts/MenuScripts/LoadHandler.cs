@@ -2,13 +2,12 @@
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
     Contributor(s): Jake Schott
-    Last Updated: 10/14/2025
+    Last Updated: 2/5/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,14 +15,13 @@ using UnityEngine.SceneManagement;
 public class LoadHandler : NetworkBehaviour
 {
     //LOAD CIRCLE SETTINGS
-    private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
+    private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(1.0f, 0.47f, 0f) };
     private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 200.0f, 70.0f };
 
     private GameObject load_screen;
     private GameObject load_ring;
+    private Coroutine fade_black_coroutine = null;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
-
-    private List<TMP_Dropdown.OptionData> possible_resolution_options = new List<TMP_Dropdown.OptionData>();
 
     void Start()
     {
@@ -60,6 +58,11 @@ public class LoadHandler : NetworkBehaviour
     //stops all coroutines
     private void resetAllCoroutines()
     {
+        if (fade_black_coroutine != null)
+        {
+            StopCoroutine(fade_black_coroutine);
+            fade_black_coroutine = null;
+        }
         foreach (Coroutine c in load_coroutines)
         {
             StopCoroutine(c);
@@ -91,10 +94,22 @@ public class LoadHandler : NetworkBehaviour
     }
 
     //terminates the loading screen
-    public void endLoad()
+    public void endLoad(bool fade)
     {
+        if (load_coroutines.Count == 0)
+        {
+            return;
+        }
+
         resetAllCoroutines();
-        load_screen.SetActive(false);
+        if (fade == true)
+        {
+            fade_black_coroutine = StartCoroutine(fadeBlackScreen(1.0f));
+        }
+        else
+        {
+            load_screen.SetActive(false);
+        }
     }
 
     //randomizes the colors for the load circle
@@ -127,6 +142,9 @@ public class LoadHandler : NetworkBehaviour
     //default loading loop
     IEnumerator loadLoop()
     {
+        load_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.0f, 0.0f);
+        load_screen.transform.GetChild(1).gameObject.SetActive(true);
+        load_ring.SetActive(true);
         while (true)
         {
             spinRings();
@@ -214,6 +232,27 @@ public class LoadHandler : NetworkBehaviour
 
             yield return null;
         }
+    }
+
+    IEnumerator fadeBlackScreen(float fade_time)
+    {
+        float anim_time = fade_time;
+        load_screen.transform.GetChild(1).gameObject.SetActive(false);
+        load_ring.SetActive(false);
+
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            float a = Mathf.Lerp(0.0f, 1.0f, anim_time / fade_time);
+
+            load_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.0f, 0.0f, a);
+
+            yield return null;
+        }
+        load_screen.SetActive(false);
+
+        fade_black_coroutine = null;
     }
 
     //called by host when restarting a game or when engage is clicked

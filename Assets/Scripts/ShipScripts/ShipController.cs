@@ -3,14 +3,11 @@ using UnityEngine;
 
 [RequireComponent(typeof(PilotingSystem))]
 [RequireComponent(typeof(WeaponsSystem))]
-[RequireComponent(typeof(CollisionSystem))]
 public class ShipController : NetworkBehaviour
 {
     private PilotingSystem pilotingSystem;
     private WeaponsSystem weaponsSystem;
-    private CollisionSystem collisionSystem;
 
-    private GameObject controlHandler;
     private bool shipReady = false;
 
     private GameObject worldRoot = null;
@@ -24,10 +21,8 @@ public class ShipController : NetworkBehaviour
 
     void Start()
     {
-        controlHandler = GameObject.FindGameObjectWithTag("ControlHandler");
-
-        if (controlHandler != null && pilotingSystem.AssignControlReferences(controlHandler)
-            && weaponsSystem.AssignControlReferences(controlHandler))
+        if (pilotingSystem.AssignControlReferences(ReferenceAssistor.Instance.module_handlers[0].gameObject)
+            && weaponsSystem.AssignControlReferences(ReferenceAssistor.Instance.module_handlers[1].gameObject))
         {
             shipReady = true;
         }

@@ -3,7 +3,7 @@
     - Handles inputs for horizontal thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -26,7 +26,6 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
     private void Start()
     {
         button_initial_pos = thruster_buttons[0].transform.localPosition;
-        button_final_pos = new Vector3(0.2816f, -1.3473f, 19.1217f);
 
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
@@ -54,7 +53,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
             //check inputs and adjust thruster/button percentages
             for (int i = 0; i < 2; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && is_powered == true)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && is_powered == true)
                 {
                     thruster_percentage[i] = Mathf.Min(1.0f, thruster_percentage[i] + (dt * MOVE_SPEED * (1.0f + (1.5f * inertial_dampener_modifier))));
                     button_push_percentage[i] = Mathf.Min(1.0f, button_push_percentage[i] + (dt * MOVE_SPEED * PUSH_SPEED));
@@ -124,7 +123,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
         {
             for (int i = 0; i < CONTROL_INDEXES.Count; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs))
                 {
                     thruster_coroutine = StartCoroutine(adjustingThrust());
                     return;

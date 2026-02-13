@@ -1,8 +1,8 @@
 /*
     CommunicationsManual.cs
-
+    - Handles enabling/disabling of communications manual
     Contributor(s): Jake Schott
-    Last Updated: 5/22/2025
+    Last Updated: 1/31/2026
 */
 
 using UnityEngine;
@@ -42,11 +42,11 @@ public class CommunicationsManual : Manual
         home_screen.SetActive(true);
         curr_screen = home_screen;
         currently_enabled = true;
-        transform.GetComponent<ManualOnOff>().reactivate(manual_index);
+        GetComponent<ManualOnOff>().reactivate(manual_index);
         curr_button = home_screen.GetComponent<PanelInfo>().default_button;
         curr_button.GetComponent<IManualButton>().select();
         updateInteractableButtons();
-        transform.GetComponent<ManualSelector>().activate(manual_index);
+        GetComponent<ManualSelector>().activate(manual_index);
 
         power_on_coroutine = null;
     }
@@ -70,8 +70,8 @@ public class CommunicationsManual : Manual
             {
                 curr_button.GetComponent<IManualButton>().deselect();
             }
-            transform.GetComponent<ManualOnOff>().reactivate(manual_index);
-            transform.GetComponent<ManualSelector>().deactivate(manual_index);
+            GetComponent<ManualOnOff>().reactivate(manual_index);
+            GetComponent<ManualSelector>().deactivate(manual_index);
         }
     }
 }

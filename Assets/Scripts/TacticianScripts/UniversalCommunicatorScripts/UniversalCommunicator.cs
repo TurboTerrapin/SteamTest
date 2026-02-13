@@ -3,7 +3,7 @@
     - Handles inputs for communicator keyboard
     - Displays to code screen
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2025
+    Last Updated: 1/2/2026
 */
 
 using UnityEngine;
@@ -16,32 +16,53 @@ using UnityEngine.UI;
 public class UniversalCommunicator : NetworkBehaviour, IPowerable
 {
     //CLASS CONSTANTS
-    private static Color[] COLOR_OPTIONS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(0.84f, 0.62f, 0f) };
     private static float POINTER_SPEED = 0.2f;
 
-    public GameObject input_glasses;
+    public GameObject character_input_glasses;
+    public GameObject message_preview_display;
     public GameObject code_display;
-    private GameObject input_display;
-    private GameObject output_display;
-    public GameObject transmission_preview_display;
+    public GameObject symbol_toggle_display;
+    public GameObject color_selector_display;
+    public GameObject input_output_toggle_display;
+    public GameObject character_delete_display;
+
+    private GameObject input_view;
+    private GameObject output_view;
+    private GameObject pointer;
+
+    private TransmissionHandler transmission_handler;
+    private SymbolToggle symbol_toggle;
+    private ColorSelector color_selector;
+    private InputOutputToggle input_output_toggle;
+    private CharacterDelete character_delete;
+    private CharacterInput character_input;
 
     private bool is_powered = false;
+    private bool input_mode = true; //true means keyboard, false means read-only
     private List<int> code_index = new List<int>(); //0-11, corresponds to A0-A5, B0-B5 where B5 is 11 and A0 is 0
-    private List<int> code_is_numeric = new List<int>(); //1 means number (ex. 5), 0 is symbol (ex. square)
+    private List<int> code_is_symbol = new List<int>(); //0 is symbol (ex. square), 1 means number (ex. 5) 
     private List<int> code_color = new List<int>(); //0 is blue, 1 is green, 2 is pink, 3 is orange
     private Coroutine pointer_shift_coroutine = null;
 
     private void Start()
     {
-        input_display = code_display.transform.GetChild(0).gameObject;
-        output_display = code_display.transform.GetChild(1).gameObject;
+        input_view = code_display.transform.GetChild(0).gameObject;
+        output_view = code_display.transform.GetChild(1).gameObject;
+        pointer = input_view.transform.GetChild(24).gameObject;
+
+        transmission_handler = transform.GetComponent<TransmissionHandler>();
+        symbol_toggle = transform.GetComponent<SymbolToggle>();
+        input_output_toggle = transform.GetComponent<InputOutputToggle>();
+        color_selector = transform.GetComponent<ColorSelector>();
+        character_delete = transform.GetComponent<CharacterDelete>();
+        character_input = transform.GetComponent<CharacterInput>();
     }
 
     IEnumerator shiftPointer()
     {
         float animation_time = POINTER_SPEED;
 
-        float starting_x = input_display.transform.GetChild(24).transform.localPosition.x;
+        float starting_x = input_view.transform.GetChild(24).transform.localPosition.x;
         float dest_x = Mathf.Lerp(-0.14f, 0.14f, (1.0f - code_index.Count / 7.0f));
 
         //move pointer
@@ -49,10 +70,7 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             animation_time = Mathf.Max(0.0f, animation_time - dt);
-            input_display.transform.GetChild(24).transform.localPosition =
-                new Vector3(Mathf.Lerp(starting_x, dest_x, 1.0f - (animation_time / POINTER_SPEED)),
-                            0.03f,
-                            0.0f);
+            pointer.transform.localPosition = new Vector3(Mathf.Lerp(starting_x, dest_x, 1.0f - (animation_time / POINTER_SPEED)), 0.038f, 0.0f);
 
             yield return null;
         }
@@ -60,9 +78,9 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         pointer_shift_coroutine = null;
     }
 
-    public void resetDisplay()
+    public void deleteLastCharacter()
     {
-        transmitResetUpdateRPC();
+        transmitCharacterDeleteRPC();
     }
 
     public bool getIsPowered()
@@ -76,67 +94,74 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         {
             code_index.Add(index);
             code_color.Add(transform.gameObject.GetComponent<ColorSelector>().getCurrColor());
-            code_is_numeric.Add(transform.gameObject.GetComponent<SymbolToggle>().getIsNumeric());
+            code_is_symbol.Add(transform.gameObject.GetComponent<SymbolToggle>().getSymbolMode());
             string index_as_code = DataConverter.listToString(code_index);
             string code_color_as_code = DataConverter.listToString(code_color);
-            string code_is_numeric_as_code = DataConverter.listToString(code_is_numeric);
+            string code_is_numeric_as_code = DataConverter.listToString(code_is_symbol);
             transmitCharacterUpdateRPC(index, index_as_code, code_color_as_code, code_is_numeric_as_code);
         }
     }
 
-    private GameObject getCharacterDisplay(int index)
+    public GameObject getCharacterDisplay(int index)
     {
-        return input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
+        return character_input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
     }
 
     //only updates the characters in the input mode
-    private void updateCharacters()
+    private void displayInputAdjustment()
     {
         //hide everything
         for (int i = 0; i <= 7; i++)
         {
-            input_display.transform.GetChild(i).gameObject.SetActive(false);
-            input_display.transform.GetChild(i + 8).gameObject.SetActive(false);
+            input_view.transform.GetChild(i).gameObject.SetActive(false);
+            input_view.transform.GetChild(i + 8).gameObject.SetActive(false);
         }
 
         //show current numbers/shapes
         for (int i = 0; i < code_index.Count; i++)
         {
-            if (code_is_numeric[i] == 0) //symbol
+            if (code_is_symbol[i] == 0) //symbol
             {
-                input_display.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().texture = getCharacterDisplay(code_index[i]).transform.GetChild(1).gameObject.GetComponent<RawImage>().texture;
-                input_display.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[code_color[i]];
-                input_display.transform.GetChild(i + 8).gameObject.SetActive(true);
+                input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().texture = getCharacterDisplay(code_index[i]).transform.GetChild(1).gameObject.GetComponent<RawImage>().texture;
+                input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
+                input_view.transform.GetChild(i + 8).gameObject.SetActive(true);
             }
             else //numeric
             {
-                input_display.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().SetText(getCharacterDisplay(code_index[i]).transform.GetChild(0).gameObject.GetComponent<TMP_Text>().text);
-                input_display.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().color = COLOR_OPTIONS[code_color[i]];
-                input_display.transform.GetChild(i).gameObject.SetActive(true);
+                input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().SetText(getCharacterDisplay(code_index[i]).transform.GetChild(0).gameObject.GetComponent<TMP_Text>().text);
+                input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
+                input_view.transform.GetChild(i).gameObject.SetActive(true);
             }
         }
     }
 
-    public void updateDisplay()
+    //only updates the chracter in the output (read-only) mode
+    private void displayOutputAdjustment()
+    {
+        //TODO
+    }
+
+    //called by CharacterInput.cs when a character button has been pushed in or 
+    public void onInputChange()
     {
         //handle input characters
-        updateCharacters();
+        displayInputAdjustment();
 
         //hide transmission preview message icons
-        clearMsgPreview();
+        clearMessagePreview();
 
         //show transmission handler
         for (int i = 0; i < code_index.Count; i++)
         {
-            transmission_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[code_color[i]];
-            transmission_preview_display.transform.GetChild(i).gameObject.SetActive(true);
+            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
+            message_preview_display.transform.GetChild(i).gameObject.SetActive(true);
         }
 
-        //adjust pointer
+        //handle pointer
         if (code_index.Count < 8)
         {
             transform.gameObject.GetComponent<CharacterInput>().activate();
-            input_display.transform.GetChild(24).gameObject.SetActive(true);
+            pointer.SetActive(true);
 
             if (pointer_shift_coroutine != null)
             {
@@ -148,42 +173,107 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         else
         {
             transform.gameObject.GetComponent<CharacterInput>().deactivate();
-            input_display.transform.GetChild(24).gameObject.SetActive(false);
+            pointer.SetActive(false);
         }
+    }
+
+    public bool getInputMode()
+    {
+        return input_mode;
     }
 
     public List<int> getCodeIndexes()
     {
         return new List<int>(code_index);
     }
+
     public List<int> getCodeColors()
     {
         return new List<int>(code_color);
     }
-    public List<int> getCodeIsNumeric()
+
+    public List<int> getCodeIsSymbol()
     {
-        return new List<int>(code_is_numeric);
+        return new List<int>(code_is_symbol);
     }
 
-    public void clearUC()
+    public void enableKeyboard()
     {
+        symbol_toggle.activate();
+        color_selector.activate();
+        character_delete.activate();
+        character_input.activate();
+    }
+
+    public void disableKeyboard()
+    {
+        symbol_toggle.deactivate();
+        color_selector.deactivate();
+        character_delete.deactivate();
+        character_input.deactivate();
+    }
+
+    public void setInputMode(bool new_mode)
+    {
+        input_mode = new_mode;
+
+        inputModeDisplayHelper(input_mode && is_powered);
+
+        input_view.SetActive(input_mode && is_powered);
+        output_view.SetActive(!input_mode && is_powered);
+
+        if (input_mode == true && is_powered)
+        {
+            enableKeyboard();
+        }
+        else
+        {
+            disableKeyboard();
+        }
+    }
+
+    //erases whatever message is currently stored regardless of input or output
+    public void clearUniversalCommunicator()
+    {
+        //wipe code data
         code_index.Clear();
         code_color.Clear();
-        code_is_numeric.Clear();
-        updateCharacters();
+        code_is_symbol.Clear();
+
+        //show changes
+        if (input_mode == true)
+        {
+            displayInputAdjustment();
+        }
+        else
+        {
+            displayOutputAdjustment();
+        }
 
         //move pointer to default position
-        input_display.transform.GetChild(24).transform.localPosition =
-            new Vector3(0.14f, 0.03f, 0.0f);
-        input_display.transform.GetChild(24).gameObject.SetActive(true);
+        pointer.transform.localPosition = new Vector3(0.14f, 0.038f, 0.0f);
+        pointer.SetActive(true);
     }
 
-    public void clearMsgPreview()
+    public void clearMessagePreview()
     {
-        //hide transmission handler icons
+        //fade icons
         for (int i = 0; i <= 7; i++)
         {
-            transmission_preview_display.transform.GetChild(i).gameObject.SetActive(false);
+            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
+        }
+    }
+
+    //helper method used to show/hide the fo
+    private void inputModeDisplayHelper(bool to_show)
+    {
+        symbol_toggle_display.SetActive(to_show);
+        color_selector_display.SetActive(to_show);
+        character_delete_display.SetActive(to_show);
+
+        for (int i = 0; i < 12; i++)
+        {
+            getCharacterDisplay(i).SetActive(to_show);
         }
     }
 
@@ -191,31 +281,42 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
     {
         is_powered = true;
         code_display.SetActive(true);
-        transform.GetComponent<InputOutputToggle>().activate();
-        transform.GetComponent<InputOutputToggle>().activateUC();
-        transform.GetComponent<InputOutputToggle>().displayAdjustment();
+        message_preview_display.SetActive(true);
+        input_output_toggle_display.SetActive(true);
+        transmission_handler.activate();
+        input_output_toggle.activate();
+        setInputMode(true);
     }
 
     public void powerOff(int position, float time)
     {
         is_powered = false;
         code_display.SetActive(false);
-        clearUC();
-        clearMsgPreview();
-        transform.GetComponent<InputOutputToggle>().forceSwitch(true);
-        transform.GetComponent<InputOutputToggle>().deactivate();
-        transform.GetComponent<InputOutputToggle>().deactivateUC();
-        transform.GetComponent<InputOutputToggle>().displayAdjustment();
+        message_preview_display.SetActive(false);
+        input_output_toggle_display.SetActive(false);
+        inputModeDisplayHelper(false);
+        clearUniversalCommunicator();
+        clearMessagePreview();
+        disableKeyboard();
+        transmission_handler.deactivate();
+        if (input_mode == false)
+        {
+            input_output_toggle.forceSwitch(true);
+        }
+        input_output_toggle.deactivate();
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitResetUpdateRPC()
+    private void transmitCharacterDeleteRPC()
     {
-        code_index.Clear();
-        code_color.Clear();
-        code_is_numeric.Clear();
+        if (code_index.Count > 0)
+        {
+            code_index.RemoveAt(code_index.Count - 1);
+            code_color.RemoveAt(code_color.Count - 1);
+            code_is_symbol.RemoveAt(code_is_symbol.Count - 1);
+        }
 
-        transform.gameObject.GetComponent<ResetDisplay>().pushResetButton();
+        transform.gameObject.GetComponent<CharacterDelete>().pushDeleteButton();
     }
 
     [Rpc(SendTo.Everyone)]
@@ -227,15 +328,15 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
 
         code_index.Clear();
         code_color.Clear();
-        code_is_numeric.Clear();
+        code_is_symbol.Clear();
 
         for (int i = 0; i < indexes.Length; i++)
         {
             code_index.Add(temp_code_index[i]);
             code_color.Add(temp_code_color[i]);
-            code_is_numeric.Add(temp_is_numeric[i]);
+            code_is_symbol.Add(temp_is_numeric[i]);
         }
 
-        transform.gameObject.GetComponent<CharacterInput>().pushButton(button_index);
+        character_input.pushButton(button_index);
     }
 }

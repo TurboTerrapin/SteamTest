@@ -6,7 +6,7 @@
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 11/22/2025
+    Last Updated: 1/16/2026
 */
 
 using System.Collections;
@@ -191,6 +191,7 @@ public class PlayerMove : NetworkBehaviour
         }
 
         shift_coroutine = StartCoroutine(shift(pos));
+        PrimaryScript.Instance.onShiftChange();
     }
 
     //adjust the player prefab (bean) and tells SeatManager to adjust seat during a shift
@@ -206,12 +207,17 @@ public class PlayerMove : NetworkBehaviour
         float total_shift_time = Vector3.Distance(start_pos, end_pos) / SHIFT_SPEED;
         float shift_time = total_shift_time;
 
+        seat_manager.beginShift(pos);
+
         while (shift_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             shift_time = Mathf.Max(0.0f, shift_time - dt);
             transform.localPosition = Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time) - offset;
-            seat_manager.updateSeatLocation(pos, Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time));
+            if (seat_manager.physical_seats[pos] != null)
+            {
+                seat_manager.physical_seats[pos].transform.localPosition = Vector3.Lerp(end_pos, start_pos, shift_time / total_shift_time);
+            }
 
             yield return null;
         }
@@ -219,8 +225,8 @@ public class PlayerMove : NetworkBehaviour
         seat_manager.updateSeatIndex(pos, new_seat_index);
 
         shift_coroutine = null;
+        PrimaryScript.Instance.onShiftChange();
     }
-
 
     IEnumerator checkForMovement()
     {

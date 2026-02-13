@@ -2,7 +2,7 @@
     ShipManualSelector.cs
     - Sends inputs to ShipManual and CommunicationsManual (directional, selection, and back)
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using Unity.Netcode;
@@ -15,6 +15,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
     //CLASS CONSTANTS
     private static float PUSH_TIME = 0.15f;
     private static float COOLDOWN_TIME = 0.0f;
+    private static Vector3[] PUSH_DIRECTIONS = { new Vector3(-0.003f, -0.0074f, 0f), new Vector3(0.003f, -0.0074f, 0f) };
 
     private string[] CONTROL_NAMES = new string[] { "SHIP MANUAL", "COMMUNICATIONS MANUAL" };
     private List<string> CONTROL_DESCS = new List<string> { "SELECT", "BACK", "UP", "DOWN", "LEFT", "RIGHT" };
@@ -25,7 +26,6 @@ public class ManualSelector : NetworkBehaviour, IControllable
     private Component[] manuals = new Component[2];
 
     private Vector3[] initial_pos = new Vector3[12];
-    private Vector3[] push_direction = { new Vector3(-0.003f, -0.0074f, 0f), new Vector3(0.003f, -0.0074f, 0f) };
 
     private bool[] is_active = new bool[] { false, false };
     private Coroutine[] manual_input_coroutine = new Coroutine[] { null, null };
@@ -35,8 +35,8 @@ public class ManualSelector : NetworkBehaviour, IControllable
     private static HUDInfo hud_info = null;
     private void Start()
     {
-        manuals[0] = transform.GetComponent<ShipManual>();
-        manuals[1] = transform.GetComponent<CommunicationsManual>();
+        manuals[0] = GetComponent<ShipManual>();
+        manuals[1] = GetComponent<CommunicationsManual>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
         for (int i = 0; i < 2; i++)
@@ -106,7 +106,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
             button_holders[manual_index].transform.GetChild(b).localPosition = initial_pos[b + (manual_index * 6)];
         }
 
-        Vector3 final_pos = initial_pos[button + (manual_index * 6)] + push_direction[manual_index];
+        Vector3 final_pos = initial_pos[button + (manual_index * 6)] + PUSH_DIRECTIONS[manual_index];
 
         for (int i = 0; i <= 1; i++)
         {
@@ -170,7 +170,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
         {
             for (int i = 0; i <= 5; i++)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && curr_manual.isValidInput(i) == true)
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && curr_manual.isValidInput(i) == true)
                 {
                     BUTTON_LISTS[manual_index][i].toggle();
                     for (int x = 0; x <= 5; x++)

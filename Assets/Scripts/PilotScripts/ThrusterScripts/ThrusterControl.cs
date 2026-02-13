@@ -4,7 +4,7 @@
     - Handles physical buttons
     - Meant to be extended
     Contributor(s): Jake Schott
-    Last Updated: 9/1/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ public class ThrusterControl : NetworkBehaviour
     {
         thrust_direction = thruster_percentage[1] - thruster_percentage[0];
         float greatest_thruster = Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, greatest_thruster * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, greatest_thruster * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(greatest_thruster * MAX_POWER_CONSUMPTION);
     }
 
@@ -63,13 +63,11 @@ public class ThrusterControl : NetworkBehaviour
         }
         return neutral_state;
     }
+
     protected void adjustButton(Transform thruster_button, int button_index)
     {
         //push the physical button in
-        thruster_button.transform.localPosition =
-            new Vector3(Mathf.Lerp(button_initial_pos.x, button_final_pos.x, button_push_percentage[button_index]),
-                        Mathf.Lerp(button_initial_pos.y, button_final_pos.y, button_push_percentage[button_index]),
-                        Mathf.Lerp(button_initial_pos.z, button_final_pos.z, button_push_percentage[button_index]));
+        thruster_button.transform.localPosition = Vector3.Lerp(button_initial_pos, button_final_pos, button_push_percentage[button_index]);
 
         //handle thruster bars
         int starting_bar = 11 - (button_index * 10);

@@ -3,7 +3,7 @@
     - Handles inputs for power allocation
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -24,12 +24,13 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
 
-    public PowerManager power_manager;
     public List<GameObject> allocation_dials;
     public List<GameObject> position_icon_displays;
     public List<GameObject> power_screen_displays; //the screen that shows the power allocation AND consumption
     public List<GameObject> allocation_circle_displays; //the circular screens around each dial
     public GameObject info_display;
+
+    private PowerManager power_manager;
     private GameObject units_counter;
     private GameObject units_circle_collection;
 
@@ -44,6 +45,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
+        power_manager = ReferenceAssistor.Instance.power_manager;
         units_counter = info_display.transform.GetChild(0).gameObject;
         units_circle_collection = info_display.transform.GetChild(1).gameObject;
 
@@ -205,14 +207,14 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         int target_index = ray_targets.IndexOf(current_target.name);
         if (allocation_adjustment_coroutines[target_index] == null)
         {
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && allocated_units[target_index] > 0) //decrease
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && allocated_units[target_index] > 0) //decrease
             {
                 BUTTON_LISTS[target_index][0].toggle(TURN_TIME);
                 BUTTON_LISTS[target_index][1].updateInteractable(false);
                 available_units += 1;
                 transmitAllocationChangeRPC(target_index, allocated_units[target_index] - 1, available_units);
             }
-            else if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && allocated_units[target_index] < 10 && available_units > 0) //increase
+            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && allocated_units[target_index] < 10 && available_units > 0) //increase
             {
                 BUTTON_LISTS[target_index][1].toggle(TURN_TIME);
                 BUTTON_LISTS[target_index][0].updateInteractable(false);

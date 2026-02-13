@@ -3,16 +3,13 @@
     - Handles inputs for impulse throttle
     - Moves throttle lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 1/31/2026
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Windows;
 
 public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -28,8 +25,9 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     public GameObject handle;
     public GameObject impulse_bars_display; //used to display the bars beneath the handle
-    public GameObject speed_text; //used to update the speedometer
     public GameObject IK_target;
+
+    private EngineMonitoring engine_monitoring;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -37,7 +35,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     private float impulse = 0.0f;
     private float inertial_dampener_modifier = 0.0f;
     private Vector3 initial_pos; //handle starting position (0% impulse)
-    private Vector3 final_pos = new Vector3(0.2816f, -1.2306f, 19.3834f);
+    private Vector3 final_pos = new Vector3(0.0f, 0.111f, 0.264f);
     private Coroutine impulse_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -46,6 +44,8 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private void Start()
     {
+        engine_monitoring = GetComponent<EngineMonitoring>();
+
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
@@ -54,6 +54,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
         initial_pos = handle.transform.localPosition; //sets the initial position
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
@@ -63,6 +64,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         return IK_target.transform;
     }
+
     public void adjustInertialDampenerModifier(float new_modifier)
     {
         inertial_dampener_modifier = new_modifier;
@@ -72,6 +74,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         return impulse;
     }
+
     private void displayAdjustment()
     {
         //update bars on screen
@@ -86,13 +89,8 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         //update lever position
         handle.transform.localPosition = Vector3.Lerp(initial_pos, final_pos, impulse);
 
-        //update speedometer text in engineer position
-        string rounded_speed = (Mathf.Round(impulse * 1000.0f) / 10.0f).ToString();
-        if (rounded_speed.Contains(".") == false)
-        {
-            rounded_speed += ".0";
-        }
-        speed_text.GetComponent<TMP_Text>().SetText("IMPULSE SPEED: " + rounded_speed + "%");
+        //update pilot position engine info
+        engine_monitoring.impulseAdjustment();
     }
 
     private bool checkIfChangeNecessary()
@@ -101,15 +99,15 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         {
             return false;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down))
         {
             return false;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)
         {
             return true;
         }
-        if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f)
         {
             return true;
         }
@@ -122,11 +120,11 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         while (checkIfChangeNecessary())
         {
             int impulse_direction = 0;
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f) //E to increment
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down) && impulse < 1.0f) //E to increment
             {
                 impulse_direction += 1;
             }
-            if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)  //Q to decrement
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && impulse > 0.0f)  //Q to decrement
             {
                 impulse_direction -= 1;
             }
@@ -223,7 +221,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     private void transmitImpulseAdjustmentRPC(float imp)
     {
         impulse = imp;
-        transform.GetComponent<PowerControl>().power_manager.controlPowerChange(0, this.GetType().Name, imp * MAX_POWER_CONSUMPTION);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, imp * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(imp * MAX_POWER_CONSUMPTION);
         displayAdjustment();
     }

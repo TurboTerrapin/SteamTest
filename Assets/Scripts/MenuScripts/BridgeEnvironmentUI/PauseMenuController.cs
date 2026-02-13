@@ -1,7 +1,4 @@
-using Netcode.Transports.Facepunch;
-using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public static class SceneData
 {
@@ -17,7 +14,7 @@ public class PauseMenuController : MonoBehaviour
     public void HandleResumeButtonClick()
     {
         PauseMenu.SetActive(false);
-        ControlScript.Instance.unpause();
+        PrimaryScript.Instance.unpause();
     }
 
     public void HandleControlsButtonClick()

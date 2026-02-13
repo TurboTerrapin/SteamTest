@@ -3,7 +3,7 @@
     - Handles slider
     - Enables/disables red alert
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 1/31/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     Color[] COLOR_OPTIONS = new Color[3] { new Color(0f, 0.84f, 1f), new Color(0.89f, 1f, 0.0f), new Color(1f, 0.01f, 0.0f)};
     private static float MOVE_TIME = 0.5f;
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
+    private static Vector3 FINAL_POS = new Vector3(0.0f, 0.0f, 0.081f);
 
     private string CONTROL_NAME = "SHIP ALERT STATUS";
     private static string INFO_MESSAGE = "Determines ship status (normal, yellow alert, red alert).";
@@ -31,7 +32,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     public GameObject selector_lever;
     public LightsManager lights_manager;
     private Vector3 initial_pos;
-    private Vector3 final_pos = new Vector3(0.3821f, -0.5888f, 13.6847f);
+
     private int curr_status = 0;
 
     private Coroutine status_shift_coroutine = null;
@@ -75,10 +76,10 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             indicators[i].SetActive(is_powered);
         }
 
-        GameObject.FindGameObjectWithTag("SensorHandler").GetComponent<StatusIndicators>().displayShipStatus(COLOR_OPTIONS[curr_status]);
+        ReferenceAssistor.Instance.module_handlers[4].GetComponent<StatusIndicators>().displayShipStatus(COLOR_OPTIONS[curr_status]);
 
         //change lights
-        if (GameObject.Find("PowerHandler").GetComponent<PowerManager>().getShipHasPower() == true)
+        if (ReferenceAssistor.Instance.power_manager.getShipHasPower() == true)
         {
             if (curr_status == 2)
             {
@@ -89,6 +90,9 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
                 lights_manager.disableRedAlert();
             }
         }
+
+        //notify self destruct
+        GetComponent<SelfDestruct>().onShipStatusChange();
     }
 
     IEnumerator statusShift()
@@ -96,39 +100,33 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         float animation_time = MOVE_TIME;
 
         Vector3 starting_pos = selector_lever.transform.localPosition;
-        Vector3 dest_pos =
-            new Vector3(Mathf.Lerp(initial_pos.x, final_pos.x, curr_status / 2.0f),
-                        Mathf.Lerp(initial_pos.y, final_pos.y, curr_status / 2.0f),
-                        Mathf.Lerp(initial_pos.z, final_pos.z, curr_status / 2.0f));
+        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, curr_status / 2.0f);
 
         //move slider
         while (animation_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             animation_time = Mathf.Max(0.0f, animation_time - dt);
-            selector_lever.transform.localPosition =
-                new Vector3(Mathf.Lerp(starting_pos.x, dest_pos.x, 1.0f - (animation_time / MOVE_TIME)),
-                            Mathf.Lerp(starting_pos.y, dest_pos.y, 1.0f - (animation_time / MOVE_TIME)),
-                            Mathf.Lerp(starting_pos.z, dest_pos.z, 1.0f - (animation_time / MOVE_TIME)));
+            selector_lever.transform.localPosition = Vector3.Lerp(starting_pos, dest_pos, 1.0f - (animation_time / MOVE_TIME));
 
             yield return null;
         }
 
         if (curr_status > 0)
         {
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
-            transform.GetComponent<PowerControl>().power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
+            ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
             hud_info.setPowerConsumption(0.0f);
         }
 
         displayAdjustment();
 
-        BUTTONS[0].updateInteractable(curr_status > 0);
-        BUTTONS[1].updateInteractable(curr_status < 2);
+        BUTTONS[0].updateInteractable(curr_status > 0 && is_powered);
+        BUTTONS[1].updateInteractable(curr_status < 2 && is_powered);
         BUTTONS[0].untoggle();
         BUTTONS[1].untoggle();
 
@@ -148,7 +146,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             bool shifted = false;
             if (curr_status < 2)
             {
-                if (ControlScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //shift up
+                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //shift up
                 {
                     shifted = true;
                     BUTTONS[1].toggle();
@@ -161,7 +159,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
             {
                 if (curr_status > 0)
                 {
-                    if (ControlScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //shift down
+                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //shift down
                     {
                         BUTTONS[0].toggle();
                         BUTTONS[1].updateInteractable(false);
@@ -176,6 +174,9 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
     //used by powerOff
     IEnumerator returnToZero(float power_off_time)
     {
+        BUTTONS[0].updateInteractable(false);
+        BUTTONS[1].updateInteractable(false);
+
         Vector3 start_pos = selector_lever.transform.localPosition;
         float anim_time = power_off_time;
         curr_status = 0;
@@ -210,6 +211,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
         {
             indicators[i].SetActive(false);
         }
+
         hud_info.setPowerConsumption(0.0f);
 
         //return to normal status
