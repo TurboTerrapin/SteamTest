@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
+public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private const float maxAngularVelocity = 1.2f;
@@ -29,6 +29,7 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
     public GameObject wheel;
     public GameObject wheel_light;
     public GameObject fill_circle;
+    public GameObject IK_target;
 
     // State variables
     private float angularVelocity = 0f;
@@ -53,6 +54,10 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget()
+    {
+        return IK_target.transform;
     }
 
     public float getSteeringValue()

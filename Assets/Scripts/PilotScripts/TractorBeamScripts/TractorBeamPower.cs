@@ -12,7 +12,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
+public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 75.0f;
@@ -34,6 +34,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     private GameObject item_captured_display;
     private TractorBeamOptions tractor_beam_options;
     private TractorBeam tractor_beam;
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -59,7 +60,10 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget()
+    {
+        return IK_target.transform;
+    }
     private void displayAdjustment()
     {
         //update bars on screen

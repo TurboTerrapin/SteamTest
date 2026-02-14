@@ -428,7 +428,7 @@ public class PrimaryScript : MonoBehaviour
     public void relinquishPosition()
     {
         player_prefab.GetComponent<CameraMove>().parentRotationLock = false;
-        float[] rotations = new float[] { 0.0f, 0.0f, 135.0f, 180.0f };
+        float[] rotations = new float[] { 0.0f, 0.0f, 135.0f, 0.0f };
         player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(rotations[curr_pos], 30.0f));
         player_prefab.GetComponent<CameraMove>().captainMode = false;
         my_animation_controller.setIKActive(true);
@@ -436,7 +436,7 @@ public class PrimaryScript : MonoBehaviour
         my_animation_controller.setIKLeftArm(false);
         my_animation_controller.setIKRightArm(false);
 
-        player_prefab.transform.position = player_prefab.transform.Find("CharacterModel").position - new Vector3(0.0f, 0.12f, 0.0f);
+        //player_prefab.transform.position = player_prefab.transform.Find("CharacterModel").position - new Vector3(0.0f, 0.0f, 0.0f);
         player_prefab.GetComponent<PlayerMove>().initialize();
 
         seat_manager.getUp(curr_pos);

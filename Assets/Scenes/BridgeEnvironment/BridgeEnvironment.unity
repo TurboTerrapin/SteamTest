@@ -48185,6 +48185,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 230008422}
   m_Mesh: {fileID: 5952481362355504375, guid: 499be9337ba739643903157bbdf3da27, type: 3}
+--- !u!1 &230296005
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 230296006}
+  m_Layer: 0
+  m_Name: PilotShipSteeringWheelIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &230296006
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230296005}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.1278, y: 0, z: 0.0768}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1490280753062537076}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &230458610
 GameObject:
   m_ObjectHideFlags: 0
@@ -163361,7 +163392,7 @@ Transform:
   m_GameObject: {fileID: 806698668}
   serializedVersion: 2
   m_LocalRotation: {x: -0.000000030908623, y: -0.7071068, z: -0.7071068, w: 0.000000030908623}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.032, y: -0.12, z: 0.0675}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -202447,7 +202478,7 @@ Transform:
   m_GameObject: {fileID: 995017531}
   serializedVersion: 2
   m_LocalRotation: {x: 1.02998935e-14, y: 0.7071068, z: 0.7071068, w: 1.21297236e-14}
-  m_LocalPosition: {x: 0.91233516, y: 2.5003994, z: -0.6206808}
+  m_LocalPosition: {x: 0.9123, y: 2.4098, z: -0.6079}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -224175,6 +224206,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1098340092}
   m_CullTransparentMesh: 1
+--- !u!1 &1098363222
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1098363223}
+  m_Layer: 0
+  m_Name: DirectionalShifterIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1098363223
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098363222}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.60876137, y: 0.000000029802326, z: 0.79335344, w: 0}
+  m_LocalPosition: {x: 3.06, y: -17.325, z: 0.6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8240115307712077061}
+  m_LocalEulerAnglesHint: {x: 0, y: 75, z: 180}
 --- !u!1 &1098662520
 GameObject:
   m_ObjectHideFlags: 0
@@ -260265,6 +260327,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1262261503}
   m_CullTransparentMesh: 1
+--- !u!1 &1262656788
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1262656789}
+  m_Layer: 0
+  m_Name: HeadlightSliderIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1262656789
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1262656788}
+  serializedVersion: 2
+  m_LocalRotation: {x: -1.4210855e-14, y: 0.5372997, z: 0.8433915, w: 0}
+  m_LocalPosition: {x: 2.2145, y: 2.4366, z: -0.7245}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7820997601485579260}
+  m_LocalEulerAnglesHint: {x: -65, y: 0, z: 180}
 --- !u!1 &1262956933
 GameObject:
   m_ObjectHideFlags: 0
@@ -301869,6 +301962,7 @@ MonoBehaviour:
   lever: {fileID: 5082925764790330505}
   forward_indicator: {fileID: 263887027}
   reverse_indicator: {fileID: 1050648909}
+  IK_target: {fileID: 1098363222}
 --- !u!114 &1468829062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -301906,6 +302000,7 @@ MonoBehaviour:
   tractor_beam_inactive_indicator: {fileID: 1493575179613395260}
   bars_display: {fileID: 1357600459}
   info_display: {fileID: 1754516334}
+  IK_target: {fileID: 1930740858}
 --- !u!114 &1468829064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -301959,6 +302054,7 @@ MonoBehaviour:
   slider: {fileID: 1117943687442122940}
   headlights_display: {fileID: 643120899}
   ship_headlights: {fileID: 2119472212}
+  IK_target: {fileID: 1262656788}
 --- !u!114 &1468829066
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -302049,6 +302145,7 @@ MonoBehaviour:
   wheel: {fileID: 5157796844640770434}
   wheel_light: {fileID: 8767489367799101587}
   fill_circle: {fileID: 377052753}
+  IK_target: {fileID: 230296005}
   wheel_angle: 0
   steering_input: 0
 --- !u!114 &1468829073
@@ -395535,6 +395632,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1930236428}
   m_CullTransparentMesh: 1
+--- !u!1 &1930740858
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1930740859}
+  m_Layer: 0
+  m_Name: TractorBeamPowerHandleIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1930740859
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930740858}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5, y: -0.5, z: 0.5, w: 0.5}
+  m_LocalPosition: {x: -0.033, y: 0.101, z: 0.166}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4523363816210233959}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 90}
 --- !u!1 &1930868579
 GameObject:
   m_ObjectHideFlags: 0
@@ -442684,6 +442812,7 @@ Transform:
   - {fileID: 5139011894831625745}
   - {fileID: 5887840216133262879}
   - {fileID: 3593911975334940425}
+  - {fileID: 230296006}
   m_Father: {fileID: 1045614959}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1493575179613395260
@@ -455241,6 +455370,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 423773577870297031}
+  - {fileID: 1930740859}
   m_Father: {fileID: 106598157}
   m_LocalEulerAnglesHint: {x: -150, y: 0, z: 0}
 --- !u!4 &4532336374800970242
@@ -470763,6 +470893,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6769150290816605917}
+  - {fileID: 1262656789}
   m_Father: {fileID: 1525576382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7822835506083832779
@@ -472667,6 +472798,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4706195019758990004}
+  - {fileID: 1098363223}
   m_Father: {fileID: 1761986755}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &8242192843235934100
