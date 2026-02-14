@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class AsteroidField : NetworkBehaviour, IScenario
+public class AsteroidField : NetworkBehaviour
 {
     //CLASS CONSTANTS
     private static int ASTEROID_QUANTITY = 100;
