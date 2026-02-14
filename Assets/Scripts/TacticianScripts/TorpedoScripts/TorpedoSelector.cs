@@ -51,6 +51,11 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    public int getSelectionIndex() 
+    { 
+        return torpedo_option; 
+    }
+
     IEnumerator selectorShift()
     {
         for (int i = 4; i <= 7; i++)
