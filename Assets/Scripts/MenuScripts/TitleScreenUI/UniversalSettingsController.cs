@@ -10,21 +10,34 @@ public class UniversalSettingsController : MonoBehaviour
     public GameObject SettingsMenu;
     public GameObject MainMenu;
     public GameObject PauseMenu;
+
     // Fullscreen
     public Toggle FullScreenToggle;
+
     // Resolution
     public TMP_Dropdown ResolutionDropdown;
+
+    // Vsync
+    public Toggle VSyncToggle;
+
+    // Frame Rate
+    public TMP_Dropdown FrameRateDropdown;
+    public TMP_Text FrameRateLabel;
+    public CanvasGroup FrameRateGroup;
+
     // Master Volume
     public Slider MasterVolumeSlider;
     public Image MasterVolumeFillBar;
     public TMP_Text ActualVolumeLabel;
-    // HUD Visibility
-    public TMP_Dropdown HUDVisibilityDropdown;
-    public GameObject control_script_holder;
+   
     // Camera Sensitivity
     public Slider CameraSensitivitySlider;
     public Image CameraSensitivityFillBar;
     public TMP_Text ActualCameraSensitivityLabel;
+
+    // HUD Visibility
+    public TMP_Dropdown HUDVisibilityDropdown;
+    public GameObject control_script_holder;
 
     void Start()
     {
@@ -68,24 +81,55 @@ public class UniversalSettingsController : MonoBehaviour
         MasterVolumeSlider.value = volume;
         HandleMasterVolumeDragged(volume);
 
+        // Loads player VSync preference (default is true if nothing is saved)
+        bool isVSyncOn = PlayerPrefs.GetInt("VSync", 0) == 1;
+        VSyncToggle.isOn = isVSyncOn;
+        QualitySettings.vSyncCount = isVSyncOn ? 1 : 0;
+        
+        // If VSync is on when you load up the game, Max Frame Rate setting is dimmed out
+        if (isVSyncOn == true)
+        {
+            FrameRateLabel.alpha = 0.2f;
+            FrameRateGroup.alpha = 0.2f;
+        }
+
+        // Loads player VSync preference (default is 60FPS)
+        int FPSIndex = PlayerPrefs.GetInt("MaxFrameRate", 1);
+        FrameRateDropdown.value = FPSIndex;
+        HandleMaxFrameRateDropDownClicked(FPSIndex);
+
+        // Loads player cam sensitivity preference (default is 50%)
+        float camSensitivity = PlayerPrefs.GetFloat("CameraSensitivity", 0.5f);
+        CameraSensitivitySlider.value = camSensitivity;
+        HandleCameraSensitivityDragged(camSensitivity);
+
         // Loads player HUD visbility preference (default is 0 if nothing is saved)
         int HUDIndex = PlayerPrefs.GetInt("HUDVisibility", 0);
         // Sets dropdown UI to display option corresponding to selected index
         HUDVisibilityDropdown.value = HUDIndex;
         // Applies option based on index
-        HandleHUDDropdownClicked(HUDIndex);
-
-        float camSensitivity = PlayerPrefs.GetFloat("CameraSensitivity", 0.5f);
-        CameraSensitivitySlider.value = camSensitivity;
-        HandleCameraSensitivityDragged(camSensitivity);
+        HandleHUDDropdownClicked(HUDIndex); 
 
         // Listens for changes
         FullScreenToggle.onValueChanged.AddListener(HandleFullScreenToggleClicked);
         ResolutionDropdown.onValueChanged.AddListener(HandleResolutionDropdownClicked);
+        VSyncToggle.onValueChanged.AddListener(HandleVSyncToggleClicked);
+        FrameRateDropdown.onValueChanged.AddListener(HandleMaxFrameRateDropDownClicked);
         MasterVolumeSlider.onValueChanged.AddListener(HandleMasterVolumeDragged);
-        HUDVisibilityDropdown.onValueChanged.AddListener(HandleHUDDropdownClicked);
         CameraSensitivitySlider.onValueChanged.AddListener(HandleCameraSensitivityDragged);
+        HUDVisibilityDropdown.onValueChanged.AddListener(HandleHUDDropdownClicked);
     }
+
+    // For testing FPS
+    //void Update()
+    //{
+    //    if (Time.frameCount % 60 == 0)
+    //    {
+    //        //Debug.Log("Vsync on: " + (QualitySettings.vSyncCount > 0));
+    //        //Debug.Log("Target frame rate: " + Application.targetFrameRate);
+    //        //Debug.Log("Current fps: " + (1f / Time.deltaTime));
+    //    }
+    //}
 
     public void HandleFullScreenToggleClicked(bool isOn)
     {
@@ -134,6 +178,70 @@ public class UniversalSettingsController : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    public void HandleVSyncToggleClicked(bool isOn)
+    {
+        QualitySettings.vSyncCount = isOn ? 1 : 0;
+
+        // if vsync is on, let it control the frame rate
+        if (isOn)
+        {
+            Application.targetFrameRate = -1;
+        }
+        else
+        {
+            HandleMaxFrameRateDropDownClicked(FrameRateDropdown.value);
+        }
+
+        PlayerPrefs.SetInt("VSync", isOn ? 1 : 0);
+
+        PlayerPrefs.Save();
+
+        FrameRateDropdown.interactable = !isOn;
+
+        FrameRateGroup.alpha = isOn ? 0.2f : 1f;
+        FrameRateLabel.alpha = isOn ? 0.2f : 1f;
+        
+    }
+
+    public void HandleMaxFrameRateDropDownClicked(int index)
+    {
+        int FPS;
+
+        switch (index)
+        {
+            case 0:
+                FPS = 30;
+                break;
+            case 1:
+                FPS = 60;
+                break;
+            case 2:
+                FPS = 120;
+                break;
+            case 3:
+                FPS = 144;
+                break;
+            case 4:
+                FPS = 240;
+                break;
+            case 5:
+                FPS = -1; // unlimited
+                break;
+            default:
+                FPS = 60;
+                break;
+        }
+
+        if (QualitySettings.vSyncCount == 0)
+        {
+            Application.targetFrameRate = FPS;
+        }
+
+        PlayerPrefs.SetInt("MaxFrameRate", index);
+
+        PlayerPrefs.Save();
+    }
+
     public void HandleMasterVolumeDragged(float volume)
     {
         // Sets master volume
@@ -147,27 +255,6 @@ public class UniversalSettingsController : MonoBehaviour
         PlayerPrefs.SetFloat("MasterVolume", volume);
 
         // Writes to disk
-        PlayerPrefs.Save();
-    }
-
-    public void HandleHUDDropdownClicked(int index)
-    {
-        if (control_script_holder != null)
-        {
-            // Gets the ControlScript component
-            PrimaryScript x = control_script_holder.GetComponent<PrimaryScript>();
-
-            if (x != null)
-            {
-                // Sends the index to the control script 
-                x.setHUD(index);
-            }
-        }
-
-        // Saves player preferences
-        PlayerPrefs.SetInt("HUDVisibility", index);
-
-        // Writes changes to disk
         PlayerPrefs.Save();
     }
 
@@ -194,6 +281,27 @@ public class UniversalSettingsController : MonoBehaviour
 
         // Saves camera preference
         PlayerPrefs.SetFloat("CameraSensitivity", mouseSensitivity);
+
+        // Writes changes to disk
+        PlayerPrefs.Save();
+    }
+
+    public void HandleHUDDropdownClicked(int index)
+    {
+        if (control_script_holder != null)
+        {
+            // Gets the ControlScript component
+            ControlScript x = control_script_holder.GetComponent<ControlScript>();
+
+            if (x != null)
+            {
+                // Sends the index to the control script 
+                x.setHUD(index);
+            }
+        }
+
+        // Saves player preferences
+        PlayerPrefs.SetInt("HUDVisibility", index);
 
         // Writes changes to disk
         PlayerPrefs.Save();

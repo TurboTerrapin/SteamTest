@@ -34,8 +34,10 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
     private Coroutine cameraShakeCoroutine = null;
+    public VisualSpectacleLighting visualSpectacleLighting;
 
     private GameObject spaceship;
+
 
     //--ENERGY PATTERN INFORMATION--//
     //CENTER OF PATTERN
@@ -119,6 +121,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             return;
         }
 
+        GetComponent<AsteroidField>().initiateScenario();
+
         //initialize pattern, randomize initial colors and textures
         randomizeColors();
 
@@ -184,7 +188,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
                     }
                     if (impulse.getCurrentImpulse() > 0.0f)
                     {
-                        //   shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
+                        //shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
                     }
                 }
                 else
@@ -347,6 +351,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private void enterRedLightStateRPC()
     {
         resetCoroutines();
+
+        visualSpectacleLighting.SetRedLight();
+
         redLightCoroutine = StartCoroutine(RedLightState());
     }
 
@@ -361,6 +368,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         energyPattern.updateColors(getRingColorsAsColor(), getCenterColorAsColor(), 1.0f);
 
         resetCoroutines();
+
+        visualSpectacleLighting.SetGreenLight();
+
         greenLightCoroutine = StartCoroutine(GreenLightState());
     }
 
