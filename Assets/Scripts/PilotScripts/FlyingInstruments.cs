@@ -44,7 +44,10 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
 
     private void Start()
     {
-        updateCourseHeadingScreen();
+        float ship_rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation.eulerAngles.y;
+        string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
+
+        updateCourseHeadingScreen(ship_rotation, current_heading);
         updateAltimeterScreen();
 
         for (int i = 0; i < INFO_TITLES.Length; i++)
@@ -60,6 +63,33 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
+    }
+
+    public static string getRoundedDegreeReading(float deg)
+    {
+        if (deg < 0.0f)
+        {
+            deg += 360.0f;
+        }
+        else if (deg >= 360.0f)
+        {
+            deg -= 360.0f;
+        }
+
+        //adjust course heading text
+        float rounded_rotation = Mathf.Round(deg * 10.0f) / 10.0f;
+        string display_heading = rounded_rotation.ToString();
+        if (display_heading.Contains(".") == false)
+        {
+            display_heading += ".0";
+        }
+        if (display_heading.CompareTo("360.0") == 0)
+        {
+            display_heading = "0.0";
+        }
+        display_heading += "°";
+
+        return display_heading;
     }
 
     public void updateAltimeterScreen()
@@ -173,7 +203,7 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
         }
     }
 
-    public void updateCourseHeadingScreen()
+    public void updateCourseHeadingScreen(float current_rotation, string current_heading)
     {
         GameObject spaceship = GameObject.FindGameObjectWithTag("Spaceship");
         if (spaceship == null)
@@ -182,30 +212,15 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
         }
 
         //get ship rotation to get directional heading
-        float current_rotation = spaceship.transform.rotation.eulerAngles.y;
-        if (current_rotation < 0.0f)
-        {
-            current_rotation += 360.0f;
-        }
-        else if (current_rotation >= 360.0f)
+        heading_text.GetComponent<TMP_Text>().SetText(current_heading);
+
+        //adjust course heading slider
+        current_rotation += 90.0f;
+        if (current_rotation >= 360.0f)
         {
             current_rotation -= 360.0f;
         }
 
-        //adjust course heading text
-        float rounded_rotation = Mathf.Round(current_rotation * 10.0f) / 10.0f;
-        string display_heading = rounded_rotation.ToString();
-        if (display_heading.Contains(".") == false)
-        {
-            display_heading += ".0";
-        }
-        if (display_heading.CompareTo("360.0") == 0)
-        {
-            display_heading = "0.0";
-        }
-        heading_text.GetComponent<TMP_Text>().SetText(display_heading + "°");
-
-        //adjust course heading slider
         int marker_index = 18 - (int)((current_rotation % 22.5f) / 2.5f);
         int halfway_index = marker_index - 9;
         int[] corresponding_markers = new int[2];
@@ -219,6 +234,7 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
             corresponding_markers[0] = 1;
             corresponding_markers[1] = 0;
         }
+
         //set number marker texts
         int[] possible_options = { 315, 270, 225, 180, 135, 90, 45, 0 };
         for (int i = 0; i < possible_options.Length; i++)

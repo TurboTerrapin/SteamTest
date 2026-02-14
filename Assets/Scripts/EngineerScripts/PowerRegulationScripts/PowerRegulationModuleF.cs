@@ -1,8 +1,8 @@
 /*
     PowerRegulationModuleF.cs
-    - Handles the turn pattern mini-game in the engineer position
+    - Handles the timing mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 2/13/2026
 */
 
 using System.Collections;
@@ -13,72 +13,176 @@ using UnityEngine;
 public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerRegulable
 {
     //CLASS CONSTANTS
-    private static float STATE_CHANGE_TIME = 0.5f;
-    private static float CRANK_TIME = 0.5f;
+    private static float BUTTON_PUSH_TIME = 0.25f;
+    private static float TIMING_BAR_MOVE_SPEED = 0.15f;
+    private static float FURTHEST_TIMING_BAR_POINT = 0.1f;
+    private static Vector3 BUTTON_PUSH_DIRECTION = new Vector3(0.002f, -0.004f, -0.002f);
+    private static float[] STAGE_WIDTHS = new float[3] { 0.04f, 0.03f, 0.02f };
+    private static float[] ARROW_LOCATIONS = new float[3] { -0.079f, 0.0f, 0.079f };
 
-    private string CONTROL_NAME = "ENERGY FIELD EQUALIZER";
-    private static string INFO_MESSAGE = "Rotate the crank left or right in the order displayed to complete the module.";
-    private List<string> CONTROL_DESCS = new List<string> { "CRANK LEFT", "CRANK RIGHT" };
-    private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
-    private List<Button> BUTTONS = new List<Button>();
+    private string CONTROL_NAME = "SEQUENCE COORDINATOR";
+    private static string INFO_MESSAGE = "Time the synchronizer bar with the correct button three consecutive times to complete the module.";
+    private List<string> CONTROL_DESCS = new List<string> { "SYNCHRONIZE" };
+    private List<int> CONTROL_INDEXES = new List<int>() { 6 };
+    private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
 
     public GameObject prsf_display;
-    public GameObject prsf_crank;
+    public List<GameObject> prsf_buttons = null;
+
+    private GameObject pointer_arrow;
+    private GameObject timing_bar;
 
     private bool currently_active = false;
+
+    private Vector3[] initial_positions = new Vector3[3];
+    private int active_button = 0;
     private int stage = 0;
-    private int turn_configuration = 0; //goes from 0-7 (multiply by 45.0 to get degrees, 0 == 4, 1 == 5, 2 == 6
-    private int[] sequence_code = new int[5]{ 0, 0, 0, 0, 0 };
-    private Coroutine turn_coroutine = null;
-    private Coroutine state_change_coroutine = null;
+    private Coroutine timing_bar_coroutine = null;
+    private Coroutine button_push_coroutine = null;
+
+    private List<string> ray_targets = new List<string> { "prsf_button_a", "prsf_button_b", "prsf_button_c" };
 
     private static HUDInfo hud_info = null;
 
     private void Start()
     {
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
+        pointer_arrow = prsf_display.transform.GetChild(0).gameObject;
+        timing_bar = prsf_display.transform.GetChild(1).gameObject;
+
+        for (int i = 0; i < 3; i++)
+        {
+            initial_positions[i] = prsf_buttons[i].transform.localPosition;
+            BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
+        }
 
         hud_info = new HUDInfo(CONTROL_NAME);
-        hud_info.setButtons(BUTTONS, 7);
+        hud_info.setButtons(BUTTON_LISTS[0], 6);
         hud_info.setInfo(INFO_MESSAGE);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
+        int index = ray_targets.IndexOf(current_target.name);
+        hud_info.setButtons(BUTTON_LISTS[index], 6);
+
         return hud_info;
     }
 
-    //sets the state 
-    IEnumerator stateChangeHelper(bool to_change_to)
+    private void checkTiming(int button_index)
     {
-        float anim_time = STATE_CHANGE_TIME;
-        float starting_rotation = prsf_crank.transform.localRotation.eulerAngles.z;
-        float destination_rotation = 0.0f;
+        float start_x = timing_bar.transform.localPosition.x - ((timing_bar.GetComponent<RectTransform>().sizeDelta.y * 0.5f) - 0.0025f);
+        float end_x = timing_bar.transform.localPosition.x + ((timing_bar.GetComponent<RectTransform>().sizeDelta.y * 0.5f) + 0.0025f);
 
-        if (starting_rotation > 180.0f)
+        float new_offset = Random.Range(-0.05f, 0.05f);
+        int new_dir = Random.Range(0, 2);
+
+        List<int> possible_locations = new List<int>();
+        for (int i = 0; i < 3; i++)
         {
-            destination_rotation = 360.0f;
+            if (active_button != i)
+            {
+                possible_locations.Add(i);
+            }
+        }
+        int new_arrow_position = possible_locations[Random.Range(0, 2)];
+
+        if (button_index != active_button)
+        {
+            stageChangeRPC(0, new_arrow_position, new_offset, new_dir);
+            return;
         }
 
-        while (anim_time > 0.0f)
+        if (pointer_arrow.transform.localPosition.x > start_x && pointer_arrow.transform.localPosition.x < end_x)
         {
-            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            if (stage == 2)
+            {
+                transmitModuleCompletionRPC();
+            }
+            else
+            {
+                stageChangeRPC(stage + 1, new_arrow_position, new_offset, new_dir);
+            }
+        }
+        else
+        {
+            stageChangeRPC(0, new_arrow_position, new_offset, new_dir);
+        }
+    }
 
-            //turn the crank
-            float turn_rotation = Mathf.Lerp(destination_rotation, starting_rotation, (anim_time / STATE_CHANGE_TIME));
-            prsf_crank.transform.localRotation = Quaternion.Euler(-54.0f, -45.0f, turn_rotation);
+    IEnumerator timingBarBouncer(float starting_offset, int starting_dir)
+    {
+        timing_bar.transform.localPosition = new Vector3(starting_offset, 0.008f, 0.0f);
+
+        int dir = 1; //1 is right, -1 is left
+        if (starting_dir == 1)
+        {
+            dir = -1;
+        }
+
+        while (true)
+        {
+            float difference = Mathf.Min((FURTHEST_TIMING_BAR_POINT - (timing_bar.GetComponent<RectTransform>().sizeDelta.y * 0.5f) + 0.0025f), Time.deltaTime * TIMING_BAR_MOVE_SPEED);
+
+            float new_x = timing_bar.transform.localPosition.x + (difference * dir);
+            if (Mathf.Abs(new_x) > (FURTHEST_TIMING_BAR_POINT - (timing_bar.GetComponent<RectTransform>().sizeDelta.y * 0.5f) + 0.0025f))
+            {
+                difference = Mathf.Abs(new_x) - (FURTHEST_TIMING_BAR_POINT - (timing_bar.GetComponent<RectTransform>().sizeDelta.y * 0.5f) + 0.0025f);
+                dir *= -1;
+                new_x += (difference * dir);
+            }
+
+            timing_bar.transform.localPosition = new Vector3(new_x, 0.008f, 0.0f);
 
             yield return null;
         }
+    }
 
-        prsf_display.SetActive(to_change_to);
+    IEnumerator buttonPush(int index)
+    {
+        int curr_seat = PrimaryScript.Instance.currentSeat();
 
-        turn_configuration = 0;
-        prsf_crank.transform.localRotation = Quaternion.Euler(-54.0f, -45.0f, 0.0f);
-        currently_active = to_change_to;
+        for (int i = 0; i < 3; i++)
+        {
+            BUTTON_LISTS[i][0].updateInteractable(false);
+            prsf_buttons[i].transform.localPosition = initial_positions[i];
+        }
 
-        state_change_coroutine = null;
+        Vector3 final_pos = initial_positions[index] + BUTTON_PUSH_DIRECTION;
+        for (int i = 0; i <= 1; i++)
+        {
+            float half_time = BUTTON_PUSH_TIME * 0.5f;
+            float push_time = half_time;
+
+            while (push_time > 0.0f)
+            {
+                push_time = Mathf.Max(0.0f, push_time - Time.deltaTime);
+
+                float push_percentage = 1.0f - (push_time / half_time);
+                if (i == 1)
+                {
+                    push_percentage = (push_time / half_time);
+                }
+
+                prsf_buttons[index].transform.localPosition = Vector3.Lerp(initial_positions[index], final_pos, push_percentage);
+
+                yield return null;
+            }
+
+            if (i == 0)
+            {
+                if (curr_seat == 2 && currently_active == true)
+                {
+                    checkTiming(index);
+                }
+            }
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            BUTTON_LISTS[i][0].updateInteractable(currently_active);
+        }
+
+        button_push_coroutine = null;
     }
 
     public void resetToDefault()
@@ -89,15 +193,11 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
         }
         currently_active = false;
         prsf_display.SetActive(false);
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
-            BUTTONS[i].updateInteractable(false);
+            BUTTON_LISTS[i][0].untoggle();
+            BUTTON_LISTS[i][0].updateInteractable(false);
         }
-        if (state_change_coroutine != null)
-        {
-            StopCoroutine(state_change_coroutine);
-        }
-        state_change_coroutine = StartCoroutine(stateChangeHelper(false));
     }
 
     public void unlockControl()
@@ -107,110 +207,12 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
             return;
         }
         currently_active = true;
-        stage = 0;
-
+        prsf_display.SetActive(true);
+        timing_bar.transform.GetComponent<RectTransform>().sizeDelta = new Vector2(0.005f, STAGE_WIDTHS[0]);
         if (NetworkManager.Singleton.IsHost == true)
         {
-            sequence_code[0] = Random.Range(1, 4);
-            for (int i = 1; i < 5; i++)
-            {
-                int new_turn_direction = Random.Range(0, 2);
-                if (new_turn_direction == 0)
-                {
-                    sequence_code[i] = sequence_code[i - 1] - 1;
-                    if (sequence_code[i] < 0)
-                    {
-                        sequence_code[i] = 7;
-                    }
-                }
-                else
-                {
-                    sequence_code[i] = sequence_code[i - 1] + 1;
-                    if (sequence_code[i] > 7)
-                    {
-                        sequence_code[i] = 0;
-                    }
-                }
-            }
-            generateNewSequenceRPC(sequence_code[0], sequence_code[1], sequence_code[2], sequence_code[3], sequence_code[4]);
+            stageChangeRPC(0, Random.Range(0, 3), Random.Range(-0.05f, 0.05f), Random.Range(0, 2));
         }
-    }
-
-    private void displayAdjustment(int to_adjust, bool correct)
-    {
-        float a = 1.0f;
-        if (correct == false)
-        {
-            a = 0.2f;
-        }
-        prsf_display.transform.GetChild(to_adjust).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
-    }
-
-    IEnumerator crankTurn(int prev_config, int to_turn_to)
-    {
-        float initial_rotation = prev_config * 45.0f;
-        float destination_rotation = to_turn_to * 45.0f;
-
-        if (initial_rotation > 45.0f && destination_rotation == 0.0f)
-        {
-            destination_rotation = 360.0f;
-        }
-        else if (initial_rotation == 0.0f && destination_rotation == 315.0f)
-        {
-            initial_rotation = 360.0f;
-        }
-
-        float anim_time = CRANK_TIME;
-        while (anim_time > 0.0f)
-        {
-            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-
-            prsf_crank.transform.localRotation = 
-                Quaternion.Euler(-54.0f, -45.0f, Mathf.Lerp(initial_rotation, destination_rotation, 1.0f - (anim_time / CRANK_TIME)));
-
-            yield return null;
-        }
-
-        BUTTONS[0].untoggle();
-        BUTTONS[1].untoggle();
-
-        if ((to_turn_to % 4) == (sequence_code[stage] % 4))
-        {
-            displayAdjustment(stage, true);
-
-            if (stage == 4)
-            {
-                if (NetworkManager.Singleton.IsHost == true)
-                {
-                    transmitModuleCompletionRPC();
-                }
-            }
-            else
-            {
-                stage += 1;
-                BUTTONS[0].updateInteractable(true);
-                BUTTONS[1].updateInteractable(true);
-            }
-        }
-        else
-        {
-            stage = 0;
-            for (int i = 0; i < 5; i++)
-            {
-                displayAdjustment(i, false);
-            }
-            if ((to_turn_to % 4) == (sequence_code[0] % 4))
-            {
-                displayAdjustment(0, true);
-                stage = 1;
-            }
-            BUTTONS[0].updateInteractable(true);
-            BUTTONS[1].updateInteractable(true);
-        }
-
-        turn_configuration = to_turn_to;
-
-        turn_coroutine = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -220,67 +222,57 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
             return;
         }
 
-        if (turn_coroutine == null && BUTTONS[0].getInteractable() == true)
+        int target_index = ray_targets.IndexOf(current_target.name);
+        if (button_push_coroutine == null)
         {
-            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //crank left
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //press button
             {
-                BUTTONS[0].toggle();
-                BUTTONS[1].updateInteractable(false);
-                int new_turn_config = turn_configuration - 1;
-                if (new_turn_config < 0)
-                {
-                    new_turn_config = 7;
-                }
-                crankTurnRPC(new_turn_config, stage);
-            }
-            else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //crank right
-            {
-                BUTTONS[1].toggle();
-                BUTTONS[0].updateInteractable(false);
-                int new_turn_config = turn_configuration + 1;
-                if (new_turn_config > 7)
-                {
-                    new_turn_config = 0;
-                }
-                crankTurnRPC(new_turn_config, stage);
+                BUTTON_LISTS[target_index][0].toggle(0.1f);
+                BUTTON_LISTS[target_index][0].updateInteractable(false);
+                buttonPushRPC(target_index);
             }
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void generateNewSequenceRPC(int turn_a, int turn_b, int turn_c, int turn_d, int turn_e)
+    private void buttonPushRPC(int index)
     {
-        sequence_code[0] = turn_a;
-        sequence_code[1] = turn_b;
-        sequence_code[2] = turn_c;
-        sequence_code[3] = turn_d;
-        sequence_code[4] = turn_e;
-        stage = 0;
-        for (int i = 0; i < 5; i++)
+        if (button_push_coroutine != null)
         {
-            prsf_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
-            prsf_display.transform.GetChild(i).localRotation = Quaternion.Euler(0.0f, 0.0f, sequence_code[i] * 45.0f);
+            StopCoroutine(button_push_coroutine);
         }
-        prsf_display.SetActive(true);
-        for (int i = 0; i < 2; i++)
-        {
-            BUTTONS[i].updateInteractable(true);
-        }
+
+        button_push_coroutine = StartCoroutine(buttonPush(index));
     }
 
     [Rpc(SendTo.Everyone)]
-    private void crankTurnRPC(int turn_config, int new_stage)
+    private void stageChangeRPC(int new_stage, int arrow_location, float starting_offset, int starting_dir)
     {
+        if (timing_bar_coroutine != null)
+        {
+            StopCoroutine(timing_bar_coroutine);
+        }
+
         stage = new_stage;
-        if (turn_coroutine != null)
-        {
-            StopCoroutine(turn_coroutine);
-        }
+        active_button = arrow_location;
 
-        turn_coroutine = StartCoroutine(crankTurn(turn_configuration, turn_config));
+        pointer_arrow.transform.localPosition = new Vector3(ARROW_LOCATIONS[arrow_location], -0.0035f, 0.0f);
+        timing_bar.GetComponent<RectTransform>().sizeDelta = new Vector2(0.005f, STAGE_WIDTHS[new_stage]);
+        timing_bar.transform.GetChild(0).transform.localPosition = new Vector3(0.0f, STAGE_WIDTHS[new_stage] * -0.5f, 0.0f);
+        timing_bar.transform.GetChild(1).transform.localPosition = new Vector3(0.0f, STAGE_WIDTHS[new_stage] * 0.5f, 0.0f);
+
+        timing_bar_coroutine = StartCoroutine(timingBarBouncer(starting_offset, starting_dir));
+
+        if (button_push_coroutine == null)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                BUTTON_LISTS[i][0].updateInteractable(true);
+            }
+        }
     }
 
-    //called by host when mini-game completed
+    //called by host when stage four reached (three successful timing events)
     [Rpc(SendTo.Everyone)]
     private void transmitModuleCompletionRPC()
     {

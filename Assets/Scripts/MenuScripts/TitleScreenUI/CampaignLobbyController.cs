@@ -9,11 +9,15 @@ using UnityEngine;
 
 public class CampaignLobbyController : MonoBehaviour
 {
+    //CLASS CONSTANTS
+    private static int DEFAULT_DIFFICULTY = 0; //Easy
+
     public GameObject CampaignOptions;
     public GameObject CampaignLobby;
     public GameObject FriendListBox;
     public GameObject FriendsLabel;
     public GameObject NoFriendsOnlineLabel;
+    public GameObject DifficultyToggleGroup;
     public GameObject EngageButton;
 
     [SerializeField]
@@ -23,9 +27,12 @@ public class CampaignLobbyController : MonoBehaviour
     public List<TextMeshProUGUI> JoinedPlayersList = new List<TextMeshProUGUI>();
     private Coroutine YieldForLobbyCoroutine = null;
 
-    void OnEnable()
+    private void OnEnable()
     {
+        DisplayDifficultyChange(DEFAULT_DIFFICULTY);
+        HandleDifficultyChange();
         DeactivateEngageButton();
+        DeactivateDifficultyGroup();
         CheckForLobbyUpdates();
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
         if (YieldForLobbyCoroutine != null)
@@ -48,6 +55,36 @@ public class CampaignLobbyController : MonoBehaviour
         EngageButton.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new UnityEngine.Color(borderColor.r, borderColor.g, borderColor.b, a);
     }
 
+    //Used by ActivateDifficultyGroup() and DeactivateDifficultyGroup()
+    private void DifficultyGroupHelper(float a, bool active)
+    {
+        foreach (Transform entry in DifficultyToggleGroup.transform)
+        {
+            //Make toggle interactable
+            entry.GetComponent<UnityEngine.UI.Toggle>().interactable = active;
+
+            //Recolor border
+            Color c = entry.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
+            c.a = a;
+            entry.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
+
+            //Recolor checkbox
+            c = entry.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.Image>().color;
+            c.a = a;
+            entry.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.Image>().color = c;
+
+            //Recolor difficulty label
+            c = entry.transform.GetChild(1).GetComponent<TMP_Text>().color;
+            c.a = a;
+            entry.transform.GetChild(1).GetComponent<TMP_Text>().color = c;
+
+            //Recolor recommendation label
+            c = entry.transform.GetChild(2).GetComponent<TMP_Text>().color;
+            c.a = a;
+            entry.transform.GetChild(2).GetComponent<TMP_Text>().color = c;
+        }
+    }
+
     private void ActivateEngageButton()
     {
         //Make button interactable
@@ -62,6 +99,22 @@ public class CampaignLobbyController : MonoBehaviour
         EngageButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
         //Fade button
         EngageButtonAlphaHelper(0.2f);
+    }
+
+    private void ActivateDifficultyGroup()
+    {
+        DifficultyGroupHelper(1.0f, true);
+    }
+
+    private void DeactivateDifficultyGroup()
+    {
+        DifficultyGroupHelper(0.2f, false);
+    }
+
+    //Used to communicate difficulty changes across clients
+    public void DisplayDifficultyGroupChange(int difficulty)
+    {
+        DifficultyToggleGroup.transform.GetChild(difficulty).GetComponent<UnityEngine.UI.Toggle>().isOn = true;
     }
 
     //Updates list of names in lobby
@@ -103,10 +156,12 @@ public class CampaignLobbyController : MonoBehaviour
         if (NetworkManager.Singleton.IsHost == true)
         {
             ActivateEngageButton();
+            ActivateDifficultyGroup();
         }
         else
         {
             DeactivateEngageButton();
+            DeactivateDifficultyGroup();
         }
     }
 
@@ -119,6 +174,7 @@ public class CampaignLobbyController : MonoBehaviour
         }
         UpdateLobbyList();
         UpdateFriendsList();
+        HandleDifficultyChange();
 
         YieldForLobbyCoroutine = null;
     }
@@ -158,6 +214,10 @@ public class CampaignLobbyController : MonoBehaviour
     {
         UpdateFriendsList();
         UpdateLobbyList();
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            HandleDifficultyChange();
+        }
     }
 
     //Fires whenever SteamFriends detects a change in any friend's state (maybe?)
@@ -186,6 +246,31 @@ public class CampaignLobbyController : MonoBehaviour
         SteamFriends.OnPersonaStateChange -= OnFriendChange();
         GameNetworkManager.Instance.currentLobby.Value.Leave();
         SwitchTo(CampaignOptions);
+    }
+
+    public void DisplayDifficultyChange(int difficulty)
+    {
+        DifficultyToggleGroup.transform.GetChild(difficulty).GetComponent<UnityEngine.UI.Toggle>().isOn = true;
+    }
+
+    public void HandleDifficultyChange()
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        int difficultyIndex = -1;
+        for (int i = 0; i < 4; i++)
+        {
+            if (DifficultyToggleGroup.transform.GetChild(i).GetComponent<UnityEngine.UI.Toggle>().isOn == true)
+            {
+                difficultyIndex = i;
+                break;
+            }
+        }
+
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().updateDifficulty(difficultyIndex);
     }
 
     public void HandleEngageButtonClick()

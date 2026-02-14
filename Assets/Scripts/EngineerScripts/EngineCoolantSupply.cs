@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/12/2026
 */
 
 using System.Collections;
@@ -16,11 +16,12 @@ using UnityEngine;
 public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float TURN_SPEED = 0.15f;
+    private static float TURN_SPEED = 0.25f;
     private static float IMPULSE_SPEED_CHANGE_FACTOR = 4.0f; //goes 1/4 as fast when engines are overheated
     private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.005f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
-    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f)}; //blue, orange, red
+    private static Color[] COLOR_OPTIONS = new Color[] { new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f)}; //blue, orange, red
+    private static string[] TEMPERATURE_LABELS = new string[] { "LOW", "MEDIUM", "HIGH" };
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
     private static string INFO_MESSAGE = "Regulates engines to prevent overheating and engine slowdown.";
@@ -30,9 +31,8 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 
     public GameObject engine_coolant_supply_display;
     public GameObject coolant_wheel;
-    private GameObject flow; //the UI section that shows the engine coolant flow
+    private GameObject coolant_circle; //the UI section that shows the engine coolant flow
     private GameObject temperature; //the UI section that shows the engine temperature
-    private GameObject capacity; //the UI section that shows impulse capacity
 
     private PilotingSystem piloting_system;
     private EngineMonitoring engine_monitoring;
@@ -50,9 +50,8 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
         engine_monitoring = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EngineMonitoring>();
 
-        flow = engine_coolant_supply_display.transform.GetChild(0).gameObject;
+        coolant_circle = engine_coolant_supply_display.transform.GetChild(0).gameObject;
         temperature = engine_coolant_supply_display.transform.GetChild(1).gameObject;
-        capacity = engine_coolant_supply_display.transform.GetChild(2).gameObject;
 
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
@@ -83,37 +82,31 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         coolant_wheel.transform.localRotation = Quaternion.Euler(-54.0f, 315.0f, coolant_flow * 1080.0f);
 
         //update screen wheel
-        flow.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
-        flow.transform.GetChild(3).transform.localRotation = Quaternion.Euler(180.0f, 0.0f, coolant_flow * 1080.0f);
+        coolant_circle.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
+        coolant_circle.transform.GetChild(2).transform.localRotation = Quaternion.Euler(180.0f, 0.0f, coolant_flow * 1080.0f);
     }
 
     private void displayEngineTemperatureAdjustment()
     {
-        //display impulse capacity
-        float impulse_capacity = Mathf.Lerp(1.0f, 1.0f / IMPULSE_SPEED_CHANGE_FACTOR, engine_temperature);
-        string impulse_capacity_as_string = ((Mathf.Round(impulse_capacity * 1000.0f) / 1000.0f) * 100.0f).ToString();
-        if (impulse_capacity_as_string.Contains('.') == false)
-        {
-            impulse_capacity_as_string += ".0";
-        }
-        capacity.transform.GetChild(1).GetComponent<TMP_Text>().SetText(impulse_capacity_as_string + "%");
-        capacity.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = impulse_capacity;
-
         //display engine temperature
         Color status_color = COLOR_OPTIONS[0];
+        string temperature_label = TEMPERATURE_LABELS[0];
         if (engine_temperature >= 1.0f)
         {
             status_color = COLOR_OPTIONS[2];
+            temperature_label = TEMPERATURE_LABELS[2];
         }
         else if (engine_temperature > 0.5)
         {
             status_color = COLOR_OPTIONS[1];
+            temperature_label = TEMPERATURE_LABELS[1];
         }
 
-        float engine_temp = Mathf.Max(0.02f, engine_temperature);
+        float engine_temp = Mathf.Max(0.05f, engine_temperature);
         temperature.transform.GetChild(0).GetComponent<TMP_Text>().color = status_color;
-        temperature.transform.GetChild(2).transform.localPosition = new Vector3(Mathf.Lerp(-0.011f, 0.063f, engine_temp), 0.0195f, 0.0f);
-        temperature.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        temperature.transform.GetChild(0).GetComponent<TMP_Text>().SetText("TEMPERATURE: " + temperature_label);
+        temperature.transform.GetChild(1).transform.localPosition = new Vector3(Mathf.Lerp(-0.015f, 0.0588f, engine_temp), -0.0065f, 0.0f);
+        temperature.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
         temperature.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = engine_temp;
         temperature.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().color = status_color;
     }
@@ -123,7 +116,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         float coolant_flow_booster = 0.0f; //used to help accelerate temperature reduction
         while (true)
         {
-            coolant_flow_booster = Mathf.Max(0.0f, Mathf.Min(2.0f, coolant_flow_booster + ((coolant_flow - 0.5f) * Time.deltaTime)));
+            coolant_flow_booster = Mathf.Max(0.0f, Mathf.Min(3.0f, coolant_flow_booster + ((coolant_flow - 0.5f) * Time.deltaTime)));
             float difference = ENGINE_TEMPERATURE_INCREASE_SPEED - (coolant_flow * (ENGINE_TEMPERATURE_INCREASE_SPEED * (1.5f + coolant_flow_booster)));
             if (difference > 0.0f)
             {

@@ -57,6 +57,7 @@ public class PilotingSystem : NetworkBehaviour
     private Vector2[] entrancePoints = new Vector2[2];
     private float entranceSlope = 0.0f;
     private float[] entranceIntercepts = new float[2];
+    private Vector2 exitTarget;
     private Vector2[] exitPoints = new Vector2[2];
     private float exitSlope = 0.0f;
     private float[] exitIntercepts = new float[2];
@@ -118,6 +119,21 @@ public class PilotingSystem : NetworkBehaviour
         //start inside the boundary
         insideBoundary = true;
         insideAltitudeBoundary = true;
+    }
+
+    //called by ScenarioMap
+    public string GetTargetHeading()
+    {
+        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        Vector2 shipPos = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
+        if (shipPos.x > exitTarget.x)
+        {
+            return "---.-°";
+        }
+        float slope = (shipPos.y - exitTarget.y) / (shipPos.x - exitTarget.x);
+        float angle = Mathf.Rad2Deg * Mathf.Atan(slope);
+        angle += 90.0f;
+        return FlyingInstruments.getRoundedDegreeReading(angle);
     }
 
     //returns true if within boundary (including entrance/exit channels)
@@ -199,6 +215,7 @@ public class PilotingSystem : NetworkBehaviour
         entranceIntercepts[1] = entrancePoints[1].y - (entranceSlope * entrancePoints[1].x);
 
         //plot exit points
+        exitTarget = exitPath;
         exitPoints[0] = CalculatePoint(exitPath, -ScenarioManager.PATH_SIZE * 0.5f);
         exitPoints[1] = CalculatePoint(exitPath, ScenarioManager.PATH_SIZE * 0.5f);
         exitSlope = Mathf.Tan(Mathf.Deg2Rad * exitRotation);
@@ -462,9 +479,11 @@ public class PilotingSystem : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void RotationChangeRPC()
     {
-        flyingInstruments.updateCourseHeadingScreen();
         proximityMap.rotateMap();
-        scenarioMap.updateShipOrientation();
+        float ship_rotation = transform.rotation.eulerAngles.y;
+        string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
+        flyingInstruments.updateCourseHeadingScreen(ship_rotation, current_heading);
+        scenarioMap.updateShipOrientation(ship_rotation, current_heading, GetTargetHeading());
     }
 
     [Rpc(SendTo.Everyone)]

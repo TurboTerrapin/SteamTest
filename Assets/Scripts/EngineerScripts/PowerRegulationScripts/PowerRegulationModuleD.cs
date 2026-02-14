@@ -2,7 +2,7 @@
     PowerRegulationModuleD.cs
     - Handles the horizontal slider mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/13/2026
 */
 
 using System.Collections;
@@ -14,7 +14,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
 {
     //CLASS CONSTANTS
     private static float STATE_CHANGE_TIME = 0.5f;
-    private static float SLIDE_SPEED = 0.35f;
+    private static float SLIDE_SPEED = 0.4f;
     private static Vector3 SLIDE_DIRECTION = new Vector3(-0.13f, 0.0f, -0.13f);
 
     private string[] CONTROL_NAMES = new string[3] { "PRIMARY IMPULSE ENERGIZER", "SECONDARY IMPULSE ENERGIZER", "TERTIARY IMPULSE ENERGIZER" };

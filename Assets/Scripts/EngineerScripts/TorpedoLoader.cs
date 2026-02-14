@@ -2,7 +2,7 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/12/2026
 */
 
 using System.Collections;
@@ -15,9 +15,10 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SELECTION_ADJUSTMENT_TIME = 0.25f;
-    private static float DIRECTION_ADJUSTMENT_TIME = 0.5f;
+    private static float DIRECTION_ADJUSTMENT_TIME = 0.3f;
     private static float LOAD_CONFIRMATION_TIME = 2.0f;
-    private static Vector3 TORPEDO_BAY_ADJUSTMENT_DIRECTION = new Vector3(-0.059f, 0.0f, -0.059f);
+    private static Vector3 TORPEDO_BAY_ADJUSTMENT_DIRECTION = new Vector3(-0.06f, 0.0f, -0.06f);
+    private static string[] DIRECTION_NAMES = new string[] { "FORWARD", "PORT", "STARBOARD", "AFT" };
 
     private string[] CONTROL_NAMES = new string[] { "TORPEDO TYPE SELECTOR", "TORPEDO BAY SELECTOR", "TORPEDO BAY LOADER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Selects which torpedo to load.", "Selects which bay to load the torpedo into.", "Confirms the torpedo type and bay (cannot be unloaded once loaded)." };
@@ -25,8 +26,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5, 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
 
-    public GameObject torpedo_selection_display;
-    public GameObject torpedo_direction_display;
+    public GameObject torpedo_loader_display;
     public GameObject ship_overview_torpedo_information;
 
     public GameObject torpedo_selection_switch;
@@ -86,10 +86,17 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    public void onInventoryChange()
+    {
+        displayTorpedoDirectionAdjustment();
+        displayTorpedoSelectionAdjustment();
+        BUTTON_LISTS[2][0].updateInteractable(getCurrentlyLoadable());
+    }
+
     private void displayTorpedoSelectionAdjustment()
     {
-        UnityEngine.UI.RawImage torpedo_icon = torpedo_selection_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
-        TMP_Text torpedo_text = torpedo_selection_display.transform.GetChild(1).GetComponent<TMP_Text>();
+        UnityEngine.UI.RawImage torpedo_icon = torpedo_loader_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>();
+        TMP_Text torpedo_text = torpedo_loader_display.transform.GetChild(3).GetComponent<TMP_Text>();
 
         Color torpedo_color = ship_inventory.getItemColor(1, current_torpedo_selection);
 
@@ -107,7 +114,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         //set text
         torpedo_text.color = torpedo_color;
-        torpedo_text.SetText((ship_inventory.getItemName(1, current_torpedo_selection) + " TORPEDO").ToUpper());
+        torpedo_text.SetText((ship_inventory.getItemName(1, current_torpedo_selection)).ToUpper());
 
         //adjust lit indicator on confirmation switch
         if (is_powered == true)
@@ -115,24 +122,23 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
             changeDialLitIndicator((ship_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
         }
     }
-
-    private void darkenTorpedoDirections()
-    {
-        //darken all sections
-        foreach (Transform child in torpedo_direction_display.transform)
-        {
-            child.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
-            Color occupied_torpedo_color = child.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
-            child.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(occupied_torpedo_color.r, occupied_torpedo_color.g, occupied_torpedo_color.b, 0.2f);
-        }
-    }
-
     private void displayTorpedoDirectionAdjustment()
     {
-        //highlight current section
-        torpedo_direction_display.transform.GetChild(current_torpedo_bay).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-        Color occupied_torpedo_color = torpedo_direction_display.transform.GetChild(current_torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
-        torpedo_direction_display.transform.GetChild(current_torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(occupied_torpedo_color.r, occupied_torpedo_color.g, occupied_torpedo_color.b, 1.0f);
+        //highlight current section and current arrow
+        for (int i = 0; i < 4; i++)
+        {
+            torpedo_loader_display.transform.GetChild(0).GetChild(i).GetChild(0).gameObject.SetActive(current_torpedo_bay == i);
+            float a = 0.08f;
+            if (current_torpedo_bay == i)
+            {
+                a = 1.0f;
+            }
+            torpedo_loader_display.transform.GetChild(1).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        }
+
+        //set text/warning indicator
+        torpedo_loader_display.transform.GetChild(4).GetComponent<TMP_Text>().SetText(DIRECTION_NAMES[current_torpedo_bay]);
+        torpedo_loader_display.transform.GetChild(5).gameObject.SetActive(torpedo_bay_slots[current_torpedo_bay] >= 0);
 
         //adjust lit indicator on confirmation switch
         if (is_powered == true)
@@ -145,11 +151,11 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     {
         if (is_green == true)
         {
-            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
+            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_neon;
         }
         else
         {
-            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
+            torpedo_confirmation_switch.transform.GetChild(0).GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_neon;
         }
     }
 
@@ -231,8 +237,6 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         Vector3 start_pos = torpedo_direction_slider.transform.localPosition;
         Vector3 dest_pos = Vector3.Lerp(torpedo_direction_slider_initial_position, torpedo_direction_slider_initial_position + TORPEDO_BAY_ADJUSTMENT_DIRECTION, current_torpedo_bay / 3.0f);
 
-        darkenTorpedoDirections();
-
         float anim_time = DIRECTION_ADJUSTMENT_TIME;
         while (anim_time > 0.0f)
         {
@@ -291,14 +295,10 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
                 Color torpedo_color = ship_inventory.getItemColor(1, torpedo_type);
                 torpedo_color = new Color(torpedo_color.r, torpedo_color.g, torpedo_color.b, 1.0f);
 
-                //update both torpedo loader display and ship overview display
-                GameObject[] to_update = new GameObject[2] { torpedo_direction_display, ship_overview_torpedo_information };
-                for (int x = 0; x < 2; x++)
-                {
-                    to_update[x].transform.GetChild(torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
-                    to_update[x].transform.GetChild(torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
-                    to_update[x].transform.GetChild(torpedo_bay).GetChild(0).gameObject.SetActive(true);
-                }
+                //update ship overview display
+                ship_overview_torpedo_information.transform.GetChild(torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
+                ship_overview_torpedo_information.transform.GetChild(torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
+                ship_overview_torpedo_information.transform.GetChild(torpedo_bay).GetChild(0).gameObject.SetActive(true);
 
                 //show update to torpedo loader display
                 displayTorpedoDirectionAdjustment();
@@ -403,8 +403,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         BUTTON_LISTS[2][0].updateInteractable(getCurrentlyLoadable());
 
-        torpedo_selection_display.SetActive(true);
-        torpedo_direction_display.SetActive(true);
+        torpedo_loader_display.SetActive(true);
     }
 
     private void deactivateButtons()
@@ -426,8 +425,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         deactivateButtons();
 
-        torpedo_selection_display.SetActive(false);
-        torpedo_direction_display.SetActive(false);
+        torpedo_loader_display.SetActive(false);
     }
 
     [Rpc(SendTo.Everyone)]

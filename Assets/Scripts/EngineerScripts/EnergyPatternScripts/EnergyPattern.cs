@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/9/2026
 */
 
 using System.Collections;
@@ -15,71 +15,43 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f; //how long it takes to turn on/off the energy pattern display
-    private static float SHIFT_TIME = 0.5f; //how long it takes to shift between configurations
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
-    private static Vector3 ENERGY_PATTERN_SLIDER_FINAL_POS = new Vector3(7.677f, -0.2442f, -8.2511f);
+    private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
+    private static float ENABLED_BLINKER_REFRESH = 2.0f;
 
-    private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER", "ENERGY PATTERN SHIFTER" };
-    private List<string> INFO_MESSAGES = new List<string>() { "Enables/disables the energy pattern viewer used to analyze spatial anomalies.", "Shifts energy pattern viewer between ship analysis, tractor beam analysis, or probe analysis." };
+    private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER" };
+    private List<string> INFO_MESSAGES = new List<string>() { "Enables/disables the energy pattern viewer used to analyze spatial anomalies." };
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE", "SHIFT DOWN", "SHIFT UP" };
-    private List<int> CONTROL_INDEXES = new List<int>() { 6, 2, 0 };
-    private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
+    private List<int> CONTROL_INDEXES = new List<int>() { 6 };
+    private List<Button>[] BUTTON_LISTS = new List<Button>[1] { new List<Button>() };
 
     public GameObject energy_pattern_dial;
-    public GameObject energy_pattern_slider;
-    public GameObject energy_pattern_selection_display;
-    public GameObject energy_pattern_indicator_display;
-
-    private EnergyPatternManager energy_pattern_manager;
-    private Vector3 energy_pattern_slider_initial_pos;
+    public GameObject energy_pattern_display;
+    public GameObject energy_pattern_signal_display;
+    public GameObject enabled_indicator;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
+    private PatternData corresponding_pattern_data = null;
     private bool display_enabled = false;
-    private int currently_viewing = 0; //goes ship/probe/tractor beam
+    private Coroutine alert_flasher_coroutine = null;
+    private Coroutine signal_indicator_coroutine = null;
     private Coroutine energy_pattern_power_coroutine = null;
-    private Coroutine energy_pattern_shift_coroutine = null;
-
-    private List<string> ray_targets = new List<string> { "energy_pattern_power", "energy_pattern_configuration" };
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
-        energy_pattern_manager = GetComponent<EnergyPatternManager>();
-        energy_pattern_slider_initial_pos = energy_pattern_slider.transform.localPosition;
-
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
-        //power on list
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-
-        //configuration list
-        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[1], false, true));
-        BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[3], CONTROL_INDEXES[2], false, true));
-
         hud_info.setButtons(BUTTON_LISTS[0], 6);
         hud_info.setInfo(INFO_MESSAGES[0]);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
-        int index = ray_targets.IndexOf(current_target.name);
-
-        hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setButtons(BUTTON_LISTS[1], 7);
-        hud_info.setInfo(INFO_MESSAGES[index]);
-
-        if (index == 0)
-        {
-            hud_info.setButtons(BUTTON_LISTS[0], 6);
-        }
-
         return hud_info;
-    }
-
-    private void displayAdjustment()
-    {
-        energy_pattern_manager.updateDisplay(display_enabled, currently_viewing);
     }
 
     private void handlePowerConsumptionChange()
@@ -96,6 +68,185 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
+    public void updateEnergyPatternDisplay()
+    {
+        //update energy pattern display
+        energy_pattern_display.transform.GetChild(0).gameObject.SetActive(is_powered == true && display_enabled && corresponding_pattern_data != null);
+
+        //update enabled indicator
+        updateEnabledIndicator();
+    }
+
+    //establishes the pattern and sets the corresponding pattern data
+    public void setPattern(PatternData pd)
+    {
+        //clear current pattern (if there is one)
+        energy_pattern_display.GetComponent<PatternVisualizer>().resetPattern();
+
+        corresponding_pattern_data = pd;
+        energy_pattern_display.GetComponent<PatternVisualizer>().displayPattern(corresponding_pattern_data);
+        updateSignalIndicator();
+        energy_pattern_display.transform.GetChild(0).gameObject.SetActive(display_enabled);
+
+        //handle orange blinker
+        if (display_enabled == false && alert_flasher_coroutine == null)
+        {
+            alert_flasher_coroutine = StartCoroutine(alertFlasher());
+        }
+    }
+
+    //clears the pattern
+    public void clearPattern()
+    {
+        //resets to default state
+        energy_pattern_display.GetComponent<PatternVisualizer>().resetPattern();
+        corresponding_pattern_data = null;
+        display_enabled = false;
+        updateEnergyPatternDisplay();
+        updateSignalIndicator();
+    }
+
+    //updates the colors in the PatternData and corresponding visualizer
+    public void updateColors(List<Color> new_ring_colors, Color new_center_color, float anim_time)
+    {
+        energy_pattern_display.GetComponent<PatternVisualizer>().changeColors(new_ring_colors, new_center_color, anim_time);
+    }
+
+    //resizes the pattern in the corresponding index to either contracted (true) or expanded (false) in time_interval time
+    public void resizePattern(bool shrink, float time_interval)
+    {
+        if (shrink == true)
+        {
+            energy_pattern_display.GetComponent<PatternVisualizer>().contractPattern(time_interval);
+        }
+        else
+        {
+            energy_pattern_display.GetComponent<PatternVisualizer>().expandPattern(time_interval);
+        }
+    }
+
+    //returns the data that informs the energy pattern
+    public PatternData getPatternData()
+    {
+        return corresponding_pattern_data;
+    }
+
+    //sizes the bar at the index to the to_size_to input
+    private void resizeBar(Transform line, float to_size_to)
+    {
+        line.GetComponent<RectTransform>().sizeDelta = new Vector2(0.006f + to_size_to * 2, 0.006f);
+        line.GetChild(0).localPosition = new Vector3(0.004f + to_size_to, 0.0f, 0.0f);
+        line.GetChild(1).localPosition = new Vector3(-0.004f - to_size_to, 0.0f, 0.0f);
+    }
+
+    //handles the increasing/decreasing bar animation on the screen above the energy pattern viewer
+    IEnumerator sourceIndicatorAnimator()
+    {
+        int num_lines = energy_pattern_signal_display.transform.GetChild(0).childCount - 1;
+        float[] starting_sizes = new float[num_lines];
+        float[] sizes = new float[num_lines];
+        GameObject lines = energy_pattern_signal_display.transform.GetChild(0).gameObject;
+        bool reset = false;
+
+        while (reset == false)
+        {
+            for (int i = 0; i < num_lines; i++)
+            {
+                starting_sizes[i] = lines.transform.GetChild(i + 1).GetChild(0).localPosition.x - 0.004f;
+                if (corresponding_pattern_data != null || is_powered == false)
+                {
+                    sizes[i] = UnityEngine.Random.Range(0.0f, 1.0f) * 0.006f;
+                }
+                else
+                {
+                    sizes[i] = 0.0f;
+                }
+            }
+
+            float anim_time = BAR_ANIMATION_TIME;
+            while (anim_time > 0.0f)
+            {
+                float dt = Time.deltaTime;
+                anim_time = Mathf.Max(0.0f, anim_time - dt);
+                for (int i = 0; i < num_lines; i++)
+                {
+                    float to_size_to = Mathf.Lerp(starting_sizes[i], sizes[i], 1.0f - (anim_time / BAR_ANIMATION_TIME));
+                    resizeBar(lines.transform.GetChild(i + 1), to_size_to);
+                }
+                yield return null;
+            }
+
+            //end loop if not active
+            if (corresponding_pattern_data == null || is_powered == false)
+            {
+                reset = true;
+                for (int i = 0; i < num_lines; i++)
+                {
+                    if (sizes[i] != 0.0f)
+                    {
+                        reset = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        signal_indicator_coroutine = null;
+    }
+
+    //flashes the orange blinker
+    IEnumerator alertFlasher()
+    {
+        float elapsed_time = 0.0f;
+        while (true)
+        {
+            elapsed_time += Time.deltaTime * ENABLED_BLINKER_REFRESH;
+            float a = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
+            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.47f, 0.0f, a);
+
+            yield return null;
+        }
+    }
+
+    //updates the orange flasher
+    private void updateEnabledIndicator()
+    {
+        if (is_powered == true && display_enabled == true)
+        {
+            if (alert_flasher_coroutine != null)
+            {
+                StopCoroutine(alert_flasher_coroutine);
+                alert_flasher_coroutine = null;
+            }
+            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+        }
+        else if (is_powered == true && display_enabled == false && corresponding_pattern_data != null)
+        {
+            if (alert_flasher_coroutine == null)
+            {
+                alert_flasher_coroutine = StartCoroutine(alertFlasher());
+            }
+        }
+        else
+        {
+            if (alert_flasher_coroutine != null)
+            {
+                StopCoroutine(alert_flasher_coroutine);
+                alert_flasher_coroutine = null;
+            }
+            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.0f);
+        }
+    }
+
+    //updates the blue increasing/decreasing bar animation
+    private void updateSignalIndicator()
+    {
+        if (corresponding_pattern_data != null && signal_indicator_coroutine == null && is_powered == true)
+        {
+            signal_indicator_coroutine = StartCoroutine(sourceIndicatorAnimator());
+        }
+    }
+
     IEnumerator powerChange()
     {
         bool enabling = !display_enabled;
@@ -103,7 +254,8 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         {
             display_enabled = false;
             handlePowerConsumptionChange();
-            displayAdjustment();
+            updateEnergyPatternDisplay();
+            updateEnabledIndicator();
         }
 
         float anim_time = SWITCH_TIME;
@@ -130,10 +282,8 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         {
             display_enabled = true;
             handlePowerConsumptionChange();
-            displayAdjustment();
+            updateEnergyPatternDisplay();
             BUTTON_LISTS[0][0].updateDesc(CONTROL_DESCS[1]);
-            BUTTON_LISTS[1][0].updateInteractable(currently_viewing < 2);
-            BUTTON_LISTS[1][1].updateInteractable(currently_viewing > 0);
         }
         else
         {
@@ -144,87 +294,24 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         energy_pattern_power_coroutine = null;
     }
 
-    IEnumerator shiftChange()
-    {
-        Vector3 start_pos = energy_pattern_slider.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(energy_pattern_slider_initial_pos, ENERGY_PATTERN_SLIDER_FINAL_POS, currently_viewing / 2.0f);
-        float anim_time = SHIFT_TIME;
-        while (anim_time > 0.0f)
-        {
-            float dt = Time.deltaTime;
-            anim_time = Mathf.Max(0.0f, anim_time - dt);
-
-            energy_pattern_slider.transform.localPosition = Vector3.Lerp(start_pos, dest_pos, 1.0f - (anim_time / SHIFT_TIME));
-
-            yield return null;
-        }
-
-        displayAdjustment();
-
-        BUTTON_LISTS[1][0].untoggle();
-        BUTTON_LISTS[1][1].untoggle();
-        BUTTON_LISTS[1][0].updateInteractable(currently_viewing < 2 && display_enabled);
-        BUTTON_LISTS[1][1].updateInteractable(currently_viewing > 0 && display_enabled);
-
-        energy_pattern_shift_coroutine = null;
-    }
-
-    public bool getDisplayEnabled()
-    {
-        return display_enabled;
-    }
-
-    public int getCurrentlyViewing()
-    {
-        return currently_viewing;
-    }
-
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (is_powered == false)
+        if (is_powered == false || energy_pattern_power_coroutine != null)
         {
             return;
         }
 
-        int target_index = ray_targets.IndexOf(current_target.name);
-        if (energy_pattern_power_coroutine == null && energy_pattern_shift_coroutine == null)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
         {
-            if (target_index == 0) //check power
-            {
-                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
-                {
-                    BUTTON_LISTS[0][0].toggle(0.2f);
-                    BUTTON_LISTS[1][0].updateInteractable(false);
-                    BUTTON_LISTS[1][1].updateInteractable(false);
-                    transmitEnergyPatternPowerChangeRPC(display_enabled);
-                }
-            }
-            else //check shifter
-            {
-                if (display_enabled == true)
-                {
-                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs) && currently_viewing < 2)
-                    {
-                        BUTTON_LISTS[1][0].toggle();
-                        BUTTON_LISTS[1][1].updateInteractable(false);
-                        transmitEnergyPatternShiftChangeRPC(currently_viewing + 1);
-                    }
-                    else if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs) && currently_viewing > 0)
-                    {
-                        BUTTON_LISTS[1][1].toggle();
-                        BUTTON_LISTS[1][0].updateInteractable(false);
-                        transmitEnergyPatternShiftChangeRPC(currently_viewing - 1);
-                    }
-                }
-            }
+            BUTTON_LISTS[0][0].toggle(0.2f);
+            transmitEnergyPatternPowerChangeRPC(display_enabled);
         }
     }
 
     public void resetToDefault()
     {
-        currently_viewing = 0;
-        energy_pattern_slider.transform.localPosition = energy_pattern_slider_initial_pos;
-        displayAdjustment();
+        clearPattern();
+        updateEnergyPatternDisplay();
     }
 
     //used by powerOff
@@ -250,24 +337,21 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     public void powerOn(int position)
     {
         is_powered = true;
-        energy_pattern_selection_display.SetActive(true);
-        energy_pattern_indicator_display.SetActive(true);
+        updateEnergyPatternDisplay();
+        updateSignalIndicator();
+        energy_pattern_signal_display.SetActive(true);
         BUTTON_LISTS[0][0].updateInteractable(true);
-        BUTTON_LISTS[1][0].updateInteractable(false);
-        BUTTON_LISTS[1][0].updateInteractable(false);
     }
 
     public void powerOff(int position, float time)
     {
         is_powered = false;
-        energy_pattern_selection_display.SetActive(false);
-        energy_pattern_indicator_display.SetActive(false);
         display_enabled = false;
-        displayAdjustment();
+        updateEnergyPatternDisplay();
+        updateSignalIndicator();
+        energy_pattern_signal_display.SetActive(false);
         BUTTON_LISTS[0][0].updateInteractable(false);
         BUTTON_LISTS[0][0].updateDesc(CONTROL_DESCS[0]);
-        BUTTON_LISTS[1][0].updateInteractable(false);
-        BUTTON_LISTS[1][1].updateInteractable(false);
         if (energy_pattern_power_coroutine != null)
         {
             StopCoroutine(energy_pattern_power_coroutine);
@@ -292,16 +376,5 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
             StopCoroutine(energy_pattern_power_coroutine);
         }
         energy_pattern_power_coroutine = StartCoroutine(powerChange());
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void transmitEnergyPatternShiftChangeRPC(int cv)
-    {
-        currently_viewing = cv;
-        if (energy_pattern_shift_coroutine != null)
-        {
-            StopCoroutine(energy_pattern_shift_coroutine);
-        }
-        energy_pattern_shift_coroutine = StartCoroutine(shiftChange());
     }
 }

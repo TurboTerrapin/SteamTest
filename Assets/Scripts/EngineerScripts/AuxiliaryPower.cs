@@ -3,7 +3,7 @@
     - Can only be used once per scenario
     - Restores power to any disabled power regulation modules (can restart power on the ship)
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 2/12/2026
 */
 
 using System.Collections;
@@ -26,6 +26,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
 
     public GameObject auxiliary_power_lever;
     public GameObject auxiliary_power_display;
+    public List<GameObject> auxiliary_power_arrows = null;
 
     private UnityEngine.UI.RawImage auxiliary_power_outer_circle;
     private UnityEngine.UI.Image auxiliary_power_fill_circle;
@@ -33,6 +34,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
 
     private bool auxiliary_power_available = true;
     private bool currently_available = false;
+    private Coroutine auxiliary_power_emergency_flasher_coroutine = null;
     private Coroutine auxiliary_power_activation_coroutine = null;
 
     private static HUDInfo hud_info = null;
@@ -62,6 +64,12 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
             auxiliary_power_activation_coroutine = null;
         }
 
+        if (auxiliary_power_emergency_flasher_coroutine != null)
+        {
+            StopCoroutine(auxiliary_power_emergency_flasher_coroutine);
+            auxiliary_power_emergency_flasher_coroutine = null;
+        }
+
         //set lever to default position
         auxiliary_power_lever.transform.localRotation = Quaternion.Euler(-84.0f, -45.0f, -90.0f);
 
@@ -70,22 +78,67 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
         auxiliary_power_outer_circle.color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         auxiliary_power_available_label.color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         auxiliary_power_available_label.SetText("AVAILABLE");
+        displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 0.2f));
 
         //reset state variables
         auxiliary_power_available = true;
         currently_available = false;
     }
 
-    public void activate()
+    private void displayArrowAdjustment(Color c)
     {
+        for (int i = 0; i < 2; i++)
+        {
+            auxiliary_power_arrows[i].GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
+    }
+
+    public void activate(bool power_online)
+    {
+        if (power_online == false)
+        {
+            if (auxiliary_power_emergency_flasher_coroutine == null)
+            {
+                auxiliary_power_emergency_flasher_coroutine = StartCoroutine(auxiliaryPowerEmergencyFlasher());
+            }
+        }
+        else
+        {
+            if (auxiliary_power_available == true)
+            {
+                displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 1.0f));
+            }
+        }
+
         currently_available = true;
         BUTTONS[0].updateInteractable(auxiliary_power_available);
     }
 
     public void deactivate()
     {
+        if (auxiliary_power_available == true)
+        {
+            displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 0.08f));
+        }
         currently_available = false;
         BUTTONS[0].updateInteractable(false);
+    }
+
+    IEnumerator auxiliaryPowerEmergencyFlasher()
+    {
+        float elapsed_time = 0.0f;
+        while (true)
+        {
+            elapsed_time += Time.deltaTime;
+            float a = 1.0f;
+            if (Mathf.PingPong(elapsed_time, 0.4f) > 0.2f)
+            {
+                a = 0.2f;
+            }
+            displayArrowAdjustment(new Color(1.0f, 0.47f, 0.0f, a));
+
+            yield return null;
+        }
     }
 
     IEnumerator auxiliaryPowerActivation()
@@ -137,7 +190,6 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
         if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) == true)
         {
             BUTTONS[0].toggle(0.25f);
-            BUTTONS[0].updateInteractable(false);
             transmitAuxiliaryPowerUsageRPC();
         }
     }
@@ -145,9 +197,17 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
     [Rpc(SendTo.Everyone)]
     private void transmitAuxiliaryPowerUsageRPC()
     {
+        if (auxiliary_power_emergency_flasher_coroutine != null)
+        {
+            StopCoroutine(auxiliary_power_emergency_flasher_coroutine);
+            auxiliary_power_emergency_flasher_coroutine = null;
+        }
+        displayArrowAdjustment(new Color(1.0f, 0.0f, 0.0f, 0.08f));
+
         if (auxiliary_power_available == true)
         {
             auxiliary_power_available = false;
+            BUTTONS[0].updateInteractable(false);
 
             if (auxiliary_power_activation_coroutine != null)
             {
