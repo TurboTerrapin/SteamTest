@@ -725,6 +725,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf82a7e58cb11f41ae39e95d4967ac2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  doesPulse: 1
+  Speed: 18
+  MaxScale: 550
+  MinScale: 500
+  ScaleStep: 0
+  time: 0
+  isScaling: 1
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  doesRotate: 0
+  rotationSpeed: 18
+  rotatesUsingGlobalAxis: 1
+  axis: {x: 0, y: 1, z: 0}
 --- !u!23 &781896237
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -790,6 +825,7 @@ GameObject:
   - component: {fileID: 785821677}
   - component: {fileID: 785821676}
   - component: {fileID: 785821675}
+  - component: {fileID: 785821678}
   m_Layer: 0
   m_Name: LargeRing
   m_TagString: Untagged
@@ -819,7 +855,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 785821673}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9cf21be17a71acb40b7e9be986c2ca0a, type: 3}
   m_Name: 
@@ -877,6 +913,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 785821673}
   m_Mesh: {fileID: -2124705421725058983, guid: d6bb4feaaa44be94b8167e620fd6e7ac, type: 3}
+--- !u!114 &785821678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 785821673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf82a7e58cb11f41ae39e95d4967ac2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  doesPulse: 1
+  Speed: 18
+  MaxScale: 200
+  MinScale: 150
+  ScaleStep: 0
+  time: 0
+  isScaling: 1
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  doesRotate: 0
+  rotationSpeed: 18
+  rotatesUsingGlobalAxis: 1
+  axis: {x: 0, y: 1, z: 0}
 --- !u!1 &889496226
 GameObject:
   m_ObjectHideFlags: 0
@@ -1062,6 +1145,7 @@ GameObject:
   - component: {fileID: 1027529073}
   - component: {fileID: 1027529072}
   - component: {fileID: 1027529071}
+  - component: {fileID: 1027529074}
   m_Layer: 0
   m_Name: LargeRing
   m_TagString: Untagged
@@ -1091,7 +1175,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1027529069}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9cf21be17a71acb40b7e9be986c2ca0a, type: 3}
   m_Name: 
@@ -1149,6 +1233,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1027529069}
   m_Mesh: {fileID: -2124705421725058983, guid: d6bb4feaaa44be94b8167e620fd6e7ac, type: 3}
+--- !u!114 &1027529074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027529069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf82a7e58cb11f41ae39e95d4967ac2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  doesPulse: 1
+  Speed: 18
+  MaxScale: 200
+  MinScale: 150
+  ScaleStep: 0
+  time: 0
+  isScaling: 1
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  doesRotate: 0
+  rotationSpeed: 18
+  rotatesUsingGlobalAxis: 1
+  axis: {x: 0, y: 1, z: 0}
 --- !u!1 &1473594614
 GameObject:
   m_ObjectHideFlags: 0
@@ -1580,6 +1711,7 @@ GameObject:
   - component: {fileID: 1838082160}
   - component: {fileID: 1838082162}
   - component: {fileID: 1838082161}
+  - component: {fileID: 1838082163}
   m_Layer: 0
   m_Name: TiltedRing1
   m_TagString: Untagged
@@ -1655,6 +1787,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1838082159}
   m_Mesh: {fileID: -2124705421725058983, guid: d6bb4feaaa44be94b8167e620fd6e7ac, type: 3}
+--- !u!114 &1838082163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1838082159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf82a7e58cb11f41ae39e95d4967ac2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  doesPulse: 0
+  Speed: 18
+  MaxScale: 550
+  MinScale: 500
+  ScaleStep: 0
+  time: 0
+  isScaling: 1
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  doesRotate: 1
+  rotationSpeed: -18
+  rotatesUsingGlobalAxis: 1
+  axis: {x: 0, y: 1, z: 0}
 --- !u!1 &1973936419
 GameObject:
   m_ObjectHideFlags: 0
@@ -1752,6 +1931,7 @@ GameObject:
   - component: {fileID: 1992079543}
   - component: {fileID: 1992079545}
   - component: {fileID: 1992079544}
+  - component: {fileID: 1992079546}
   m_Layer: 0
   m_Name: TiltedRing2
   m_TagString: Untagged
@@ -1827,6 +2007,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1992079542}
   m_Mesh: {fileID: -2124705421725058983, guid: d6bb4feaaa44be94b8167e620fd6e7ac, type: 3}
+--- !u!114 &1992079546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1992079542}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf82a7e58cb11f41ae39e95d4967ac2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  doesPulse: 0
+  Speed: 18
+  MaxScale: 550
+  MinScale: 500
+  ScaleStep: 0
+  time: 0
+  isScaling: 1
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  doesRotate: 1
+  rotationSpeed: 18
+  rotatesUsingGlobalAxis: 1
+  axis: {x: 0, y: 1, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
