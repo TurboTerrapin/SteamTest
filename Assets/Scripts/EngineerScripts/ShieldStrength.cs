@@ -66,17 +66,12 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
 
     public void onInventoryChange(int available_batteries)
     {
-        if (is_powered == false)
-        {
-            return;
-        }
-
         for (int i = 0; i < 4; i++)
         {
             if (shield_strength_adjustment_coroutines[i] == null)
             {
-                BUTTON_LISTS[i][0].updateInteractable(shield_strengths[i] > 0);
-                BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 5 && available_batteries > 0);
+                BUTTON_LISTS[i][0].updateInteractable(is_powered && shield_strengths[i] > 0);
+                BUTTON_LISTS[i][1].updateInteractable(is_powered && shield_strengths[i] < 5 && available_batteries > 0);
             }
         }
 

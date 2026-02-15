@@ -2,21 +2,23 @@
     BackgroundAnimator.cs
     - Handles screen animations in the background of the ship
     Contributor(s): Jake Schott
-    Last Updated: 11/10/2025
+    Last Updated: 2/15/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class BackgroundAnimator : MonoBehaviour
 {
     public GameObject background_screens;
     public List<GameObject> alternate_screens = null;
+    public GameObject energy_circles;
 
     private List<GameObject> screen_displays = new List<GameObject>();
     private List<IAnimable> animable_components = new List<IAnimable>();
+
+    private float energy_percentage = 0.0f;
 
     private Coroutine screen_enable_coroutine = null;
 
@@ -79,6 +81,16 @@ public class BackgroundAnimator : MonoBehaviour
         screen_enable_coroutine = StartCoroutine(screenEnableSequence(time));
     }
 
+    public void enableEnergyCircles()
+    {
+        energy_circles.SetActive(true);
+    }
+
+    public void disableEnergyCircles()
+    {
+        energy_circles.SetActive(false);
+    }
+
     IEnumerator screenEnableSequence(float time)
     {
         List<GameObject> all_screens = new List<GameObject>();
@@ -112,12 +124,29 @@ public class BackgroundAnimator : MonoBehaviour
         screen_enable_coroutine = null;
     }
 
+    private void adjustEnergyCircles(float dt)
+    {
+        energy_percentage += dt;
+        if (energy_percentage > 1.0f)
+        {
+            energy_percentage = energy_percentage % 1.0f;
+        }
+        float positional_adjustment = (1.0f - energy_percentage) * 0.45f;
+        energy_circles.transform.GetChild(0).transform.localPosition = new Vector3(0.0f, -positional_adjustment, 0.0f);
+        energy_circles.transform.GetChild(1).transform.localPosition = new Vector3(0.0f, 0.0f, -positional_adjustment);
+        energy_circles.transform.GetChild(2).transform.localPosition = new Vector3(0.0f, 0.0f, positional_adjustment);
+        energy_circles.transform.GetChild(3).transform.localPosition = new Vector3(0.0f, positional_adjustment, 0.0f);
+    }
+
     //animate components
     private void Update()
     {
+        float dt = Mathf.Min(1.0f / 30.0f, Time.deltaTime);
         foreach (IAnimable animation in animable_components)
         {
-            animation.animate(Mathf.Min(1.0f / 30.0f, Time.deltaTime));
+            animation.animate(dt);
         }
+
+        adjustEnergyCircles(dt);
     }
 }

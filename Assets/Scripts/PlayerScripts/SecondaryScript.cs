@@ -272,7 +272,7 @@ public class SecondaryScript : MonoBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            float background_a = Mathf.Lerp(0.96f, 0.0f, anim_time / 1.0f);
+            float background_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f);
             float divider_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 1.0f);
 
             foreach (UnityEngine.UI.RawImage component in background_elements)

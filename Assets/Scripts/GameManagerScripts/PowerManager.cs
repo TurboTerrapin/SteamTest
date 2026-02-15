@@ -429,6 +429,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         ship_beeps_sound.Stop();
         overconsumption_warning_sound.Stop();
         background_animator.disableAllScreens();
+        background_animator.disableEnergyCircles();
 
         //stop orange flashing at positions where a player is sitting but power dial is not active
         power_control.updatePlayerNotifiers();
@@ -560,6 +561,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         lights_manager.disableEmergencyLights();
         ship_beeps_sound.Play();
         background_animator.enableAllScreens(1.5f);
+        background_animator.enableEnergyCircles();
 
         //start updating power consumption
         if (power_updater_coroutine == null)
