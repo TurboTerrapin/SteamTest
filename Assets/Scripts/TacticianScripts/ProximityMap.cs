@@ -148,6 +148,23 @@ public class ProximityMap : MonoBehaviour, IPowerable
                 }
             }
         }
+
+        /*
+        Torpedo[] active_torpedoes = FindObjectsOfType<Torpedo>();
+        foreach (Torpedo t in active_torpedoes)
+        {
+            MapItem test_map_item = t.GetComponent<MapItem>();
+            if (test_map_item != null)
+            {
+                Vector2 m_position_xy = new Vector2(t.transform.position.x, t.transform.position.z);
+                if (test_map_item.isVisible() && Vector2.Distance(Vector2.zero, m_position_xy) < (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f))
+                {
+                    map_items.Add(t.gameObject);
+                }
+            }
+        }
+        */
+        //
         corresponding_locations = new Vector2[map_items.Count];
         corresponding_icons = new GameObject[map_items.Count];
         corresponding_colors = new Color[map_items.Count];

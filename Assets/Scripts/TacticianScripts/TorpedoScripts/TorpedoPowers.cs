@@ -64,6 +64,11 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
+    public float getPowerLevel(int index) 
+    { 
+        return power_levels[index]; 
+    }
+
     private void handlePowerConsumptionChange()
     {
         float consumed_power = 0.0f;

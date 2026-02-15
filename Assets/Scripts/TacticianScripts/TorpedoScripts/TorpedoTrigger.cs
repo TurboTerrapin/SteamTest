@@ -13,6 +13,8 @@ using UnityEngine;
 
 public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 {
+    public TorpedoLauncher torpedoLauncher;
+
     //CLASS CONSTANTS
     private static float ARM_TIME = 2.0f;
     private static float COOLDOWN_TIME = 4.0f;
@@ -227,6 +229,8 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     [Rpc(SendTo.Everyone)]
     private void transmitTorpedoFireRPC()
     {
+        torpedoLauncher.fireTorpedo();
+
         if (torpedo_fire_coroutine != null)
         {
             StopCoroutine(torpedo_fire_coroutine);
