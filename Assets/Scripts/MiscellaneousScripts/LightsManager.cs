@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 1/31/2026
+    Last Updated: 2/15/2026
 */
 
 using System.Collections;
@@ -28,6 +28,7 @@ public class LightsManager : MonoBehaviour
     public GameObject default_lights;
     public GameObject emergency_lights;
     public GameObject light_strips;
+    public GameObject energy_circles;
 
     private GameObject[] light_groups = new GameObject[2] { null, null };
     private ShipStatus ship_status;
@@ -105,6 +106,7 @@ public class LightsManager : MonoBehaviour
 
         //enable light strips
         changeLightStrips(lit_neon);
+        changeEnergyCircles(lit_neon);
     }
 
     //helper method that changes every light strip's material
@@ -116,6 +118,14 @@ public class LightsManager : MonoBehaviour
         }
     }
 
+    //helper method that changes every energy circle's material
+    private void changeEnergyCircles(Material to_change_to)
+    {
+        foreach (Transform strip in energy_circles.transform)
+        {
+            strip.GetComponent<Renderer>().material = to_change_to;
+        }
+    }
 
     //helper method that changes every light's color in light_group
     private void changeLightColors(Transform light_group, Color light_color)
@@ -221,6 +231,7 @@ public class LightsManager : MonoBehaviour
 
         //enable light strips
         changeLightStrips(lit_neon);
+        changeEnergyCircles(lit_neon);
     }  
 
     public void disableDefaultLights()
@@ -250,6 +261,7 @@ public class LightsManager : MonoBehaviour
         if (enabled_lights[0] == true)
         {
             changeLightStrips(lit_red);
+            changeEnergyCircles(lit_red);
         }
     }
 
@@ -270,6 +282,7 @@ public class LightsManager : MonoBehaviour
         if (enabled_lights[0] == true)
         {
             changeLightStrips(lit_neon);
+            changeEnergyCircles(lit_neon);
         }
     }
 
