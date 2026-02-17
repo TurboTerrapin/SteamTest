@@ -13,10 +13,13 @@ using UnityEngine;
 public class SecondaryScript : MonoBehaviour
 {
     //CLASS CONSTANTS
-    private static KeyCode[][] INFO_OVERLAY_INPUT_OPTIONS = new KeyCode[3][] { 
+    private static KeyCode[][] INFO_OVERLAY_INPUT_OPTIONS = new KeyCode[][] { 
         new KeyCode[] { KeyCode.Alpha1, KeyCode.Keypad1 } ,                                                                      
         new KeyCode[] { KeyCode.Alpha2, KeyCode.Keypad2 } ,
-        new KeyCode[] { KeyCode.Alpha3, KeyCode.Keypad3 } };
+        new KeyCode[] { KeyCode.Alpha3, KeyCode.Keypad3 } ,
+        new KeyCode[] { KeyCode.Alpha4, KeyCode.Keypad4 } ,
+        new KeyCode[] { KeyCode.Alpha5, KeyCode.Keypad5 }
+    };
     
     public GameObject secondary_info;
 
@@ -138,7 +141,7 @@ public class SecondaryScript : MonoBehaviour
     {
         bool inputted = false;
         int input = -1;
-        while (inputted == false && input < 2)
+        while (inputted == false && input < 4)
         {
             input++;
             foreach (KeyCode kc in INFO_OVERLAY_INPUT_OPTIONS[input])
@@ -157,7 +160,7 @@ public class SecondaryScript : MonoBehaviour
         }
 
         bool hide = info_overlays.transform.GetChild(1 + input).gameObject.activeSelf;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             info_overlays.transform.GetChild(1 + i).gameObject.SetActive(false);
             info_overlays.transform.GetChild(0).GetChild(3).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
@@ -214,7 +217,7 @@ public class SecondaryScript : MonoBehaviour
         info_overlays.transform.GetChild(0).gameObject.SetActive(false);
 
         //component assignment and transparency setting to 0
-        intro_graphic_overlay = GameObject.Instantiate(info_overlays.transform.GetChild(1).gameObject, info_overlays.transform);
+        intro_graphic_overlay = GameObject.Instantiate(info_overlays.transform.GetChild(2).gameObject, info_overlays.transform);
         intro_graphic_overlay.name = "Temporary";
         List<UnityEngine.UI.RawImage> background_elements = new List<UnityEngine.UI.RawImage>();
         for (int i = 0; i < 3; i++)
