@@ -599,7 +599,7 @@ GameObject:
   - component: {fileID: 10749233}
   - component: {fileID: 10749232}
   m_Layer: 5
-  m_Name: MouseEmptySliderBar
+  m_Name: CameraEmptySliderBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7633,6 +7633,9 @@ MonoBehaviour:
     - m_Text: Default
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
+    - m_Text: Trapezoid Only
+      m_Image: {fileID: 0}
+      m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Minimized
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -8497,6 +8500,7 @@ GameObject:
   - component: {fileID: 467405875}
   - component: {fileID: 467405874}
   - component: {fileID: 467405873}
+  - component: {fileID: 467405877}
   m_Layer: 5
   m_Name: MainMenuCanvas
   m_TagString: Untagged
@@ -8593,6 +8597,36 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &467405877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 467405872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72a56636f1f10407cb9e7416aed9309d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SettingsMenu: {fileID: 485274885}
+  MainMenu: {fileID: 992464527}
+  PauseMenu: {fileID: 0}
+  FullScreenToggle: {fileID: 1279248607}
+  ResolutionDropdown: {fileID: 1408074715}
+  VSyncToggle: {fileID: 19669559}
+  FrameRateDropdown: {fileID: 948486710}
+  FrameRateLabel: {fileID: 152671550}
+  FrameRateGroup: {fileID: 948486709}
+  MasterVolumeSlider: {fileID: 1835280075}
+  MasterVolumeFillBar: {fileID: 1763405163}
+  ActualVolumeLabel: {fileID: 1384934246}
+  CameraSensitivitySlider: {fileID: 1510600024}
+  CameraSensitivityFillBar: {fileID: 111745652}
+  ActualCameraSensitivityLabel: {fileID: 1318118434}
+  HUDVisibilityDropdown: {fileID: 444646025}
+  control_script_holder: {fileID: 0}
+  HintsToggle: {fileID: 961870915}
 --- !u!1 &469065889
 GameObject:
   m_ObjectHideFlags: 0
@@ -8803,7 +8837,6 @@ GameObject:
   - component: {fileID: 485274889}
   - component: {fileID: 485274888}
   - component: {fileID: 485274887}
-  - component: {fileID: 485274886}
   m_Layer: 5
   m_Name: SettingsMenu
   m_TagString: Untagged
@@ -8811,35 +8844,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!114 &485274886
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 485274885}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72a56636f1f10407cb9e7416aed9309d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SettingsMenu: {fileID: 485274885}
-  MainMenu: {fileID: 992464527}
-  PauseMenu: {fileID: 0}
-  FullScreenToggle: {fileID: 1279248607}
-  ResolutionDropdown: {fileID: 1408074715}
-  VSyncToggle: {fileID: 19669559}
-  FrameRateDropdown: {fileID: 948486710}
-  FrameRateLabel: {fileID: 152671550}
-  FrameRateGroup: {fileID: 948486709}
-  MasterVolumeSlider: {fileID: 1835280075}
-  MasterVolumeFillBar: {fileID: 1763405163}
-  ActualVolumeLabel: {fileID: 1384934246}
-  CameraSensitivitySlider: {fileID: 1510600024}
-  CameraSensitivityFillBar: {fileID: 111745652}
-  ActualCameraSensitivityLabel: {fileID: 1318118434}
-  HUDVisibilityDropdown: {fileID: 444646025}
-  control_script_holder: {fileID: 0}
 --- !u!114 &485274887
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8884,7 +8888,7 @@ RectTransform:
   m_GameObject: {fileID: 485274885}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9997714, y: 0.9997714, z: 0.9997714}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1603247271}
@@ -8895,7 +8899,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000061035156, y: -0.000030517578}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 2955, y: 1970}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &488443114
@@ -24157,7 +24161,7 @@ GameObject:
   - component: {fileID: 1318118433}
   - component: {fileID: 1318118434}
   m_Layer: 5
-  m_Name: ActualMouseSensitivity
+  m_Name: ActualCameraSensitivity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24179,7 +24183,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 820, y: -260}
+  m_AnchoredPosition: {x: 1280, y: -260}
   m_SizeDelta: {x: 1000, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1318118433
@@ -24244,7 +24248,7 @@ MonoBehaviour:
   m_fontSizeMin: 40
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -25183,7 +25187,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 820, y: -80}
+  m_AnchoredPosition: {x: 1280, y: -80}
   m_SizeDelta: {x: 1000, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1384934245
@@ -25248,7 +25252,7 @@ MonoBehaviour:
   m_fontSizeMin: 40
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -27213,7 +27217,7 @@ GameObject:
   - component: {fileID: 1510600023}
   - component: {fileID: 1510600024}
   m_Layer: 5
-  m_Name: MouseSensitivitySlider
+  m_Name: CameraSensitivitySlider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -34430,7 +34434,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 485274886}
+      - m_Target: {fileID: 467405877}
         m_TargetAssemblyTypeName: UniversalSettingsController, Assembly-CSharp
         m_MethodName: HandleXButtonClick
         m_Mode: 1
@@ -35923,7 +35927,7 @@ GameObject:
   - component: {fileID: 2004003687}
   - component: {fileID: 2004003686}
   m_Layer: 5
-  m_Name: MouseSensitivityLabel
+  m_Name: CameraSensitivityLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35968,7 +35972,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: MOUSE SENSITIVITY
+  m_text: CAMERA SENSITIVITY
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 647b19b7360c549f09d1ac6149e70644, type: 2}
   m_sharedMaterial: {fileID: -2798455105913573538, guid: 647b19b7360c549f09d1ac6149e70644, type: 2}

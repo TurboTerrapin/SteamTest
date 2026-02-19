@@ -713,10 +713,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         List<Component> captain_modules = new List<Component>();
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipStatus")); //1
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("SelfDestruct")); //2
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipManual")); //3
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ProcedureManual")); //3
         captain_modules.Add(this); //4
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //5
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("CommunicationsManual")); //6
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperationsManual")); //6
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerOverride")); //7
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //8
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //9

@@ -12,6 +12,7 @@ public class Manual : MonoBehaviour, IPowerable
     public GameObject welcome_screen;
     public GameObject home_screen;
     public GameObject curr_screen;
+    public GameObject manual_logo;
 
     protected bool is_powered = false;
     protected GameObject curr_button;
@@ -179,6 +180,7 @@ public class Manual : MonoBehaviour, IPowerable
     {
         is_powered = true;
         currently_enabled = false;
+        manual_logo.SetActive(true);
         GetComponent<ManualOnOff>().reactivate(manual_index);
     }
 
@@ -186,6 +188,7 @@ public class Manual : MonoBehaviour, IPowerable
     {
         is_powered = false;
         currently_enabled = false;
+        manual_logo.SetActive(false);
         GetComponent<ManualOnOff>().disableManual(manual_index, time);
         cancelActivation();
     }

@@ -2,40 +2,42 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/19/2026
 */
 
-using Unity.Netcode;
-using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
 
 public class ManualOnOff : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
-    private static float MAX_POWER_CONSUMPTION = 0.6f; //6 circles, 3 per manual
+    private static float MAX_POWER_CONSUMPTION = 0.4f; //6 circles, 2 per manual
 
-    private string[] CONTROL_NAMES = new string[] { "SHIP MANUAL", "COMMUNICATIONS MANUAL" };
-    public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on general operations (ship functions, procedures, anomaly analysis).", "Information resource on communications (universal communicator and indirect signaling)." };
+    private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATIONS MANUAL" };
+    public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on situation analysis and response.", "Information resource on ship operations and station controls." };
     private List<string> CONTROL_DESCS = new List<string> { "TURN ON", "TURN OFF" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
-    public List<GameObject> target_colliders = null; //goes ship_manual_on_off, ship_manual_selector, communications_manual_on_off, communications_manual_selector
+    public List<GameObject> target_colliders = null; //goes procedure_manual_on_off, procedure_manual_selector, operations_manual_on_off, operations_manual_selector
     public List<GameObject> power_switches = null;
     private float[] power_switch_angles = new float[2] { 295.0f, 295.0f };
     private Component[] manuals = new Component[2];
 
     private Coroutine[] power_change_coroutine = new Coroutine[] { null, null };
 
-    private List<string> ray_targets = new List<string> { "ship_manual_on_off", "communications_manual_on_off" };
+    private List<string> ray_targets = new List<string> { "procedure_manual_on_off", "operations_manual_on_off" };
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
-        manuals[0] = GetComponent<ShipManual>();
-        manuals[1] = GetComponent<CommunicationsManual>();
+        manuals[0] = GetComponent<ProcedureManual>();
+        manuals[1] = GetComponent<OperationsManual>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -93,7 +95,15 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         BUTTON_LISTS[index][0].updateInteractable(curr_manual.getIsPowered());
     }
 
-    //called by ShipManual, CommunicationsManual
+    public void adjustManualLogoTransparency(int index, float a)
+    {
+        Manual curr_manual = (Manual)manuals[index];
+        Color c = curr_manual.manual_logo.GetComponent<UnityEngine.UI.RawImage>().color;
+        c.a = a;
+        curr_manual.manual_logo.GetComponent<UnityEngine.UI.RawImage>().color = c;
+    }
+
+    //called by ProcedureManual, OperationsManual
     public void disableManual(int index, float time)
     {
         if (power_change_coroutine[index] != null)
@@ -102,6 +112,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
             power_change_coroutine[index] = null;
         }
 
+        adjustManualLogoTransparency(index, 0.2f);
         power_change_coroutine[index] = StartCoroutine(switchReturn(index, time));
 
         BUTTON_LISTS[index][0].updateInteractable(false);
@@ -110,14 +121,13 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 
         if (index == 0)
         {
-            GetComponent<ShipManual>().powerSwitch(false, 0);
+            GetComponent<ProcedureManual>().powerSwitch(false, 0);
             target_colliders[0].SetActive(true);
             target_colliders[1].SetActive(false);
-
         }
         else
         {
-            GetComponent<CommunicationsManual>().powerSwitch(false);
+            GetComponent<OperationsManual>().powerSwitch(false);
             target_colliders[2].SetActive(true);
             target_colliders[3].SetActive(false);
         }
@@ -150,6 +160,11 @@ public class ManualOnOff : NetworkBehaviour, IControllable
     {
         float switch_time = SWITCH_TIME;
 
+        if (to_switch_to == true)
+        {
+            adjustManualLogoTransparency(manual_index, 1.0f);
+        }
+
         //flip switch
         while (switch_time > 0)
         {
@@ -171,15 +186,20 @@ public class ManualOnOff : NetworkBehaviour, IControllable
             yield return null;
         }
 
-        if (manual_index == 0) //ShipManual
+        if (to_switch_to == false)
         {
-            GetComponent<ShipManual>().powerSwitch(to_switch_to, msg);
+            adjustManualLogoTransparency(manual_index, 0.2f);
+        }
+
+        if (manual_index == 0) //ProcedureManual
+        {
+            GetComponent<ProcedureManual>().powerSwitch(to_switch_to, msg);
             target_colliders[0].SetActive(!to_switch_to);
             target_colliders[1].SetActive(to_switch_to);
         }
-        else //CommunicationsManual
+        else //OperationsManual
         {
-            GetComponent<CommunicationsManual>().powerSwitch(to_switch_to);
+            GetComponent<OperationsManual>().powerSwitch(to_switch_to);
             target_colliders[2].SetActive(!to_switch_to);
             target_colliders[3].SetActive(to_switch_to);
         }
@@ -205,7 +225,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable
             if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs) && curr_manual.getCurrentlyAnimating() == false)
             {
                 BUTTON_LISTS[manual_index][0].toggle(0.2f);
-                int welcome_message = transform.GetComponent<ShipManual>().pickWelcomeMessage();
+                int welcome_message = transform.GetComponent<ProcedureManual>().pickWelcomeMessage();
                 bool currently_enabled = curr_manual.getCurrentlyEnabled();
 
                 transmitManualPowerChangeRPC(!currently_enabled, welcome_message, manual_index);

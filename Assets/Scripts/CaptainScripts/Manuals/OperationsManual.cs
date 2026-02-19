@@ -1,47 +1,42 @@
 /*
-    ShipManual.cs
-    - Handles enabling/disabling of ship manual
+    OperationsManual.cs
+    - Handles enabling/disabling of operations manual
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/19/2026
 */
 
 using UnityEngine;
 using System.Collections;
 using TMPro;
 
-public class ShipManual : Manual
+public class OperationsManual : Manual
 {
     //CLASS CONSTANTS
-    private static string[] WELCOME_MESSAGES = new string[]
-    {
-        "GOOD MORNING, CAPTAIN",
-        "WELCOME BACK, CAPTAIN",
-        "NICE TO SEE YOU, CAPTAIN"
-    };
     private static float INTRO_TIME = 2.0f;
 
     public void Start()
     {
-        manual_index = 0;
+        manual_index = 1;
     }
 
-    public int pickWelcomeMessage()
+    IEnumerator activateManual()
     {
-        return (Random.Range(0, WELCOME_MESSAGES.Length));
-    }
-    
-    IEnumerator activateManual(int msg)
-    {
-        welcome_screen.transform.GetChild(0).GetComponent<TMP_Text>().SetText("");
+        welcome_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
+        welcome_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
         welcome_screen.SetActive(true);
 
-        for (int i = 0; i < WELCOME_MESSAGES[msg].Length; i++)
+        float animation_time = INTRO_TIME * 0.8f;
+        while (animation_time > 0.0f)
         {
-            welcome_screen.transform.GetChild(0).GetComponent<TMP_Text>().SetText(welcome_screen.transform.GetChild(0).GetComponent<TMP_Text>().text + WELCOME_MESSAGES[msg][i]);
-            yield return new WaitForSeconds((INTRO_TIME * 0.5f) / WELCOME_MESSAGES[msg].Length);
-        }
+            float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
+            animation_time -= dt;
 
-        yield return new WaitForSeconds(INTRO_TIME * 0.5f);
+            welcome_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - (animation_time / (INTRO_TIME * 0.8f));
+            yield return null;
+        }
+        welcome_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("DONE");
+
+        yield return new WaitForSeconds(INTRO_TIME * 0.2f);
 
         welcome_screen.SetActive(false);
         home_screen.SetActive(true);
@@ -56,7 +51,7 @@ public class ShipManual : Manual
         power_on_coroutine = null;
     }
 
-    public void powerSwitch(bool to_switch_to, int msg)
+    public void powerSwitch(bool to_switch_to)
     {
         if (to_switch_to == true)
         {
@@ -64,7 +59,7 @@ public class ShipManual : Manual
             {
                 StopCoroutine(power_on_coroutine);
             }
-            power_on_coroutine = StartCoroutine(activateManual(msg));
+            power_on_coroutine = StartCoroutine(activateManual());
         }
         else
         {

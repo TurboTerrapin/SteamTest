@@ -23,22 +23,23 @@ public class SecondaryScript : MonoBehaviour
     
     public GameObject secondary_info;
 
-    private GameObject position_overlay;
+    private GameObject station_overlay;
     private GameObject left_side;
     private GameObject right_side;
     private GameObject info_overlays;
     private GameObject intro_graphic_overlay;
+    private GameObject station_indicator;
 
     private float displayed_power = 0.0f;
-
     private Coroutine intro_graphic_display_coroutine = null;
 
-    private void Start()
+    private void Awake()
     {
         info_overlays = secondary_info.transform.GetChild(1).gameObject;
-        position_overlay = secondary_info.transform.GetChild(0).gameObject;
-        left_side = position_overlay.transform.GetChild(0).gameObject;
-        right_side = position_overlay.transform.GetChild(1).gameObject;
+        station_overlay = secondary_info.transform.GetChild(0).gameObject;
+        left_side = station_overlay.transform.GetChild(0).gameObject;
+        right_side = station_overlay.transform.GetChild(1).gameObject;
+        station_indicator = secondary_info.transform.GetChild(2).gameObject;
     }
 
     public void toggleSecondaryInfoVisibility(bool active)
@@ -46,14 +47,44 @@ public class SecondaryScript : MonoBehaviour
         secondary_info.SetActive(active);
     }
 
-    public void togglePositionOverlayVisibility(bool active)
+    public void toggleInfoOverlaysVisibility(bool active)
     {
-        position_overlay.SetActive(active);
+        info_overlays.SetActive(active);
+
+    }
+
+    public void toggleStationIndicatorVisibility(bool active)
+    {
+        station_indicator.SetActive(active);
+    }
+
+    public void toggleStationOverlayVisibility(bool active)
+    {
+        station_overlay.SetActive(active);
     }
 
     public void toggleRightSideVisibility(bool active)
     {
         right_side.SetActive(active);
+    }
+
+    //updates station indicator in top right
+    public void updateStationIndicator(int pos)
+    {
+        station_indicator.transform.GetChild(2).gameObject.SetActive(pos >= 0);
+        if (pos == -1)
+        {
+            station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
+            station_indicator.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 0f);
+            station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().SetText("STATION: NONE");
+            return;
+        }
+
+        station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[pos];
+        station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().texture = ReferenceAssistor.Instance.position_icons[pos];
+        station_indicator.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(45f, 0f);
+        station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[pos];
+        station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().SetText("STATION: " + ReferenceAssistor.STATION_NAMES[pos]);
     }
 
     //shows/hides the information on the right side on tab press
