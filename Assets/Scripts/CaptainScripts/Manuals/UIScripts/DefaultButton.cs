@@ -1,15 +1,13 @@
 /*
-    Default.cs
+    DefaultButton.cs
     - Default button
     Contributor(s): Jake Schott
-    Last Updated: 5/18/2025
+    Last Updated: 2/19/2026
 */
 
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public class DefaultButton : ManualButton, IManualButton
 {
@@ -19,30 +17,49 @@ public class DefaultButton : ManualButton, IManualButton
     public Sprite selected;
     public Sprite unselected;
 
-    private Coroutine highlight = null;
+    private Color background_color;
+    private Coroutine highlight_loop_coroutine = null;
 
     IEnumerator highlightLoop()
     {
         GameObject background = selected_indicator.transform.GetChild(0).gameObject;
-        background.GetComponent<UnityEngine.UI.Image>().color = new Color(0f, 0.44f, 0.53f, 0.0f);
+        Color c = background_color;
+        c.a = 0.0f;
+        background.GetComponent<UnityEngine.UI.Image>().color = c;
+        float elapsed_time = 0.0f;
         while (true)
         {
-            for (int i = 0; i <= 1; i++)
+            elapsed_time += Mathf.Min(Time.deltaTime, 1.0f / 30.0f) * FLASH_TIME;
+            float a = Mathf.Lerp(0.0f, 0.5f, Mathf.PingPong(elapsed_time, 1.0f));
+            c.a = a;
+            background.GetComponent<UnityEngine.UI.Image>().color = c;
+
+            yield return null;
+        }
+    }
+
+    private void alphaAdjustment(float a)
+    {
+        Transform[] to_adjust = new Transform[] { transform, selected_indicator.transform };
+        for (int t = 0; t < to_adjust.Length; t++)
+        {
+            Color c = to_adjust[t].GetComponent<UnityEngine.UI.Image>().color;
+            c.a = a;
+            to_adjust[t].GetComponent<UnityEngine.UI.Image>().color = c;
+            for (int i = 0; i < to_adjust[t].childCount; i++)
             {
-                float flash_time = FLASH_TIME * 0.5f;
-                while (flash_time > 0.0f)
+                GameObject go = to_adjust[t].transform.GetChild(i).gameObject;
+                if (go.GetComponent<UnityEngine.UI.Image>() != null)
                 {
-                    float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-                    flash_time -= dt;
-
-                    float alpha = (flash_time / (FLASH_TIME * 0.5f)) * 0.35f;
-                    if (i == 1)
-                    {
-                        alpha = (1.0f - (flash_time / (FLASH_TIME * 0.5f))) * 0.35f;
-                    }
-                    background.GetComponent<UnityEngine.UI.Image>().color = new Color(0f, 0.44f, 0.53f, alpha);
-
-                    yield return null;
+                    c = go.GetComponent<UnityEngine.UI.Image>().color;
+                    c.a = a;
+                    go.GetComponent<UnityEngine.UI.Image>().color = c;
+                }
+                else if (go.GetComponent<TMP_Text>() != null)
+                {
+                    c = go.GetComponent<TMP_Text>().color;
+                    c.a = a;
+                    go.GetComponent<TMP_Text>().color = c;
                 }
             }
         }
@@ -50,23 +67,29 @@ public class DefaultButton : ManualButton, IManualButton
 
     public void select()
     {
+        //get color from the border image
+        background_color = GetComponent<UnityEngine.UI.Image>().color;
+        background_color = new Color(Mathf.Max(0.0f, background_color.r - 0.4f), Mathf.Max(0.0f, background_color.g - 0.4f), Mathf.Max(0.0f, background_color.b - 0.4f), 0.0f);
+
+        alphaAdjustment(1.0f);
         selected_indicator.transform.GetComponent<UnityEngine.UI.Image>().sprite = selected;
         selected_indicator.transform.GetChild(1).GetComponent<TMP_Text>().fontStyle = FontStyles.Bold;
-        if (highlight != null)
+        if (highlight_loop_coroutine != null)
         {
-            StopCoroutine(highlight);
+            StopCoroutine(highlight_loop_coroutine);
         }
-        highlight = StartCoroutine(highlightLoop());
+        highlight_loop_coroutine = StartCoroutine(highlightLoop());
     }
 
     public void deselect()
     {
+        alphaAdjustment(0.2f);
         selected_indicator.transform.GetComponent<UnityEngine.UI.Image>().sprite = unselected;
-        if (highlight != null)
+        if (highlight_loop_coroutine != null)
         {
-            StopCoroutine(highlight);
+            StopCoroutine(highlight_loop_coroutine);
         }
-        selected_indicator.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color(0f, 0.44f, 0.53f, 0.0f);
+        selected_indicator.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = background_color;
         selected_indicator.transform.GetChild(1).GetComponent<TMP_Text>().fontStyle = FontStyles.Normal;
     }
 }
