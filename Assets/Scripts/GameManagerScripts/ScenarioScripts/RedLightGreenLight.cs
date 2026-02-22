@@ -146,6 +146,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     }
     IEnumerator GreenLightState()
     {
+        visualSpectacleLighting.SetGreenLight();
+
         //contract energy pattern
         energyPattern.resizePattern(true, 0.5f);
         if (NetworkManager.Singleton.IsHost)
@@ -168,6 +170,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     IEnumerator RedLightState()
     {
+        visualSpectacleLighting.SetRedLight();
+
         if (cameraShakeCoroutine == null)
         {
             cameraShakeCoroutine = StartCoroutine(CameraShakeState());
@@ -352,8 +356,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         resetCoroutines();
 
-        visualSpectacleLighting.SetRedLight();
-
         redLightCoroutine = StartCoroutine(RedLightState());
     }
 
@@ -368,8 +370,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         energyPattern.updateColors(getRingColorsAsColor(), getCenterColorAsColor(), 1.0f);
 
         resetCoroutines();
-
-        visualSpectacleLighting.SetGreenLight();
 
         greenLightCoroutine = StartCoroutine(GreenLightState());
     }

@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 69836558}
   - component: {fileID: 69836560}
   - component: {fileID: 69836559}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SmallCenterRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -215,7 +215,9 @@ GameObject:
   m_Component:
   - component: {fileID: 216705614}
   - component: {fileID: 216705615}
-  m_Layer: 0
+  - component: {fileID: 216705616}
+  - component: {fileID: 216705617}
+  m_Layer: 8
   m_Name: VisualSpectacle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -260,6 +262,56 @@ MonoBehaviour:
   LowerCenterRing: {fileID: 785821673}
   litRed: {fileID: 2100000, guid: 2021fad35c27062489d7ad9f6ac32f93, type: 2}
   litGreen: {fileID: 2100000, guid: 83c7156355581fc45ace5f41f5036d34, type: 2}
+--- !u!136 &216705616
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216705613}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 650
+  m_Height: 3000
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &216705617
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216705613}
+  serializedVersion: 4
+  m_Mass: 1e+9
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 116
+  m_CollisionDetection: 1
 --- !u!1 &227848481
 GameObject:
   m_ObjectHideFlags: 0
@@ -269,7 +321,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 227848482}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Center
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -307,7 +359,7 @@ GameObject:
   - component: {fileID: 328850693}
   - component: {fileID: 328850695}
   - component: {fileID: 328850694}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SmallRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -394,7 +446,7 @@ GameObject:
   - component: {fileID: 390327866}
   - component: {fileID: 390327865}
   - component: {fileID: 390327864}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -501,7 +553,7 @@ GameObject:
   - component: {fileID: 476781265}
   - component: {fileID: 476781267}
   - component: {fileID: 476781266}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Area Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -620,7 +672,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 498143387}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: RingSection1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -654,7 +706,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 730865982}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: RingSection2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -691,7 +743,7 @@ GameObject:
   - component: {fileID: 781896238}
   - component: {fileID: 781896237}
   - component: {fileID: 781896236}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: LargeCenterRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -826,7 +878,7 @@ GameObject:
   - component: {fileID: 785821676}
   - component: {fileID: 785821675}
   - component: {fileID: 785821678}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: LargeRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -971,7 +1023,7 @@ GameObject:
   - component: {fileID: 889496227}
   - component: {fileID: 889496229}
   - component: {fileID: 889496228}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SmallRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1146,7 +1198,7 @@ GameObject:
   - component: {fileID: 1027529072}
   - component: {fileID: 1027529071}
   - component: {fileID: 1027529074}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: LargeRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1292,7 +1344,7 @@ GameObject:
   - component: {fileID: 1473594618}
   - component: {fileID: 1473594617}
   - component: {fileID: 1473594616}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Beam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1401,7 +1453,7 @@ GameObject:
   - component: {fileID: 1536366733}
   - component: {fileID: 1536366735}
   - component: {fileID: 1536366734}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SmallRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1700,6 +1752,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   asteroid: {fileID: 568602832003820599, guid: 1d570890f22f58d40b55df1b04998e33, type: 3}
+  visual_spectacle: {fileID: 216705614}
 --- !u!1 &1838082159
 GameObject:
   m_ObjectHideFlags: 0
@@ -1712,7 +1765,7 @@ GameObject:
   - component: {fileID: 1838082162}
   - component: {fileID: 1838082161}
   - component: {fileID: 1838082163}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TiltedRing1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1845,7 +1898,7 @@ GameObject:
   - component: {fileID: 1973936420}
   - component: {fileID: 1973936422}
   - component: {fileID: 1973936421}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SmallRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1932,7 +1985,7 @@ GameObject:
   - component: {fileID: 1992079545}
   - component: {fileID: 1992079544}
   - component: {fileID: 1992079546}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TiltedRing2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
