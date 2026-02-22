@@ -2,56 +2,57 @@
     PatternData.cs
     - Holds information about a specific energy pattern (ex. colors, number of rings, shapes, etc.)
     Contributor(s): Jake Schott
-    Last Updated: 8/16/2025
+    Last Updated: 2/21/2026
 */
 
 using System.Collections.Generic;
-using UnityEngine;
 
 public class PatternData
 {
-    private Texture center;
-    private Color center_color;
+    //center
+    private int center_texture;
+    private int center_color;
     private float center_speed;
 
+    //rings
     private int number_of_rings = 0;
-    private List<Color> ring_colors = null;
-    private List<Texture> ring_textures = null;
-    private List<bool> ring_is_solid = null;
+    private List<int> ring_colors = null;
+    private List<int> ring_textures = null;
+    private List<bool> ring_is_dotted = null;
     private List<float> ring_speeds = null;
 
-    public void setCenter(Texture c, Color c_color, float speed)
+    public void setCenter(int c, int c_color, float speed)
     {
-        center = c;
+        center_texture = c;
         center_color = c_color;
         center_speed = speed;
     }
 
-    public void setCenterColor(Color c_color)
+    public void setCenterColor(int c_color)
     {
         center_color = c_color;
     }
 
-    public void setRings(int num, List<Color> colors, List<Texture> textures, List<bool> is_solid, List<float> speeds)
+    public void setRings(int num, List<int> colors, List<int> textures, List<bool> is_dotted, List<float> speeds)
     {
         number_of_rings = num;
         ring_colors = colors;
         ring_textures = textures;
         ring_speeds = speeds;
-        ring_is_solid = is_solid;
+        ring_is_dotted = is_dotted;
     }
 
-    public void setRingColors(List<Color> colors)
+    public void setRingColors(List<int> colors)
     {
         ring_colors = colors;
     }
 
-    public Texture getCenterTexture()
+    public int getCenterTexture()
     {
-        return center;
+        return center_texture;
     }
 
-    public Color getCenterColor()
+    public int getCenterColor()
     {
         return center_color;
     }
@@ -66,19 +67,19 @@ public class PatternData
         return number_of_rings;
     }
 
-    public List<Color> getRingColors()
+    public List<int> getRingColors()
     {
         return ring_colors;
     }
 
-    public List<Texture> getRingTextures()
+    public List<int> getRingTextures()
     {
         return ring_textures;
     }
 
-    public List<bool> getRingSolids()
+    public List<bool> getRingIsDotted()
     {
-        return ring_is_solid;
+        return ring_is_dotted;
     }
 
     public List<float> getRingSpeeds()

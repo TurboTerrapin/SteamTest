@@ -55,6 +55,12 @@ public class DefaultButton : ManualButton, IManualButton
                     c.a = a;
                     go.GetComponent<UnityEngine.UI.Image>().color = c;
                 }
+                else if (go.GetComponent<UnityEngine.UI.RawImage>() != null)
+                {
+                    c = go.GetComponent<UnityEngine.UI.RawImage>().color;
+                    c.a = a;
+                    go.GetComponent<UnityEngine.UI.RawImage>().color = c;
+                }
                 else if (go.GetComponent<TMP_Text>() != null)
                 {
                     c = go.GetComponent<TMP_Text>().color;

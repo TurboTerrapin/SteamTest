@@ -107,6 +107,19 @@ public class ScenarioManager : NetworkBehaviour
         setNewPathsRPC(entrance_position, entrance_rotation, exit_position, exit_rotation);
     }
 
+    //called when all players have loaded in at the very start
+    public void intializeScenarioDatabase()
+    {
+        foreach (Component c in GetComponents<IScenarioInitialization>())
+        {
+            if (c as IScenarioInitialization != null)
+            {
+                IScenarioInitialization isi = (IScenarioInitialization)c;
+                isi.initializeDatabaseInformation();
+            }
+        }
+    }
+
     //called when start of scenario transition
     public string loadNewScenario()
     {
@@ -114,13 +127,13 @@ public class ScenarioManager : NetworkBehaviour
         scenario_number += 1;
         if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
         {
-            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
-            return "Cheeseballs";
+            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+            return "RedLightGreenLight";
         }
         else
         {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-            return "RedLightGreenLight";
+            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
+            return "Cheeseballs";
         }
 
         //if (SceneManager.GetActiveScene().name == "Cheeseballs")

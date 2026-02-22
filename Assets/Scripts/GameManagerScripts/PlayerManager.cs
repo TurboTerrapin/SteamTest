@@ -154,6 +154,7 @@ public class PlayerManager : NetworkBehaviour
         players_ready = 0;
         if (NetworkManager.Singleton.IsHost == true)
         {
+            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().intializeScenarioDatabase();
             GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().loadNewScenario();
         }
     }

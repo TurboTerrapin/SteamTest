@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 2/9/2026
+    Last Updated: 2/22/2026
 */
 
 using System.Collections;
@@ -21,7 +21,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
 
     private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Enables/disables the energy pattern viewer used to analyze spatial anomalies." };
-    private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE", "SHIFT DOWN", "SHIFT UP" };
+    private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[1] { new List<Button>() };
 
@@ -29,6 +29,11 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     public GameObject energy_pattern_display;
     public GameObject energy_pattern_signal_display;
     public GameObject enabled_indicator;
+
+    public List<Texture> center_options;
+    public List<Texture> ring_options;
+    public List<Texture> dot_options;
+    public List<Color> color_options;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -107,7 +112,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     }
 
     //updates the colors in the PatternData and corresponding visualizer
-    public void updateColors(List<Color> new_ring_colors, Color new_center_color, float anim_time)
+    public void updateColors(List<int> new_ring_colors, int new_center_color, float anim_time)
     {
         energy_pattern_display.GetComponent<PatternVisualizer>().changeColors(new_ring_colors, new_center_color, anim_time);
     }
