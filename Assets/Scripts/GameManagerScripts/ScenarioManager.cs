@@ -55,6 +55,7 @@ public class ScenarioManager : NetworkBehaviour
     private bool endpoint_reached = false;
     private bool game_over = false;
     private int scenario_number = 0;
+    private int game_difficulty = -1; //assigned by LoadHandler, goes easy, medium, hard, expert (0-3)
 
     //entrance/exit channel info
     private Vector2 entrance_position;
@@ -62,7 +63,7 @@ public class ScenarioManager : NetworkBehaviour
     private Vector2 exit_position;
     private float exit_rotation;
 
-    private void Start()
+    private void Awake()
     {
         scenario_countdown = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioCountdown>();
         scenario_map = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
@@ -70,6 +71,12 @@ public class ScenarioManager : NetworkBehaviour
         power_control = ReferenceAssistor.Instance.module_handlers[4].GetComponent<PowerControl>();
         lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
         background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
+        game_difficulty = GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty();
+    }
+
+    public int getDifficulty()
+    {
+        return game_difficulty;
     }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
@@ -125,7 +132,7 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
-        if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
+        if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
             return "RedLightGreenLight";
@@ -199,7 +206,7 @@ public class ScenarioManager : NetworkBehaviour
 
     IEnumerator scenarioCountdown()
     {
-        int time_remaining = COUNTDOWN_TIME[GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty()];
+        int time_remaining = COUNTDOWN_TIME[getDifficulty()];
         countdownUpdateRPC(time_remaining);
         while (time_remaining > 0)
         {

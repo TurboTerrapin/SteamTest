@@ -117,6 +117,12 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
         energy_pattern_display.GetComponent<PatternVisualizer>().changeColors(new_ring_colors, new_center_color, anim_time);
     }
 
+    //updates the colors in the PatternData and corresponding visualizer
+    public void updateColors(int[] new_ring_colors, int new_center_color, float anim_time)
+    {
+        energy_pattern_display.GetComponent<PatternVisualizer>().changeColors(new_ring_colors, new_center_color, anim_time);
+    }
+
     //resizes the pattern in the corresponding index to either contracted (true) or expanded (false) in time_interval time
     public void resizePattern(bool shrink, float time_interval)
     {

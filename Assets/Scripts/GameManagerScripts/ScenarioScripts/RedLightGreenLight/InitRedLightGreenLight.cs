@@ -2,7 +2,7 @@
     InitRedLightGreenLight
     - Used for initializing permanent information on RedLightGreenLight (code options)
     Contributor(s): Jake Schott
-    Last Updated: 2/22/2026
+    Last Updated: 2/23/2026
 */
 
 using Unity.Netcode;
@@ -12,6 +12,7 @@ using UnityEngine;
 public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
 {
     public static int SCENARIO_DATABASE_INDEX = 0;
+    private static int[] POSSIBLE_CODE_CHARACTERS = new int[] { 4, 8, 10, 12 }; //corresponds to easy, medium, hard, expert difficulty
 
     private GameObject scenarioDatabaseRLGL;
     private int[] centerColors = new int[8];
@@ -25,13 +26,14 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
 
     public void initializeDatabaseInformation()
     {
+        int num_possible_characters = POSSIBLE_CODE_CHARACTERS[GetComponent<ScenarioManager>().getDifficulty()];
         for (int i = 0; i < 8; i++)
         {
             int[] indices = new int[8];
             for (int x = 0; x < 8; x++)
             {
                 List<int> possibleSymbols = new List<int>();
-                for (int o = 0; o < 12; o++)
+                for (int o = 0; o < num_possible_characters; o++)
                 {
                     if (x < 2)
                     {

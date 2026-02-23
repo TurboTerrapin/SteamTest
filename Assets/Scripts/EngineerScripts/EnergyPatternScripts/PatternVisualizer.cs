@@ -231,6 +231,22 @@ public class PatternVisualizer : MonoBehaviour
         color_change_coroutine = StartCoroutine(patternColorChange(new_ring_colors, new_center_color, anim_time));
     }
 
+    public void changeColors(int[] new_ring_colors, int new_center_color, float anim_time)
+    {
+        if (color_change_coroutine != null)
+        {
+            StopCoroutine(color_change_coroutine);
+        }
+
+        List<int> temp_colors = new List<int>();
+        for (int i = 0; i < new_ring_colors.Length; i++)
+        {
+            temp_colors.Add(new_ring_colors[i]);
+        }
+
+        color_change_coroutine = StartCoroutine(patternColorChange(temp_colors, new_center_color, anim_time));
+    }
+
     public void contractPattern(float time_interval)
     {
         if (size_change_coroutine != null)

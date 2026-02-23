@@ -42,6 +42,26 @@ public class PatternData
         ring_is_dotted = is_dotted;
     }
 
+    public void setRings(int num, int[] colors, int[] textures, bool[] is_dotted, float[] speeds)
+    {
+        number_of_rings = num;
+        List<int> rc = new List<int>();
+        List<int> rt = new List<int>();
+        List<bool> rid = new List<bool>();
+        List<float> s = new List<float>();
+        for (int i = 0; i < num; i++)
+        {
+            rc.Add(colors[i]);
+            rt.Add(textures[i]);
+            rid.Add(is_dotted[i]);
+            s.Add(speeds[i]);
+        }
+        ring_colors = rc;
+        ring_textures = rt;
+        ring_is_dotted = rid;
+        ring_speeds = s;
+    }
+
     public void setRingColors(List<int> colors)
     {
         ring_colors = colors;

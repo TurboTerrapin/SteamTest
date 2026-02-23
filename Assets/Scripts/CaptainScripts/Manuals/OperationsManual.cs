@@ -12,7 +12,7 @@ using TMPro;
 public class OperationsManual : Manual
 {
     //CLASS CONSTANTS
-    private static float INTRO_TIME = 2.0f;
+    private static float INTRO_TIME = 1.0f;
 
     public void Start()
     {

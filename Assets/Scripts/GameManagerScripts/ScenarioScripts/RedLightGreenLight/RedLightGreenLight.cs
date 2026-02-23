@@ -21,8 +21,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 {
     //CLASS CONSTANTS
     private static string DEATH_MESSAGE = "Stolen ship SEACC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
+    private static float[] GREEN_LIGHT_PERIOD_TIMES = new float[] { 40.0f, 35.0f, 30.0f, 20.0f };
     private static float CENTER_SPEED = 50.0f;
-    private static List<float> RING_SPEEDS = new List<float>() { 25.0f, 60.0f, 40.0f, 35.0f };
+    private static float[] RING_SPEEDS = new float[] { 25.0f, 60.0f, 40.0f, 75.0f };
 
     private GameObject playerPrefab;
     private Vector3 originalCameraPosition;
@@ -39,18 +40,18 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private GameObject spaceship;
     private Transform scenarioDatabaseRLGL;
 
-    private int centerIndex = -1; //corresponds to InitRedLightGreenLight
-
     //--ENERGY PATTERN INFORMATION--//
+    private int centerIndex = -1; //corresponds to InitRedLightGreenLight/scenarioDatabaseRLGL
     private int[] currColors = new int[4] { 0, 0, 0, 0 }; //0 is blue, 1 is purple, 2 is orange, 3 is green
+    private bool[] currIsDotted = new bool[4] { false, false, false, false };
     private int numPurple = 0;
-    private int numGreen = 0;
+    private int numOrange = 0;
     private int numDotted = 0;
     //-------------------------//
 
+    //randomizes ring color
     private void randomizeColors()
     {
-        currColors[0] = scenarioManager.GetComponent<InitRedLightGreenLight>().getCenterColor(Random.Range(0, 7));
         for (int i = 0; i < 4; i++)
         {
             int newColor = Random.Range(0, 4);
@@ -58,19 +59,27 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         }
     }
 
-    private void updateColorInfo()
+    private void updateRelevantPatternDescriptors()
     {
         numPurple = 0;
-        numGreen = 0;
+        numOrange = 0;
+        numDotted = 0;
         for (int i = 0; i < 4; i++)
         {
+            //check if dotted
+            if (currIsDotted[i] == true)
+            {
+                numDotted++;
+            }
+
+            //check colors
             if (currColors[i] == 1)
             {
                 numPurple++;
             }
-            else if (currColors[i] == 3)
+            else if (currColors[i] == 2)
             {
-                numGreen++;
+                numOrange++;
             }
         }
     }
@@ -133,9 +142,10 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         //contract energy pattern
         energyPattern.resizePattern(true, 0.5f);
-        if (NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost == true)
         {
-            yield return new WaitForSeconds(Random.Range(15.0f, 30.0f));
+            float greenLightMinimumTime = GREEN_LIGHT_PERIOD_TIMES[scenarioManager.GetComponent<ScenarioManager>().getDifficulty()];
+            yield return new WaitForSeconds(Random.Range(greenLightMinimumTime, greenLightMinimumTime + 5.0f));
             endGreenLightStateRPC(Random.Range(3.0f, 6.0f));
         }
     }
@@ -158,7 +168,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             cameraShakeCoroutine = StartCoroutine(CameraShakeState());
         }
 
-        if (NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost == true)
         {
             while (true)
             {
@@ -206,10 +216,10 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     public void handleTransmission(int frequency, List<int> codeIndexes, List<int> codeColors, List<int> codeIsNumeric)
     {
-        if (NetworkManager.Singleton.IsHost && greenLightCoroutine == null)
+        if (NetworkManager.Singleton.IsHost == true && greenLightCoroutine == null)
         {
             bool successfulTransmission = isFriendlyMessage(codeIndexes, codeColors, codeIsNumeric);
-            if (successfulTransmission)
+            if (successfulTransmission == true)
             {
                 randomizeColors();
                 string cc = DataConverter.arrayToString(currColors);
@@ -228,34 +238,41 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             return false;
         }
 
-        int[] friendlyMessageIndexes = { 5, 7, 11, 5, 3, 8, 10, 4 };
-
-        //if 2+ green, all triangles become circles
-        if (numGreen >= 2)
+        int[] friendlyMessageIndexes = new int[8];
+        int[] correspondingCode = scenarioDatabaseRLGL.transform.GetChild(centerIndex).GetComponent<UniversalCommunicatorCodeData>().getCodeIndices();
+        for (int i = 0; i < 8; i++)
         {
-            friendlyMessageIndexes[2] = 1;
-            friendlyMessageIndexes[6] = 1;
+            friendlyMessageIndexes[i] = correspondingCode[i];
         }
 
-        //if 1+ purple, flip the order
+        //if 1+ purple, swap first and last
         if (numPurple >= 1)
         {
-            int[] reversedIndexes = new int[8];
+            int last = friendlyMessageIndexes[7];
+            friendlyMessageIndexes[7] = friendlyMessageIndexes[0];
+            friendlyMessageIndexes[0] = last;
+        }
+
+        //if 2+ dotted, replace diamonds with circle
+        if (numDotted >= 2)
+        {
             for (int i = 0; i < 8; i++)
             {
-                reversedIndexes[i] = friendlyMessageIndexes[7 - i];
+                if (friendlyMessageIndexes[i] == 3)
+                {
+                    friendlyMessageIndexes[i] = 1;
+                }
             }
-            friendlyMessageIndexes = reversedIndexes;
         }
 
         bool toReturn = true;
 
         for (int i = 0; i < 8; i++)
         {
-            //if 2+ dotted rings, make sure is orange
-            if (numDotted >= 2)
+            //if 2+ orange rings, make sure is orange
+            if (numOrange >= 2)
             {
-                if (cc[i] != 3)
+                if (cc[i] != 2)
                 {
                     toReturn = false;
                 }
@@ -302,31 +319,18 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private void patternInitializationRPC(int centerOption, string stringRingColors, string stringRingTextures, string stringRingIsDotted)
     {
         centerIndex = centerOption;
-        int[] currColors = DataConverter.stringToArray(stringRingColors);
-        int[] currTextures = DataConverter.stringToArray(stringRingTextures);
+        currColors = DataConverter.stringToArray(stringRingColors);
+        int[] tempTextures = DataConverter.stringToArray(stringRingTextures);
         int[] tempIsDotted = DataConverter.stringToArray(stringRingIsDotted);
-
-        List<int> tempColors = new List<int>();
-        List<int> tempTextures = new List<int>();
-        List<bool> ringIsDotted= new List<bool>();
-        numDotted = 0;
         for (int i = 0; i < 4; i++)
         {
-            tempColors.Add(currColors[i]);
-            tempTextures.Add(currTextures[i]);
-            ringIsDotted.Add(tempIsDotted[i] == 1);
-            if (ringIsDotted[i] == true)
-            {
-                Debug.Log(tempTextures[i]);
-                numDotted++;
-            }
+            currIsDotted[i] = (tempIsDotted[i] == 1);
         }
-
-        updateColorInfo();
+        updateRelevantPatternDescriptors();
 
         PatternData RLGLpattern = new PatternData();
         RLGLpattern.setCenter(centerOption, scenarioManager.GetComponent<InitRedLightGreenLight>().getCenterColor(centerOption), CENTER_SPEED);
-        RLGLpattern.setRings(4, tempColors, tempTextures, ringIsDotted, RING_SPEEDS);
+        RLGLpattern.setRings(4, currColors, tempTextures, currIsDotted, RING_SPEEDS);
 
         energyPattern.setPattern(RLGLpattern);
     }
@@ -344,16 +348,11 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     [Rpc(SendTo.Everyone)]
     private void enterGreenLightStateRPC(string stringNewColors)
     {
-        int[] currColors = DataConverter.stringToArray(stringNewColors);
-        List<int> tempColors = new List<int>();
-        for (int i = 0; i < currColors.Length; i++)
-        {
-            tempColors.Add(currColors[i]);
-        }
+        currColors = DataConverter.stringToArray(stringNewColors);
 
-        updateColorInfo();
+        updateRelevantPatternDescriptors();
 
-        energyPattern.updateColors(tempColors, scenarioManager.GetComponent<InitRedLightGreenLight>().getCenterColor(centerIndex), 1.0f);
+        energyPattern.updateColors(currColors, scenarioManager.GetComponent<InitRedLightGreenLight>().getCenterColor(centerIndex), 1.0f);
 
         resetCoroutines();
 
@@ -363,9 +362,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     }
 
     [Rpc(SendTo.Everyone)]
-    private void endGreenLightStateRPC(float contraction_time)
+    private void endGreenLightStateRPC(float contractionTime)
     {
         resetCoroutines();
-        greenLightCoroutine = StartCoroutine(EndGreenLight(contraction_time));
+        greenLightCoroutine = StartCoroutine(EndGreenLight(contractionTime));
     }
 }

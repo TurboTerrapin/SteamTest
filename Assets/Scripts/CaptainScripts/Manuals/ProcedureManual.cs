@@ -18,7 +18,7 @@ public class ProcedureManual : Manual
         "WELCOME BACK, CAPTAIN",
         "NICE TO SEE YOU, CAPTAIN"
     };
-    private static float INTRO_TIME = 2.0f;
+    private static float INTRO_TIME = 1.0f;
 
     public void Start()
     {

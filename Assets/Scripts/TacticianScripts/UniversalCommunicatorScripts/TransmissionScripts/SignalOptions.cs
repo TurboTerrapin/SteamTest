@@ -115,7 +115,7 @@ public class SignalOptions : NetworkBehaviour, IControllable
         {
             if (transmission_handler.isTransmitting() == false)
             {
-                transmission_handler.transmitSignal(ray_target_index); //handles the transmission stuff
+                transmission_handler.transmitSignal(index); //handles the transmission stuff
             }
         }
 
