@@ -41,7 +41,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     private float power = 0.0f;
 
     private static HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     private void Start()
     {
         tractor_beam_options = GetComponent<TractorBeamOptions>();
@@ -60,9 +60,13 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     {
         return hud_info;
     }
-    public Transform getIKTarget()
+    public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
     }
     private void displayAdjustment()
     {

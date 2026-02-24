@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
 public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -41,7 +42,7 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -55,11 +56,14 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     {
         return hud_info;
     }
-    public Transform getIKTarget()
+    public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
-
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
     public float getSteeringValue()
     {
         return steering_input;

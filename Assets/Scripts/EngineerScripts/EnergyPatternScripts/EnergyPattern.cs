@@ -10,8 +10,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
-public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
+public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f; //how long it takes to turn on/off the energy pattern display
@@ -29,6 +30,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     public GameObject energy_pattern_display;
     public GameObject energy_pattern_signal_display;
     public GameObject enabled_indicator;
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -39,7 +41,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     private Coroutine energy_pattern_power_coroutine = null;
 
     private static HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
@@ -53,7 +55,14 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
     private void handlePowerConsumptionChange()
     {
         if (display_enabled == true)

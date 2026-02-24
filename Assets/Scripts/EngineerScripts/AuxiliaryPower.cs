@@ -11,8 +11,9 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
-public class AuxiliaryPower : NetworkBehaviour, IControllable
+public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float LEVER_PULL_TIME = 0.5f;
@@ -27,6 +28,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
     public GameObject auxiliary_power_lever;
     public GameObject auxiliary_power_display;
     public List<GameObject> auxiliary_power_arrows = null;
+    public GameObject IK_target;
 
     private UnityEngine.UI.RawImage auxiliary_power_outer_circle;
     private UnityEngine.UI.Image auxiliary_power_fill_circle;
@@ -38,7 +40,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
     private Coroutine auxiliary_power_activation_coroutine = null;
 
     private static HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     private void Start()
     {
         auxiliary_power_outer_circle = auxiliary_power_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>();
@@ -55,7 +57,14 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
     public void resetAuxiliaryPower()
     {
         if (auxiliary_power_activation_coroutine != null)
@@ -71,7 +80,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
         }
 
         //set lever to default position
-        auxiliary_power_lever.transform.localRotation = Quaternion.Euler(-84.0f, -45.0f, -90.0f);
+        auxiliary_power_lever.transform.localRotation = Quaternion.Euler(-84.0f, -45.0f, 90.0f);
 
         //turn blue
         auxiliary_power_fill_circle.fillAmount = 1.0f;
@@ -149,7 +158,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            auxiliary_power_lever.transform.localRotation = Quaternion.Euler(Mathf.Lerp(-34.0f, -84.0f, anim_time / LEVER_PULL_TIME), -45.0f, -90.0f);
+            auxiliary_power_lever.transform.localRotation = Quaternion.Euler(Mathf.Lerp(-34.0f, -84.0f, anim_time / LEVER_PULL_TIME), -45.0f, 90.0f);
 
             yield return null;
         }

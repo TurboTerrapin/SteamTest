@@ -37,7 +37,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     private Coroutine player_notifier_coroutine = null;
 
     private static HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -49,10 +49,14 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 
         hud_info.setInfo(INFO_MESSAGE);
     }
-
-    public Transform getIKTarget()
+    public Transform getIKTarget(GameObject current_target)
     {
-        return IK_targets[0].transform;
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type; 
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)

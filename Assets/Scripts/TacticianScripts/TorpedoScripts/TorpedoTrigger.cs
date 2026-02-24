@@ -10,8 +10,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
-public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
+public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     public TorpedoLauncher torpedoLauncher;
 
@@ -30,6 +31,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     public GameObject trigger_base;
     public GameObject trigger_green_light;
     public GameObject trigger_red_light;
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private float trigger_percentage = 0.0f;
@@ -41,7 +43,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -55,6 +57,14 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
     }
     private void displayAdjustment()
     {

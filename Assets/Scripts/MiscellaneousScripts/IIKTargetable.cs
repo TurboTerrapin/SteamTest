@@ -10,5 +10,6 @@ using UnityEngine;
 using System.Collections.Generic;
 public interface IIKTargetable
 {
-    public Transform getIKTarget();
+    public Transform getIKTarget(GameObject current_target);
+    public AnimatorHandler.HandInteractionType getHandInteractionType();
 }

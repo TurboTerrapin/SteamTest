@@ -1,5 +1,6 @@
 //using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 using static UnityEngine.Rendering.DebugUI.Table;
 
 public class AnimationController : MonoBehaviour
@@ -60,6 +61,10 @@ public class AnimationController : MonoBehaviour
     {
         myAnimatorHandler.setRightArmIKRotation(rot);
     }
+    public void setRightArmIKTransform(Transform transform)
+    {
+        myAnimatorHandler.setRightArmIKTransform(transform);
+    }
     public void setLeftArmIKPosition(Vector3 pos)
     {
         myAnimatorHandler.setLeftArmIKPosition(pos);
@@ -67,6 +72,10 @@ public class AnimationController : MonoBehaviour
     public void setLeftArmIKRotation(Quaternion rot)
     {
         myAnimatorHandler.setLeftArmIKRotation(rot);
+    }
+    public void setLeftArmIKTransform(Transform transform)
+    {
+        myAnimatorHandler.setLeftArmIKTransform(transform);
     }
     public void setHeadIKPosition(Vector3 pos)
     {
@@ -103,6 +112,14 @@ public class AnimationController : MonoBehaviour
         myAnimatorHandler.setCharacterRotationUp(rot);
     }
 
+    public void setAnimatorLayerWeight(int layer, float weight)
+    {
+        myAnimator.SetLayerWeight(layer, weight);
+    }
+    public void setAnimatorLayerWeight(string layerName, float weight)
+    {
+        myAnimator.SetLayerWeight(myAnimator.GetLayerIndex(layerName), weight);
+    }
 
     public void setAnimatorBool(string name, bool value)
     {
@@ -115,6 +132,10 @@ public class AnimationController : MonoBehaviour
     public void setAnimatorInteger(string name, int value)
     {
         myAnimator.SetInteger(name, value);
+    }
+    public void setHandInteractionType(HandInteractionType handInteractionType)
+    {
+        myAnimator.SetInteger("HandInteractionType", (int)handInteractionType);
     }
 
     public void setPlayerRotationLock(bool value)

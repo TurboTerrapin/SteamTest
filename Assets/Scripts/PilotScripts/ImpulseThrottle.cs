@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
 public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -41,7 +42,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     private void Start()
     {
         engine_monitoring = GetComponent<EngineMonitoring>();
@@ -60,11 +61,14 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         return hud_info;
     }
 
-    public Transform getIKTarget()
+    public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
-
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
     public void adjustInertialDampenerModifier(float new_modifier)
     {
         inertial_dampener_modifier = new_modifier;

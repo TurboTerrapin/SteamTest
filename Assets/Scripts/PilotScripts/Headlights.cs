@@ -41,7 +41,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
-
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME, true);
@@ -57,9 +57,13 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     {
         return hud_info;
     }
-    public Transform getIKTarget()
+    public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
     }
     private void setHeadlights(float a, float range, float scale)
     {

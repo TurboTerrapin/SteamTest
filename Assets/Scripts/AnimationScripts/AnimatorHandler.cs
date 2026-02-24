@@ -13,7 +13,11 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class AnimatorHandler : MonoBehaviour
 {
-    protected Animator animator;
+    [SerializeField]
+    private Animator myAnimator = null;
+
+
+    public enum HandInteractionType { Grasp, Pinch, Press}
 
     [SerializeField]
     private bool ikActive = true;
@@ -32,8 +36,8 @@ public class AnimatorHandler : MonoBehaviour
 
     void Start()
     {
-        animator = GetComponent<Animator>();
-        animator.applyRootMotion = true;
+        myAnimator = GetComponent<Animator>();
+        myAnimator.applyRootMotion = true;
     }
 
     public void setIKActive(bool value)
@@ -64,6 +68,10 @@ public class AnimatorHandler : MonoBehaviour
     {
         rightHandObj.rotation = rot;
     }
+    public void setRightArmIKTransform(Transform transform)
+    {
+        rightHandObj = transform;
+    }
 
     public void setLeftArmIKPosition(Vector3 pos)
     {
@@ -74,11 +82,31 @@ public class AnimatorHandler : MonoBehaviour
     {
         leftHandObj.rotation = rot;
     }
+    public void setLeftArmIKTransform(Transform transform)
+    {
+        leftHandObj = transform;
+    }
 
     public void setHeadIKPosition(Vector3 pos)
     {
         lookObj.position = pos;
     }
+
+    public void setHandInteractionType(HandInteractionType handInteractionType)
+    {
+        myAnimator.SetInteger("HandInteractionType", (int)handInteractionType);
+    }
+
+
+    public void setAnimatorLayerWeight(int layer, float weight)
+    {
+        myAnimator.SetLayerWeight(layer, weight);
+    }
+    public void setAnimatorLayerWeight(string layerName, float weight)
+    {
+        myAnimator.SetLayerWeight(myAnimator.GetLayerIndex(layerName), weight);
+    }
+
 
     public void onSitAnimationEnd()
     {
@@ -102,14 +130,14 @@ public class AnimatorHandler : MonoBehaviour
     {
         if (transform.parent.GetComponent<NetworkObject>().IsOwner == true)
         {
-            if (animator.GetInteger("Seat") == 3)
+            if (myAnimator.GetInteger("Seat") == 3)
             {
                 transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
             }
             else
             {
-                animator.applyRootMotion = false;
-                animator.StopPlayback();
+                myAnimator.applyRootMotion = false;
+                myAnimator.StopPlayback();
 
                 Vector3 char_position = transform.position;
                 //transform.parent.position = char_position + new Vector3(0.0f, -0.12f, 0.0f);
@@ -134,17 +162,18 @@ public class AnimatorHandler : MonoBehaviour
             yield return null;
         }
 
-        animator.SetBool("GettingUp", false);
-        animator.SetBool("SittingDown", false);
+        myAnimator.SetBool("GettingUp", false);
+        myAnimator.SetBool("SittingDown", false);
         PrimaryScript.Instance.relinquishPosition();
     }
+    
 
     private Vector3 currentR;
     private Vector3 currentL;
     //a callback for calculating IK
     void OnAnimatorIK()
     {
-        if (!animator) return;
+        if (!myAnimator) return;
 
         //if the IK is active, set the position and rotation directly to the goal.
         if (!ikActive) return;
@@ -154,13 +183,13 @@ public class AnimatorHandler : MonoBehaviour
             // Set the look target position, if one has been assigned
             if (lookObj != null)
             {
-                animator.SetLookAtWeight(1);
-                animator.SetLookAtPosition(lookObj.position);
+                myAnimator.SetLookAtWeight(1);
+                myAnimator.SetLookAtPosition(lookObj.position);
             }
         }
         else
         {
-            animator.SetLookAtWeight(0);
+            myAnimator.SetLookAtWeight(0);
         }
 
         if (ikRightArm)
@@ -168,27 +197,27 @@ public class AnimatorHandler : MonoBehaviour
             // Set the right hand target position and rotation, if one has been assigned
             if (rightHandObj != null)
             {
-                animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
-                animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
-                //animator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
+                myAnimator.SetIKPositionWeight(AvatarIKGoal.RightHand, 1);
+                myAnimator.SetIKRotationWeight(AvatarIKGoal.RightHand, 1);
+                //myAnimator.SetIKPosition(AvatarIKGoal.RightHand, rightHandObj.position);
 
                 //Testing Lerp
-                Vector3 currentPos = animator.GetIKPosition(AvatarIKGoal.RightHand);
+                Vector3 currentPos = myAnimator.GetIKPosition(AvatarIKGoal.RightHand);
                 Vector3 targetPos = rightHandObj.position;
 
                 currentR = Vector3.Lerp(currentR, targetPos, Time.deltaTime * 5f);
 
-                animator.SetIKPosition(AvatarIKGoal.RightHand, currentR);
+                myAnimator.SetIKPosition(AvatarIKGoal.RightHand, currentR);
 
                 
-                animator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
+                myAnimator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
             }
         }
         //if the IK is not active, set the position and rotation of the hand back to the original position
         else
         {
-            animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
-            animator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
+            myAnimator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+            myAnimator.SetIKRotationWeight(AvatarIKGoal.RightHand, 0);
             //currentR = Vector3.zero;
         }
 
@@ -197,27 +226,27 @@ public class AnimatorHandler : MonoBehaviour
         {
             if (leftHandObj != null)
             {
-                animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
-                animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1);
-                //animator.SetIKPosition(AvatarIKGoal.LeftHand, leftHandObj.position);
+                myAnimator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 1);
+                myAnimator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 1);
+                //myAnimator.SetIKPosition(AvatarIKGoal.LeftHand, leftHandObj.position);
 
                 //Testing Lerp
-                Vector3 currentPos = animator.GetIKPosition(AvatarIKGoal.LeftHand);
+                Vector3 currentPos = myAnimator.GetIKPosition(AvatarIKGoal.LeftHand);
                 Vector3 targetPos = leftHandObj.position;
 
                 currentL = Vector3.Lerp(currentL, targetPos, Time.deltaTime * 5f);
 
-                animator.SetIKPosition(AvatarIKGoal.LeftHand, currentL);
+                myAnimator.SetIKPosition(AvatarIKGoal.LeftHand, currentL);
 
 
-                animator.SetIKRotation(AvatarIKGoal.LeftHand, leftHandObj.rotation);
+                myAnimator.SetIKRotation(AvatarIKGoal.LeftHand, leftHandObj.rotation);
             }
         }
         //if the IK is not active, set the position and rotation of the hand back to the original position
         else
         {
-            animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
-            animator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
+            myAnimator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+            myAnimator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
             //currentL = Vector3.zero;
         }
     }

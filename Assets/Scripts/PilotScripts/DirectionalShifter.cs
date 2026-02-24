@@ -38,6 +38,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
     private Coroutine shift_adjuster_coroutine;
 
     private static HUDInfo hud_info = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -58,9 +59,13 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
         }
         return hud_info;
     }
-    public Transform getIKTarget()
+    public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
     }
     private void displayAdjustment()
     {

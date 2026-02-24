@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
+public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.5f;
@@ -25,6 +25,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 
     public GameObject selector_lever;
     public GameObject selector_display;
+    public GameObject IK_target;
 
     private bool is_powered = false;
     private Vector3 initial_pos;
@@ -35,6 +36,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -50,7 +52,14 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
     public int getSelectionIndex() 
     { 
         return torpedo_option; 
