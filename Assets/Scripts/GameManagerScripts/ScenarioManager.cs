@@ -132,6 +132,19 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
+
+        if (SceneManager.GetActiveScene().name == "MineField")
+        {
+        SceneSwapper.Instance.ChangeScene("MineField", scenario_number);
+        return "MineField";
+        }
+        else
+        {
+        SceneSwapper.Instance.ChangeScene("MineField", scenario_number);
+        return "MineField";
+        }
+
+        /*
         if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
@@ -142,6 +155,7 @@ public class ScenarioManager : NetworkBehaviour
             SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
             return "Cheeseballs";
         }
+        */
 
         //if (SceneManager.GetActiveScene().name == "Cheeseballs")
         //{
