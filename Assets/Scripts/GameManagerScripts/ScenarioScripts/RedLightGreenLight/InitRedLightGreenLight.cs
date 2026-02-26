@@ -2,12 +2,13 @@
     InitRedLightGreenLight
     - Used for initializing permanent information on RedLightGreenLight (code options)
     Contributor(s): Jake Schott
-    Last Updated: 2/23/2026
+    Last Updated: 2/24/2026
 */
 
 using Unity.Netcode;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
 {
@@ -17,11 +18,17 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
     private GameObject scenarioDatabaseRLGL;
     private int[] centerColors = new int[8];
 
-    public List<UnityEngine.UI.RawImage> manual_options;
+    public List<UnityEngine.UI.Image> manual_options;
+    public TMP_Text manual_result_text;
 
     private void Awake()
     {
         scenarioDatabaseRLGL = transform.GetChild(0).GetChild(SCENARIO_DATABASE_INDEX).gameObject;
+    }
+
+    private void Start()
+    {
+        manual_result_text.SetText(manual_result_text.text + RedLightGreenLight.GREEN_LIGHT_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
     }
 
     public void initializeDatabaseInformation()
@@ -68,6 +75,9 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
         Color c = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().color_options[centerColor];
         c.a = 0.2f;
         manual_options[index].color = c;
+        manual_options[index].transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = c;
+        manual_options[index].transform.GetChild(0).GetChild(1).GetComponent<TMP_Text>().color = c;
+        manual_options[index].transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
 
         int[] ci = DataConverter.stringToArray(stringCodeIndices);
         bool[] cin = new bool[8];

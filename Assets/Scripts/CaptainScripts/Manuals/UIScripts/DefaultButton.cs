@@ -30,7 +30,7 @@ public class DefaultButton : ManualButton, IManualButton
         while (true)
         {
             elapsed_time += Mathf.Min(Time.deltaTime, 1.0f / 30.0f) * FLASH_TIME;
-            float a = Mathf.Lerp(0.0f, 0.5f, Mathf.PingPong(elapsed_time, 1.0f));
+            float a = Mathf.Lerp(0.0f, 0.3f, Mathf.PingPong(elapsed_time, 1.0f));
             c.a = a;
             background.GetComponent<UnityEngine.UI.Image>().color = c;
 
@@ -75,7 +75,7 @@ public class DefaultButton : ManualButton, IManualButton
     {
         //get color from the border image
         background_color = GetComponent<UnityEngine.UI.Image>().color;
-        background_color = new Color(Mathf.Max(0.0f, background_color.r - 0.4f), Mathf.Max(0.0f, background_color.g - 0.4f), Mathf.Max(0.0f, background_color.b - 0.4f), 0.0f);
+        background_color = new Color(Mathf.Max(0.0f, background_color.r - 0.1f), Mathf.Max(0.0f, background_color.g - 0.1f), Mathf.Max(0.0f, background_color.b - 0.1f), 0.0f);
 
         alphaAdjustment(1.0f);
         selected_indicator.transform.GetComponent<UnityEngine.UI.Image>().sprite = selected;

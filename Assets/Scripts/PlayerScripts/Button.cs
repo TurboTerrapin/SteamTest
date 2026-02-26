@@ -43,8 +43,8 @@ public class Button
 {
     //CLASS CONSTANTS
     private static float COLOR_CHANGE_FACTOR = 10.0f;
-    private static Color DARK_GRAY = new Color(0.22f, 0.22f, 0.22f, 0.36f); //default color
-    private static Color LIGHT_BLUE = new Color(0.12f, 0.57f, 0.69f, 0.36f); //being pressed
+    private static Color DARK_GRAY = new Color(0.2f, 0.2f, 0.2f); //default color
+    private static Color LIGHT_BLUE = new Color(0.0f, 0.38f, 0.46f); //being pressed
 
     //BUTTON LAYOUT INFORMATION
     private static Vector2[] trapezoid_sizes = new Vector2[]
@@ -53,7 +53,7 @@ public class Button
         new Vector2(1250f, 250f),
         new Vector2(1800f, 250f),
         new Vector2(2300f, 250f),
-        new Vector2(1600f, 350f),
+        new Vector2(1600f, 360f),
         new Vector2(1750f, 250f),
         new Vector2(1400f, 250f),
         new Vector2(1400f, 250f),
@@ -81,7 +81,7 @@ public class Button
         new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)},
         new Vector2[] {new Vector2(-600f, -45f), new Vector2(0f, -45f), new Vector2(600f, -45f)},
         new Vector2[] {new Vector2(-863f, -45f), new Vector2(-288f, -45f), new Vector2(288f, -45f), new Vector2(863f, -45f)},
-        new Vector2[] {new Vector2(-315f, 15f), new Vector2(315f, 15f), new Vector2(-582f, -90f), new Vector2(-194f, -90f), new Vector2(194f, -90f), new Vector2(582f, -90f)},
+        new Vector2[] {new Vector2(-315f, 10f), new Vector2(315f, 10f), new Vector2(-582f, -100f), new Vector2(-194f, -100f), new Vector2(194f, -100f), new Vector2(582f, -100f)},
         new Vector2[] {new Vector2(-520f, -45f), new Vector2(113f, -45f), new Vector2(601f, -45f)},
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)},
@@ -123,7 +123,7 @@ public class Button
         new Vector2[] {new Vector2(0f, -45f)},
         new Vector2[] {},
         new Vector2[] {},
-        new Vector2[] {new Vector2(-388f, -90f), new Vector2(0f, -90f), new Vector2(388f, -90f)},
+        new Vector2[] {new Vector2(-388f, -100f), new Vector2(0f, -100f), new Vector2(388f, -100f)},
         new Vector2[] {new Vector2(357f, -45f)},
         new Vector2[] {},
         new Vector2[] {new Vector2(0f, -45f)},
@@ -204,20 +204,20 @@ public class Button
                 {
                     currently_toggled = false;
                     visual_button.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(1f, 1f, 1f, 1f);
-                    updateColor(0.36f);
+                    updateColor(1.0f);
                 }
                 else
                 {
                     if (currently_toggled == false)
                     {
                         percent_blue = 0.0f;
-                        visual_button.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(1f, 1f, 1f, 0.05f);
-                        updateColor(0.05f);
+                        visual_button.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(1f, 1f, 1f, 0.2f);
+                        updateColor(0.2f);
                     }
                     else
                     {
                         percent_blue = 1.0f;
-                        updateColor(0.36f);
+                        updateColor(1.0f);
                     }
                 }
             }
@@ -228,7 +228,7 @@ public class Button
     {
         currently_toggled = true;
         percent_blue = 1.0f;
-        updateColor(0.36f);
+        updateColor(1.0f);
         updateInteractable(false);
         if (visual_button != null)
         {
@@ -243,7 +243,7 @@ public class Button
     {
         currently_toggled = true;
         percent_blue = 1.0f;
-        updateColor(0.36f);
+        updateColor(1.0f);
         updateInteractable(false);
     }
 
@@ -391,7 +391,7 @@ public class Button
         if (interactable == true)
         {
             percent_blue = Mathf.Min(1.0f, percent_blue + delta_time * COLOR_CHANGE_FACTOR);
-            updateColor(0.36f);
+            updateColor(1.0f);
         }
     }
     public void darken(float delta_time)
@@ -399,7 +399,7 @@ public class Button
         if (interactable == true)
         {
             percent_blue = Mathf.Max(0.0f, percent_blue - delta_time * COLOR_CHANGE_FACTOR);
-            updateColor(0.36f);
+            updateColor(1.0f);
         }
     }
 }

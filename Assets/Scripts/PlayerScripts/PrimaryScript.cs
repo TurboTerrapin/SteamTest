@@ -271,6 +271,19 @@ public class PrimaryScript : MonoBehaviour
         cursor.SetActive(visibility);
     }
 
+    private void updateCursorMode()
+    {
+        //update cursor mode (either default or manual cursor)
+        cursor.transform.GetChild(0).gameObject.SetActive(current_ray_target == null || !current_ray_target.name.Contains("manual_options"));
+        cursor.transform.GetChild(1).gameObject.SetActive(current_ray_target != null && current_ray_target.name.Contains("manual_options"));
+    }
+
+    private void updateCursorMode(bool default_active)
+    {
+        cursor.transform.GetChild(0).gameObject.SetActive(default_active);
+        cursor.transform.GetChild(1).gameObject.SetActive(!default_active);
+    }
+
     public bool isPaused()
     {
         return paused;
@@ -363,6 +376,18 @@ public class PrimaryScript : MonoBehaviour
     public void onShiftChange()
     {
         GetComponent<SecondaryScript>().updateShiftIndicators(player_prefab.GetComponent<PlayerMove>().isShifting(), curr_pos, seat_manager);
+    }
+
+    private void updateInfoOverlayOffset()
+    {
+        if (current_ray_target == null || !current_ray_target.name.Contains("manual_options"))
+        {
+            GetComponent<SecondaryScript>().updateInfoOverlayOffset(0.0f);
+        }
+        else
+        {
+            GetComponent<SecondaryScript>().updateInfoOverlayOffset(100.0f);
+        }
     }
 
     //runs on Update() time
@@ -464,7 +489,6 @@ public class PrimaryScript : MonoBehaviour
 
         curr_pos = -1;
         GetComponent<SecondaryScript>().updateStationIndicator(curr_pos);
-        current_ray_target = null;
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
 
@@ -474,6 +498,10 @@ public class PrimaryScript : MonoBehaviour
         is_sitting = false;
 
         my_animation_controller.setIKActive(false);
+
+        current_ray_target = null;
+        updateCursorMode();
+        updateInfoOverlayOffset();
 
         primary_info.SetActive(false);
         GetComponent<SecondaryScript>().toggleStationOverlayVisibility(false);
@@ -606,6 +634,8 @@ public class PrimaryScript : MonoBehaviour
                             {
                                 initializePrimaryInfo();
                             }
+                            updateCursorMode();
+                            updateInfoOverlayOffset();
                             GetComponent<SecondaryScript>().updateSecondaryControlInformation(temp_info);
                         }
                         else
@@ -737,6 +767,8 @@ public class PrimaryScript : MonoBehaviour
 
             GetComponent<SecondaryScript>().toggleRightSideVisibility(false);
             primary_info.SetActive(false); //hide UI indicator if not looking at a control
+            updateCursorMode(true);
+            updateInfoOverlayOffset();
         }
     }
 }

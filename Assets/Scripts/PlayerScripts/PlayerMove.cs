@@ -88,6 +88,8 @@ public class PlayerMove : NetworkBehaviour
         GameObject to_orient = seat_manager.getSitDownPosition(pos, transform.position);
         myAnimationController.setAnimatorBool("IsLeft", seat_manager.getSitDownDirection(pos, transform.position));
         myAnimationController.setAnimatorInteger("Seat", pos);
+        myAnimationController.setAnimatorFloat("Movement", 0.0f);
+        myAnimationController.setAnimatorFloat("Forward", 0.0f);
         reposition_coroutine = StartCoroutine(repositionPlayer(to_orient.transform.localPosition + to_orient.transform.parent.localPosition, to_orient.transform.localRotation.eulerAngles.y, 0.2f));
 
         yield return reposition_coroutine;

@@ -2,7 +2,7 @@
     SecondaryScript.cs
     - Helps with secondary info that isn't primary control interactions
     Contributor(s): Jake Schott
-    Last Updated: 2/5/2026
+    Last Updated: 2/25/2026
 */
 
 using System.Collections;
@@ -24,9 +24,9 @@ public class SecondaryScript : MonoBehaviour
     public GameObject secondary_info;
 
     private GameObject station_overlay;
+    private GameObject info_overlay;
     private GameObject left_side;
     private GameObject right_side;
-    private GameObject info_overlays;
     private GameObject intro_graphic_overlay;
     private GameObject station_indicator;
 
@@ -35,7 +35,7 @@ public class SecondaryScript : MonoBehaviour
 
     private void Awake()
     {
-        info_overlays = secondary_info.transform.GetChild(1).gameObject;
+        info_overlay = secondary_info.transform.GetChild(1).gameObject;
         station_overlay = secondary_info.transform.GetChild(0).gameObject;
         left_side = station_overlay.transform.GetChild(0).gameObject;
         right_side = station_overlay.transform.GetChild(1).gameObject;
@@ -49,7 +49,7 @@ public class SecondaryScript : MonoBehaviour
 
     public void toggleInfoOverlaysVisibility(bool active)
     {
-        info_overlays.SetActive(active);
+        info_overlay.SetActive(active);
 
     }
 
@@ -168,6 +168,11 @@ public class SecondaryScript : MonoBehaviour
         displayed_power = temp_info.getPowerConsumption();
     }
 
+    public void updateInfoOverlayOffset(float offset)
+    {
+        info_overlay.transform.GetChild(1).localPosition = new Vector3(0.0f, offset, 0.0f);
+    }
+
     public void checkInfoOverlayInputs(bool force_hide)
     {
         bool inputted = false;
@@ -190,24 +195,24 @@ public class SecondaryScript : MonoBehaviour
             return;
         }
 
-        bool hide = info_overlays.transform.GetChild(1 + input).gameObject.activeSelf;
+        bool hide = info_overlay.transform.GetChild(1).GetChild(input).gameObject.activeSelf;
         for (int i = 0; i < 5; i++)
         {
-            info_overlays.transform.GetChild(1 + i).gameObject.SetActive(false);
-            info_overlays.transform.GetChild(0).GetChild(3).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
-            info_overlays.transform.GetChild(0).GetChild(3).GetChild(i).GetChild(0).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
+            info_overlay.transform.GetChild(1).GetChild(i).gameObject.SetActive(false);
+            info_overlay.transform.GetChild(0).GetChild(1).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
+            info_overlay.transform.GetChild(0).GetChild(1).GetChild(i).GetChild(0).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
         }
 
-        info_overlays.transform.GetChild(1 + input).gameObject.SetActive(!hide && !force_hide);
+        info_overlay.transform.GetChild(1).GetChild(input).gameObject.SetActive(!hide && !force_hide);
         GetComponent<PrimaryScript>().setCursorVisibility(hide && !force_hide);
         float a = 0.1f;
         if (hide == false && force_hide == false)
         {
             a = 1.0f;
         }
-        info_overlays.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, a);
-        info_overlays.transform.GetChild(0).GetChild(3).GetChild(input).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, a);
-        info_overlays.transform.GetChild(0).GetChild(3).GetChild(input).GetChild(0).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, a);
+        info_overlay.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, a);
+        info_overlay.transform.GetChild(0).GetChild(1).GetChild(input).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, a);
+        info_overlay.transform.GetChild(0).GetChild(1).GetChild(input).GetChild(0).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, a);
     }
 
     public void displayIntroGraphic(float delay)
@@ -228,7 +233,7 @@ public class SecondaryScript : MonoBehaviour
     public void endIntroGraphicReveal()
     {
         //show info buttons
-        info_overlays.transform.GetChild(0).gameObject.SetActive(true);
+        info_overlay.transform.GetChild(0).gameObject.SetActive(true);
 
         //end intro and delete cloned graphic
         if (intro_graphic_display_coroutine != null)
@@ -245,11 +250,12 @@ public class SecondaryScript : MonoBehaviour
     IEnumerator introGraphicReveal(float delay)
     {
         //hide info buttons
-        info_overlays.transform.GetChild(0).gameObject.SetActive(false);
+        info_overlay.transform.GetChild(0).gameObject.SetActive(false);
 
         //component assignment and transparency setting to 0
-        intro_graphic_overlay = GameObject.Instantiate(info_overlays.transform.GetChild(2).gameObject, info_overlays.transform);
+        intro_graphic_overlay = GameObject.Instantiate(info_overlay.transform.GetChild(1).GetChild(1).gameObject, info_overlay.transform.GetChild(1));
         intro_graphic_overlay.name = "Temporary";
+        intro_graphic_overlay.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
         List<UnityEngine.UI.RawImage> background_elements = new List<UnityEngine.UI.RawImage>();
         for (int i = 0; i < 3; i++)
         {
@@ -306,7 +312,7 @@ public class SecondaryScript : MonoBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            float background_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f);
+            float background_a = Mathf.Lerp(0.9f, 0.0f, anim_time / 1.0f);
             float divider_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 1.0f);
 
             foreach (UnityEngine.UI.RawImage component in background_elements)
@@ -379,7 +385,7 @@ public class SecondaryScript : MonoBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            Color c = new Color(0.0f, 0.0f, 0.0f, Mathf.Lerp(0.96f, 0.0f, anim_time / 0.5f));
+            Color c = new Color(0.0f, 0.0f, 0.0f, Mathf.Lerp(0.9f, 0.0f, anim_time / 0.5f));
             exit_button.GetComponent<UnityEngine.UI.RawImage>().color = c;
             exit_button.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
             exit_button.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;

@@ -21,7 +21,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 {
     //CLASS CONSTANTS
     private static string DEATH_MESSAGE = "Stolen ship SEACC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
-    private static float[] GREEN_LIGHT_PERIOD_TIMES = new float[] { 40.0f, 35.0f, 30.0f, 20.0f };
+    public static int[] GREEN_LIGHT_PERIOD_TIMES = new int[] { 40, 35, 30, 20 };
     private static float CENTER_SPEED = 50.0f;
     private static float[] RING_SPEEDS = new float[] { 25.0f, 60.0f, 40.0f, 75.0f };
 
@@ -253,12 +253,12 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             friendlyMessageIndexes[0] = last;
         }
 
-        //if 2+ dotted, replace diamonds with circle
+        //if 2+ dotted, replace triangles with circle
         if (numDotted >= 2)
         {
             for (int i = 0; i < 8; i++)
             {
-                if (friendlyMessageIndexes[i] == 3)
+                if (friendlyMessageIndexes[i] == 0)
                 {
                     friendlyMessageIndexes[i] = 1;
                 }
