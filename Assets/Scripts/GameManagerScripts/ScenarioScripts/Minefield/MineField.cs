@@ -63,7 +63,7 @@ public class MineField : NetworkBehaviour, IScenario
         for (int i = 0; i < MINE_QUANTITY; i++)
         {
             GameObject curr_mine = GameObject.Instantiate(mine, world_root);
-            curr_mine.name = "Cheeseball";
+            curr_mine.name = "Mine_" + i;
             curr_mine.GetComponent<NetworkObject>().SynchronizeTransform = true;
             Vector3 spawn_location = getRandomSpawnLocation() + world_root_center;
             curr_mine.transform.localPosition = spawn_location;
