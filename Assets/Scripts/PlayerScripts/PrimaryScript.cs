@@ -380,7 +380,7 @@ public class PrimaryScript : MonoBehaviour
 
     private void updateInfoOverlayOffset()
     {
-        if (current_ray_target == null || !current_ray_target.name.Contains("manual_options"))
+        if (current_ray_target == null || !current_ray_target.name.Contains("manual_options") || HUD_setting > 1)
         {
             GetComponent<SecondaryScript>().updateInfoOverlayOffset(0.0f);
         }

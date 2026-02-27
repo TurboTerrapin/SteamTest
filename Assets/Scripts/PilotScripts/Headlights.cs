@@ -19,6 +19,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     private static float DELAY_TIME = 0.1f;
     private static float MAX_RANGE = 500.0f;
     private static float MAX_INTENSITY = 500.0f;
+    private static float CONE_HALF_ANGLE = 4.0f;
     private static Vector3 FINAL_POS = new Vector3(0.0f, 0.059f, 0.145f);
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
@@ -31,7 +32,9 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     public GameObject slider;
     public GameObject headlights_display;
     public GameObject ship_headlights;
+    public Material headlights_material;
     public GameObject IK_target;
+    private EffectsHandler effects_handler;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -46,6 +49,8 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
     private void Start()
     {
+        effects_handler = ReferenceAssistor.Instance.effects_handler;
+
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
@@ -53,12 +58,17 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = slider.transform.localPosition;
+        for (int i = 0; i < 2; i++)
+        {
+            effects_handler.initializeConeGameObject(ship_headlights.transform.GetChild(i), headlights_material);
+        }
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
     public Transform getIKTarget()
     {
         return IK_target.transform;
@@ -70,6 +80,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         {
             light.GetComponent<Light>().range = range;
             light.GetComponent<Light>().intensity = intensity;
+            effects_handler.drawConeMesh(light.GetComponent<MeshFilter>().mesh, range * 0.05f, CONE_HALF_ANGLE);
         }
     }
 

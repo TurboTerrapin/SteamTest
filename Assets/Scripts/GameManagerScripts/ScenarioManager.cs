@@ -134,8 +134,8 @@ public class ScenarioManager : NetworkBehaviour
         scenario_number += 1;
         if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
         {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-            return "RedLightGreenLight";
+            SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
+            return "CollectibleTest";
         }
         else
         {
