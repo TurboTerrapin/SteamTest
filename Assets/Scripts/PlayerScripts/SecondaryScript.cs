@@ -20,6 +20,7 @@ public class SecondaryScript : MonoBehaviour
         new KeyCode[] { KeyCode.Alpha4, KeyCode.Keypad4 } ,
         new KeyCode[] { KeyCode.Alpha5, KeyCode.Keypad5 }
     };
+    private static Color DEFAULT_BORDER_COLOR = new Color(0.4f, 0.4f, 0.4f);
     
     public GameObject secondary_info;
 
@@ -72,19 +73,20 @@ public class SecondaryScript : MonoBehaviour
     public void updateStationIndicator(int pos)
     {
         station_indicator.transform.GetChild(2).gameObject.SetActive(pos >= 0);
-        if (pos == -1)
+        station_indicator.transform.GetChild(3).gameObject.SetActive(pos == -1);
+        Color c = new Color(0.4f, 0.4f, 0.4f, 0.84f);
+        if (pos >= 0)
         {
-            station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
-            station_indicator.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 0f);
-            station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().SetText("STATION: NONE");
-            return;
+            c = ReferenceAssistor.COLOR_OPTIONS[pos];
+            c.a = 1.0f;
+            station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().texture = ReferenceAssistor.Instance.position_icons[pos];
         }
 
-        station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[pos];
-        station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().texture = ReferenceAssistor.Instance.position_icons[pos];
-        station_indicator.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(45f, 0f);
-        station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[pos];
-        station_indicator.transform.GetChild(3).GetComponent<TMP_Text>().SetText("STATION: " + ReferenceAssistor.STATION_NAMES[pos]);
+        foreach (Transform t in station_indicator.transform.GetChild(1))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
+        station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
     }
 
     //shows/hides the information on the right side on tab press
@@ -195,24 +197,31 @@ public class SecondaryScript : MonoBehaviour
             return;
         }
 
+        Color c = DEFAULT_BORDER_COLOR;
+        c.a = 0.1f;
         bool hide = info_overlay.transform.GetChild(1).GetChild(input).gameObject.activeSelf;
         for (int i = 0; i < 5; i++)
         {
             info_overlay.transform.GetChild(1).GetChild(i).gameObject.SetActive(false);
-            info_overlay.transform.GetChild(0).GetChild(1).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
-            info_overlay.transform.GetChild(0).GetChild(1).GetChild(i).GetChild(0).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
+            foreach (Transform t in info_overlay.transform.GetChild(0).GetChild(3).GetChild(i).GetChild(0))
+            {
+                t.GetComponent<UnityEngine.UI.RawImage>().color = c;
+            }
+            info_overlay.transform.GetChild(0).GetChild(3).GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = c;
         }
 
         info_overlay.transform.GetChild(1).GetChild(input).gameObject.SetActive(!hide && !force_hide);
         GetComponent<PrimaryScript>().setCursorVisibility(hide && !force_hide);
-        float a = 0.1f;
         if (hide == false && force_hide == false)
         {
-            a = 1.0f;
+            c.a = 1.0f;
+            info_overlay.transform.GetChild(0).GetChild(3).GetChild(input).GetChild(1).GetComponent<TMP_Text>().color = Color.white;
         }
-        info_overlay.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, a);
-        info_overlay.transform.GetChild(0).GetChild(1).GetChild(input).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, a);
-        info_overlay.transform.GetChild(0).GetChild(1).GetChild(input).GetChild(0).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, a);
+        info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        foreach (Transform t in info_overlay.transform.GetChild(0).GetChild(3).GetChild(input).GetChild(0))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
     }
 
     public void displayIntroGraphic(float delay)
@@ -256,31 +265,63 @@ public class SecondaryScript : MonoBehaviour
         intro_graphic_overlay = GameObject.Instantiate(info_overlay.transform.GetChild(1).GetChild(1).gameObject, info_overlay.transform.GetChild(1));
         intro_graphic_overlay.name = "Temporary";
         intro_graphic_overlay.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
+        intro_graphic_overlay.transform.GetChild(12).gameObject.SetActive(false); //hide (2) indicator
         List<UnityEngine.UI.RawImage> background_elements = new List<UnityEngine.UI.RawImage>();
-        for (int i = 0; i < 3; i++)
+        foreach (Transform t in intro_graphic_overlay.transform.GetChild(0))
         {
-            background_elements.Add(intro_graphic_overlay.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>());
-            Color c = background_elements[i].color;
+            background_elements.Add(t.GetComponent<UnityEngine.UI.RawImage>());
+            Color c = t.GetComponent<UnityEngine.UI.RawImage>().color;
             c.a = 0.0f;
-            background_elements[i].color = c;
+            t.GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
+
+        List<UnityEngine.UI.RawImage> borders = new List<UnityEngine.UI.RawImage>();
+        foreach (Transform t in intro_graphic_overlay.transform.GetChild(1))
+        {
+            borders.Add(t.GetComponent<UnityEngine.UI.RawImage>());
+            Color c = t.GetComponent<UnityEngine.UI.RawImage>().color;
+            c.a = 0.0f;
+            t.GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
+
+        List<UnityEngine.UI.RawImage> order_circles = new List<UnityEngine.UI.RawImage>();
+        for (int i = 0; i < 5; i++)
+        {
+            order_circles.Add(intro_graphic_overlay.transform.GetChild(2).GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>());
+            Color c = order_circles[i].color;
+            c.a = 0.0f;
+            if (i > 0)
+            {
+                order_circles[i].transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+            }
+            order_circles[i].color = c;
+        }
+
+        List<UnityEngine.UI.RawImage> position_circles = new List<UnityEngine.UI.RawImage>();
+        for (int i = 0; i < 4; i++)
+        {
+            position_circles.Add(intro_graphic_overlay.transform.GetChild(2).GetChild(1).GetChild(i).GetComponent<UnityEngine.UI.RawImage>());
+            Color c = position_circles[i].color;
+            c.a = 0.0f;
+            position_circles[i].color = c;
         }
 
         List<UnityEngine.UI.RawImage> divider_elements = new List<UnityEngine.UI.RawImage>();
         for (int i = 0; i < 3; i++)
         {
-            divider_elements.Add(intro_graphic_overlay.transform.GetChild(3 + i).GetComponent<UnityEngine.UI.RawImage>());
+            divider_elements.Add(intro_graphic_overlay.transform.GetChild(3).GetChild(i).GetComponent<UnityEngine.UI.RawImage>());
             Color c = divider_elements[i].color;
             c.a = 0.0f;
             divider_elements[i].color = c;
         }
 
-        TMP_Text mission_objective_text = intro_graphic_overlay.transform.GetChild(6).GetComponent<TMP_Text>();
+        TMP_Text mission_objective_text = intro_graphic_overlay.transform.GetChild(4).GetComponent<TMP_Text>();
         mission_objective_text.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
         List<TMP_Text> bullet_points = new List<TMP_Text>();
         for (int i = 0; i < 4; i++)
         {
-            bullet_points.Add(intro_graphic_overlay.transform.GetChild(7 + i).GetComponent<TMP_Text>());
+            bullet_points.Add(intro_graphic_overlay.transform.GetChild(5 + i).GetComponent<TMP_Text>());
             Color c = bullet_points[i].color;
             c.a = 0.0f;
             bullet_points[i].color = c;
@@ -289,24 +330,24 @@ public class SecondaryScript : MonoBehaviour
         List<UnityEngine.UI.RawImage> position_icons = new List<UnityEngine.UI.RawImage>();
         for (int i = 0; i < 4; i++)
         {
-            position_icons.Add(intro_graphic_overlay.transform.GetChild(11 + i).GetComponent<UnityEngine.UI.RawImage>());
+            position_icons.Add(intro_graphic_overlay.transform.GetChild(9).GetChild(i).GetComponent<UnityEngine.UI.RawImage>());
             Color c = position_icons[i].color;
             c.a = 0.0f;
             position_icons[i].color = c;
             position_icons[i].transform.GetChild(0).GetComponent<TMP_Text>().color = c;
         }
 
-        TMP_Text station_controls_text = intro_graphic_overlay.transform.GetChild(15).GetComponent<TMP_Text>();
+        TMP_Text station_controls_text = intro_graphic_overlay.transform.GetChild(10).GetComponent<TMP_Text>();
         station_controls_text.color = new Color(1.0f, 1.0f, 1.0f, 0.0f);
 
-        UnityEngine.UI.RawImage exit_button = intro_graphic_overlay.transform.GetChild(16).GetComponent<UnityEngine.UI.RawImage>();
+        UnityEngine.UI.RawImage exit_button = intro_graphic_overlay.transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>();
         exit_button.gameObject.SetActive(false);
 
         yield return new WaitForSeconds(delay);
 
         intro_graphic_overlay.SetActive(true);
 
-        //background and "MISSION OBJECTIVE"
+        //background, border, dividers, circles, and "MISSION OBJECTIVE"
         float anim_time = 1.0f;
         while (anim_time > 0.0f)
         {
@@ -314,6 +355,9 @@ public class SecondaryScript : MonoBehaviour
 
             float background_a = Mathf.Lerp(0.9f, 0.0f, anim_time / 1.0f);
             float divider_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 1.0f);
+            float border_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 1.0f);
+            float pos_circle_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f);
+            float order_circle_a = Mathf.Lerp(0.04f, 0.0f, anim_time / 1.0f);
 
             foreach (UnityEngine.UI.RawImage component in background_elements)
             {
@@ -325,6 +369,32 @@ public class SecondaryScript : MonoBehaviour
                 Color c = divider.color;
                 c.a = divider_a;
                 divider.color = c;
+            }
+
+            foreach (UnityEngine.UI.RawImage pos_circle in position_circles)
+            {
+                Color c = pos_circle.color;
+                c.a = pos_circle_a;
+                pos_circle.color = c;
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                Color c = order_circles[i].color;
+                c.a = pos_circle_a;
+                if (i > 0)
+                {
+                    c.a = order_circle_a;
+                    order_circles[i].transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.0f, 0.0f, pos_circle_a);
+                }
+                order_circles[i].color = c;
+            }
+
+            foreach (UnityEngine.UI.RawImage border in borders)
+            {
+                Color c = border.color;
+                c.a = border_a;
+                border.color = c;
             }
 
             mission_objective_text.color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f));
@@ -390,8 +460,16 @@ public class SecondaryScript : MonoBehaviour
             exit_button.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
             exit_button.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
 
-            exit_button.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(1.0f, 0.0f, anim_time / 0.5f));
-            exit_button.transform.GetChild(3).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(1.0f, 0.0f, anim_time / 0.5f));
+            float border_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 0.5f);
+            foreach (Transform t in exit_button.transform.GetChild(2))
+            {
+                Color b = t.GetComponent<UnityEngine.UI.RawImage>().color;
+                b.a = border_a;
+                t.GetComponent<UnityEngine.UI.RawImage>().color = b;
+            }
+
+            exit_button.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(1.0f, 0.0f, anim_time / 0.5f));
+            exit_button.transform.GetChild(4).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, Mathf.Lerp(1.0f, 0.0f, anim_time / 0.5f));
 
             yield return null;
         }

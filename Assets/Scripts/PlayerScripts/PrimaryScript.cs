@@ -410,7 +410,18 @@ public class PrimaryScript : MonoBehaviour
             if (closest_seat >= 0) //can sit
             {
                 sit_frame.SetActive(HUD_setting < 2);
-                sit_frame.transform.GetChild(3).GetComponent<TMP_Text>().SetText(ReferenceAssistor.STATION_NAMES[closest_seat] + " STATION");
+
+                //update seat indicator color and information
+                Color c = ReferenceAssistor.COLOR_OPTIONS[closest_seat];
+                c.a = 0.84f;
+                foreach (Transform t in sit_frame.transform.GetChild(1))
+                {
+                    t.GetComponent<UnityEngine.UI.RawImage>().color = c;
+                }
+                c.a = 1.0f;
+                sit_frame.transform.GetChild(2).GetComponent<TMP_Text>().color = c;
+                sit_frame.transform.GetChild(2).GetComponent<TMP_Text>().SetText(ReferenceAssistor.STATION_NAMES[closest_seat] + " STATION");
+
                 minimized_list_frame.SetActive(HUD_setting == 2);
                 primary_info.SetActive(true);
 
