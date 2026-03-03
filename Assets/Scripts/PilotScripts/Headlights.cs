@@ -42,6 +42,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME, true);
@@ -64,6 +65,10 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
     }
     private void setHeadlights(float a, float range, float scale)
     {

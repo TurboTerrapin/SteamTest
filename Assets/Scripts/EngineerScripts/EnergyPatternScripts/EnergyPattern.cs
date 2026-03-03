@@ -42,6 +42,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
@@ -62,6 +63,10 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
     }
     private void handlePowerConsumptionChange()
     {

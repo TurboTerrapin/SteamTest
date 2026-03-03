@@ -43,6 +43,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
     private void Start()
     {
         engine_monitoring = GetComponent<EngineMonitoring>();
@@ -68,6 +69,10 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
     }
     public void adjustInertialDampenerModifier(float new_modifier)
     {

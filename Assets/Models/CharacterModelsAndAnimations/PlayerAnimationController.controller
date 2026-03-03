@@ -68,13 +68,13 @@ AnimatorState:
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
   m_Mirror: 1
-  m_SpeedParameterActive: 0
+  m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
+  m_CycleOffsetParameterActive: 1
   m_TimeParameterActive: 0
   m_Motion: {fileID: -887982601649841707, guid: a3026da05d360994ebff9138ffe470a0, type: 3}
   m_Tag: 
-  m_SpeedParameter: 
+  m_SpeedParameter: HandAnimSpeed
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
@@ -179,7 +179,7 @@ AnimatorState:
   m_TimeParameterActive: 0
   m_Motion: {fileID: -887982601649841707, guid: 047250e512007c44bb31a542fb62088a, type: 3}
   m_Tag: 
-  m_SpeedParameter: 
+  m_SpeedParameter: Movement
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
@@ -911,13 +911,13 @@ AnimatorState:
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
   m_Mirror: 0
-  m_SpeedParameterActive: 0
+  m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
+  m_CycleOffsetParameterActive: 1
   m_TimeParameterActive: 0
   m_Motion: {fileID: -887982601649841707, guid: f73340976af327c4793038fe6393ea07, type: 3}
   m_Tag: 
-  m_SpeedParameter: 
+  m_SpeedParameter: HandAnimSpeed
   m_MirrorParameter: 
   m_CycleOffsetParameter: HandPose
   m_TimeParameter: Movement
@@ -1042,13 +1042,13 @@ AnimatorState:
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
   m_Mirror: 0
-  m_SpeedParameterActive: 0
+  m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
+  m_CycleOffsetParameterActive: 1
   m_TimeParameterActive: 0
   m_Motion: {fileID: -887982601649841707, guid: a3026da05d360994ebff9138ffe470a0, type: 3}
   m_Tag: 
-  m_SpeedParameter: 
+  m_SpeedParameter: HandAnimSpeed
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
@@ -1100,6 +1100,12 @@ AnimatorController:
   - m_Name: HandPose
     m_Type: 1
     m_DefaultFloat: 0.1
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
+  - m_Name: HandAnimSpeed
+    m_Type: 1
+    m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
@@ -2051,13 +2057,13 @@ AnimatorState:
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
   m_Mirror: 1
-  m_SpeedParameterActive: 0
+  m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
+  m_CycleOffsetParameterActive: 1
   m_TimeParameterActive: 0
   m_Motion: {fileID: -887982601649841707, guid: f73340976af327c4793038fe6393ea07, type: 3}
   m_Tag: 
-  m_SpeedParameter: 
+  m_SpeedParameter: HandAnimSpeed
   m_MirrorParameter: 
   m_CycleOffsetParameter: HandPose
   m_TimeParameter: Movement

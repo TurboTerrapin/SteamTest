@@ -120,6 +120,12 @@ public class AnimationController : MonoBehaviour
     {
         myAnimator.SetLayerWeight(myAnimator.GetLayerIndex(layerName), weight);
     }
+    public void setHandPose(float pose)
+    {
+        //myAnimator[layerName].speed = 0;
+        myAnimator.SetFloat("HandAnimSpeed", 0);
+        myAnimator.SetFloat("HandPose", pose);
+    }
 
     public void setAnimatorBool(string name, bool value)
     {

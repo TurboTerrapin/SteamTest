@@ -37,6 +37,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -59,6 +60,10 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable, IIKT
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
     }
     public int getSelectionIndex() 
     { 

@@ -626,6 +626,7 @@ public class PrimaryScript : MonoBehaviour
                                     my_animation_controller.setIKLeftArm(false);
                                     my_animation_controller.setRightArmIKTransform(target_IK.getIKTarget(current_ray_target.gameObject));
                                     my_animation_controller.setHandInteractionType(target_IK.getHandInteractionType());
+                                    my_animation_controller.setHandPose(target_IK.getHandPose());
                                     my_animation_controller.setAnimatorLayerWeight("RightHandLayer", 1f);
                                     //my_animation_controller.setRightArmIKRotation(target_IK.getIKTarget().rotation);
                                 }
@@ -636,6 +637,7 @@ public class PrimaryScript : MonoBehaviour
                                     my_animation_controller.setIKRightArm(false);
                                     my_animation_controller.setLeftArmIKTransform(target_IK.getIKTarget(current_ray_target.gameObject));
                                     my_animation_controller.setHandInteractionType(target_IK.getHandInteractionType());
+                                    my_animation_controller.setHandPose(target_IK.getHandPose());
                                     my_animation_controller.setAnimatorLayerWeight("LeftHandLayer", 1f);
                                     //my_animation_controller.setLeftArmIKRotation(target_IK.getIKTarget().rotation);
                                 }

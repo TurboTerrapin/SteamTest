@@ -38,6 +38,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -58,7 +59,10 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     {
         return hand_interaction_type; 
     }
-
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
