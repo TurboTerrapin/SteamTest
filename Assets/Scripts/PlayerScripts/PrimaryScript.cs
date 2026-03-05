@@ -19,7 +19,6 @@ public class PrimaryScript : MonoBehaviour
     //CLASS CONSTANTS
     private static float RAYCAST_RANGE = 1.5f;
 
-
     //GAME OBJECTS
     private GameObject player_UI_canvas;
     private GameObject cursor;
@@ -98,7 +97,7 @@ public class PrimaryScript : MonoBehaviour
         trapezoidal_frame = primary_info.transform.GetChild(0).gameObject;
         minimized_list_frame = primary_info.transform.GetChild(1).gameObject;
         sit_frame = primary_info.transform.GetChild(2).gameObject;
-        control_title = trapezoidal_frame.transform.GetChild(3).GetComponent<TMP_Text>();
+        control_title = trapezoidal_frame.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
         pause_default_menu = player_UI_canvas.transform.GetChild(4).GetChild(0).gameObject;
         pause_settings_menu = player_UI_canvas.transform.GetChild(4).GetChild(1).gameObject;
         pause_controls_menu = player_UI_canvas.transform.GetChild(4).GetChild(2).gameObject;
@@ -172,9 +171,9 @@ public class PrimaryScript : MonoBehaviour
     private void clearButtons()
     {
         //clear trapezoid buttons
-        for (int i = trapezoidal_frame.transform.GetChild(4).childCount - 1; i >= 2; i--)
+        for (int i = trapezoidal_frame.transform.GetChild(3).childCount - 1; i >= 2; i--)
         {
-            GameObject to_destroy = primary_info.transform.GetChild(0).GetChild(4).GetChild(i).gameObject;
+            GameObject to_destroy = trapezoidal_frame.transform.GetChild(3).GetChild(i).gameObject;
             UnityEngine.Object.Destroy(to_destroy);
         }
 
@@ -202,24 +201,31 @@ public class PrimaryScript : MonoBehaviour
             trapezoidal_frame.SetActive(HUD_setting < 2); //trapezoid
             minimized_list_frame.SetActive(HUD_setting == 2); //minimized list
 
+            //handle power consumption on default frame
+            float title_offset = -15f;
+            if (current_info.getConsumesPower() == true)
+            {
+                title_offset = 0f;
+            }
+            trapezoidal_frame.transform.GetChild(2).GetChild(0).transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, title_offset);
+            trapezoidal_frame.transform.GetChild(2).GetChild(1).gameObject.SetActive(current_info.getConsumesPower());
+
             GameObject frame = trapezoidal_frame;
             if (HUD_setting == 2) //if minimized list
             {
                 frame = minimized_list_frame;
             }
 
+            //initialize background/title/border visual
+            if (HUD_setting < 2)
+            {
+                current_info.initializeDefaultFrame(frame.transform);
+            }
+
+            //initialize button visuals
             for (int i = 0; i < current_info.numOptions(); i++)
             {
                 current_info.getButtons()[i].createVisual(HUD_setting, current_info.getLayout(), i, frame);
-            }
-
-            //if no buttons (aka IDescribable instead of IControllable), apply descriptor using HUDInfo
-            if (current_info.numOptions() == 0)
-            {
-                if (HUD_setting < 2)
-                {
-                    current_info.applyDescriptor(frame.transform);
-                }
             }
         }
     }
@@ -431,7 +437,7 @@ public class PrimaryScript : MonoBehaviour
                     if (is_sitting == true)
                     {
                         curr_pos = closest_seat;
-                        GetComponent<SecondaryScript>().updateStationIndicator(curr_pos);
+                        GetComponent<SecondaryScript>().onStationChange(curr_pos);
                         primary_info.SetActive(false);
                         player_prefab.GetComponent<CameraMove>().lockCamera();
                         player_prefab.GetComponent<CameraMove>().camera_transform.parent = player_prefab.GetComponent<CameraMove>().head_transform;
@@ -499,7 +505,7 @@ public class PrimaryScript : MonoBehaviour
         seat_manager.getUp(curr_pos);
 
         curr_pos = -1;
-        GetComponent<SecondaryScript>().updateStationIndicator(curr_pos);
+        GetComponent<SecondaryScript>().onStationChange(curr_pos);
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
 

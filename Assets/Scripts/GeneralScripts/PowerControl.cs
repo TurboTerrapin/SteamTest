@@ -18,7 +18,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     private static float TURN_TIME = 1.0f;
     private static float PLAYER_NOTIFIER_REFRESH_SPEED = 3.0f;
 
-    private string CONTROL_NAME = "POSITION POWER";
+    private string CONTROL_NAME = "STATION POWER";
     private static string INFO_MESSAGE = "Controls the enabled status of all controls at the corresponding position (only when ship power is available).";
     private List<string> CONTROL_DESCS = new List<string>{ "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>(){6};
@@ -32,8 +32,8 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 
     private bool[] active_dials = new bool[4] { true, true, true, true };
     private bool[] current_seats = new bool[4] { false, false, false, false };
-    private List<string> ray_targets = new List<string>{"pilot_power", "tactician_power", "engineer_power", "captain_power"};
-    private Coroutine[] turn_coroutines = new Coroutine[4] {null, null, null, null};
+    private List<string> ray_targets = new List<string>{ "pilot_power", "tactician_power", "engineer_power", "captain_power" };
+    private Coroutine[] turn_coroutines = new Coroutine[4] { null, null, null, null };
     private Coroutine player_notifier_coroutine = null;
 
     private static HUDInfo hud_info = null;

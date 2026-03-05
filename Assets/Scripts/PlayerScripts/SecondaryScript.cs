@@ -30,6 +30,7 @@ public class SecondaryScript : MonoBehaviour
     private GameObject right_side;
     private GameObject intro_graphic_overlay;
     private GameObject station_indicator;
+    private GameObject primary_default_power_circles;
 
     private float displayed_power = 0.0f;
     private Coroutine intro_graphic_display_coroutine = null;
@@ -41,6 +42,7 @@ public class SecondaryScript : MonoBehaviour
         left_side = station_overlay.transform.GetChild(0).gameObject;
         right_side = station_overlay.transform.GetChild(1).gameObject;
         station_indicator = secondary_info.transform.GetChild(2).gameObject;
+        primary_default_power_circles = transform.GetChild(1).GetChild(0).GetChild(2).GetChild(1).gameObject;
     }
 
     public void toggleSecondaryInfoVisibility(bool active)
@@ -70,7 +72,7 @@ public class SecondaryScript : MonoBehaviour
     }
 
     //updates station indicator in top right
-    public void updateStationIndicator(int pos)
+    public void onStationChange(int pos)
     {
         station_indicator.transform.GetChild(2).gameObject.SetActive(pos >= 0);
         station_indicator.transform.GetChild(3).gameObject.SetActive(pos == -1);
@@ -82,28 +84,105 @@ public class SecondaryScript : MonoBehaviour
             station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().texture = ReferenceAssistor.Instance.position_icons[pos];
         }
 
+        //update left side color
+        foreach (Transform t in info_overlay.transform.GetChild(0).GetChild(1))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
+        Color bc = c;
+        bc.a = info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color.a;
+        info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = bc;
+        station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        foreach (Transform t in info_overlay.transform.GetChild(0).GetChild(3))
+        {
+            foreach (Transform b in t.GetChild(0))
+            {
+                bc = c;
+                bc.a = b.GetComponent<UnityEngine.UI.RawImage>().color.a;
+                b.GetComponent<UnityEngine.UI.RawImage>().color = bc;
+            }
+        }
+
+        //update right side color
         foreach (Transform t in station_indicator.transform.GetChild(1))
         {
             t.GetComponent<UnityEngine.UI.RawImage>().color = c;
         }
-        station_indicator.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
+
+        //update info overlay borders and circles and dividers
+        foreach (Transform t in info_overlay.transform.GetChild(1))
+        {
+            foreach (Transform b in t.GetChild(1))
+            {
+                b.GetComponent<UnityEngine.UI.RawImage>().color = c;
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                bc = c;
+                bc.a = t.GetChild(2).GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
+                t.GetChild(2).GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = bc;
+            }
+            foreach (Transform d in t.GetChild(3))
+            {
+                d.GetComponent<UnityEngine.UI.RawImage>().color = c;
+            }
+            foreach (Transform b in t.GetChild(t.transform.childCount - 1).GetChild(0))
+            {
+                b.GetComponent<UnityEngine.UI.RawImage>().color = c;
+            }
+        }
+
+        //update default UI items
+        foreach (Transform t in transform.GetChild(1).GetChild(0).GetChild(1))
+        {
+            foreach (Transform b in t)
+            {
+                if (b.GetComponent<UnityEngine.UI.Image>() != null)
+                {
+                    b.GetComponent<UnityEngine.UI.Image>().color = c;
+                }
+                else
+                {
+                    foreach (Transform l in b)
+                    {
+                        l.GetComponent<UnityEngine.UI.Image>().color = c;
+                    }
+                }
+            }
+        }
+        foreach (Transform t in left_side.transform)
+        {
+            foreach (Transform b in t.GetChild(1))
+            {
+                b.GetComponent<UnityEngine.UI.RawImage>().color = c;
+            }
+        }
+        foreach (Transform t in right_side.transform)
+        {
+            foreach (Transform b in t.GetChild(1))
+            {
+                if (b.GetComponent<UnityEngine.UI.RawImage>() != null)
+                {
+                    b.GetComponent<UnityEngine.UI.RawImage>().color = c;
+                }
+                else
+                {
+                    foreach (Transform l in b)
+                    {
+                        l.GetComponent<UnityEngine.UI.RawImage>().color = c;
+                    }
+                }
+            }
+        }
     }
 
     //shows/hides the information on the right side on tab press
     public void toggleControlInformationVisibility(HUDInfo temp_info)
     {
-        bool currently_visible = right_side.transform.GetChild(1).GetChild(0).gameObject.activeSelf;
-        right_side.transform.GetChild(1).GetChild(0).gameObject.SetActive(!currently_visible);
-        right_side.transform.GetChild(1).GetChild(1).gameObject.SetActive(currently_visible);
-
-        if (currently_visible == true)
-        {
-            right_side.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -890f);
-        }
-        else
-        {
-            right_side.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -530f + getControlInfoOffset(temp_info));
-        }
+        bool currently_visible = right_side.transform.GetChild(1).gameObject.activeSelf;
+        right_side.transform.GetChild(0).GetChild(2).gameObject.SetActive(currently_visible);
+        right_side.transform.GetChild(0).GetChild(3).gameObject.SetActive(!currently_visible);
+        right_side.transform.GetChild(1).gameObject.SetActive(!currently_visible);
     }
 
     //updates shift direction UI indicator and get up indicator
@@ -120,36 +199,40 @@ public class SecondaryScript : MonoBehaviour
     //helper method that estimates the length of a control description based on the length of the description of that control's description
     private int getControlInfoOffset(HUDInfo temp_info)
     {
-        return Mathf.Max(100, temp_info.getInfo().Length * 4);
+        return Mathf.Max(280, temp_info.getInfo().Length * 4);
     }
 
-    //updates right side control info (description and power consumption)
+    //updates right side control info (description)
     public void updateSecondaryControlInformation(HUDInfo temp_info)
     {
         //determine whether to show or hide right side
         right_side.SetActive(temp_info.hasInfo());
 
-        //determine whether to show or hide the power indicator
-        right_side.transform.GetChild(0).gameObject.SetActive(temp_info.getConsumesPower());
-
         //set info frame title and description
-        right_side.transform.GetChild(1).GetChild(0).GetChild(3).GetComponent<TMP_Text>().SetText(temp_info.getName());
-        right_side.transform.GetChild(1).GetChild(0).GetChild(5).GetComponent<TMP_Text>().SetText(temp_info.getInfo());
-
+        right_side.transform.GetChild(1).GetChild(2).GetComponent<TMP_Text>().SetText(temp_info.getName());
+        right_side.transform.GetChild(1).GetChild(3).GetComponent<TMP_Text>().SetText(temp_info.getInfo());
+        
         //resize based on length of control description
         int offset = getControlInfoOffset(temp_info);
-        right_side.transform.GetChild(1).GetChild(0).GetChild(5).GetComponent<RectTransform>().sizeDelta = new Vector2(535f, offset);
-        right_side.transform.GetChild(1).GetChild(0).GetChild(5).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -322f + (offset / 2));
-        right_side.transform.GetChild(1).GetChild(0).GetChild(4).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -284f + offset);
-        right_side.transform.GetChild(1).GetChild(0).GetChild(4).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -284f + offset);
-        right_side.transform.GetChild(1).GetChild(0).GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -145f + offset);
-        right_side.transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -230f + (offset / 2));
-        right_side.transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(600f, 365f + offset);
-        right_side.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -23f + offset);
-        if (right_side.transform.GetChild(1).GetChild(0).gameObject.activeSelf == true)
-        {
-            right_side.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(1595f, -530f + offset);
-        }
+        Transform control_info_frame = right_side.transform.GetChild(1);
+
+        //background
+        control_info_frame.GetChild(0).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(-285f, -360f + offset);
+        control_info_frame.GetChild(0).GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(50f, -360f + offset);
+        control_info_frame.GetChild(0).GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -410f + (offset / 2));
+        control_info_frame.GetChild(0).GetChild(2).GetComponent<RectTransform>().sizeDelta = new Vector2(670f, offset);
+
+        //border/divider
+        control_info_frame.GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(-290f, -355f + offset);
+        control_info_frame.GetChild(1).GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -305f + offset);
+        control_info_frame.GetChild(1).GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -440f + offset);
+        control_info_frame.GetChild(1).GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(-340f, -475f + (offset / 2));
+        control_info_frame.GetChild(1).GetChild(3).GetComponent<RectTransform>().sizeDelta = new Vector2(10f, offset - 180f);
+        control_info_frame.GetChild(1).GetChild(6).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -520f + offset);
+
+        //text
+        control_info_frame.GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -420f + offset);
+        control_info_frame.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -515f + (offset / 2));
     }
     
     //updates the four blue dots in bottom right corner
@@ -165,7 +248,7 @@ public class SecondaryScript : MonoBehaviour
         {
             tmp_pwr = (temp_info.getPowerConsumption() * 2.0f) - (0.2f * i);
             float a = tmp_pwr / 0.2f;
-            right_side.transform.GetChild(0).GetChild(4).GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = a;
+            primary_default_power_circles.transform.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = a;
         }
         displayed_power = temp_info.getPowerConsumption();
     }
@@ -197,7 +280,7 @@ public class SecondaryScript : MonoBehaviour
             return;
         }
 
-        Color c = DEFAULT_BORDER_COLOR;
+        Color c = info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color;
         c.a = 0.1f;
         bool hide = info_overlay.transform.GetChild(1).GetChild(input).gameObject.activeSelf;
         for (int i = 0; i < 5; i++)
@@ -207,17 +290,18 @@ public class SecondaryScript : MonoBehaviour
             {
                 t.GetComponent<UnityEngine.UI.RawImage>().color = c;
             }
-            info_overlay.transform.GetChild(0).GetChild(3).GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = c;
+            info_overlay.transform.GetChild(0).GetChild(3).GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.1f);
         }
 
         info_overlay.transform.GetChild(1).GetChild(input).gameObject.SetActive(!hide && !force_hide);
         GetComponent<PrimaryScript>().setCursorVisibility(hide && !force_hide);
+        info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
         if (hide == false && force_hide == false)
         {
             c.a = 1.0f;
             info_overlay.transform.GetChild(0).GetChild(3).GetChild(input).GetChild(1).GetComponent<TMP_Text>().color = Color.white;
+            info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
         }
-        info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
         foreach (Transform t in info_overlay.transform.GetChild(0).GetChild(3).GetChild(input).GetChild(0))
         {
             t.GetComponent<UnityEngine.UI.RawImage>().color = c;

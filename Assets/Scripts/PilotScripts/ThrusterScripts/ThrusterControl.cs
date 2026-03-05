@@ -4,7 +4,7 @@
     - Handles physical buttons
     - Meant to be extended
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/2/2026
 */
 
 using System.Collections.Generic;
@@ -17,14 +17,14 @@ public class ThrusterControl : NetworkBehaviour
     protected static float PUSH_SPEED = 4.0f; //how fast the physical button takes to be pushed relative to the bars
     protected static float MOVE_SPEED = 0.5f;
     protected static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
+    protected static Vector3 BUTTON_INITIAL_POS = new Vector3(0.0f, 0.0f, 0.0f);
+    protected static Vector3 BUTTON_FINAL_POS = new Vector3(0.0f, -0.006f, 0.0025f);
 
     public List<Transform> thruster_buttons;
     public GameObject thruster_display;
 
     protected float[] thruster_percentage = new float[2]{0.0f, 0.0f};
     protected float[] button_push_percentage = new float[2]{0.0f, 0.0f};
-    protected Vector3 button_initial_pos;
-    protected Vector3 button_final_pos;
     protected float inertial_dampener_modifier = 0.0f;
     protected float thrust_direction = 0;
     protected Coroutine thruster_coroutine;
@@ -67,7 +67,7 @@ public class ThrusterControl : NetworkBehaviour
     protected void adjustButton(Transform thruster_button, int button_index)
     {
         //push the physical button in
-        thruster_button.transform.localPosition = Vector3.Lerp(button_initial_pos, button_final_pos, button_push_percentage[button_index]);
+        thruster_button.transform.localPosition = Vector3.Lerp(BUTTON_INITIAL_POS, BUTTON_FINAL_POS, button_push_percentage[button_index]);
 
         //handle thruster bars
         int starting_bar = 11 - (button_index * 10);

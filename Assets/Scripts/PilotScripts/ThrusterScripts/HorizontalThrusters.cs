@@ -25,8 +25,6 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
 
     private void Start()
     {
-        button_initial_pos = thruster_buttons[0].transform.localPosition;
-
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));

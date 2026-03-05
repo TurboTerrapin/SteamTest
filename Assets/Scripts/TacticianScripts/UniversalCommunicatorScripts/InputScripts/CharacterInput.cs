@@ -33,6 +33,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
     private List<string> ray_targets = new List<string> {"A0", "A1", "A2", "A3", "A4", "A5", "B0", "B1", "B2", "B3", "B4", "B5"};
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         universal_communicator = GetComponent<UniversalCommunicator>();
@@ -48,6 +49,7 @@ public class CharacterInput : NetworkBehaviour, IControllable
             initial_pos[i] = input_buttons.transform.GetChild(i).localPosition;
         }
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;

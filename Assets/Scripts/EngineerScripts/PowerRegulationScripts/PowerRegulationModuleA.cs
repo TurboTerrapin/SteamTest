@@ -2,7 +2,7 @@
     PowerRegulationModuleA.cs
     - Handles the knob-turning mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 2/13/2026
+    Last Updated: 3/3/2026
 */
 
 using System.Collections;
@@ -17,7 +17,7 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
     private static float ROTATE_SPEED = 75.0f;
     private static float[] ARC_STAGE_SIZES = new float[3] { 0.4f, 0.25f, 0.15f };
 
-    private string[] CONTROL_NAMES = new string[3] { "PRIMARY SENSOR ALIGNMENT", "SECONDARY SENSOR ALIGNMENT", "TERTIARY SENSOR ALIGNMENT" };
+    private string[] CONTROL_NAMES = new string[3] { "PRIMARY SENSOR ANGLE", "SECONDARY SENSOR ANGLE", "TERTIARY SENSOR ANGLE" };
     private static string INFO_MESSAGE = "Align the corresponding colors to their arcs to complete the module.";
     private List<string> CONTROL_DESCS = new List<string> { "ROTATE LEFT", "ROTATE RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };

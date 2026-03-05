@@ -3,40 +3,12 @@
     - Stores information for a button
     - Handles button, divider GUI
     Contributor(s): Jake Schott
-    Last Updated: 1/18/2026
+    Last Updated: 3/2/2026
 */
 
-/*
-    ***READ ME!***
-    
-    This script handles UI layouts for buttons and the trapezoid. Every button is fed the layout index (LAYOUT #),
-    the index of the button within that layout (left-to-right, top-bottom), and the corresponding frame (trapezoid or not).
 
-    The layout descriptions are listed below:
-
-    LAYOUT 0: 1 BUTTON, CENTERED (ex. character select)
-
-    LAYOUT 1: 2 TOUCHING BUTTONS, BOTH CENTERED, DIVIDED BY A DIVIDER (ex. impulse throttle)
-
-    LAYOUT 2: 3 BUTTONS, ALL SEPARATED (ex. inertial dampeners)
-
-    LAYOUT 3: 4 BUTTONS, ALL SEPARATED (ex. hangar clamps)
-
-    LAYOUT 4: 4 BUTTONS ALL CONNECTED BOTTOM ROW, 2 BUTTONS SEPARATED TOP ROW (ex. regulations manual)
-
-    LAYOUT 5: 3 BUTTONS, 1 SEPARATED ON LEFT, 2 TOUCHING ON RIGHT (ex. map options)
-
-    LAYOUT 6: 1 BUTTON, CENTERED, ELONGATED (ex. tractor beam incinerator, used for extra long titles)
-
-    LAYOUT 7: 2 TOUCHING BUTTONS, BOTH CENTERED, DIVIDED BY A DIVER, ELONGATED (ex. engineer power allocation)
-
-    LAYOUT 8: 2 SETS OF 2 TOUCHING BUTTONS, BOTH SETS DIVIDED BY A DIVIDER, ELONGATED (ex. probe lateral movement)
-
-    LAYOUT 9: 2 SETS OF 2 TOUCHING BUTTONS PLUS ONE CENTER BUTTON, BOTH SETS DIVIDED BY A DIVIDER, ELONGATED (ex. computer regulator)
-*/
 
 using UnityEngine;
-using System.Collections.Generic;
 using TMPro;
 
 public class Button
@@ -46,94 +18,9 @@ public class Button
     private static Color DARK_GRAY = new Color(0.2f, 0.2f, 0.2f); //default color
     private static Color LIGHT_BLUE = new Color(0.0f, 0.38f, 0.46f); //being pressed
 
-    //BUTTON LAYOUT INFORMATION
-    private static Vector2[] trapezoid_sizes = new Vector2[]
-    {
-        new Vector2(1100f, 250f),
-        new Vector2(1250f, 250f),
-        new Vector2(1800f, 250f),
-        new Vector2(2300f, 250f),
-        new Vector2(1600f, 360f),
-        new Vector2(1750f, 250f),
-        new Vector2(1400f, 250f),
-        new Vector2(1400f, 250f),
-        new Vector2(2050f, 250f),
-        new Vector2(2000f, 250f)
-    };
-
-    private static float[] title_sizes = new float[]
-    {
-        700f,
-        700f,
-        700f,
-        1000f,
-        900f,
-        1000f,
-        1200f,
-        1150f,
-        1000f,
-        1000f
-    };
-
-    private static List<Vector2[]> button_positions = new List<Vector2[]>
-    {
-        new Vector2[] {new Vector2(0f, -45f)},
-        new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)},
-        new Vector2[] {new Vector2(-600f, -45f), new Vector2(0f, -45f), new Vector2(600f, -45f)},
-        new Vector2[] {new Vector2(-863f, -45f), new Vector2(-288f, -45f), new Vector2(288f, -45f), new Vector2(863f, -45f)},
-        new Vector2[] {new Vector2(-315f, 10f), new Vector2(315f, 10f), new Vector2(-582f, -100f), new Vector2(-194f, -100f), new Vector2(194f, -100f), new Vector2(582f, -100f)},
-        new Vector2[] {new Vector2(-520f, -45f), new Vector2(113f, -45f), new Vector2(601f, -45f)},
-        new Vector2[] {new Vector2(0f, -45f)},
-        new Vector2[] {new Vector2(-294f, -45f), new Vector2(294f, -45f)},
-        new Vector2[] {new Vector2(-748f, -45f), new Vector2(-260f, -45f), new Vector2(260f, -45f), new Vector2(748f, -45f)},
-        new Vector2[] {new Vector2(-798f, -45f), new Vector2(-460f, -45f), new Vector2(0f, -45f), new Vector2(460f, -45f), new Vector2(798f, -45f)}
-    };
-
-    private static List<int[]> button_templates = new List<int[]>
-    {
-        new int[] {0},
-        new int[] {1, 2},
-        new int[] {0, 0, 0},
-        new int[] {0, 0, 0, 0},
-        new int[] {0, 0, 1, 3, 3, 2},
-        new int[] {0, 1, 2},
-        new int[] {0},
-        new int[] {1, 2},
-        new int[] {1, 2, 1, 2},
-        new int[] {1, 2, 0, 1, 2}
-    };
-
-    private static List<Vector2[]> button_sizes = new List<Vector2[]>
-    {
-        new Vector2[] {new Vector2(600f, 80f)},
-        new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f)},
-        new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(500f, 80f)},
-        new Vector2[] {new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f), new Vector2(450f, 80f)},
-        new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f), new Vector2(300f, 80f)},
-        new Vector2[] {new Vector2(560f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
-        new Vector2[] {new Vector2(600f, 80f)},
-        new Vector2[] {new Vector2(500f, 80f), new Vector2(500f, 80f)},
-        new Vector2[] {new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f), new Vector2(400f, 80f)},
-        new Vector2[] {new Vector2(250f, 80f), new Vector2(250f, 80f), new Vector2(400f, 80f), new Vector2(250f, 80f), new Vector2(250f, 80f)},
-    };
-
-    private static List<Vector2[]> divider_positions = new List<Vector2[]>
-    {
-        new Vector2[] {},
-        new Vector2[] {new Vector2(0f, -45f)},
-        new Vector2[] {},
-        new Vector2[] {},
-        new Vector2[] {new Vector2(-388f, -100f), new Vector2(0f, -100f), new Vector2(388f, -100f)},
-        new Vector2[] {new Vector2(357f, -45f)},
-        new Vector2[] {},
-        new Vector2[] {new Vector2(0f, -45f)},
-        new Vector2[] {new Vector2(-504f, -45f), new Vector2(504f, -45f)},
-        new Vector2[] {new Vector2(-629f, -45f), new Vector2(629f, -45f)}
-    };
-
     //PRIVATE DATA MEMBERS
     private string button_desc; //ex. INCREASE
-    private int control_index; //ex. 0 = KeyPad.W, based on array in ControlScript
+    private int control_index; //ex. 0 = KeyPad.W, based on array in PrimaryScript
     private bool interactable = true;
     private bool togglable = false;
     private bool currently_toggled = false; //used to stay blue during toggles
@@ -270,65 +157,34 @@ public class Button
         if (HUD_setting < 2)
         {
             //define buttons panel
-            GameObject buttons_panel = frame.transform.GetChild(4).gameObject;
+            GameObject buttons_panel = frame.transform.GetChild(3).gameObject;
 
             //copy button
             visual_button = UnityEngine.Object.Instantiate(buttons_panel.transform.GetChild(0).gameObject, buttons_panel.transform);
 
             //resize
-            visual_button.GetComponent<RectTransform>().sizeDelta = button_sizes[layout][order_index];
-            visual_button.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector3(-1f * (button_sizes[layout][order_index].x / 2 + 20f), 0f, 0f);
-            visual_button.transform.GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector3(button_sizes[layout][order_index].x / 2 + 20f, 0f, 0f);
-            visual_button.transform.GetChild(2).GetComponent<RectTransform>().sizeDelta = button_sizes[layout][order_index];
+            visual_button.GetComponent<RectTransform>().sizeDelta = HUDInfo.BUTTON_SIZES[layout][order_index];
+            visual_button.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector3(-1f * (HUDInfo.BUTTON_SIZES[layout][order_index].x / 2 + 17f), 0f, 0f);
+            visual_button.transform.GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector3(HUDInfo.BUTTON_SIZES[layout][order_index].x / 2 + 17f, 0f, 0f);
+            visual_button.transform.GetChild(2).GetComponent<RectTransform>().sizeDelta = HUDInfo.BUTTON_SIZES[layout][order_index];
 
             //handle rounded edges
-            if (button_templates[layout][order_index] == 1) //left 
+            if (HUDInfo.BUTTON_TEMPLATES[layout][order_index] == 1) //left 
             {
                 visual_button.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().sprite = null;
             }
-            else if (button_templates[layout][order_index] == 2) //right
+            else if (HUDInfo.BUTTON_TEMPLATES[layout][order_index] == 2) //right
             {
                 visual_button.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = null;
             }
-            else if (button_templates[layout][order_index] == 3) //rectangle
+            else if (HUDInfo.BUTTON_TEMPLATES[layout][order_index] == 3) //rectangle
             {
                 visual_button.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = null;
                 visual_button.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().sprite = null;
             }
 
             //position
-            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector3(button_positions[layout][order_index].x, button_positions[layout][order_index].y, 0f);
-
-            //handle trapezoid size, positioning, and dividers
-            if (order_index == 0)
-            {
-                //trapezoid height/vertical position
-                frame.transform.GetComponent<RectTransform>().sizeDelta = new Vector2(0, trapezoid_sizes[layout].y);
-                frame.transform.GetComponent<RectTransform>().anchoredPosition = new Vector3(0f, -1080f + trapezoid_sizes[layout].y / 2, 0f);
-                //trapezoid center
-                frame.transform.GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(trapezoid_sizes[layout].x, 0f);
-                //trapezoid edge triangles
-                frame.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector3(-1f * (trapezoid_sizes[layout].x / 2 + 75f), 0f, 0f);
-                frame.transform.GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector3(trapezoid_sizes[layout].x / 2 + 75f, 0f, 0f);
-                if (divider_positions[layout].Length > 0)
-                {
-                    for (int i = 0; i < divider_positions[layout].Length; i++)
-                    {
-                        //copy divider
-                        GameObject divider = UnityEngine.Object.Instantiate(buttons_panel.transform.GetChild(1).gameObject, buttons_panel.transform);
-
-                        //position
-                        divider.GetComponent<RectTransform>().anchoredPosition = new Vector3(divider_positions[layout][i].x, divider_positions[layout][i].y, 0f);
-
-                        divider.name = "DIVIDER" + i;
-                        divider.SetActive(true);
-                    }
-                }
-                //handle title size
-                frame.transform.GetChild(3).GetComponent<RectTransform>().sizeDelta = new Vector2(title_sizes[layout], 80f);
-                //position title
-                frame.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -65f);
-            }
+            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector3(HUDInfo.BUTTON_POSITIONS[layout][order_index].x, HUDInfo.BUTTON_POSITIONS[layout][order_index].y, 0f);
 
             //make transparent if non-interactable
             if (interactable == false)
@@ -351,7 +207,7 @@ public class Button
             visual_button = UnityEngine.Object.Instantiate(frame.transform.GetChild(0).gameObject, frame.transform);
 
             //position button
-            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector3(-1655f, (40f * (button_positions[layout].Length - order_index - 1)) - 1050f, 0f);
+            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector3(-1655f, (40f * (HUDInfo.BUTTON_POSITIONS[layout].Length - order_index - 1)) - 1050f, 0f);
             
             //set text info
             visual_button.GetComponent<TMP_Text>().SetText(button_desc + " - " + key);
