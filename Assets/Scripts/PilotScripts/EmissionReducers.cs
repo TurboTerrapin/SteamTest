@@ -51,6 +51,12 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 6);
+        float power_consumption = 0.0f;
+        if (enabled_reducers[index] == true)
+        {
+            power_consumption = MAX_POWER_CONSUMPTION * 0.5f;
+        }
+        hud_info.setPowerConsumption(power_consumption);
         return hud_info;
     }
 
@@ -106,7 +112,6 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
             }
         }
         ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, consumed_power);
-        hud_info.setPowerConsumption(consumed_power);
     }
 
     IEnumerator reducerChange(int reducer_to_change, bool to_change_to)

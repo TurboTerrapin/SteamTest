@@ -53,9 +53,9 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "Shows detection boundary, entrance channel, and destination exit channel. Also shows items of interest.",
         "Shows boundary countdown before mission failure.",
         "",
-        "Shows power allocation and usage across all four positions. If usage exceeds allocation, ship will shut down.",
+        "Shows power allocation and usage across all 4 positions. If usage exceeds allocation, ship will shut down.",
         "Shows short-range and long-range phaser temperatures. Overheating causes ship shutdown.",
-        "Describes ship power status according to the six corresponding power regulation modules.",
+        "Describes ship power status according to the 6 corresponding power regulation modules.",
         "",
         "",
         "Shows ship inventory for probes, escape pods, shield batteries, cargo, and torpedoes."

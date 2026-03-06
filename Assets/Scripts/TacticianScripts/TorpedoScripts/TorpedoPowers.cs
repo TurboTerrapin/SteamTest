@@ -37,6 +37,7 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
     private List<string> ray_targets = new List<string> { "forward_torpedo_power", "port_torpedo_power", "starboard_torpedo_power", "aft_torpedo_power" };
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
@@ -55,12 +56,13 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
         hud_info.setButtons(BUTTON_LISTS[0], 7);
         hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 7);
-
+        hud_info.setPowerConsumption(power_levels[index] * (MAX_POWER_CONSUMPTION / 4f));
         return hud_info;
     }
 
@@ -77,7 +79,6 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
             consumed_power += (power_levels[i] * 0.25f * MAX_POWER_CONSUMPTION);
         }
         ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
-        hud_info.setPowerConsumption(consumed_power);
     }
 
     private void displayAdjustment(int index)

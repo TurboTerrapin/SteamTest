@@ -2,7 +2,7 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 2/12/2026
+    Last Updated: 3/6/2026
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SELECTION_ADJUSTMENT_TIME = 0.25f;
     private static float DIRECTION_ADJUSTMENT_TIME = 0.3f;
-    private static float LOAD_CONFIRMATION_TIME = 2.0f;
+    private static float LOAD_CONFIRMATION_TIME = 0.8f;
     private static Vector3 TORPEDO_BAY_ADJUSTMENT_DIRECTION = new Vector3(-0.06f, 0.0f, -0.06f);
     private static string[] DIRECTION_NAMES = new string[] { "FORWARD", "PORT", "STARBOARD", "AFT" };
 
@@ -37,6 +37,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private int[] torpedo_bay_slots = new int[4] { -1, -1, -1, -1 };
+    private string[] torpedo_serial_nums = new string[4];
     private int current_torpedo_selection = 0;
     private int current_torpedo_bay = 0;
     private Vector3 torpedo_direction_slider_initial_position;
@@ -93,6 +94,62 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         BUTTON_LISTS[2][0].updateInteractable(getCurrentlyLoadable());
     }
 
+    public void unloadTorpedo(int bay)
+    {
+        torpedo_bay_slots[bay] = -1;
+        torpedo_serial_nums[bay] = "";
+        displayShipOverviewAdjustment(bay);
+    }
+
+    //unloads all torpedoes currently loaded and adds them to ship inventory
+    public void resetToDefault()
+    {
+        int[] torpedoes_to_unload = new int[6];
+        Stack<string>[] unloaded_serial_nums = new Stack<string>[6];
+        for (int i = 0; i < 6; i++)
+        {
+            unloaded_serial_nums[i] = new Stack<string>();
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            if (torpedo_bay_slots[i] >= 0)
+            {
+                torpedoes_to_unload[torpedo_bay_slots[i]] += 1;
+                unloaded_serial_nums[torpedo_bay_slots[i]].Push(torpedo_serial_nums[i]);
+            }
+            unloadTorpedo(i);
+        }
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                if (torpedoes_to_unload[i] > 0)
+                {
+                    ship_inventory.addItems(1, i, unloaded_serial_nums[i]);
+                }
+            }
+        }
+    }
+
+    private void displayShipOverviewAdjustment(int bay)
+    {
+        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(0).gameObject.SetActive(torpedo_bay_slots[bay] == -1);
+        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(1).gameObject.SetActive(torpedo_bay_slots[bay] >= 0);
+
+        if (torpedo_bay_slots[bay] < 0)
+        {
+            return;
+        }
+
+        Texture torpedo_icon = ship_inventory.getItemTexture(1, torpedo_bay_slots[bay]);
+        Color torpedo_color = ship_inventory.getItemColor(1, torpedo_bay_slots[bay]);
+        torpedo_color = new Color(torpedo_color.r, torpedo_color.g, torpedo_color.b, 1.0f);
+
+        //update icon and color
+        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
+        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
+    }
+
     private void displayTorpedoSelectionAdjustment()
     {
         UnityEngine.UI.RawImage torpedo_icon = torpedo_loader_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>();
@@ -122,6 +179,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
             changeDialLitIndicator((ship_inventory.getItemQuantity(1, current_torpedo_selection) > 0) && (torpedo_bay_slots[current_torpedo_bay] < 0));
         }
     }
+
     private void displayTorpedoDirectionAdjustment()
     {
         //highlight current section and current arrow
@@ -291,14 +349,8 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
             if (i == 0)
             {
-                Texture torpedo_icon = ship_inventory.getItemTexture(1, torpedo_type);
-                Color torpedo_color = ship_inventory.getItemColor(1, torpedo_type);
-                torpedo_color = new Color(torpedo_color.r, torpedo_color.g, torpedo_color.b, 1.0f);
-
-                //update ship overview display
-                ship_overview_torpedo_information.transform.GetChild(torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
-                ship_overview_torpedo_information.transform.GetChild(torpedo_bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
-                ship_overview_torpedo_information.transform.GetChild(torpedo_bay).GetChild(0).gameObject.SetActive(true);
+                //update ship overview screen
+                displayShipOverviewAdjustment(torpedo_bay);
 
                 //show update to torpedo loader display
                 displayTorpedoDirectionAdjustment();

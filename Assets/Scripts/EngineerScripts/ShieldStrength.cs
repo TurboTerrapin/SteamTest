@@ -57,10 +57,9 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
-
         hud_info.setTitle(CONTROL_NAMES[index] + " SHIELD STRENGTH");
         hud_info.setButtons(BUTTON_LISTS[index], 7);
-
+        hud_info.setPowerConsumption(getShieldStrength(index) * (MAX_POWER_CONSUMPTION / 20.0f));
         return hud_info;
     }
 
@@ -93,7 +92,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         }
     }
 
-    public float getShieldStrength(int location)
+    public int getShieldStrength(int location)
     {
         return (shield_strengths[location]);
     }
@@ -149,7 +148,6 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
         }
 
         //adjust power consumption
-        hud_info.setPowerConsumption(getPowerConsumption());
         ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
     }
 
