@@ -650,17 +650,17 @@ public class PrimaryScript : MonoBehaviour
                                 {
                                     //turn IK on and move the right arm target
                                     my_animation_controller.setIKRightArm(true);
+                                    my_animation_controller.setIKLeftArm(false);
                                     my_animation_controller.setRightArmIKPosition(current_ray_target.transform.position);
                                     my_animation_controller.setRightArmIKRotation(player_prefab.transform.localRotation);
-                                    my_animation_controller.setIKLeftArm(false);
                                 }
                                 else
                                 {
                                     //turn IK on and move the left arm target
                                     my_animation_controller.setIKLeftArm(true);
+                                    my_animation_controller.setIKRightArm(false);
                                     my_animation_controller.setLeftArmIKPosition(current_ray_target.transform.position);
                                     my_animation_controller.setLeftArmIKRotation(player_prefab.transform.localRotation);
-                                    my_animation_controller.setIKRightArm(false);
                                 }
                             }
                         }

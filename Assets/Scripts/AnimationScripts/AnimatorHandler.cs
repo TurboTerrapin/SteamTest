@@ -70,7 +70,8 @@ public class AnimatorHandler : MonoBehaviour
     }
     public void setRightArmIKTransform(Transform transform)
     {
-        rightHandObj = transform;
+        rightHandObj.position = transform.position;
+        rightHandObj.rotation = transform.rotation;
     }
 
     public void setLeftArmIKPosition(Vector3 pos)
@@ -84,7 +85,8 @@ public class AnimatorHandler : MonoBehaviour
     }
     public void setLeftArmIKTransform(Transform transform)
     {
-        leftHandObj = transform;
+        leftHandObj.position = transform.position;
+        leftHandObj.rotation = transform.rotation;
     }
 
     public void setHeadIKPosition(Vector3 pos)
