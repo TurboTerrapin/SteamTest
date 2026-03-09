@@ -679,7 +679,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProximityMap")); //13
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoTrigger")); //14
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProximityMapOptions")); //15
-        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoSelector")); //16
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoBaySelector")); //16
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ThreatDetectors")); //17
         positional_modules[1] = tactician_modules;
     }

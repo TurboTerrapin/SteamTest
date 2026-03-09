@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 2/12/2026
+    Last Updated: 3/8/2026
 */
 
 using System.Collections;
@@ -21,7 +21,6 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     private static float ENGINE_TEMPERATURE_INCREASE_SPEED = 0.005f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
     private static Color[] COLOR_OPTIONS = new Color[] { new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f)}; //blue, orange, red
-    private static string[] TEMPERATURE_LABELS = new string[] { "LOW", "MEDIUM", "HIGH" };
 
     private string CONTROL_NAME = "ENGINE COOLANT SUPPLY";
     private static string INFO_MESSAGE = "Regulates engines to prevent overheating and engine slowdown.";
@@ -82,33 +81,32 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         coolant_wheel.transform.localRotation = Quaternion.Euler(-54.0f, 315.0f, coolant_flow * 1080.0f);
 
         //update screen wheel
-        coolant_circle.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
-        coolant_circle.transform.GetChild(2).transform.localRotation = Quaternion.Euler(180.0f, 0.0f, coolant_flow * 1080.0f);
+        coolant_circle.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
+        coolant_circle.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = coolant_flow;
+        coolant_circle.transform.GetChild(3).transform.localRotation = Quaternion.Euler(180.0f, 0.0f, coolant_flow * 1080.0f);
     }
 
     private void displayEngineTemperatureAdjustment()
     {
         //display engine temperature
         Color status_color = COLOR_OPTIONS[0];
-        string temperature_label = TEMPERATURE_LABELS[0];
         if (engine_temperature >= 1.0f)
         {
             status_color = COLOR_OPTIONS[2];
-            temperature_label = TEMPERATURE_LABELS[2];
         }
         else if (engine_temperature > 0.5)
         {
             status_color = COLOR_OPTIONS[1];
-            temperature_label = TEMPERATURE_LABELS[1];
         }
 
-        float engine_temp = Mathf.Max(0.05f, engine_temperature);
-        temperature.transform.GetChild(0).GetComponent<TMP_Text>().color = status_color;
-        temperature.transform.GetChild(0).GetComponent<TMP_Text>().SetText("TEMPERATURE: " + temperature_label);
-        temperature.transform.GetChild(1).transform.localPosition = new Vector3(Mathf.Lerp(-0.015f, 0.0588f, engine_temp), -0.0065f, 0.0f);
-        temperature.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        temperature.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().fillAmount = engine_temp;
-        temperature.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().color = status_color;
+        temperature.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = engine_temperature;
+        temperature.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = status_color;
+        foreach (Transform t in temperature.transform.GetChild(1))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        }
+        status_color.a = 0.08f;
+        temperature.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
     }
 
     IEnumerator engineTemperatureIncreaser()

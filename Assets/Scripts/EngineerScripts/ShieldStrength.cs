@@ -3,7 +3,7 @@
     - Handles allocating shield battery to each of the four ship sections
     - Flips the switches
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/8/2026
 */
 
 using System.Collections;
@@ -80,15 +80,21 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
             a = 0.08f;
         }
 
-        shield_strength_display.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
-        shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
-        if (available_batteries == 1)
+        shield_strength_display.transform.GetChild(1).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        shield_strength_display.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        string s_available_batteries = available_batteries.ToString();
+        if (available_batteries < 10)
         {
-            shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().SetText("1 BATTERY AVAILABLE");
+            s_available_batteries = "0" + s_available_batteries;
         }
-        else
+        else if (available_batteries > 99)
         {
-            shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().SetText(available_batteries + " BATTERIES AVAILABLE");
+            s_available_batteries = "99";
+        }
+        shield_strength_display.transform.GetChild(2).GetComponent<TMP_Text>().SetText(s_available_batteries);
+        for (int i = 0; i < 4; i++)
+        {
+            shield_strength_display.transform.GetChild(2).GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
         }
     }
 
@@ -146,9 +152,6 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
             dot.GetComponent<RectTransform>().sizeDelta = new Vector2(0.002f + (shield_strength_percentage * 0.008f), 0.002f + (shield_strength_percentage * 0.008f));
             dot.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.1f + (shield_strength_percentage * 0.9f));
         }
-
-        //adjust power consumption
-        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
     }
 
     //turns the dial and calls displayAdjustment()
@@ -179,11 +182,6 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
                 shield_strength_switches[index].transform.localRotation = Quaternion.Euler(Mathf.Lerp(-54.0f, destination_rotation, switch_percentage), 315.0f, 0.0f);
 
                 yield return null;
-            }
-
-            if (i == 0 && is_powered == true)
-            {
-                displayAdjustment(index);
             }
         }
 
@@ -280,6 +278,9 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable
                 ship_inventory.addItem(0, 2, shield_strength_serial_nums[index].Pop());
             }
         }
+
+        displayAdjustment(index);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
 
         if (shield_strength_adjustment_coroutines[index] != null)
         {

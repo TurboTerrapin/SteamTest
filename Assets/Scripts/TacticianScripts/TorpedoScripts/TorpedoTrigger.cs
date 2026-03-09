@@ -3,7 +3,7 @@
     - Handles arming and firing of torpedoes
     - Moves base and lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/6/2026
 */
 
 using System.Collections;
@@ -13,11 +13,9 @@ using UnityEngine;
 
 public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 {
-    public TorpedoLauncher torpedoLauncher;
-
     //CLASS CONSTANTS
-    private static float ARM_TIME = 2.0f;
-    private static float COOLDOWN_TIME = 4.0f;
+    private static float ARM_TIME = 1.0f;
+    private static float COOLDOWN_TIME = 3.0f;
     private static float RED_BUTTON_PUSH_TIME = 0.5f;
     private static Vector3 TRIGGER_BASE_FINAL_POS = new Vector3(0.0f, -0.0148f, -0.0353f);
 
@@ -27,9 +25,14 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private List<int> CONTROL_INDEXES = new List<int>(){ 6, 11 };
     private List<Button> BUTTONS = new List<Button>();
 
+    public AudioSource torpedo_ready_sound;
     public GameObject trigger_base;
     public GameObject trigger_green_light;
     public GameObject trigger_red_light;
+    private TorpedoLauncher torpedo_launcher;
+    private TorpedoLoader torpedo_loader;
+    private TorpedoBaySelector torpedo_bay_selector;
+    private TorpedoPowers torpedo_powers;
 
     private bool is_powered = false;
     private float trigger_percentage = 0.0f;
@@ -44,6 +47,11 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 
     private void Start()
     {
+        torpedo_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>();
+        torpedo_bay_selector = GetComponent<TorpedoBaySelector>();
+        torpedo_powers = GetComponent<TorpedoPowers>();
+        torpedo_launcher = GetComponent<TorpedoLauncher>();
+
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
@@ -52,10 +60,12 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 
         trigger_base_initial_pos = trigger_base.transform.localPosition;
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
     private void displayAdjustment()
     {
         float trigger_base_distance_percentage = Mathf.Min(1.0f, trigger_percentage / 0.8f);
@@ -67,8 +77,12 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
         //update lit indicators
         if (is_powered == true)
         {
-            if (trigger_percentage >= 1.0f)
+            if (trigger_percentage >= 1.0f && torpedo_loader.getBayOccupant(torpedo_bay_selector.getDirectionIndex()) >= 0)
             {
+                if (torpedo_ready_sound.isPlaying == false)
+                {
+                    torpedo_ready_sound.Play();
+                }
                 trigger_green_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
                 trigger_red_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
             }
@@ -159,7 +173,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
                 trigger_percentage = Mathf.Max(0.0f, ((trigger_percentage * ARM_TIME) - dt) / ARM_TIME);
             }
 
-            BUTTONS[0].updateInteractable(trigger_percentage >= 1.0f && is_powered);
+            BUTTONS[0].updateInteractable(is_powered && trigger_percentage >= 1.0f && torpedo_loader.getBayOccupant(torpedo_bay_selector.getDirectionIndex()) >= 0);
 
             if (trigger_percentage != before_trigger_percentage)
             {
@@ -190,7 +204,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
         }
         else
         {
-            if (trigger_percentage >= 1.0f && torpedo_fire_coroutine == null)
+            if (torpedo_loader.getBayOccupant(torpedo_bay_selector.getDirectionIndex()) >= 0 && trigger_percentage >= 1.0f && torpedo_fire_coroutine == null)
             {
                 if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
                 {
@@ -229,7 +243,12 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     [Rpc(SendTo.Everyone)]
     private void transmitTorpedoFireRPC()
     {
-        torpedoLauncher.fireTorpedo();
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            int current_bay = torpedo_bay_selector.getDirectionIndex();
+            torpedo_launcher.fireTorpedo(current_bay, torpedo_loader.getBayOccupant(current_bay), torpedo_powers.getPowerLevel(current_bay));
+        }
+        torpedo_loader.unloadTorpedo(torpedo_bay_selector.getDirectionIndex());
 
         if (torpedo_fire_coroutine != null)
         {

@@ -1,26 +1,27 @@
 /*
-    TorpedoSelector.cs
-    - Handles torpedo slider
+    TorpedoBaySelector.cs
+    - Handles torpedo bay slider
     - Updates arrow screen
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/6/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.Rendering;
 
-public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
+public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.5f;
-    private static Vector3 FINAL_POS = new Vector3(0.0907f, 0.0f, 0.0f);
+    private static Vector3 FINAL_POS = new Vector3(0.091f, 0.0f, 0.0f);
 
-    private string CONTROL_NAME = "TORPEDO SELECTOR";
+    private string CONTROL_NAME = "TORPEDO BAY SELECTOR";
     private static string INFO_MESSAGE = "Handles selecting which torpedo bay/direction to use for the torpedo trigger.";
-    private List<string> CONTROL_DESCS = new List<string>{"SHIFT LEFT", "SHIFT RIGHT"};
-    private List<int> CONTROL_INDEXES = new List<int>(){4, 5};
+    private List<string> CONTROL_DESCS = new List<string> { "SHIFT LEFT", "SHIFT RIGHT" };
+    private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject selector_lever;
@@ -28,13 +29,13 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private Vector3 initial_pos;
-
-    private int torpedo_option = 0;
+    private int current_bay = 0;
     private Coroutine torpedo_shift_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -51,22 +52,28 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
-    public int getSelectionIndex() 
-    { 
-        return torpedo_option; 
+    public int getDirectionIndex()
+    {
+        return current_bay;
     }
 
     IEnumerator selectorShift()
     {
-        for (int i = 4; i <= 7; i++)
+        for (int i = 0; i < 4; i++)
         {
-            selector_display.transform.GetChild(i).gameObject.SetActive(false);
+            selector_display.transform.GetChild(0).GetChild(i * 2).gameObject.SetActive(false);
+            for (int x = 0; x < 2; x++)
+            {
+                Color c = selector_display.transform.GetChild(1).GetChild(x + (i * 2)).GetComponent<UnityEngine.UI.RawImage>().color;
+                c.a = 0.2f;
+                selector_display.transform.GetChild(1).GetChild(x + (i * 2)).GetComponent<UnityEngine.UI.RawImage>().color = c;
+            }
         }
 
         float animation_time = MOVE_TIME;
 
         Vector3 starting_pos = selector_lever.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, torpedo_option / 3.0f);
+        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, current_bay / 3.0f);
 
         //move slider
         while (animation_time > 0.0f)
@@ -78,10 +85,16 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
             yield return null;
         }
 
-        selector_display.transform.GetChild(torpedo_option + 4).gameObject.SetActive(true);
+        selector_display.transform.GetChild(0).GetChild(current_bay * 2).gameObject.SetActive(true);
+        for (int x = 0; x < 2; x++)
+        {
+            Color c = selector_display.transform.GetChild(1).GetChild(x + (current_bay * 2)).GetComponent<UnityEngine.UI.RawImage>().color;
+            c.a = 1.0f;
+            selector_display.transform.GetChild(1).GetChild(x + (current_bay * 2)).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        }
 
-        BUTTONS[0].updateInteractable(torpedo_option > 0 && is_powered == true);
-        BUTTONS[1].updateInteractable(torpedo_option < 3 && is_powered == true);
+        BUTTONS[0].updateInteractable(current_bay > 0 && is_powered == true);
+        BUTTONS[1].updateInteractable(current_bay < 3 && is_powered == true);
         BUTTONS[0].untoggle();
         BUTTONS[1].untoggle();
 
@@ -99,27 +112,27 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
         if (torpedo_shift_coroutine == null)
         {
             bool shifted = false;
-            if (torpedo_option < 3)
+            if (current_bay < 3)
             {
                 if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], keys_down)) //shift right
                 {
                     shifted = true;
                     BUTTONS[1].toggle();
                     BUTTONS[0].updateInteractable(false);
-                    torpedo_option++;
-                    transmitTorpedoSelectionAdjustmentRPC(torpedo_option);
+                    current_bay++;
+                    transmitTorpedoSelectionAdjustmentRPC(current_bay);
                 }
             }
             if (shifted == false)
             {
-                if (torpedo_option > 0)
+                if (current_bay > 0)
                 {
                     if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down)) //shift left
                     {
                         BUTTONS[0].toggle();
                         BUTTONS[1].updateInteractable(false);
-                        torpedo_option--;
-                        transmitTorpedoSelectionAdjustmentRPC(torpedo_option);
+                        current_bay--;
+                        transmitTorpedoSelectionAdjustmentRPC(current_bay);
                     }
                 }
             }
@@ -128,21 +141,21 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
 
     public void resetToDefault()
     {
-        torpedo_option = 0;
+        current_bay = 0;
         selector_lever.transform.localPosition = initial_pos;
-        for (int i = 4; i <= 7; i++)
+        selector_display.transform.GetChild(0).GetChild(0).gameObject.SetActive(true);
+        for (int i = 1; i < 4; i++)
         {
-            selector_display.transform.GetChild(i).gameObject.SetActive(false);
+            selector_display.transform.GetChild(0).GetChild(i * 2).gameObject.SetActive(false);
         }
-        selector_display.transform.GetChild(torpedo_option + 4).gameObject.SetActive(true);
     }
 
     public void powerOn(int position)
     {
         is_powered = true;
         selector_display.SetActive(true);
-        BUTTONS[0].updateInteractable(torpedo_option > 0);
-        BUTTONS[1].updateInteractable(torpedo_option < 3);   
+        BUTTONS[0].updateInteractable(current_bay > 0);
+        BUTTONS[1].updateInteractable(current_bay < 3);
     }
 
     public void powerOff(int position, float time)
@@ -156,7 +169,7 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable
     [Rpc(SendTo.Everyone)]
     private void transmitTorpedoSelectionAdjustmentRPC(int to)
     {
-        torpedo_option = to;
+        current_bay = to;
         if (torpedo_shift_coroutine != null)
         {
             StopCoroutine(torpedo_shift_coroutine);

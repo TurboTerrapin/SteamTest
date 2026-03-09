@@ -42,7 +42,7 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
-        for (int i = 0; i <= 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             //set buttons
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
@@ -88,7 +88,7 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
 
         //update bars on screen
         float tmp_pwr = power_levels[index];
-        for (int i = 0; i <= 19; i++)
+        for (int i = 0; i < 20; i++)
         {
             tmp_pwr = power_levels[index] - (0.05f * i);
             float a = tmp_pwr / 0.05f;
