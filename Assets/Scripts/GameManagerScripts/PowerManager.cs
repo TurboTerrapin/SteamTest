@@ -649,7 +649,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //9
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //10
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("TractorBeamPower")); //11
-        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("InertialDampeners")); //12
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("InertialDampener")); //12
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("Headlights")); //13
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("Warp")); //14
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("VerticalThrusters")); //15

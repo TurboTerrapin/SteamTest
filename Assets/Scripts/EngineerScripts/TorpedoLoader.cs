@@ -73,7 +73,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
 
         if (index < 4)
         {
-            BUTTON_LISTS[0][0].updateInteractable(torpedo_confirmation_coroutine == null && torpedo_direction_adjustment_coroutine == null && current_torpedo_bay != index);
+            BUTTON_LISTS[0][0].updateInteractable(is_powered && torpedo_confirmation_coroutine == null && torpedo_direction_adjustment_coroutine == null && current_torpedo_bay != index);
             hud_info.setInfo(INFO_MESSAGES[0]);
             hud_info.setButtons(BUTTON_LISTS[0], 6);
         }
