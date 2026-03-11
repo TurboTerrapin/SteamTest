@@ -72,8 +72,12 @@ public class AnimatorHandler : MonoBehaviour
     {
         rightHandObj.position = transform.position;
         rightHandObj.rotation = transform.rotation;
+        //rightHandObj.rotation = transform.rotation * Quaternion.AngleAxis(180, Vector3.forward);
     }
+    public void flipRightArmIKRotation()
+    {
 
+    }
     public void setLeftArmIKPosition(Vector3 pos)
     {
         leftHandObj.position = pos;
@@ -172,6 +176,8 @@ public class AnimatorHandler : MonoBehaviour
 
     private Vector3 currentR;
     private Vector3 currentL;
+    private Quaternion currentRotationR;
+    private Quaternion currentRotationL;
     //a callback for calculating IK
     void OnAnimatorIK()
     {
@@ -208,11 +214,12 @@ public class AnimatorHandler : MonoBehaviour
                 Vector3 targetPos = rightHandObj.position;
 
                 currentR = Vector3.Lerp(currentR, targetPos, Time.deltaTime * 5f);
+                currentRotationR = Quaternion.Lerp(currentRotationR, rightHandObj.rotation, Time.deltaTime * 5f);
 
                 myAnimator.SetIKPosition(AvatarIKGoal.RightHand, currentR);
 
                 
-                myAnimator.SetIKRotation(AvatarIKGoal.RightHand, rightHandObj.rotation);
+                myAnimator.SetIKRotation(AvatarIKGoal.RightHand, currentRotationR);
             }
         }
         //if the IK is not active, set the position and rotation of the hand back to the original position
@@ -237,11 +244,12 @@ public class AnimatorHandler : MonoBehaviour
                 Vector3 targetPos = leftHandObj.position;
 
                 currentL = Vector3.Lerp(currentL, targetPos, Time.deltaTime * 5f);
+                currentRotationL = Quaternion.Lerp(currentRotationL, leftHandObj.rotation, Time.deltaTime * 5f);
 
                 myAnimator.SetIKPosition(AvatarIKGoal.LeftHand, currentL);
 
 
-                myAnimator.SetIKRotation(AvatarIKGoal.LeftHand, leftHandObj.rotation);
+                myAnimator.SetIKRotation(AvatarIKGoal.LeftHand, currentRotationL);
             }
         }
         //if the IK is not active, set the position and rotation of the hand back to the original position

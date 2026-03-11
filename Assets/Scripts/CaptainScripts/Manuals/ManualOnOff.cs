@@ -5,12 +5,13 @@
     Last Updated: 1/31/2026
 */
 
-using Unity.Netcode;
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
+using static AnimatorHandler;
 
-public class ManualOnOff : NetworkBehaviour, IControllable
+public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
@@ -26,12 +27,15 @@ public class ManualOnOff : NetworkBehaviour, IControllable
     public List<GameObject> power_switches = null;
     private float[] power_switch_angles = new float[2] { 295.0f, 295.0f };
     private Component[] manuals = new Component[2];
+    public List<GameObject> ik_targets = null;
 
     private Coroutine[] power_change_coroutine = new Coroutine[] { null, null };
 
     private List<string> ray_targets = new List<string> { "ship_manual_on_off", "communications_manual_on_off" };
 
     private static HUDInfo hud_info = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
     private void Start()
     {
         manuals[0] = GetComponent<ShipManual>();
@@ -55,7 +59,19 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         hud_info.setPowerConsumption(getManualPowerConsumption(index));
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return ik_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
     public float getManualPowerConsumption(int index)
     {
         float consumed_power = 0.0f;
