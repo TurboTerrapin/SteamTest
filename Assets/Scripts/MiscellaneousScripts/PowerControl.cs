@@ -28,6 +28,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     public List<GameObject> dials = null;
     public GameObject dial_sounds;
     public List<GameObject> light_indicator_groups = null;
+    [Header("IK Targetable Details")]
     public List<GameObject> IK_targets = null;
 
     private bool[] active_dials = new bool[4] { true, true, true, true };
@@ -39,6 +40,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -62,6 +64,10 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     public float getHandPose()
     {
         return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
     public HUDInfo getHUDinfo(GameObject current_target)
     {

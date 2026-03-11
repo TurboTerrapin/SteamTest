@@ -43,6 +43,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
     private void Start()
     {
         tractor_beam_options = GetComponent<TractorBeamOptions>();
@@ -72,6 +73,10 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     public float getHandPose()
     {
         return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
     private void displayAdjustment()
     {

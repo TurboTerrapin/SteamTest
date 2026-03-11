@@ -625,7 +625,7 @@ public class PrimaryScript : MonoBehaviour
                                     my_animation_controller.setIKRightArm(true);
                                     my_animation_controller.setIKLeftArm(false);
                                     my_animation_controller.setRightArmIKTransform(target_IK.getIKTarget(current_ray_target.gameObject));
-                                    //my_animation_controller.flipRightArmIKRotation();
+                                    my_animation_controller.flipRightArmIKRotation(target_IK.getRightHandFlip());
                                     my_animation_controller.setHandInteractionType(target_IK.getHandInteractionType());
                                     my_animation_controller.setHandPose(target_IK.getHandPose());
                                     my_animation_controller.setAnimatorLayerWeight("RightHandLayer", 1f);

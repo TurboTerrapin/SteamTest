@@ -42,6 +42,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
     private void Start()
     {
         auxiliary_power_outer_circle = auxiliary_power_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>();
@@ -69,6 +70,10 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     public float getHandPose()
     {
         return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
     public void resetAuxiliaryPower()
     {

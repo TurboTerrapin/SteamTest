@@ -13,4 +13,5 @@ public interface IIKTargetable
     public Transform getIKTarget(GameObject current_target);
     public AnimatorHandler.HandInteractionType getHandInteractionType();
     public float getHandPose();
+    public bool getRightHandFlip();
 }

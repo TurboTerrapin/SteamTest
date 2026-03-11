@@ -72,11 +72,12 @@ public class AnimatorHandler : MonoBehaviour
     {
         rightHandObj.position = transform.position;
         rightHandObj.rotation = transform.rotation;
-        //rightHandObj.rotation = transform.rotation * Quaternion.AngleAxis(180, Vector3.forward);
     }
-    public void flipRightArmIKRotation()
+    public void flipRightArmIKRotation(bool flip)
     {
+        if (!flip) return;
 
+        rightHandObj.rotation *= Quaternion.AngleAxis(180, Vector3.forward);
     }
     public void setLeftArmIKPosition(Vector3 pos)
     {

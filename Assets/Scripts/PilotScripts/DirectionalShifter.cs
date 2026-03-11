@@ -40,6 +40,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -71,6 +72,10 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
     public float getHandPose()
     {
         return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
     private void displayAdjustment()
     {
