@@ -53,7 +53,6 @@ public class SecondaryScript : MonoBehaviour
     public void toggleInfoOverlaysVisibility(bool active)
     {
         info_overlay.SetActive(active);
-
     }
 
     public void toggleStationIndicatorVisibility(bool active)

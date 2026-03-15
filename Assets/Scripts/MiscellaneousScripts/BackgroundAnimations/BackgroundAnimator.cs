@@ -18,7 +18,8 @@ public class BackgroundAnimator : MonoBehaviour
     private List<GameObject> screen_displays = new List<GameObject>();
     private List<IAnimable> animable_components = new List<IAnimable>();
 
-    private float energy_percentage = 0.0f;
+    private float wall_energy_percentage = 0.0f;
+    private float ceiling_energy_percentage = 0.0f;
 
     private Coroutine screen_enable_coroutine = null;
 
@@ -126,16 +127,23 @@ public class BackgroundAnimator : MonoBehaviour
 
     private void adjustEnergyCircles(float dt)
     {
-        energy_percentage += dt;
-        if (energy_percentage > 1.0f)
+        wall_energy_percentage += dt;
+        if (wall_energy_percentage > 1.0f)
         {
-            energy_percentage = energy_percentage % 1.0f;
+            wall_energy_percentage %= 1.0f;
         }
-        float positional_adjustment = (1.0f - energy_percentage) * 0.45f;
+        ceiling_energy_percentage += dt;
+        if (ceiling_energy_percentage > 2.0f)
+        {
+            ceiling_energy_percentage %= 2.0f;
+        }
+        float positional_adjustment = (1.0f - wall_energy_percentage) * 0.45f;
         energy_circles.transform.GetChild(0).transform.localPosition = new Vector3(0.0f, -positional_adjustment, 0.0f);
         energy_circles.transform.GetChild(1).transform.localPosition = new Vector3(0.0f, 0.0f, -positional_adjustment);
         energy_circles.transform.GetChild(2).transform.localPosition = new Vector3(0.0f, 0.0f, positional_adjustment);
         energy_circles.transform.GetChild(3).transform.localPosition = new Vector3(0.0f, positional_adjustment, 0.0f);
+        positional_adjustment = ceiling_energy_percentage;
+        energy_circles.transform.GetChild(4).transform.localPosition = new Vector3(0.0f, 0.0f, ceiling_energy_percentage);
     }
 
     //animate components

@@ -2,10 +2,11 @@
     ScenarioMap.cs
     - Handles engineer map
     Contributor(s): Jake Schott
-    Last Updated: 2/10/2026
+    Last Updated: 3/13/2026
 */
 
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -15,15 +16,19 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     private static float FLASH_SPEED = 0.5f;
     private static Color TMP_RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
     private static Color SPRITE_RED = new Color(0.96f, 0.25f, 0.28f, 1.0f); //sprite renderer shows color differently
+    private static float ITEM_LOCATION_CONVERSION_FACTOR;
+    private static float INTEREST_ITEM_SIZE_CONVERSION_FACTOR;
 
     public GameObject navigation_display;
     public GameObject heading_display;
     public GameObject navigation_information;
     public GameObject altitude_label;
+    public List<Sprite> item_of_interest_sprites = null;
 
     private GameObject entrance_path;
     private GameObject exit_path;
     private GameObject ship_icon;
+    private GameObject items_of_interest;
     private GameObject circle_boundary;
     private GameObject countdown;
 
@@ -31,11 +36,93 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     void Start()
     {
+        ITEM_LOCATION_CONVERSION_FACTOR = (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
+        INTEREST_ITEM_SIZE_CONVERSION_FACTOR = (0.115f / ScenarioManager.BOUNDARY_SIZE);
+
         entrance_path = navigation_information.transform.GetChild(0).gameObject;
         exit_path = navigation_information.transform.GetChild(1).gameObject;
         ship_icon = navigation_information.transform.GetChild(2).gameObject;
-        circle_boundary = navigation_information.transform.GetChild(3).gameObject;
+        items_of_interest = navigation_information.transform.GetChild(3).gameObject;
+        circle_boundary = navigation_information.transform.GetChild(4).gameObject;
         countdown = circle_boundary.transform.GetChild(0).gameObject;
+
+        StartCoroutine(itemOfInterestUpdater());
+    }
+
+    private void clearItemsOfInterest()
+    {
+        for (int i = items_of_interest.transform.childCount - 1; i >= 1; i--)
+        {
+            GameObject.Destroy(items_of_interest.transform.GetChild(i).gameObject);
+        }
+    }
+
+    private void populateItemsOfInterest(List<MapItem> interest_items)
+    {
+        for (int i = 0; i < interest_items.Count; i++)
+        {
+            GameObject item_icon = GameObject.Instantiate(items_of_interest.transform.GetChild(0).gameObject, items_of_interest.transform);
+
+            CollectibleItem ci = interest_items[i].GetComponent<CollectibleItem>();
+            if (ci == null)
+            {
+                item_icon.GetComponent<SpriteRenderer>().sprite = item_of_interest_sprites[5];
+                item_icon.transform.localScale = new Vector3(interest_items[i].getSize() * INTEREST_ITEM_SIZE_CONVERSION_FACTOR, interest_items[i].getSize() * INTEREST_ITEM_SIZE_CONVERSION_FACTOR, 1.0f);
+            }
+            else
+            {
+                if (ci.getItemCategory() == 0)
+                {
+                    item_icon.GetComponent<SpriteRenderer>().sprite = item_of_interest_sprites[ci.getItemIndex()];
+                }
+                else if (ci.getItemCategory() == 1)
+                {
+                    item_icon.GetComponent<SpriteRenderer>().sprite = item_of_interest_sprites[4];
+                }
+            }
+
+            Color c = interest_items[i].getColor();
+            c.a = 0.2f;
+            item_icon.GetComponent<SpriteRenderer>().color = c;
+
+            Vector3 item_position = interest_items[i].transform.localPosition;
+            Vector2 item_location = new Vector2(item_position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), item_position.x);
+            item_location *= ITEM_LOCATION_CONVERSION_FACTOR;
+            item_icon.transform.localPosition = new Vector3(item_location.x, item_location.y, 0.0f);
+
+            item_icon.SetActive(true);
+        }
+    }
+
+    IEnumerator itemOfInterestUpdater()
+    {
+        while (true)
+        {
+            GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+            if (world_root != null)
+            {
+                List<MapItem> map_items = new List<MapItem>();
+                foreach (Transform t in world_root.transform)
+                {
+                    MapItem mi = t.GetComponent<MapItem>();
+                    if (mi != null)
+                    {
+                        if (mi.isVisible() == true)
+                        {
+                            if (mi.isInterestItem() == true)
+                            {
+                                map_items.Add(mi);
+                            }
+                        }
+                    }
+                }
+
+                clearItemsOfInterest();
+                populateItemsOfInterest(map_items);
+            }
+
+            yield return new WaitForSeconds(1.0f);
+        }
     }
 
     private void colorChange(Color to_change_to)
@@ -153,8 +240,8 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     public void updatePathLocations(Vector2 ent_path_pos, float ent_rot, Vector2 exit_path_pos, float exit_rot)
     {
-        ent_path_pos *= (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
-        exit_path_pos *= (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
+        ent_path_pos *= ITEM_LOCATION_CONVERSION_FACTOR;
+        exit_path_pos *= ITEM_LOCATION_CONVERSION_FACTOR;
         entrance_path.transform.localPosition = new Vector3(ent_path_pos.x, ent_path_pos.y, 0.0f);
         entrance_path.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -90.0f + ent_rot);
         exit_path.transform.localPosition = new Vector3(exit_path_pos.x, exit_path_pos.y, 0.0f);
@@ -177,7 +264,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     {
         GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
         Vector2 ship_location = new Vector2(-world_root.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -world_root.transform.position.x);
-        ship_location *= (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
+        ship_location *= ITEM_LOCATION_CONVERSION_FACTOR;
         if (ship_location.y <= -0.285f)
         {
             ship_icon.transform.GetChild(0).GetComponent<SpriteRenderer>().maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;

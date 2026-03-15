@@ -26,7 +26,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private static float[] RING_SPEEDS = new float[] { 25.0f, 60.0f, 40.0f, 75.0f };
 
     private GameObject playerPrefab;
-    private Vector3 originalCameraPosition;
     private bool scenarioEndpointReached = false;
     private ScenarioManager scenarioManager;
     private ImpulseThrottle impulse;
@@ -34,7 +33,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private ShipHealth shipHealth;
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
-    private Coroutine cameraShakeCoroutine = null;
     public VisualSpectacleLighting visualSpectacleLighting;
 
     private GameObject spaceship;
@@ -97,7 +95,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         shipHealth = spaceship.GetComponent<ShipHealth>();
 
         playerPrefab = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
-        originalCameraPosition = playerPrefab.transform.GetChild(0).transform.localPosition;
     }
 
     //only run by host
@@ -163,11 +160,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     IEnumerator RedLightState()
     {
-        if (cameraShakeCoroutine == null)
-        {
-            cameraShakeCoroutine = StartCoroutine(CameraShakeState());
-        }
-
         if (NetworkManager.Singleton.IsHost == true)
         {
             while (true)
@@ -181,6 +173,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
                         timeBeforeDamageIsInflicted -= Time.deltaTime;
                         yield return null;
                     }
+                    
                     if (impulse.getCurrentImpulse() > 0.0f)
                     {
                         //shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
@@ -190,22 +183,11 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
                 {
                     yield return null;
                 }
+                if (Camera.main != null)
+                {
+                    playerPrefab.GetComponent<CameraMove>().SetCameraShakeIntensity(impulse.getCurrentImpulse() * 0.025f);
+                }
             }
-        }
-    }
-
-    IEnumerator CameraShakeState()
-    {
-        //only shakes when impulse is > 0, gets worse as impulse goes up
-        while (true)
-        {
-            if (playerPrefab != null)
-            {
-                float intensity = impulse.getCurrentImpulse() * 0.025f;
-                Vector3 shake = Random.insideUnitSphere * intensity;
-                // PlayerPrefab.transform.GetChild(0).transform.localPosition = OriginalCameraPosition + shake;
-            }
-            yield return new WaitForSeconds(0.05f);
         }
     }
 
@@ -301,13 +283,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         {
             StopCoroutine(greenLightCoroutine);
         }
-        if (cameraShakeCoroutine != null)
-        {
-            StopCoroutine(cameraShakeCoroutine);
-        }
         redLightCoroutine = null;
         greenLightCoroutine = null;
-        cameraShakeCoroutine = null;
     }
 
     public string getDeathMessage()
@@ -356,6 +333,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         resetCoroutines();
 
+        playerPrefab.GetComponent<CameraMove>().SetCameraShakeIntensity(0.0f);
         visualSpectacleLighting.SetGreenLight();
 
         greenLightCoroutine = StartCoroutine(GreenLightState());

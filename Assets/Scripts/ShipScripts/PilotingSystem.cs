@@ -65,13 +65,13 @@ public class PilotingSystem : NetworkBehaviour
     private bool insideAltitudeBoundary = true; //used for altitude boundary display in EngineerMap
     private Coroutine boundaryCountdownCoroutine = null;
 
-    public bool AssignControlReferences(GameObject controlHandler)
+    public bool AssignControlReferences()
     {
-        impulseThrottle = controlHandler.GetComponent<ImpulseThrottle>();
-        shipSteering = controlHandler.GetComponent<ShipSteering>();
-        horizontalThrusters = controlHandler.GetComponent<HorizontalThrusters>();
-        verticalThrusters = controlHandler.GetComponent<VerticalThrusters>();
-        probeController = controlHandler.GetComponent<ProbeController>();
+        impulseThrottle = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
+        shipSteering = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ShipSteering>();
+        horizontalThrusters = ReferenceAssistor.Instance.module_handlers[0].GetComponent<HorizontalThrusters>();
+        verticalThrusters = ReferenceAssistor.Instance.module_handlers[0].GetComponent<VerticalThrusters>();
+        probeController = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>();
 
         flyingInstruments = ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>();
         proximityMap = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProximityMap>();

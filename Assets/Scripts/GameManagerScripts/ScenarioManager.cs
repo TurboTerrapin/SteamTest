@@ -71,7 +71,7 @@ public class ScenarioManager : NetworkBehaviour
         power_control = ReferenceAssistor.Instance.module_handlers[4].GetComponent<PowerControl>();
         lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
         background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
-        game_difficulty = GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty();
+        game_difficulty = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().getDifficulty();
     }
 
     public int getDifficulty()

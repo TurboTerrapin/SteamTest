@@ -63,7 +63,6 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         {
             BUTTONS[i].updateInteractable(true);
         }
-        orientation_angle = (Mathf.Round(probe.transform.localRotation.eulerAngles.y * 10) / 10.0f);
         displayAdjustment();
         activate();
     }
@@ -130,6 +129,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
 
             if (Mathf.Abs(orientation_lever_angle) > 0.0f)
             {
+                orientation_angle = (Mathf.Round(probe.transform.rotation.eulerAngles.y * 10.0f) / 10.0f);
                 if (orientation_lever_angle > 0.0f)
                 {
                     orientation_angle -= (orientation_lever_angle / 35.0f) * TURN_SPEED * dt;
@@ -204,7 +204,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable
         {
             if (probe != null)
             {
-                probe.transform.localRotation = Quaternion.Euler(0.0f, orientation_angle, 0.0f);
+                probe.transform.rotation = Quaternion.Euler(0.0f, orientation_angle, 0.0f);
             }
         }
         orientation_angle = or_angle;

@@ -116,9 +116,9 @@ public class PrimaryScript : MonoBehaviour
 
         my_animation_controller = plr_prefab.GetComponent<AnimationController>();
 
-        plr_camera = player_prefab.transform.GetComponent<CameraMove>().camera_transform.GetComponent<Camera>();
+        plr_camera = player_prefab.transform.GetComponent<CameraMove>().cameraHolder.transform.GetChild(0).GetComponent<Camera>();
         player_prefab.transform.GetComponent<CameraMove>().SetMouseSensitvity(player_UI_canvas.GetComponent<UniversalSettingsController>().GetCameraSensitivity());
-        player_prefab.transform.GetComponent<CameraMove>().initialize();
+        player_prefab.transform.GetComponent<CameraMove>().Initialize();
 
         //begin control interfacing
         primary_info.SetActive(false);
@@ -290,6 +290,11 @@ public class PrimaryScript : MonoBehaviour
         cursor.transform.GetChild(1).gameObject.SetActive(!default_active);
     }
 
+    public bool isActive()
+    {
+        return is_active;
+    }
+
     public bool isPaused()
     {
         return paused;
@@ -327,7 +332,8 @@ public class PrimaryScript : MonoBehaviour
         pause_default_menu.SetActive(false);
         pause_settings_menu.SetActive(false);
         pause_controls_menu.SetActive(false);
-        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(hints_enabled || HUD_setting == 0);
+        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(is_active && (hints_enabled || HUD_setting == 0));
+        GetComponent<SecondaryScript>().toggleStationOverlayVisibility(is_active && is_sitting && HUD_setting == 0);
         paused = false;
         if (is_active == true)
         {
@@ -367,6 +373,11 @@ public class PrimaryScript : MonoBehaviour
             UnityEngine.Cursor.lockState = CursorLockMode.None;
         }
         cursor.SetActive(false);
+    }
+
+    public bool hintsEnabled()
+    {
+        return hints_enabled;
     }
 
     public bool isSitting()
@@ -439,8 +450,8 @@ public class PrimaryScript : MonoBehaviour
                         curr_pos = closest_seat;
                         GetComponent<SecondaryScript>().onStationChange(curr_pos);
                         primary_info.SetActive(false);
-                        player_prefab.GetComponent<CameraMove>().lockCamera();
-                        player_prefab.GetComponent<CameraMove>().camera_transform.parent = player_prefab.GetComponent<CameraMove>().head_transform;
+                        player_prefab.GetComponent<CameraMove>().LockCamera();
+                        player_prefab.GetComponent<CameraMove>().cameraHolder.parent = player_prefab.GetComponent<CameraMove>().headTransform;
                         player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
                     }
                 }
@@ -448,11 +459,6 @@ public class PrimaryScript : MonoBehaviour
             else //can't sit
             {
                 primary_info.SetActive(false);
-            }
-
-            if (hints_enabled == true)
-            {
-                GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
             }
 
             return;
@@ -467,11 +473,11 @@ public class PrimaryScript : MonoBehaviour
         player_prefab.GetComponent<CameraMove>().captainMode = (curr_pos == 3);
         if (curr_pos != 3)
         {
-            player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(0.0f, 30.0f));
+            player_prefab.GetComponent<CameraMove>().UnlockCamera(new Vector2(0.0f, 30.0f));
         }
         else
         {
-            player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(180.0f, 30.0f)); //captain is flipped for some reason
+            player_prefab.GetComponent<CameraMove>().UnlockCamera(new Vector2(180.0f, 30.0f)); //captain is flipped for some reason
         }
         my_animation_controller.setIKActive(true);
         my_animation_controller.setIKHead(true);
@@ -479,6 +485,7 @@ public class PrimaryScript : MonoBehaviour
         onShiftChange();
 
         trapezoidal_frame.SetActive(HUD_setting < 2);
+        GetComponent<SecondaryScript>().toggleStationOverlayVisibility(HUD_setting == 0);
         sit_frame.SetActive(false);
         minimized_list_frame.gameObject.SetActive(HUD_setting == 2);
         minimized_list_frame.transform.GetChild(0).gameObject.SetActive(false);
@@ -492,7 +499,7 @@ public class PrimaryScript : MonoBehaviour
     {
         player_prefab.GetComponent<CameraMove>().parentRotationLock = false;
         float[] rotations = new float[] { 0.0f, 0.0f, 135.0f, 0.0f };
-        player_prefab.GetComponent<CameraMove>().unlockCamera(new Vector2(rotations[curr_pos], 30.0f));
+        player_prefab.GetComponent<CameraMove>().UnlockCamera(new Vector2(rotations[curr_pos], 30.0f));
         player_prefab.GetComponent<CameraMove>().captainMode = false;
         my_animation_controller.setIKActive(true);
         my_animation_controller.setIKHead(true);
@@ -527,7 +534,6 @@ public class PrimaryScript : MonoBehaviour
         trapezoidal_frame.SetActive(false);
         minimized_list_frame.SetActive(false);
         minimized_list_frame.transform.GetChild(0).gameObject.SetActive(true);
-        control_title.GetComponent<TMP_Text>().SetText("");
         clearButtons();
 
         player_prefab.GetComponent<PlayerMove>().getUp(curr_pos);
@@ -592,12 +598,6 @@ public class PrimaryScript : MonoBehaviour
         {
             if (!paused && is_active)
             {
-                //-----------------------------------------------SECONDARY INFO HELP MENU CHECK------------------------------------------------
-                if (hints_enabled == true)
-                {
-                    GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
-                }
-
                 //-----------------------------------------------CHECK FOR UNSEATING/SHIFTING--------------------------------------------------
                 if (player_prefab.GetComponent<PlayerMove>().isShifting() == false)
                 {

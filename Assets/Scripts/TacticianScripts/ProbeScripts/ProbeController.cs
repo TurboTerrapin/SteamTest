@@ -92,7 +92,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            current_probe.transform.localPosition = new Vector3(0.0f, current_probe.transform.localPosition.y, 5.0f + Mathf.Lerp(30.0f, 0.0f, anim_time / PROBE_TRANSFORM_ADJUSTMENT_TIME));
+            current_probe.transform.localPosition = new Vector3(0.0f, current_probe.transform.localPosition.y, 55.0f + Mathf.Lerp(30.0f, 0.0f, anim_time / PROBE_TRANSFORM_ADJUSTMENT_TIME));
 
             yield return null;
         }
@@ -117,7 +117,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             }
             Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
             current_probe = GameObject.Instantiate(probe_actual_prefab, spaceship);
-            current_probe.transform.localPosition = new Vector3(0.0f, 5.0f, 5.0f);
+            current_probe.transform.localPosition = new Vector3(0.0f, 5.0f, 55.0f);
             current_probe.transform.rotation = spaceship.rotation;
             current_probe.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             current_probe.GetComponent<NetworkObject>().TrySetParent(spaceship, true);
@@ -247,14 +247,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 
         if (current_probe == null && is_powered == true)
         {
-            if (ship_inventory.getItemQuantity("Probe") > 0)
-            {
-                active_dial = 0;
-            }
-            else
-            {
-                active_dial = -1;
-            }
+            onControlReset();
         }
         else
         {
@@ -317,6 +310,15 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             damageProbe(9999.9f);
         }
         current_probe = null;
+        onControlReset();
+        updateDialDisplays();
+
+        probe_function_coroutine = null;
+    }
+
+    //called when the probe is unlinked and control returns to default state and is powered
+    private void onControlReset()
+    {
         for (int i = 0; i < 2; i++)
         {
             probe_dial_displays[i].transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.05f;
@@ -324,7 +326,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 
         if (ship_inventory.getItemQuantity("Probe") > 0)
         {
-            BUTTON_LISTS[0][0].updateInteractable(true);
+            BUTTON_LISTS[0][0].updateInteractable(is_powered);
             active_dial = 0;
         }
         else
@@ -332,9 +334,6 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             BUTTON_LISTS[0][0].updateInteractable(false);
             active_dial = -1;
         }
-        updateDialDisplays();
-
-        probe_function_coroutine = null;
     }
 
     public void damageProbe(float dam)

@@ -160,13 +160,15 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     //run by the host to push the launched cargo item away from the ship
     IEnumerator cargoTransformAdjustment(GameObject ejected_item)
     {
+        Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
+
         float anim_time = CARGO_TRANSFORM_ADJUSTMENT_TIME;
 
         while (ejected_item != null && anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            ejected_item.transform.localPosition = new Vector3(ejected_item.transform.localPosition.x, ejected_item.transform.localPosition.y, Mathf.Lerp(40.0f, 0.0f, anim_time / CARGO_TRANSFORM_ADJUSTMENT_TIME));
+            ejected_item.transform.localPosition = new Vector3(ejected_item.transform.localPosition.x, ejected_item.transform.localPosition.y, Mathf.Lerp(90.0f, 50.0f, anim_time / CARGO_TRANSFORM_ADJUSTMENT_TIME));
 
             yield return null;
         }
@@ -192,7 +194,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
             {
                 spawn_index = 0;
             }
-            ejected_item.transform.position = new Vector3(spaceship.position.x + SPAWN_X_COORDINATES[spawn_index], spaceship.position.y - 7.0f, spaceship.position.z);
+            ejected_item.transform.position = spaceship.transform.position + (spaceship.transform.right * SPAWN_X_COORDINATES[spawn_index]) + new Vector3(0.0f, -7.0f, 0.0f) + (spaceship.forward * 50.0f);
             ejected_item.transform.rotation = spaceship.rotation;
             Vector3 curr_rotation = ejected_item.transform.rotation.eulerAngles;
             ejected_item.transform.rotation = Quaternion.Euler(curr_rotation.x + Random.Range(-15.0f, 15.0f), curr_rotation.y + Random.Range(-15.0f, 15.0f), curr_rotation.z + Random.Range(-15.0f, 15.0f));

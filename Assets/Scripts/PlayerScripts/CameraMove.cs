@@ -3,8 +3,10 @@
     - Handles pausing
     - Handles looking around
     - Handles camera zoom (using RMB or CTRL)
+    - Handles camera shaking
+    - Handles displaying hints if hints enabled (ex. MISSION OBJECTIVE, POWER MONITORING)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 11/26/2025
+    Last Updated: 3/14/2026
 */
 
 using System.Collections;
@@ -12,112 +14,115 @@ using UnityEngine;
 
 public class CameraMove : MonoBehaviour
 {
-    private Vector2 mouseMove = new Vector2();
-    private Vector2 prevPos = new Vector2(0.0f, 0.0f); //x represents angle of camera, y represents angle of player capsule
-    private Rigidbody rb = null;
+    //CLASS CONSTANTS
+    private static bool HIDE_HAIR_AND_EYES = true; //Hides character's hair/eyes locally
+    private static float ZOOMED_FOV = 40.0f;
+    private static float DEFAULT_FOV = 60.0f;
 
-    private float mouseSensitivity = 1f;
-    private Camera my_camera;
-    public Transform camera_transform;
-    public Transform head_transform;
-    private float zoomFOV = 40f;
-    private Coroutine cameraUpdateCoroutine = null;
-
+    public Transform cameraHolder;
+    public Transform headTransform;
     public bool parentRotationLock = false;
     public bool captainMode = false;
+    private Camera myCamera;
+    private Rigidbody rb;
+
+    private bool cameraLocked = true; //If true, means camera cannot be moved with mouse
+    private Vector2 mouseMove = new Vector2();
+    private Vector2 prevPos = new Vector2(0.0f, 0.0f); //X represents angle of camera, Y represents angle of player capsule
+    private Vector3 cameraOffset = Vector3.zero; //Offset (for camera shake)
+    private float mouseSensitivity = 1.0f;
+    private float cameraShakeIntensity = 0.0f; //Ranges from 0-1, 1 being full shake
 
     private void Start()
     {
         if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //Not owner, kill the camera
         {
-            Destroy(camera_transform.gameObject);
+            Destroy(cameraHolder.gameObject);
             Destroy(this);
         }
 
-        //hide eyes, hair
-        foreach (Transform t in head_transform)
+        //Hide eyes, hair
+        if (HIDE_HAIR_AND_EYES == true)
         {
-            t.gameObject.SetActive(false);
+            foreach (Transform t in headTransform.parent)
+            {
+                if (t != headTransform)
+                {
+                    t.gameObject.SetActive(false);
+                }
+            }
         }
-        my_camera = camera_transform.GetComponent<Camera>();
 
-
-        if (my_camera != null)
+        myCamera = cameraHolder.transform.GetChild(0).GetComponent<Camera>();
+        if (myCamera != null)
         {
-            my_camera.gameObject.AddComponent<AudioListener>();
+            myCamera.gameObject.AddComponent<AudioListener>();
         }
     }
 
-    //Runs after scene is loaded and client matches
-    public void initialize()
+    //Runs after scene is loaded
+    public void Initialize()
     {
         rb = transform.gameObject.GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
+        cameraLocked = false;
 
-        cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
+        StartCoroutine(CameraUpdater());
     }
 
-    public void unlockCamera(Vector2 initial_pos)
+    public void UnlockCamera(Vector2 initialPos)
     {
-        camera_transform.parent = transform;
-        if (cameraUpdateCoroutine == null)
-        {
-            prevPos = initial_pos;
-            cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
-        }
+        cameraHolder.parent = transform;
+        cameraLocked = false;
+        prevPos = initialPos;
     }
 
-    public void lockCamera()
+    public void LockCamera()
     {
-        if (cameraUpdateCoroutine != null)
-        {
-            StopCoroutine(cameraUpdateCoroutine);
-            cameraUpdateCoroutine = null;
-        }
+        cameraLocked = true;
     }
 
-    public void deactivateCamera()
+    public void DeactivateCamera()
     {
-        my_camera.gameObject.SetActive(false);
+        myCamera.gameObject.SetActive(false);
     }
 
-    public void reactivateCamera()
+    public void ReactivateCamera()
     {
-        faceWindow();
-        my_camera.gameObject.SetActive(true);
+        SetCameraShakeIntensity(0.0f);
+        FaceWindow();
+        myCamera.gameObject.SetActive(true);
 
-        if (my_camera != null)
+        if (myCamera != null)
         {
-            my_camera.fieldOfView = 60.0f;
+            myCamera.fieldOfView = DEFAULT_FOV;
         }
-
-        if (cameraUpdateCoroutine != null)
-        {
-            StopCoroutine(cameraUpdateCoroutine);
-        }
-        cameraUpdateCoroutine = StartCoroutine(cameraUpdater());
+        cameraLocked = false;
     }
 
     //Called by FailureHandler on game restart
-    public void resetCamera()
+    public void ResetCamera()
     {
-        if (cameraUpdateCoroutine != null)
-        {
-            StopCoroutine(cameraUpdateCoroutine);
-            cameraUpdateCoroutine = null;
-        }
+        cameraLocked = false;
         prevPos = new Vector2(0.0f, 0.0f);
-        camera_transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+        SetCameraShakeIntensity(0.0f);
+        cameraHolder.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         rb.angularVelocity = Vector3.zero;
-        if (my_camera != null)
+        if (myCamera != null)
         {
-            my_camera.fieldOfView = 60.0f;
+            myCamera.fieldOfView = DEFAULT_FOV;
         }
     }
 
-    private void faceWindow()
+    //Faces window if standing
+    private void FaceWindow()
     {
+        if (parentRotationLock == true)
+        {
+            return;
+        }
+
         Transform window = GameObject.Find("WindowLookPoint").transform;
         if (window == null)
         {
@@ -125,31 +130,45 @@ public class CameraMove : MonoBehaviour
         }
 
         transform.LookAt(window.position);
-        camera_transform.LookAt(window.position);
+        cameraHolder.LookAt(window.position);
 
-        prevPos.x = transform.localRotation.eulerAngles.y;
-        prevPos.y = camera_transform.localRotation.eulerAngles.x - (360.0f - transform.localRotation.eulerAngles.x);
-        prevPos.y = Mathf.Clamp(prevPos.y, -90.0f, 90.0f);
+        prevPos.x = transform.localRotation.eulerAngles.y % 360.0f;
+        prevPos.y = Mathf.Clamp(cameraHolder.localRotation.eulerAngles.x, -90.0f, 90.0f);
 
         transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up);
-        camera_transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
+        cameraHolder.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
     }
 
-    //calls updateCamera() every frame
-    IEnumerator cameraUpdater()
+    //Calls UpdateCamera() every frame
+    IEnumerator CameraUpdater()
     {
+        float cameraShakeDelay = 0.0f;
         while (true)
         {
-            updateCamera();
+            cameraShakeDelay += Time.deltaTime;
+            if (cameraShakeIntensity == 0.0f)
+            {
+                cameraOffset = Vector3.zero;
+            }
+            else
+            {
+                if (cameraShakeDelay > 0.05f)
+                {
+                    cameraOffset = Random.insideUnitSphere * cameraShakeIntensity;
+                    cameraShakeDelay = 0.0f;
+                }
+            }
+
+            UpdateCamera();
             yield return null;
         }
     }
 
-    //Runs every frame after initialize() is called
-    private void updateCamera()
+    //Runs every frame after Initialize() is called
+    private void UpdateCamera()
     {
-        //Make sure we are the owner
-        if (!transform.gameObject.GetComponent<PlayerMove>().IsOwner) return;
+        //Reposition camera to offset value (for shaking)
+        cameraHolder.transform.GetChild(0).localPosition = cameraOffset;
 
         //Handle pause/unpause
         if (Input.GetKeyDown(KeyCode.Escape) && PrimaryScript.Instance.canPause())
@@ -157,39 +176,57 @@ public class CameraMove : MonoBehaviour
             if (!PrimaryScript.Instance.isPaused())
             {
                 PrimaryScript.Instance.pause();
-                rb.angularVelocity = Vector3.zero;
             }
             else
             {
                 PrimaryScript.Instance.unpause();
             }
         }
-
+        
         //If not paused
-        if (Cursor.lockState == CursorLockMode.Locked)
+        if (Cursor.lockState == CursorLockMode.Locked && cameraLocked == false)
         {
             MouseMove();
         }
+
+        //Check for pausing/hints toggling
         if (!PrimaryScript.Instance.isPaused())
         {
-            if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.Mouse1))
+            //Check for info overlay toggling (hints)
+            if (PrimaryScript.Instance.hintsEnabled() && PrimaryScript.Instance.isActive())
             {
-                my_camera.fieldOfView = Mathf.Max(zoomFOV, my_camera.fieldOfView -= 100.0f * Time.deltaTime);
-                return;
+                PrimaryScript.Instance.GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
+            }
+
+            if (cameraLocked == false)
+            {
+                //Zoom in
+                if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.Mouse1))
+                {
+                    myCamera.fieldOfView = Mathf.Max(ZOOMED_FOV, myCamera.fieldOfView -= 100.0f * Time.deltaTime);
+                    return;
+                }
             }
         }
-        my_camera.fieldOfView = Mathf.Min(60.0f, my_camera.fieldOfView += 100.0f * Time.deltaTime);
+        else
+        {
+            //Freeze rotation to prevent infinite spinning
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        //Zoom out
+        myCamera.fieldOfView = Mathf.Min(DEFAULT_FOV, myCamera.fieldOfView += 100.0f * Time.deltaTime);
     }
 
-    void MouseMove()
+    private void MouseMove()
     {
         Cursor.visible = false;
 
         //Gets mouse input
         mouseMove = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")); 
 
-        //Increases the sensitivity to movement
-        mouseMove *= mouseSensitivity * Mathf.Min(1.0f, (1.1f - ((60.0f - my_camera.fieldOfView) / 20.0f)));
+        //Sensitivity changes based on zoom amount
+        mouseMove *= mouseSensitivity * Mathf.Min(1.0f, (1.1f - ((DEFAULT_FOV - myCamera.fieldOfView) / (DEFAULT_FOV - ZOOMED_FOV))));
 
         prevPos.x += mouseMove.x;
         prevPos.y -= mouseMove.y;
@@ -199,7 +236,7 @@ public class CameraMove : MonoBehaviour
             prevPos.y = Mathf.Clamp(prevPos.y, -70.0f, 85.0f);
 
             transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up);
-            camera_transform.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
+            cameraHolder.localRotation = Quaternion.AngleAxis(prevPos.y, Vector3.right);
         }
         else //Sitting down
         {
@@ -214,10 +251,16 @@ public class CameraMove : MonoBehaviour
                 prevPos.x = Mathf.Clamp(prevPos.x, 100.0f, 260.0f);
             }
 
-            camera_transform.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
+            cameraHolder.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
         }
 
-        camera_transform.position = head_transform.position;
+        cameraHolder.position = headTransform.position;
+    }
+
+    //Sets the camera shake factor from 0-1
+    public void SetCameraShakeIntensity(float intensity)
+    {
+        cameraShakeIntensity = intensity;
     }
 
     //Used by settings

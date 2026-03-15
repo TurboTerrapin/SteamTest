@@ -1468,7 +1468,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1550127102
 Transform:
   m_ObjectHideFlags: 0
@@ -1810,6 +1810,7 @@ GameObject:
   - component: {fileID: 1931296183}
   - component: {fileID: 1931296184}
   - component: {fileID: 1931296185}
+  - component: {fileID: 1931296186}
   m_Layer: 8
   m_Name: GameObject
   m_TagString: Untagged
@@ -1883,6 +1884,24 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 1
+--- !u!114 &1931296186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931296182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fcbf6e61ff26f34a9b79c7677b23949, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  size: 1100
+  is_ship: 0
+  is_visible: 1
+  is_interest_item: 1
+  icon_color: {r: 1, g: 0, b: 0, a: 1}
+  icon_texture: {fileID: 0}
 --- !u!1 &1973936419
 GameObject:
   m_ObjectHideFlags: 0

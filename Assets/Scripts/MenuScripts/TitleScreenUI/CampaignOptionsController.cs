@@ -1,5 +1,6 @@
 using UnityEngine;
 using Steamworks;
+using Unity.Netcode;
 
 public class CampaignOptionsController : MonoBehaviour
 {
@@ -7,6 +8,7 @@ public class CampaignOptionsController : MonoBehaviour
     public GameObject CampaignLobby;
     public GameObject JoinCampaignMenu;
     public GameObject MainMenu;
+    public GameObject LobbyHandler;
 
     public void HandleHostGameButtonClick()
     {
@@ -15,6 +17,9 @@ public class CampaignOptionsController : MonoBehaviour
         {
             //SteamMatchmaking.CreateLobbyAsync(4);
             GameNetworkManager.Instance.StartHost(4);
+            GameObject LH = GameObject.Instantiate(LobbyHandler);
+            LH.name = "LobbyHandler";
+            LH.GetComponent<NetworkObject>().Spawn();
         }
         else
         {

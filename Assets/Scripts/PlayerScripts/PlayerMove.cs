@@ -109,13 +109,13 @@ public class PlayerMove : NetworkBehaviour
     //orients camera for get up
     IEnumerator getUpSequence(int pos)
     {
-        Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
+        Transform camera_holder = transform.GetComponent<CameraMove>().cameraHolder;
 
         //myAnimationController.setCharacterPosition(new Vector3(0, 0.12f, 0));
         myAnimationController.setIKActive(false);
-        transform.GetComponent<CameraMove>().lockCamera();
+        transform.GetComponent<CameraMove>().LockCamera();
 
-        Quaternion starting_rotation = camera_transform.localRotation;
+        Quaternion starting_rotation = camera_holder.localRotation;
         float dest_angle_x = 0.0f;
         if (pos == 3)
         {
@@ -127,14 +127,14 @@ public class PlayerMove : NetworkBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            camera_transform.localRotation = Quaternion.Lerp(Quaternion.Euler(30.0f, dest_angle_x, 0.0f), starting_rotation, anim_time / 0.15f);
-            camera_transform.position = transform.GetComponent<CameraMove>().head_transform.position;
+            camera_holder.localRotation = Quaternion.Lerp(Quaternion.Euler(30.0f, dest_angle_x, 0.0f), starting_rotation, anim_time / 0.15f);
+            camera_holder.position = transform.GetComponent<CameraMove>().headTransform.position;
 
             yield return null;
         }
         yield return new WaitForSeconds(0.05f);
 
-        camera_transform.parent = transform.GetComponent<CameraMove>().head_transform;
+        camera_holder.parent = transform.GetComponent<CameraMove>().headTransform;
         myAnimationController.setAnimatorBool("IsLeft", seat_manager.getGetUpDirection(pos));
         myAnimationController.setAnimatorBool("GettingUp", true); //trigger get up animation
     }
@@ -142,11 +142,11 @@ public class PlayerMove : NetworkBehaviour
     //orients player and camera for sit down
     IEnumerator repositionPlayer(Vector3 new_position, float new_rotation, float time)
     {
-        Transform camera_transform = transform.GetComponent<CameraMove>().camera_transform;
+        Transform cameraHolder = transform.GetComponent<CameraMove>().cameraHolder;
 
         Vector3 starting_position = transform.localPosition;
         float starting_rotation = transform.localRotation.eulerAngles.y;
-        float starting_cam_rotation = camera_transform.localRotation.eulerAngles.x;
+        float starting_cam_rotation = cameraHolder.localRotation.eulerAngles.x;
         if (new_rotation == 0.0f && starting_rotation > 180.0f)
         {
             starting_rotation = 0.0f - (360.0f - starting_rotation);
@@ -159,8 +159,8 @@ public class PlayerMove : NetworkBehaviour
 
             transform.localPosition = Vector3.Lerp(new_position, starting_position, anim_time / time);
             transform.localRotation = Quaternion.Euler(0.0f, Mathf.Lerp(new_rotation, starting_rotation, anim_time / time), 0.0f);
-            camera_transform.localRotation = Quaternion.Euler(Mathf.Lerp(30.0f, starting_cam_rotation, anim_time / time), 0.0f, 0.0f);
-            camera_transform.position = transform.GetComponent<CameraMove>().head_transform.position;
+            cameraHolder.localRotation = Quaternion.Euler(Mathf.Lerp(30.0f, starting_cam_rotation, anim_time / time), 0.0f, 0.0f);
+            cameraHolder.position = transform.GetComponent<CameraMove>().headTransform.position;
 
             yield return null;
         }
@@ -199,7 +199,7 @@ public class PlayerMove : NetworkBehaviour
     //adjust the player prefab (bean) and tells SeatManager to adjust seat during a shift
     IEnumerator shift(int pos)
     {
-        bool look_direction = transform.GetComponent<CameraMove>().camera_transform.localRotation.eulerAngles.y < 120;
+        bool look_direction = transform.GetComponent<CameraMove>().cameraHolder.localRotation.eulerAngles.y < 120;
         int new_seat_index = seat_manager.getShiftLocation(pos, look_direction);
         Vector3 start_pos = seat_manager.physical_seats[pos].transform.localPosition;
         Vector3 end_pos = new Vector3(SeatManager.SEAT_COORDINATES[pos][new_seat_index].x, start_pos.y, SeatManager.SEAT_COORDINATES[pos][new_seat_index].y);

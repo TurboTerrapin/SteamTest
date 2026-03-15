@@ -25,13 +25,13 @@ public class FailureHandler : NetworkBehaviour
         GameObject failureCamera = transform.GetChild(0).gameObject;
 
         // switch cameras
-        localPlayer.GetComponent<CameraMove>().deactivateCamera();
+        localPlayer.GetComponent<CameraMove>().DeactivateCamera();
         failureCamera.SetActive(true);
 
         // freeze players
         GameObject.Find("PlayerManager").GetComponent<PlayerManager>().freezeAllPlayers();
         // reset/freeze camera
-        localPlayer.transform.GetComponent<CameraMove>().resetCamera();
+        localPlayer.transform.GetComponent<CameraMove>().ResetCamera();
         // reset/freeze player
         localPlayer.transform.GetComponent<PlayerMove>().resetPlayerMove();
 

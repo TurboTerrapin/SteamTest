@@ -18,7 +18,7 @@ public class TransitionHandler : MonoBehaviour
         GameObject transitionCamera = transform.GetChild(0).gameObject;
 
         // switch cameras
-        localPlayer.GetComponent<CameraMove>().deactivateCamera();
+        localPlayer.GetComponent<CameraMove>().DeactivateCamera();
         transitionCamera.SetActive(true);
 
         // show UI
