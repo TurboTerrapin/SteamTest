@@ -26,7 +26,12 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     public GameObject handle;
     public GameObject impulse_bars_display; //used to display the bars beneath the handle
+
+    [Header("IK Targetable Details")]
     public GameObject IK_target;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
 
     private EngineMonitoring engine_monitoring;
 
@@ -42,9 +47,6 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
     private void Start()
     {
         engine_monitoring = GetComponent<EngineMonitoring>();

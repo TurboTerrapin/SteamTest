@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
+public class SignalJammer : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float JAM_TIME = 10.0f; //seconds
@@ -32,6 +32,12 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     public GameObject signal_jam_button;
     public GameObject signal_jam_display;
     public GameObject signal_indicators;
+
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
 
     private bool is_powered = false;
     private float jam_time = 0.0f;
@@ -54,6 +60,22 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     //changes the colors of the screen's border and lines
