@@ -423,8 +423,8 @@ public class PowerManager : NetworkBehaviour, IPowerable
     IEnumerator shutdownProcess()
     {
         //handle shutdown effects (lights, sounds)
-        lights_manager.disableDefaultLights();
-        lights_manager.disableEmergencyLights();
+        lights_manager.setDefaultLights(false);
+        lights_manager.setEmergencyLights(false);
         power_off_sound.Play();
         ship_beeps_sound.Stop();
         overconsumption_warning_sound.Stop();
@@ -464,7 +464,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         yield return new WaitForSeconds(2.0f);
 
         lights_manager.disableRedAlert();
-        lights_manager.enableEmergencyLights();
+        lights_manager.setEmergencyLights(true);
 
         shutdown_coroutine = null;
     }
@@ -557,8 +557,8 @@ public class PowerManager : NetworkBehaviour, IPowerable
         ship_has_power = true;
 
         //handle restart effects (lights, sounds)
-        lights_manager.enableDefaultLights();
-        lights_manager.disableEmergencyLights();
+        lights_manager.setDefaultLights(true);
+        lights_manager.setEmergencyLights(false);
         ship_beeps_sound.Play();
         background_animator.enableAllScreens(1.5f);
         background_animator.enableEnergyCircles();

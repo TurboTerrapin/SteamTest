@@ -2,7 +2,7 @@
     BackgroundAnimator.cs
     - Handles screen animations in the background of the ship
     Contributor(s): Jake Schott
-    Last Updated: 2/15/2026
+    Last Updated: 3/16/2026
 */
 
 using System.Collections;
@@ -13,7 +13,7 @@ public class BackgroundAnimator : MonoBehaviour
 {
     public GameObject background_screens;
     public List<GameObject> alternate_screens = null;
-    public GameObject energy_circles;
+    public List<GameObject> energy_circles = null;
 
     private List<GameObject> screen_displays = new List<GameObject>();
     private List<IAnimable> animable_components = new List<IAnimable>();
@@ -84,12 +84,18 @@ public class BackgroundAnimator : MonoBehaviour
 
     public void enableEnergyCircles()
     {
-        energy_circles.SetActive(true);
+        foreach (GameObject energy_circle in energy_circles)
+        {
+            energy_circle.SetActive(true);
+        }
     }
 
     public void disableEnergyCircles()
     {
-        energy_circles.SetActive(false);
+        foreach (GameObject energy_circle in energy_circles)
+        {
+            energy_circle.SetActive(false);
+        }
     }
 
     IEnumerator screenEnableSequence(float time)
@@ -138,12 +144,12 @@ public class BackgroundAnimator : MonoBehaviour
             ceiling_energy_percentage %= 2.0f;
         }
         float positional_adjustment = (1.0f - wall_energy_percentage) * 0.45f;
-        energy_circles.transform.GetChild(0).transform.localPosition = new Vector3(0.0f, -positional_adjustment, 0.0f);
-        energy_circles.transform.GetChild(1).transform.localPosition = new Vector3(0.0f, 0.0f, -positional_adjustment);
-        energy_circles.transform.GetChild(2).transform.localPosition = new Vector3(0.0f, 0.0f, positional_adjustment);
-        energy_circles.transform.GetChild(3).transform.localPosition = new Vector3(0.0f, positional_adjustment, 0.0f);
+        energy_circles[0].transform.localPosition = new Vector3(0.0f, -positional_adjustment, 0.0f);
+        energy_circles[1].transform.localPosition = new Vector3(0.0f, 0.0f, -positional_adjustment);
+        energy_circles[2].transform.localPosition = new Vector3(0.0f, 0.0f, positional_adjustment);
+        energy_circles[3].transform.localPosition = new Vector3(0.0f, positional_adjustment, 0.0f);
         positional_adjustment = ceiling_energy_percentage;
-        energy_circles.transform.GetChild(4).transform.localPosition = new Vector3(0.0f, 0.0f, ceiling_energy_percentage);
+        energy_circles[4].transform.localPosition = new Vector3(0.0f, 0.0f, ceiling_energy_percentage);
     }
 
     //animate components

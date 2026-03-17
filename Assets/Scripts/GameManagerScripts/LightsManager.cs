@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 2/15/2026
+    Last Updated: 3/16/2026
 */
 
 using System.Collections;
@@ -12,146 +12,269 @@ using UnityEngine;
 public class LightsManager : MonoBehaviour
 {
     //CLASS CONSTANTS (0 IS DEFAULT, 1 IS EMERGENCY LIGHTS)
-    private static float[] LIGHT_CHANGE_TIME = new float[2] { 0.5f, 0.5f };
-    private static float[] DEFAULT_LIGHT_INTENSITY = new float[2] { 5.0f, 10.0f };
-    private static Color[] DEFAULT_LIGHT_COLOR = new Color[] { new Color(0.66f, 0.92f, 1.0f), new Color(0.87f, 0.96f, 1.0f) };
-    private static Material[] DEFAULT_LIGHT_MATERIAL = new Material[2] { null, null };
-    private static float[] RED_ALERT_LIGHT_INTENSITY = new float[2] { 10.0f, 10.0f };
-    private static Color[] RED_ALERT_LIGHT_COLOR = new Color[] { new Color(1.0f, 0.0f, 0.0f), new Color(0.8f, 0.02f, 0.0f) };
+    private static float LIGHT_CHANGE_TIME = 0.5f;
+    private static float[] DEFAULT_LIGHT_INTENSITIES = new float[2] { 5.0f, 10.0f };
+    private static Color[] DEFAULT_LIGHT_COLORS = new Color[] { new Color(0.66f, 0.92f, 1.0f), new Color(0.87f, 0.96f, 1.0f) };
+    private static float[] RED_ALERT_LIGHT_INTENSITIES = new float[2] { 10.0f, 10.0f };
+    private static Color[] RED_ALERT_LIGHT_COLORS = new Color[] { new Color(1.0f, 0.0f, 0.0f), new Color(0.8f, 0.02f, 0.0f) };
+    //order of lights in default lights hierarchy (ex. transform.GetChild(11) would get an aft light)
+    private static int[][] DEFAULT_DIRECTIONAL_INDEXES = new int[][]
+    {
+        new int[]{ 0, 1, 2, 3, 4 }, //forward lights
+        new int[]{ 5, 6, 7 }, //port lights
+        new int[]{ 8, 9, 10 }, //starboard lights
+        new int[]{ 11, 12, 13 } //aft lights
+    };
+    //order of secondary lit objects in lit elements hierarchy
+    private static int[][] LIT_DIRECTIONAL_INDEXES = new int[][]
+{
+        new int[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8 }, //forward lit elements
+        new int[]{ 9 }, //port lit elements
+        new int[]{ 10 }, //starboard lit elements
+        new int[]{ 11 } //aft lit elements
+};
 
-    public Material lit_neon;
-    public Material unlit_neon;
-    public Material lit_off_white;
-    public Material lit_red;
-    public Material pure_black;
+    public GameObject default_light_group;
+    public GameObject emergency_light_group;
+    public GameObject lit_element_group;
 
-    public GameObject default_lights;
-    public GameObject emergency_lights;
-    public GameObject light_strips;
-    public GameObject energy_circles;
-
-    private GameObject[] light_groups = new GameObject[2] { null, null };
+    private List<Light>[] default_lights = new List<Light>[4];
+    private List<Renderer>[] default_renderers = new List<Renderer>[4];
+    private List<Renderer>[] lit_renderers = new List<Renderer>[4];
+    private List<Light> emergency_lights = new List<Light>();
+    private List<Renderer> emergency_renderers = new List<Renderer>();
     private ShipStatus ship_status;
 
-    private bool[] enabled_lights = new bool[2] { true, false };
-    private Coroutine[] light_change_coroutines = new Coroutine[2] { null, null };
+    private bool[] enabled_lights = new bool[2] { true, false }; //default, emergency
+    private float[] light_intensities = new float[] { DEFAULT_LIGHT_INTENSITIES[0], 0.0f }; //default, emergency
 
-    // Added - Henryk
-    private Coroutine flicker_coroutine = null;
-    private static float BASE_FLICKER_DURATION = 3.0f;
-    private static float FLICKER_DAMAGE_THRESHOLD = 15.0f;
-    private List<Material> tempMaterials = new List<Material>(); // Stores the instanced dimmed materials for flickering
+    //below correspond to forward, port, starboard, aft
+    private Color[] current_default_colors = new Color[4];
+    private Material[] current_default_materials = new Material[4];
+    private Color[] normal_default_colors = new Color[4];
+    private Material[] normal_default_materials = new Material[4];
+    private Color emergency_color;
+    private Material emergency_material;
 
-    [Range(0.0f, 1.0f)]
-    private float minDimnessAtMaxDamage = 0.01f;
-    private float minFlickerOffDuration = 0.05f;
-    private float maxFlickerOffDuration = 0.1f;
-    private float minFlickerOnDuration = 0.025f;
-    private float maxFlickerOnDuration = 0.3f;
+    //below correspond to forward, port, starboard, aft
+    private float[] flicker_times = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f };
+    private Material[] flicker_materials = new Material[4];
+    private Coroutine[] flicker_coroutines = new Coroutine[4] { null, null, null, null };
+
+    private Coroutine[] light_change_coroutines = new Coroutine[2] { null, null }; //default, emergency
 
     private void Start()
     {
-        light_groups[0] = default_lights;
-        light_groups[1] = emergency_lights;
+        //add forward, port, starboard, and aft lights and lit elements
+        for (int i = 0; i < 4; i++)
+        {
+            default_lights[i] = new List<Light>();
+            default_renderers[i] = new List<Renderer>();
+            lit_renderers[i] = new List<Renderer>();
+            for (int k = 0; k < DEFAULT_DIRECTIONAL_INDEXES[i].Length; k++)
+            {
+                default_lights[i].Add(default_light_group.transform.GetChild(DEFAULT_DIRECTIONAL_INDEXES[i][k]).GetComponent<Light>());
+                default_renderers[i].Add(default_light_group.transform.GetChild(DEFAULT_DIRECTIONAL_INDEXES[i][k]).GetChild(0).GetComponent<Renderer>());
+            }
+            for (int k = 0; k < LIT_DIRECTIONAL_INDEXES[i].Length; k++)
+            {
+                lit_renderers[i].Add(lit_element_group.transform.GetChild(LIT_DIRECTIONAL_INDEXES[i][k]).GetComponent<Renderer>());
+            }
 
-        DEFAULT_LIGHT_MATERIAL[0] = lit_neon;
-        DEFAULT_LIGHT_MATERIAL[1] = lit_off_white;
+            flicker_materials[i] = new Material(ReferenceAssistor.Instance.lit_neon);
+        }
+        
+        //add emergency lights
+        for (int i = 0; i < emergency_light_group.transform.childCount; i++)
+        {
+            emergency_lights.Add(emergency_light_group.transform.GetChild(i).GetComponent<Light>());
+            emergency_renderers.Add(emergency_light_group.transform.GetChild(i).GetChild(0).GetComponent<Renderer>());
+        }
+        emergency_material = ReferenceAssistor.Instance.unlit_neon;
 
         ship_status = ReferenceAssistor.Instance.module_handlers[3].GetComponent<ShipStatus>();
+
+        resetLights();
     }
 
-
-    //helper method that changes the materials of every physical .FBX parented to a light source
-    private void changeMaterials(Transform light_group, Material physical_light_material)
+    //cleanup runtime materials
+    private void OnDestroy()
     {
-        foreach (Transform light in light_group) //iterate through every (potential) FBX model
+        for (int i = 0; i < 4; i++)
         {
-            foreach (Transform physical_light in light.transform)
+            Destroy(flicker_materials[i]);
+        }
+    }
+
+    public void changeSectionAppearance(int section, Material lit_material, Color light_color)
+    {
+        normal_default_colors[section] = light_color;
+        normal_default_materials[section] = lit_material;
+        if (ship_status.getCurrColor() < 2)
+        {
+            current_default_colors[section] = normal_default_colors[section];
+            current_default_materials[section] = normal_default_materials[section];
+        }
+        displayLightColors(0);
+        displayLightMaterials(0);
+    }
+
+    private void displayLightMaterials(int index)
+    {
+        if (index == 0) //default
+        {
+            for (int i = 0; i < 4; i++)
             {
-                physical_light.GetComponent<Renderer>().material = physical_light_material; //set material
+                for (int k = 0; k < default_renderers[i].Count; k++)
+                {
+                    if (enabled_lights[index] == true)
+                    {
+                        default_renderers[i][k].material = current_default_materials[i];
+                    }
+                    else
+                    {
+                        default_renderers[i][k].material = ReferenceAssistor.Instance.unlit_neon;
+                    }
+                }
+                for (int k = 0; k < lit_renderers[i].Count; k++)
+                {
+                    if (enabled_lights[index] == true)
+                    {
+                        lit_renderers[i][k].material = current_default_materials[i];
+                    }
+                    else
+                    {
+                        lit_renderers[i][k].material = ReferenceAssistor.Instance.pure_black;
+                    }
+                }
+            }
+        }
+        else //emergency
+        {
+            for (int i = 0; i < emergency_renderers.Count; i++)
+            {
+                if (enabled_lights[index] == true)
+                {
+                    emergency_renderers[i].material = emergency_material;
+                }
+                else
+                {
+                    emergency_renderers[i].material = ReferenceAssistor.Instance.unlit_neon;
+                }
             }
         }
     }
 
+    private void displayLightIntensities(int index)
+    {
+        if (enabled_lights[index] == false)
+        {
+            return;
+        }
+
+        if (index == 0) //default
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                for (int k = 0; k < default_lights[i].Count; k++)
+                {
+                    default_lights[i][k].intensity = light_intensities[index];
+                }
+            }
+        }
+        else //emergency
+        {
+            for (int i = 0; i < emergency_lights.Count; i++)
+            {
+                emergency_lights[i].intensity = light_intensities[index];
+            }
+        }
+    }
+
+    private void displayLightColors(int index)
+    {
+        if (index == 0) //default
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                for (int k = 0; k < default_lights[i].Count; k++)
+                {
+                    default_lights[i][k].color = current_default_colors[i];
+                }
+            }
+        }
+        else //emergency
+        {
+            for (int i = 0; i < emergency_lights.Count; i++)
+            {
+                emergency_lights[i].color = emergency_color;
+            }
+        }
+    }
+
+    //called on initialization, scenario transition
     public void resetLights()
     {
+        //stop light change coroutines
         for (int i = 0; i < 2; i++)
         {
-            if (light_change_coroutines[i] != null)
-            {
-                StopCoroutine(light_change_coroutines[i]);
-                light_change_coroutines[i] = null;
-            }
+            endLightChangeCoroutine(i);
         }
 
-        if (flicker_coroutine != null)
-        {
-            StopCoroutine(flicker_coroutine);
-            flicker_coroutine = null;
-        }
-
-        //enable default lights
-        changeLightColors(light_groups[0].transform, DEFAULT_LIGHT_COLOR[0]);
-        changeLightIntensities(light_groups[0].transform, DEFAULT_LIGHT_INTENSITY[0]);
-        changeMaterials(light_groups[0].transform, lit_neon);
-
-        //disable emergency lights
-        changeLightColors(light_groups[1].transform, DEFAULT_LIGHT_COLOR[1]);
-        changeLightIntensities(light_groups[1].transform, 0.0f);
-        changeMaterials(light_groups[1].transform, unlit_neon);
+        //stop flicker coroutines
+        endFlickerCoroutines();
 
         //default lights enabled to start, emergency lights disabled to start
         enabled_lights[0] = true;
+        light_intensities[0] = DEFAULT_LIGHT_INTENSITIES[0];
         enabled_lights[1] = false;
+        light_intensities[1] = 0.0f;
 
-        //enable light strips
-        changeLightStrips(lit_neon);
-        changeEnergyCircles(lit_neon);
-    }
-
-    //helper method that changes every light strip's material
-    private void changeLightStrips(Material to_change_to)
-    {
-        foreach (Transform strip in light_strips.transform)
+        //enable default lights
+        for (int i = 0; i < 4; i++)
         {
-            strip.GetComponent<Renderer>().material = to_change_to;
+            current_default_colors[i] = DEFAULT_LIGHT_COLORS[0];
+            normal_default_colors[i] = DEFAULT_LIGHT_COLORS[0];
+            current_default_materials[i] = ReferenceAssistor.Instance.lit_neon;
+            normal_default_materials[i] = ReferenceAssistor.Instance.lit_neon;
         }
-    }
 
-    //helper method that changes every energy circle's material
-    private void changeEnergyCircles(Material to_change_to)
-    {
-        foreach (Transform strip in energy_circles.transform)
-        {
-            strip.GetComponent<Renderer>().material = to_change_to;
-        }
-    }
+        //disable emergency lights
+        emergency_color = DEFAULT_LIGHT_COLORS[1];
+        emergency_material = ReferenceAssistor.Instance.unlit_neon;
 
-    //helper method that changes every light's color in light_group
-    private void changeLightColors(Transform light_group, Color light_color)
-    {
-        foreach (Transform light in light_group) //iterate through every light
+        //push updates
+        for (int i = 0; i < 2; i++)
         {
-            light.GetComponent<Light>().color = light_color;
-        }
-    }
-
-    //helper method that changes every light's color and intensity in light_group
-    private void changeLightIntensities(Transform light_group, float light_intensity)
-    {
-        foreach (Transform light in light_group) //iterate through every light
-        {
-            light.GetComponent<Light>().intensity = light_intensity;
+            displayLightColors(i);
+            displayLightIntensities(i);
+            displayLightMaterials(i);
         }
     }
 
     //used to dim/brighten a set of lights (does not affect their materials)
-    IEnumerator lightIntensityChange(Light[] lights_to_adjust, float time, float to_change_to)
+    IEnumerator lightIntensityChange(int index, float time, float to_change_to)
     {
         float anim_time = time;
 
-        float[] starting_intensities = new float[lights_to_adjust.Length];
-        for (int i = 0; i < lights_to_adjust.Length; i++)
+        List<Light> lights_to_adjust = new List<Light>();
+        if (index == 0) //default
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                for (int k = 0; k < default_lights[i].Count; k++)
+                {
+                    lights_to_adjust.Add(default_lights[i][k]);
+                }
+            }
+        }
+        else //emergency
+        {
+            lights_to_adjust = emergency_lights;
+        }
+
+        float[] starting_intensities = new float[lights_to_adjust.Count];
+        for (int i = 0; i < lights_to_adjust.Count; i++)
         {
             starting_intensities[i] = lights_to_adjust[i].intensity;
         }
@@ -160,7 +283,7 @@ public class LightsManager : MonoBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            for (int i = 0; i < lights_to_adjust.Length; i++)
+            for (int i = 0; i < lights_to_adjust.Count; i++)
             {
                 lights_to_adjust[i].intensity = Mathf.Lerp(starting_intensities[i], to_change_to, 1.0f - (anim_time / time));
             }
@@ -169,99 +292,122 @@ public class LightsManager : MonoBehaviour
         }
     }
 
-    //used to enable/disable a set of lights (calls lightIntensityChange() and changeMaterials)
+    //used to enable/disable a set of lights (calls lightIntensityChange() and changeMaterials()
     IEnumerator lightsChange(int index, float desired_intensity)
     {
-        Transform light_group = light_groups[index].transform;
-
-        if (desired_intensity > 0.0f)
+        if (desired_intensity > 0.0f) //turning on
         {
-            if (ship_status.getCurrColor() != 2)
+            if (index == 0) //default
             {
-                changeMaterials(light_group, DEFAULT_LIGHT_MATERIAL[index]);
+                for (int i = 0; i < 4; i++)
+                {
+                    current_default_materials[i] = normal_default_materials[i];
+                }
             }
-            else
+            else //emergency
             {
-                changeMaterials(light_group, lit_red);
+                if (ship_status.getCurrColor() < 2)
+                {
+                    emergency_material = ReferenceAssistor.Instance.lit_off_white;
+                }
+                else
+                {
+                    emergency_material = ReferenceAssistor.Instance.lit_red;
+                }
             }
         }
+        displayLightMaterials(index);
 
-        Light[] lights_to_adjust = new Light[light_group.transform.childCount];
-        for (int i = 0; i < lights_to_adjust.Length; i++)
-        {
-            lights_to_adjust[i] = light_group.transform.GetChild(i).GetComponent<Light>();
-        }
-        yield return lightIntensityChange(lights_to_adjust, LIGHT_CHANGE_TIME[index], desired_intensity);
+        yield return lightIntensityChange(index, LIGHT_CHANGE_TIME, desired_intensity);
 
         if (desired_intensity == 0.0f)
         {
-            changeMaterials(light_group, unlit_neon);
+            if (index == 0) //default
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    current_default_materials[i] = ReferenceAssistor.Instance.unlit_neon;
+                }
+            }
+            else //emergency
+            {
+                emergency_material = ReferenceAssistor.Instance.unlit_neon;
+            }
         }
+        displayLightMaterials(index);
 
         light_change_coroutines[index] = null;
     }
 
-    private void resetLightChangeCoroutine(int index)
+    private void endLightChangeCoroutine(int index)
     {
         if (light_change_coroutines[index] != null)
         {
             StopCoroutine(light_change_coroutines[index]);
+            light_change_coroutines[index] = null;
         }
     }
 
-    public void enableEmergencyLights()
+    //ends all flicker coroutines
+    private void endFlickerCoroutines()
     {
-        resetLightChangeCoroutine(1);
-        enabled_lights[1] = true;
-        light_change_coroutines[1] = StartCoroutine(lightsChange(1, DEFAULT_LIGHT_INTENSITY[1]));
+        for (int i = 0; i < 4; i++)
+        {
+            if (flicker_coroutines[i] != null)
+            {
+                StopCoroutine(flicker_coroutines[i]);
+                flicker_coroutines[i] = null;
+            }
+        }
     }
 
-    public void disableEmergencyLights()
+    public void setDefaultLights(bool active)
     {
-        resetLightChangeCoroutine(1);
-        enabled_lights[1] = false;
-        light_change_coroutines[1] = StartCoroutine(lightsChange(1, 0.0f));
+        endFlickerCoroutines();
+        endLightChangeCoroutine(0);
+        enabled_lights[0] = active;
+        float intensity_to_change_to = DEFAULT_LIGHT_INTENSITIES[0];
+        if (active == false)
+        {
+            intensity_to_change_to = 0.0f;
+        }
+        light_change_coroutines[0] = StartCoroutine(lightsChange(0, intensity_to_change_to));
     }
 
-    public void enableDefaultLights()
+    public void setEmergencyLights(bool active)
     {
-        resetLightChangeCoroutine(0);
-        enabled_lights[0] = true;
-        light_change_coroutines[0] = StartCoroutine(lightsChange(0, DEFAULT_LIGHT_INTENSITY[0]));
-
-        //enable light strips
-        changeLightStrips(lit_neon);
-        changeEnergyCircles(lit_neon);
-    }  
-
-    public void disableDefaultLights()
-    {
-        resetLightChangeCoroutine(0);
-        enabled_lights[0] = false;
-        light_change_coroutines[0] = StartCoroutine(lightsChange(0, 0.0f));
-
-        //disable light strips
-        changeLightStrips(pure_black);
+        endLightChangeCoroutine(1);
+        enabled_lights[1] = active;
+        float intensity_to_change_to = DEFAULT_LIGHT_INTENSITIES[1];
+        if (active == false)
+        {
+            intensity_to_change_to = 0.0f;
+        }
+        light_change_coroutines[1] = StartCoroutine(lightsChange(1, intensity_to_change_to));
     }
 
     public void enableRedAlert()
     {
         for (int i = 0; i < 2; i++)
         {
-            if (enabled_lights[i] == true)
+            endLightChangeCoroutine(i);
+            light_intensities[i] = RED_ALERT_LIGHT_INTENSITIES[i];
+            if (i == 0) //default
             {
-                resetLightChangeCoroutine(i);
-                changeMaterials(light_groups[i].transform, lit_red);
-                changeLightIntensities(light_groups[i].transform, RED_ALERT_LIGHT_INTENSITY[i]);
+                for (int k = 0; k < 4; k++)
+                {
+                    current_default_colors[k] = RED_ALERT_LIGHT_COLORS[0];
+                    current_default_materials[k] = ReferenceAssistor.Instance.lit_red;
+                }
             }
-            changeLightColors(light_groups[i].transform, RED_ALERT_LIGHT_COLOR[i]);
-        }
-
-        //change light strip color
-        if (enabled_lights[0] == true)
-        {
-            changeLightStrips(lit_red);
-            changeEnergyCircles(lit_red);
+            else //emergency
+            {
+                emergency_color = RED_ALERT_LIGHT_COLORS[1];
+                emergency_material = ReferenceAssistor.Instance.lit_red;
+            }
+            displayLightIntensities(i);
+            displayLightMaterials(i);
+            displayLightColors(i);
         }
     }
 
@@ -269,165 +415,92 @@ public class LightsManager : MonoBehaviour
     {
         for (int i = 0; i < 2; i++)
         {
-            if (enabled_lights[i] == true)
+            endLightChangeCoroutine(i);
+            light_intensities[i] = DEFAULT_LIGHT_INTENSITIES[i];
+            if (i == 0) //default
             {
-                resetLightChangeCoroutine(i);
-                changeMaterials(light_groups[i].transform, DEFAULT_LIGHT_MATERIAL[i]);
-                changeLightIntensities(light_groups[i].transform, DEFAULT_LIGHT_INTENSITY[i]);
-            }
-            changeLightColors(light_groups[i].transform, DEFAULT_LIGHT_COLOR[i]);
-        }
-
-        //change light strip color
-        if (enabled_lights[0] == true)
-        {
-            changeLightStrips(lit_neon);
-            changeEnergyCircles(lit_neon);
-        }
-    }
-
-    public void TriggerCollisionFlicker(float collisionDamage)
-    {
-        if (collisionDamage < FLICKER_DAMAGE_THRESHOLD) return;
-
-        // Stop any ongoing light changes
-        for (int i = 0; i < light_change_coroutines.Length; i++)
-        {
-            if (light_change_coroutines[i] != null)
-            {
-                StopCoroutine(light_change_coroutines[i]);
-                light_change_coroutines[i] = null;
-            }
-        }
-
-        // Restart flicker effect
-        if (flicker_coroutine != null)
-        {
-            StopCoroutine(flicker_coroutine);
-        }
-        flicker_coroutine = StartCoroutine(FlickerEffectCoroutine(collisionDamage));
-    }
-
-    // Flickers both the lights and the emissive materials (instanced)
-    private IEnumerator FlickerEffectCoroutine(float damage)
-    {
-        // Calculate the flicker parameters
-        float normalized_damage = Mathf.Clamp01(damage / 100.0f);
-        float flicker_duration = BASE_FLICKER_DURATION * normalized_damage;
-        float dim_factor = Mathf.Lerp(1.0f, minDimnessAtMaxDamage, normalized_damage);
-
-        // Cache all renderers and create dimmed materials once
-        List<Renderer> activeRenderers = new List<Renderer>();
-        List<Material> dimmedMaterials = new List<Material>();
-        List<Material> tempMaterials = new List<Material>();
-        bool is_red_alert = ship_status.getCurrColor() == 2;
-
-        for (int i = 0; i < 2; i++)
-        {
-            if (!enabled_lights[i]) continue;
-
-            Transform light_group = light_groups[i].transform;
-            foreach (Transform light_transform in light_group)
-            {
-                foreach (Transform physical_light in light_transform)
+                for (int k = 0; k < 4; k++)
                 {
-                    Renderer rend = physical_light.GetComponent<Renderer>();
-                    if (rend != null)
-                    {
-                        activeRenderers.Add(rend);
-
-                        // Create a dimmed version of the current material
-                        Material dimmedMat = new Material(rend.material);
-                        if (dimmedMat.HasProperty("_EmissionColor"))
-                        {
-                            Color emissionColor = dimmedMat.GetColor("_EmissionColor");
-                            dimmedMat.SetColor("_EmissionColor", emissionColor * dim_factor);
-                        }
-                        if (dimmedMat.HasProperty("_Color"))
-                        {
-                            Color color = dimmedMat.color;
-                            dimmedMat.SetColor("_Color", color * dim_factor);
-                        }
-                        dimmedMaterials.Add(dimmedMat);
-                        tempMaterials.Add(dimmedMat); // Track for cleanup
-                    }
+                    current_default_colors[k] = normal_default_colors[k];
+                    current_default_materials[k] = normal_default_materials[k];
                 }
             }
-        }
-
-        float elapsed_time = 0f;
-
-        while (elapsed_time < flicker_duration)
-        {
-            // Dim phase - both lights and materials
-            SetAllLightsIntensity(dim_factor);
-            for (int i = 0; i < activeRenderers.Count; i++)
+            else //emergency
             {
-                activeRenderers[i].material = dimmedMaterials[i];
+                emergency_color = DEFAULT_LIGHT_COLORS[1];
+                emergency_material = ReferenceAssistor.Instance.lit_off_white;
             }
-
-            float off_time = Random.Range(minFlickerOffDuration, maxFlickerOffDuration);
-            yield return new WaitForSeconds(off_time);
-            elapsed_time += off_time;
-
-            if (elapsed_time >= flicker_duration) break;
-
-            // Normal phase - restores everything
-            RestoreLightsToNormal(is_red_alert);
-
-            float on_time = Random.Range(minFlickerOnDuration, maxFlickerOnDuration);
-            yield return new WaitForSeconds(on_time);
-            elapsed_time += on_time;
-        }
-
-        // Restore to final state
-        RestoreLightsToNormal(ship_status.getCurrColor() == 2);
-
-        // Cleanup 
-        foreach (Material mat in tempMaterials)
-        {
-            Destroy(mat);
-        }
-        tempMaterials.Clear();
-
-        flicker_coroutine = null;
-    }
-
-    private void SetAllLightsIntensity(float multiplier)
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            if (!enabled_lights[i]) continue;
-
-            Transform light_group = light_groups[i].transform;
-            float target_intensity = (ship_status.getCurrColor() == 2 ? RED_ALERT_LIGHT_INTENSITY[i] : DEFAULT_LIGHT_INTENSITY[i]) * multiplier;
-
-            foreach (Transform light_transform in light_group)
-            {
-                Light light_component = light_transform.GetComponent<Light>();
-                if (light_component != null)
-                {
-                    light_component.intensity = target_intensity;
-                }
-            }
+            displayLightIntensities(i);
+            displayLightMaterials(i);
+            displayLightColors(i);
         }
     }
 
-    private void RestoreLightsToNormal(bool is_red_alert)
+    public void flickerLights(int section, float time)
     {
-        for (int i = 0; i < 2; i++)
+        //only flicker if lights are on
+        if (enabled_lights[0] == false)
         {
-            if (!enabled_lights[i]) continue;
-
-            Transform light_group = light_groups[i].transform;
-
-            // Restore intensity
-            float target_intensity = is_red_alert ? RED_ALERT_LIGHT_INTENSITY[i] : DEFAULT_LIGHT_INTENSITY[i];
-            changeLightIntensities(light_group, target_intensity);
-
-            // Restore materials
-            Material target_material = is_red_alert ? lit_red : DEFAULT_LIGHT_MATERIAL[i];
-            changeMaterials(light_group, target_material);
+            return;
         }
+
+        //check if already flickering in section, and if so, increase time (if new time is greater than current)
+        if (flicker_coroutines[section] != null)
+        {
+            if (time > flicker_times[section])
+            {
+                flicker_times[section] = time;
+            }
+        }
+        else
+        {
+            flicker_times[section] = time;
+            flicker_coroutines[section] = StartCoroutine(sectionFlicker(section));
+        }
+    }
+
+    private void adjustSectionFlicker(int section, float dim_factor)
+    {
+        Material section_material = current_default_materials[section];
+        flicker_materials[section].SetColor("_BaseColor", section_material.GetColor("_BaseColor") * Mathf.Lerp(0.05f, 1.0f, dim_factor));
+        flicker_materials[section].SetColor("_EmissionColor", section_material.GetColor("_EmissionColor") * Mathf.Lerp(0.35f, 1.0f, dim_factor));
+        for (int i = 0; i < default_renderers[section].Count; i++)
+        {
+            default_renderers[section][i].material = flicker_materials[section];
+            default_lights[section][i].intensity = Mathf.Lerp(1.0f, light_intensities[0], dim_factor);
+        }
+        for (int i = 0; i < lit_renderers[section].Count; i++)
+        {
+            lit_renderers[section][i].material = flicker_materials[section];
+        }
+    }
+
+    IEnumerator sectionFlicker(int section)
+    {
+        float dim_factor = 0.0f;
+        while (flicker_times[section] > 0.0f)
+        {
+            dim_factor = Random.Range(0.0f, 0.75f);
+            adjustSectionFlicker(section, dim_factor);
+
+            float delay = Random.Range(0.06f, 0.1f);
+            flicker_times[section] = Mathf.Max(0.0f, flicker_times[section] - delay);
+
+            yield return new WaitForSeconds(delay);
+        }
+
+        //reset to normal
+        float reset_time = 0.5f;
+        while (reset_time > 0.0f)
+        {
+            reset_time = Mathf.Max(0.0f, reset_time - Time.deltaTime);
+            adjustSectionFlicker(section, Mathf.Lerp(1.0f, dim_factor, reset_time / 0.5f));
+            yield return null;
+        }
+
+        flicker_coroutines[section] = null;
+
+        //set to normal material
+        displayLightMaterials(0);
     }
 }
