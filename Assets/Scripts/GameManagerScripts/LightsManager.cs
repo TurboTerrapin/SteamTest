@@ -95,6 +95,7 @@ public class LightsManager : MonoBehaviour
         ship_status = ReferenceAssistor.Instance.module_handlers[3].GetComponent<ShipStatus>();
 
         resetLights();
+        StartCoroutine(chungus());
     }
 
     //cleanup runtime materials
@@ -103,6 +104,16 @@ public class LightsManager : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             Destroy(flicker_materials[i]);
+        }
+    }
+
+    IEnumerator chungus()
+    {
+        yield return new WaitForSeconds(10.0f);
+
+        for (int i = 0; i < 4; i++)
+        {
+            changeSectionAppearance(i, ReferenceAssistor.Instance.lit_purple, new Color(0.89f, 0.2f, 0.89f));
         }
     }
 

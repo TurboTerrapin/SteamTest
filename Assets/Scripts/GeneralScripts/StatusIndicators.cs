@@ -4,7 +4,7 @@
     - Handles enabling/disabling the overconsumption circles in pilot and tactician position
     - Handles coloring blue/yellow/red alert circles across the ship
     Contributor(s): Jake Schott
-    Last Updated: 1/10/2026
+    Last Updated: 3/18/2026
 */
 
 using System.Collections.Generic;
@@ -37,8 +37,7 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
     };
 
     public List<GameObject> overconsumption_position_indicators = null;
-    public List<GameObject> ship_status_position_indicators = null;
-    public List<GameObject> ship_status_indicators = null;
+    public List<GameObject> ship_status_displays = null;
 
     private List<HUDInfo> corresponding_infos = new List<HUDInfo>();
 
@@ -61,11 +60,28 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
 
     public void displayShipStatus(Color to_display)
     {
-        for (int i = 0; i < ship_status_indicators.Count; i++)
+        for (int i = 0; i < ship_status_displays.Count; i++)
         {
-            foreach (Transform c in ship_status_indicators[i].transform)
+            if (ship_status_displays[i].transform.childCount == 1) //pilot, tactician
             {
-                c.GetComponent<UnityEngine.UI.RawImage>().color = to_display;
+                ship_status_displays[i].transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = to_display;
+            }
+            else //walls
+            {
+                to_display.a = 0.2f;
+                foreach (Transform t in ship_status_displays[i].transform.GetChild(0))
+                {
+                    t.GetComponent<UnityEngine.UI.RawImage>().color = to_display;
+                }
+                to_display.a = 1.0f;
+                for (int k = 1; k < 6; k++)
+                {
+                    foreach (Transform t in ship_status_displays[i].transform.GetChild(k))
+                    {
+                        t.GetComponent<UnityEngine.UI.RawImage>().color = to_display;
+                    }
+                }
+                ship_status_displays[i].transform.GetChild(6).GetComponent<UnityEngine.UI.RawImage>().color = to_display;
             }
         }
     }
@@ -76,7 +92,7 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
         {
             if (position < 3)
             {
-                ship_status_position_indicators[position].SetActive(true); //second pass
+                ship_status_displays[position].SetActive(true); //second pass
             }
         }
         overconsumption_position_indicators[position].SetActive(true); //first pass
@@ -87,11 +103,11 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
         overconsumption_position_indicators[position].SetActive(false);
         if (position < 3)
         {
-            ship_status_position_indicators[position].SetActive(false);
+            ship_status_displays[position].SetActive(false);
         }
     }
 
-    //the small blue circle on pilot and tactician positions only
+    //the small blue circle on pilot, tactician, and captain positions only
     public void displayOverconsumptionPositionIndicator(int position, float percentage)
     {
         //make red
@@ -112,7 +128,7 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
         }
     }
 
-    //the small blue circle on pilot and tactician positions only
+    //the small blue circle on pilot, tactician, and captain positions only
     public void resetOverconsumptionPositionIndicator(int position)
     {
         //make blue

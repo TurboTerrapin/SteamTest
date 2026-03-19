@@ -27,7 +27,6 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
-    public List<GameObject> position_warnings = null;
     public List<GameObject> indicators = null;
     public GameObject selector_lever;
     public LightsManager lights_manager;
