@@ -8,8 +8,9 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using static AnimatorHandler;
 
-public class Warp : MonoBehaviour, IControllable, IPowerable
+public class Warp : MonoBehaviour, IControllable, IPowerable, IIKTargetable
 {
     private string CONTROL_NAME = "WARP THROTTLE";
     private static string INFO_MESSAGE = "Enables ship capability to reach superluminal speed at variable warp factors.";
@@ -23,6 +24,12 @@ public class Warp : MonoBehaviour, IControllable, IPowerable
     //private bool is_powered = false;
     
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
 
     private void Start()
     {
@@ -38,7 +45,22 @@ public class Warp : MonoBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-  
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
+    }
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         //does nothing

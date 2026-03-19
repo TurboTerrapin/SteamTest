@@ -52,9 +52,6 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
         {
             if (button_push_percentage[i] > 0) finger_position = i + 1;
         }
-        
-
-
         return IK_targets[finger_position].transform;
     }
     public AnimatorHandler.HandInteractionType getHandInteractionType()

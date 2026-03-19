@@ -79,6 +79,11 @@ public class AnimatorHandler : MonoBehaviour
 
         rightHandObj.rotation *= Quaternion.AngleAxis(180, Vector3.forward);
     }
+    //Use this when the animation is a pinch or press that uses both hands
+    public void adjustRightArmIKPosition(Vector3 adjustment)
+    {
+        rightHandObj.position += adjustment;
+    }
     public void setLeftArmIKPosition(Vector3 pos)
     {
         leftHandObj.position = pos;
@@ -215,11 +220,9 @@ public class AnimatorHandler : MonoBehaviour
                 Vector3 targetPos = rightHandObj.position;
 
                 currentR = Vector3.Lerp(currentR, targetPos, Time.deltaTime * 5f);
-                currentRotationR = Quaternion.Lerp(currentRotationR, rightHandObj.rotation, Time.deltaTime * 5f);
-
                 myAnimator.SetIKPosition(AvatarIKGoal.RightHand, currentR);
 
-                
+                currentRotationR = Quaternion.Lerp(currentRotationR, rightHandObj.rotation, Time.deltaTime * 5f);
                 myAnimator.SetIKRotation(AvatarIKGoal.RightHand, currentRotationR);
             }
         }
@@ -245,11 +248,23 @@ public class AnimatorHandler : MonoBehaviour
                 Vector3 targetPos = leftHandObj.position;
 
                 currentL = Vector3.Lerp(currentL, targetPos, Time.deltaTime * 5f);
-                currentRotationL = Quaternion.Lerp(currentRotationL, leftHandObj.rotation, Time.deltaTime * 5f);
-
                 myAnimator.SetIKPosition(AvatarIKGoal.LeftHand, currentL);
 
+                /*
+                if (Vector3.Distance(currentPos, targetPos) > 0.02f)
+                {
+                    currentL = Vector3.Lerp(currentL, targetPos, Time.deltaTime * 5f);
+                    myAnimator.SetIKPosition(AvatarIKGoal.LeftHand, currentL);
+                }
+                else
+                {
+                    currentL = Vector3.Lerp(currentL, targetPos, Time.deltaTime * 10f);
+                    myAnimator.SetIKPosition(AvatarIKGoal.LeftHand, currentL);
+                    //myAnimator.SetIKPosition(AvatarIKGoal.LeftHand, targetPos);
+                }
+                */
 
+                    currentRotationL = Quaternion.Lerp(currentRotationL, leftHandObj.rotation, Time.deltaTime * 5f);
                 myAnimator.SetIKRotation(AvatarIKGoal.LeftHand, currentRotationL);
             }
         }

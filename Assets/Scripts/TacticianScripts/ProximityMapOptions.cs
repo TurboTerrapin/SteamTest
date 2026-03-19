@@ -6,12 +6,13 @@
     Last Updated: 2/1/2026
 */
 
-using Unity.Netcode;
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
+using static AnimatorHandler;
 
-public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable
+public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float ZOOM_SPEED = 1.0f;
@@ -41,6 +42,13 @@ public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+
     private void Start()
     {
         proximity_map = GetComponent<ProximityMap>();
@@ -60,6 +68,23 @@ public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        //int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[0].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public float getZoom()

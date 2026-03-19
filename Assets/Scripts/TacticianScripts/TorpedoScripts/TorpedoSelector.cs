@@ -25,7 +25,6 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     public GameObject selector_lever;
     public GameObject selector_display;
-    public GameObject IK_target;
 
     private bool is_powered = false;
     private Vector3 initial_pos;
@@ -36,9 +35,13 @@ public class TorpedoSelector : NetworkBehaviour, IControllable, IPowerable, IIKT
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);

@@ -69,6 +69,10 @@ public class AnimationController : MonoBehaviour
     {
         myAnimatorHandler.flipRightArmIKRotation(flip);
     }
+    public void adjustRightArmIKPosition(Vector3 adjustment)
+    {
+        myAnimatorHandler.adjustRightArmIKPosition(adjustment);
+    }
     public void setLeftArmIKPosition(Vector3 pos)
     {
         myAnimatorHandler.setLeftArmIKPosition(pos);

@@ -11,8 +11,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
-public class ProbeVerticalMovement : NetworkBehaviour, IControllable
+public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float LEVER_SPEED = 200.0f;
@@ -36,6 +37,13 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public GameObject IK_target = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+
     private void Start()
     {
         probe_info = GetComponent<ProbeInfo>();
@@ -50,6 +58,22 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     private void displayAdjustment()

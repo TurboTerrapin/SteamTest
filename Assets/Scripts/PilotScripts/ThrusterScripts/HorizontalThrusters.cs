@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
+public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, IIKTargetable
 {
     private string CONTROL_NAME = "HORIZONTAL THRUSTERS";
     private static string INFO_MESSAGE = "Controls lateral movement through leftward and rightward movements. Useful for evasive maneuvers.";
@@ -22,6 +22,13 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private bool is_powered = false;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
 
     private void Start()
     {
@@ -38,7 +45,31 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        finger_position = 0;
+        for (int i = 0; i < button_push_percentage.Length; i++)
+        {
+            if (button_push_percentage[i] > 0) finger_position = i + 1;
+        }
+        return IK_targets[finger_position].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
+    }
+    public float getVerticalThrusterState()
+    {
+        return (thruster_percentage[1] - thruster_percentage[0]);
+    }
     public float getHorizontalThrusterState()
     {
         return (thruster_percentage[0] - thruster_percentage[1]);

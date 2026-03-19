@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class ProbeLateralMovement : NetworkBehaviour, IControllable
+public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float BUTTON_SPEED = 10.0f;
@@ -39,6 +39,13 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -61,6 +68,33 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_targets[0].transform;
+        /*
+        finger_position = 0;
+        for (int i = 0; i < button_push_percentage.Length; i++)
+        {
+            if (button_push_percentage[i] > 0) finger_position = i + 1;
+        }
+        return IK_targets[finger_position].transform;
+        
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+        */
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     private void displayAdjustment()

@@ -625,7 +625,13 @@ public class PrimaryScript : MonoBehaviour
                                     my_animation_controller.setIKRightArm(true);
                                     my_animation_controller.setIKLeftArm(false);
                                     my_animation_controller.setRightArmIKTransform(target_IK.getIKTarget(current_ray_target.gameObject));
+
+                                    //Flip the arm rotation if the control needs it, usually for controls like the aux power lever
                                     my_animation_controller.flipRightArmIKRotation(target_IK.getRightHandFlip());
+                                    //Move the right hand to a specific spot offset from the actual target, usually when the the animation is press or pinch
+                                    //my_animation_controller.adjustRightArmIKPosition(new Vector3(0.05f, 0, 0));
+
+                                    //Set the animation type
                                     my_animation_controller.setHandInteractionType(target_IK.getHandInteractionType());
                                     my_animation_controller.setHandPose(target_IK.getHandPose());
                                     my_animation_controller.setAnimatorLayerWeight("RightHandLayer", 1f);

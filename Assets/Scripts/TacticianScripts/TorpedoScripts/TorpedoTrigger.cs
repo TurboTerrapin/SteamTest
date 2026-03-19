@@ -31,7 +31,6 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     public GameObject trigger_base;
     public GameObject trigger_green_light;
     public GameObject trigger_red_light;
-    public GameObject IK_target;
 
     private bool is_powered = false;
     private float trigger_percentage = 0.0f;
@@ -43,9 +42,13 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
