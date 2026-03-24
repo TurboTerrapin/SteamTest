@@ -11,8 +11,9 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
-public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
+public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float TURN_TIME = 0.2f; //how long it takes to move the dial in either direction
@@ -43,6 +44,13 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+
     private void Start()
     {
         power_manager = ReferenceAssistor.Instance.power_manager;
@@ -68,6 +76,23 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable
         hud_info.setButtons(BUTTON_LISTS[index], 7);
 
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public float getPowerAllocation(int position)

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerRegulable
+public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerRegulable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float STATE_CHANGE_TIME = 0.5f;
@@ -44,6 +44,13 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+
     private void Start()
     {
         FILL_BAR_REAL_SIZE = prsd_display.transform.GetChild(0).GetChild(1).GetComponent<RectTransform>().sizeDelta.y;
@@ -74,6 +81,23 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
         hud_info.setButtons(BUTTON_LISTS[index], 7);
 
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     private bool checkIfBarIsCorrect(int bar)

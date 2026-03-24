@@ -30,7 +30,6 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public GameObject energy_pattern_display;
     public GameObject energy_pattern_signal_display;
     public GameObject enabled_indicator;
-    public GameObject IK_target;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -41,9 +40,13 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     private Coroutine energy_pattern_power_coroutine = null;
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);

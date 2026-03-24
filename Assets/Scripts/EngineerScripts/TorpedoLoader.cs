@@ -11,7 +11,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
+public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SELECTION_ADJUSTMENT_TIME = 0.25f;
@@ -47,6 +47,13 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
     private List<string> ray_targets = new List<string> { "torpedo_loader_selection_switch", "torpedo_loader_direction_slider", "torpedo_loader_confirm_switch" };
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
 
     private void Start()
     {
@@ -84,6 +91,23 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         }
 
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public void onInventoryChange()

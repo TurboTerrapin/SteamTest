@@ -5,12 +5,13 @@
     Last Updated: 1/31/2026
 */
 
-using Unity.Netcode;
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
+using static AnimatorHandler;
 
-public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerRegulable
+public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerRegulable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float STATE_CHANGE_TIME = 0.5f;
@@ -36,6 +37,13 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+
     private void Start()
     {
         for (int i = 0; i < 3; i++)
@@ -57,6 +65,23 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
         hud_info.setButtons(BUTTON_LISTS[index], 6);
 
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     private void displayAdjustment()

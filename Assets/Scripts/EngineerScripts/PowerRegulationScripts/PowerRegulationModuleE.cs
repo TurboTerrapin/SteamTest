@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerRegulable
+public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerRegulable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.25f;
@@ -38,6 +38,13 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+
     private void Start()
     {
         symbol_icon = prse_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
@@ -61,6 +68,23 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
         hud_info.setButtons(BUTTON_LISTS[index], 7);
 
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public void resetToDefault()
