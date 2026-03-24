@@ -15,7 +15,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static Vector3 BUTTON_MOVE_DIRECTION = new Vector3(0.002f, -0.004f, -0.002f);
-    private static float BUTTON_PRESS_TIME = 0.14f;
+    private static float BUTTON_PRESS_TIME = 0.12f;
     private static Color ACTIVE_COLOR = new Color(0.0f, 1.0f, 0.0f);
     private static Color INACTIVE_COLOR = new Color(1.0f, 0.0f, 0.0f);
     private static Color[] PROGRAM_COLORS = new Color[] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[3], ReferenceAssistor.COLOR_OPTIONS[2] };
