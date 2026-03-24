@@ -6,16 +6,19 @@
     - Handles camera shaking
     - Handles displaying hints if hints enabled (ex. MISSION OBJECTIVE, POWER MONITORING)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 3/14/2026
+    Last Updated: 3/22/2026
 */
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraMove : MonoBehaviour
 {
     //CLASS CONSTANTS
     private static bool HIDE_HAIR_AND_EYES = true; //Hides character's hair/eyes locally
+    private static bool CAMERA_SHAKE_POSSIBLE = true; //Used for testing
+    private static float MAXIMUM_CAMERA_SHAKE = 0.015f;
     private static float ZOOMED_FOV = 40.0f;
     private static float DEFAULT_FOV = 60.0f;
 
@@ -31,6 +34,7 @@ public class CameraMove : MonoBehaviour
     private Vector2 prevPos = new Vector2(0.0f, 0.0f); //X represents angle of camera, Y represents angle of player capsule
     private Vector3 cameraOffset = Vector3.zero; //Offset (for camera shake)
     private float mouseSensitivity = 1.0f;
+    private List<Vector2> cameraShakeEffects = new List<Vector2>(); //Any current camera shake effects (X = time remaining, Y = intensity)
     private float cameraShakeIntensity = 0.0f; //Ranges from 0-1, 1 being full shake
 
     private void Start()
@@ -89,7 +93,7 @@ public class CameraMove : MonoBehaviour
 
     public void ReactivateCamera()
     {
-        SetCameraShakeIntensity(0.0f);
+        cameraShakeEffects.Clear();
         FaceWindow();
         myCamera.gameObject.SetActive(true);
 
@@ -105,7 +109,7 @@ public class CameraMove : MonoBehaviour
     {
         cameraLocked = false;
         prevPos = new Vector2(0.0f, 0.0f);
-        SetCameraShakeIntensity(0.0f);
+        cameraShakeEffects.Clear();
         cameraHolder.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         rb.angularVelocity = Vector3.zero;
@@ -146,15 +150,37 @@ public class CameraMove : MonoBehaviour
         while (true)
         {
             cameraShakeDelay += Time.deltaTime;
-            if (cameraShakeIntensity == 0.0f)
+            if (CAMERA_SHAKE_POSSIBLE == true)
             {
-                cameraOffset = Vector3.zero;
-            }
-            else
-            {
+                //Update camera shake every 0.05s
                 if (cameraShakeDelay > 0.05f)
                 {
-                    cameraOffset = Random.insideUnitSphere * cameraShakeIntensity;
+                    //Adjust camera shake effects
+                    for (int i = cameraShakeEffects.Count - 1; i >= 0; i--)
+                    {
+                        float time_remaining = Mathf.Max(0.0f, cameraShakeEffects[i].x - cameraShakeDelay);
+                        if (time_remaining <= 0.0f)
+                        {
+                            cameraShakeEffects.RemoveAt(i);
+                        }
+                        else
+                        {
+                            cameraShakeEffects[i] = new Vector2(time_remaining, cameraShakeEffects[i].y);
+                        }
+                    }
+
+                    //Pick most intense camera effect
+                    float max_intensity = 0.0f;
+                    for (int i = 0; i < cameraShakeEffects.Count; i++)
+                    {
+                        if (cameraShakeEffects[i].y > max_intensity)
+                        {
+                            max_intensity = cameraShakeEffects[i].y;
+                        }
+                    }
+
+                    cameraShakeIntensity = Mathf.MoveTowards(cameraShakeIntensity, max_intensity, 0.05f);
+                    cameraOffset = Random.insideUnitSphere * cameraShakeIntensity * MAXIMUM_CAMERA_SHAKE;
                     cameraShakeDelay = 0.0f;
                 }
             }
@@ -257,10 +283,11 @@ public class CameraMove : MonoBehaviour
         cameraHolder.position = headTransform.position;
     }
 
-    //Sets the camera shake factor from 0-1
-    public void SetCameraShakeIntensity(float intensity)
+    //Shakes camera based on time and intensity (can have multiple shakes at once)
+    public void ShakeCamera(float time, float intensity)
     {
-        cameraShakeIntensity = intensity;
+        intensity = Mathf.Clamp01(intensity);
+        cameraShakeEffects.Add(new Vector2(time, intensity));
     }
 
     //Used by settings

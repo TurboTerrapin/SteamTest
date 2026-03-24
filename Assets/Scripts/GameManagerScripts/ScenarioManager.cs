@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/22/2026
 */
 
 using System.Collections;
@@ -14,11 +14,11 @@ public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
     private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure
-    public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, EngineerMap
+    public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
-    public const float PATH_SIZE = 10.0f; //for entrance/exit paths, degrees of the boundary, does not reflect on EngineerMap so be careful!
+    public const float PATH_SIZE = 10.0f; //for entrance/exit paths, degrees of the boundary, does not reflect on NavigationMap so be careful!
 
     //different reasons for why a scenario ended
     public enum EndCondition
@@ -134,13 +134,13 @@ public class ScenarioManager : NetworkBehaviour
         scenario_number += 1;
         if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
         {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-            return "RedLightGreenLight";
+            SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
+            return "CollectibleTest";
         }
         else
         {
-            SceneSwapper.Instance.ChangeScene("Cheeseballs", scenario_number);
-            return "Cheeseballs";
+            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+            return "RedLightGreenLight";
         }
 
         //if (SceneManager.GetActiveScene().name == "Cheeseballs")
@@ -201,6 +201,7 @@ public class ScenarioManager : NetworkBehaviour
         enableScenarioTimer();
         GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().initializePowerRegulator();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
         ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
     }
 
@@ -367,6 +368,7 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().resetToDefault();
 
         //destroy probe (if exists)
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>().damageProbe(9999.9f);

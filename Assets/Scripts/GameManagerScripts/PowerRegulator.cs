@@ -193,6 +193,7 @@ public class PowerRegulator : NetworkBehaviour
         //change state to online
         restartPowerBarUpdater();
         updatePowerStatus(0);
+        auxiliary_power.activate(true);
     }
 
     //called when a power regulation module "minigame" has been completed

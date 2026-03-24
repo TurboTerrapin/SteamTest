@@ -33,8 +33,8 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
 
     // State variables
     private float angularVelocity = 0f;
-    public float wheel_angle = 0.0f; // Normalized wheel angle (-1, 1), visual wheel position 
-    public float steering_input; // True steering input (Does not register spring oscillations beyond neutral)
+    private float wheel_angle = 0.0f; // Normalized wheel angle (-1, 1), visual wheel position 
+    private float steering_input; // True steering input (Does not register spring oscillations beyond neutral)
 
     private bool is_powered = false;
     private Coroutine wheel_spin_coroutine = null;

@@ -51,7 +51,7 @@ public class HUDInfo
         1450f,
         1100f,
         1100f,
-        1750f,
+        1650f,
         1700f
     };
 

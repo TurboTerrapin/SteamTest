@@ -459,7 +459,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
 
         //clear out all power sources
-        transform.GetComponent<PowerRegulator>().disableAllPowerSources();
+        GetComponent<PowerRegulator>().disableAllPowerSources();
 
         yield return new WaitForSeconds(2.0f);
 
@@ -549,7 +549,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_on_sound.Play();
 
         //show power enabled on power status screen in engineer position
-        transform.GetComponent<PowerRegulator>().displayPowerRestoration();
+        GetComponent<PowerRegulator>().displayPowerRestoration();
 
         yield return new WaitForSeconds(3.0f);
 

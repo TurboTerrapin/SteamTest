@@ -117,6 +117,7 @@ public class PlayerMove : NetworkBehaviour
 
         Quaternion starting_rotation = camera_holder.localRotation;
         float dest_angle_x = 0.0f;
+
         if (pos == 3)
         {
             dest_angle_x = 180.0f;
@@ -243,9 +244,17 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!gameObject.GetComponent<PlayerMove>().IsOwner) return;
 
-        moveDir.x = Input.GetAxis("Horizontal");
-        moveDir.y = Input.GetAxis("Vertical");
-        Debug.DrawLine(transform.position, transform.position + transform.forward * 1.25f);
+        if (!PrimaryScript.Instance.isPaused())
+        {
+            moveDir.x = Input.GetAxis("Horizontal");
+            moveDir.y = Input.GetAxis("Vertical");
+        }
+        else
+        {
+            moveDir.x = 0.0f;
+            moveDir.y = 0.0f;
+        }
+
         if (moveDir.magnitude > 1)
         {
             moveDir.Normalize();

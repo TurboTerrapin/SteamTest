@@ -4,13 +4,13 @@
     - Used for items that can be collected once pulled in by the tractor beam
     - Handles illuminating/hiding objects (activated/deactivated by ShipBeacon in captain position)
     Contributor(s): Jake Schott
-    Last Updated: 1/30/2026
+    Last Updated: 3/22/2026
 */ 
 
 using Unity.Netcode;
 using UnityEngine;
 
-public class CollectibleItem : MonoBehaviour, ITractorBeamable
+public class CollectibleItem : MonoBehaviour, ITractorBeamable, IDamageable
 {
     //CLASS CONSTANTS
     private static float BRIGHTNESS_FACTOR = 5.0f; //5 times brighter when ship beacon enabled
@@ -22,9 +22,15 @@ public class CollectibleItem : MonoBehaviour, ITractorBeamable
     [SerializeField]
     private int item_category; //0 = normal items, 1 = torpedoes
     [SerializeField]
-    private int item_index; //index according to EngineerInventory
+    private int item_index; //index according to ShipInventory
     [SerializeField]
     private bool is_illuminated = false; //whether it is illuminated in space or not
+    [SerializeField]
+    private float item_health = 5.0f;
+    [SerializeField]
+    private Color explosion_color;
+    [SerializeField]
+    private float explosion_size;
 
     private Material starting_material;
     private float[] starting_light_intensities;
@@ -55,6 +61,23 @@ public class CollectibleItem : MonoBehaviour, ITractorBeamable
 
         setIlluminated(is_illuminated);
         is_probe = (transform.GetComponent<Probe>() != null);
+    }
+
+    public void damage(float dam)
+    {
+        if (NetworkManager.Singleton.IsHost == false || is_probe == true || item_health <= 0.0f) //probe damage handled by Probe.cs
+        {
+            return;
+        }
+
+        item_health = Mathf.Max(0.0f, item_health - dam);
+
+        //handle destruction
+        if (item_health <= 0.0f)
+        {
+            GameObject.Find("EffectsHandler").GetComponent<EffectsHandler>().createExplosion(transform.position, explosion_size, explosion_color);
+            GetComponent<NetworkObject>().Despawn(true);
+        }
     }
 
     public void setIlluminated(bool illuminated)

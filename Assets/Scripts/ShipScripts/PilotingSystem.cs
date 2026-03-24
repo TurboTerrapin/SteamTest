@@ -21,9 +21,14 @@ public class PilotingSystem : NetworkBehaviour
     private float maxImpulseReverseSpeed = 20f;
 
     [Header("Rotation Settings")]
-     private float rotationPower = 3f;
-     private float steeringResponsiveness = 2.5f;
-     private float maxRotationSpeed = 5f;
+    /*
+    private float rotationPower = 3f;
+    private float steeringResponsiveness = 2.5f;
+    private float maxRotationSpeed = 5f;
+    */
+    private float rotationPower = 15.0f;
+    private float steeringResponsiveness = 10.0f;
+    private float maxRotationSpeed = 25.0f;
 
     // Component references
     private ImpulseThrottle impulseThrottle;

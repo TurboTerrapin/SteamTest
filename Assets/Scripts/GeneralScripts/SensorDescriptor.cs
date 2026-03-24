@@ -2,7 +2,7 @@
     SensorDescriptor.cs
     - Used to give UI indicators for non-controllable screens
     Contributor(s): Jake Schott
-    Last Updated: 3/2/2026
+    Last Updated: 3/20/2026
 */
 
 using UnityEngine;
@@ -34,7 +34,7 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "PARTIAL PREFIX CODE",
         "PROXIMITY MAP",
         "NAVIGATION MAP",
-        "BOUNDARY COUNTDOWN",
+        "BOUNDARY EXPIRATION",
         "NAVIGATION HEADING",
         "POWER DISTRIBUTION",
         "PHASER TEMPERATURES",
@@ -51,7 +51,7 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "",
         "",
         "Shows detection boundary, entrance channel, and destination exit channel. Also shows items of interest.",
-        "Shows boundary countdown before mission failure.",
+        "Shows boundary expiration countdown before mission failure.",
         "",
         "Shows power allocation and usage across all 4 positions. If usage exceeds allocation, ship will shut down.",
         "Shows short-range and long-range phaser temperatures. Overheating causes ship shutdown.",

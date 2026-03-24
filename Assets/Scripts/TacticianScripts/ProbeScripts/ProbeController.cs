@@ -15,7 +15,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float RANGE = 1250.0f; //how far the probe can be from the ship while still being in contact
-    private static float DEFAULT_PROBE_HEALTH = 150.0f; //starting/max health for probe
+    private static float DEFAULT_PROBE_HEALTH = 15.0f; //starting/max health for probe
     private static float TURN_TIME = 0.5f;
     private static float FUNCTION_TIME = 2.0f; //how long it takes to launch or self-destruct the probe
     private static float PROBE_TRANSFORM_ADJUSTMENT_TIME = 2.0f; //how long it takes for the probe to move forward
@@ -31,6 +31,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     public List<GameObject> probe_dial_displays = null;
     public GameObject probe_controller_display;
     public GameObject probe_actual_prefab;
+    public EffectsHandler effects_handler;
 
     private Transform ship = null;
     private GameObject current_probe = null;
@@ -338,7 +339,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
 
     public void damageProbe(float dam)
     {
-        if (current_probe == null)
+        if (current_probe == null || probe_health <= 0.0f)
         {
             return;
         }
@@ -352,6 +353,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             //handle destruction
             if (probe_health <= 0.0f) 
             {
+                effects_handler.createExplosion(current_probe.transform.position, 3.0f);
                 current_probe.GetComponent<NetworkObject>().Despawn(true);
                 transmitProbeConnectionChangeRPC(false, false);
             }

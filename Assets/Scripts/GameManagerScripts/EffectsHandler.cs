@@ -2,16 +2,18 @@
     EffectsHandler.cs
     - Handles various game effects
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 2/24/2026
+    Last Updated: 3/21/2026
 */
 
-using NUnit.Framework.Internal;
+using Unity.Netcode;
 using UnityEngine;
 
 public class EffectsHandler : MonoBehaviour
 {
     //CLASS CONSTANTS
     private static int CONE_SEGMENTS = 32;
+
+    public GameObject explosion_prefab;
 
     //precomputed angles for mesh generation
     private float[] sin_angles;
@@ -122,5 +124,76 @@ public class EffectsHandler : MonoBehaviour
         mesh_renderer.material = cone_material;
         mesh_renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         mesh_renderer.receiveShadows = false;
+    }
+
+    private GameObject spawnExplosion(Vector3 location)
+    {
+        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        if (world_root == null)
+        {
+            return null;
+        }
+        GameObject e = GameObject.Instantiate(explosion_prefab);
+        e.transform.position = location;
+        e.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
+        e.GetComponent<NetworkObject>().TrySetParent(world_root);
+        e.GetComponent<Collider>().excludeLayers = LayerMask.GetMask("None");
+        return e;
+    }
+
+    public void createExplosion(Vector3 location)
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        GameObject e = spawnExplosion(location);
+        if (e != null)
+        {
+            e.GetComponent<Explosion>().transmitExplosionRPC();
+        }
+    }
+
+    public void createExplosion(Vector3 location, float size)
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        GameObject e = spawnExplosion(location);
+        if (e != null)
+        {
+            e.GetComponent<Explosion>().transmitExplosionRPC(size);
+        }
+    }
+
+    public void createExplosion(Vector3 location, float size, Color explosion_color)
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        GameObject e = spawnExplosion(location);
+        if (e != null)
+        {
+            e.GetComponent<Explosion>().transmitExplosionRPC(size, explosion_color);
+        }
+    }
+
+    public void createExplosion(Vector3 location, float size, Color base_color, Color accent_color)
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        GameObject e = spawnExplosion(location);
+        if (e != null)
+        {
+            e.GetComponent<Explosion>().transmitExplosionRPC(size, base_color, accent_color);
+        }
     }
 }

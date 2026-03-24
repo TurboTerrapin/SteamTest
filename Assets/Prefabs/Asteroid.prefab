@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 99.999985, z: 99.999985}
+  m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -104,6 +104,7 @@ MonoBehaviour:
   size: 50
   is_ship: 0
   is_visible: 1
+  is_interest_item: 0
   icon_color: {r: 1, g: 1, b: 1, a: 1}
   icon_texture: {fileID: 0}
 --- !u!114 &1089894120805669128
@@ -144,7 +145,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Radius: 0.012104327
   m_Center: {x: -0.008075235, y: -0.008399998, z: 0.00088563823}

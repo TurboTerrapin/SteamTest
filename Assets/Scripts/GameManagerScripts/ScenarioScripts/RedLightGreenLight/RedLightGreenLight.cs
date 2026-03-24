@@ -176,16 +176,12 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
                     
                     if (impulse.getCurrentImpulse() > 0.0f)
                     {
-                        //shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
+                        shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
                     }
                 }
                 else
                 {
                     yield return null;
-                }
-                if (Camera.main != null)
-                {
-                    playerPrefab.GetComponent<CameraMove>().SetCameraShakeIntensity(impulse.getCurrentImpulse() * 0.025f);
                 }
             }
         }
@@ -333,7 +329,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         resetCoroutines();
 
-        playerPrefab.GetComponent<CameraMove>().SetCameraShakeIntensity(0.0f);
         visualSpectacleLighting.SetGreenLight();
 
         greenLightCoroutine = StartCoroutine(GreenLightState());

@@ -106,6 +106,11 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable
             }
             else
             {
+                if (auxiliary_power_emergency_flasher_coroutine != null)
+                {
+                    StopCoroutine(auxiliary_power_emergency_flasher_coroutine);
+                    auxiliary_power_emergency_flasher_coroutine = null;
+                }
                 displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 1.0f));
             }
         }
