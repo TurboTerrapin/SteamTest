@@ -6,6 +6,7 @@
 */
 
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -30,19 +31,41 @@ public class ScenarioManager : NetworkBehaviour
         SelfDestructed = 4
     }
 
-    private enum Difficulty
+    //contains info for a spawn location at the start of a scenario
+    private struct OccupiedSpawnLocation
     {
-        Random = 0,
-        Easy = 1,
-        Medium = 2,
-        Hard = 3,
-        Specific = 4
+        private Vector3 spawn_position;
+        private float spawn_radius;
+        private bool infinitely_tall;
+
+        public OccupiedSpawnLocation(Vector3 p, float r, bool it)
+        {
+            spawn_position = p;
+            spawn_radius = r;
+            infinitely_tall = it;
+        }
+
+        public Vector3 getSpawnPosition()
+        {
+            return spawn_position;
+        }
+
+        public float getSpawnRadius()
+        {
+            return spawn_radius;
+        }
+
+        public bool getInfinitelyTall()
+        {
+            return infinitely_tall;
+        }
     }
 
     public GameObject player_manager; 
     public GameObject scenario_transitioner;
     public GameObject failure_handler;
 
+    private ShipInventory ship_inventory;
     private ScenarioCountdown scenario_countdown;
     private ScenarioMap scenario_map;
     private PowerManager power_manager;
@@ -52,6 +75,7 @@ public class ScenarioManager : NetworkBehaviour
     private Coroutine countdown_coroutine;
     private GameObject scenario_handler;
 
+    private List<OccupiedSpawnLocation> occupied_spawn_locations = new List<OccupiedSpawnLocation>();
     private bool endpoint_reached = false;
     private bool game_over = false;
     private int scenario_number = 0;
@@ -65,6 +89,7 @@ public class ScenarioManager : NetworkBehaviour
 
     private void Awake()
     {
+        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
         scenario_countdown = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioCountdown>();
         scenario_map = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
         power_manager = ReferenceAssistor.Instance.power_manager;
@@ -77,6 +102,55 @@ public class ScenarioManager : NetworkBehaviour
     public int getDifficulty()
     {
         return game_difficulty;
+    }
+
+    public void forceSpawnLocation(Vector3 location, float radius, bool infinitely_tall)
+    {
+        occupied_spawn_locations.Add(new OccupiedSpawnLocation(location, radius, infinitely_tall));
+    }
+
+    public Vector3 getSpawnLocation(float radius, bool infinitely_tall)
+    {
+        Vector3 location_to_insert = Vector3.zero;
+        bool successful_insertion = false;
+
+        while (successful_insertion == false)
+        {
+            Vector2 x_and_z = Random.insideUnitCircle * ((ScenarioManager.BOUNDARY_SIZE - 200.0f) * 0.5f);
+
+            float x_coordinate = x_and_z.x;
+            float y_coordinate = Random.Range(-(ScenarioManager.BOUNDARY_ALTITUDE + 20.0f), ScenarioManager.BOUNDARY_ALTITUDE + 20.0f);
+            float z_coordinate = x_and_z.y + ScenarioManager.BOUNDARY_SIZE * 0.5f;
+
+            location_to_insert =
+                new Vector3(x_coordinate, y_coordinate, z_coordinate);
+
+            successful_insertion = true;
+
+            foreach (OccupiedSpawnLocation existing_location in occupied_spawn_locations)
+            {
+                float necessary_buffer = existing_location.getSpawnRadius() + radius;
+                if (existing_location.getInfinitelyTall() == true || infinitely_tall == true)
+                {
+                    if (Vector2.Distance(new Vector2(existing_location.getSpawnPosition().x, existing_location.getSpawnPosition().z), new Vector2(location_to_insert.x, location_to_insert.z)) < necessary_buffer)
+                    {
+                        successful_insertion = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (Vector3.Distance(existing_location.getSpawnPosition(), location_to_insert) < necessary_buffer)
+                    {
+                        successful_insertion = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        occupied_spawn_locations.Add(new OccupiedSpawnLocation(location_to_insert, radius, infinitely_tall));
+        return location_to_insert;
     }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
@@ -101,6 +175,33 @@ public class ScenarioManager : NetworkBehaviour
             path_point.y *= -1;
         }
         return path_point;
+    }
+
+    //called by prepScenario()
+    private void spawnCollectibleItem(bool utility)
+    {
+        Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+
+        int item_index = 0;
+        if (utility == true)
+        {
+            item_index = Random.Range(0, 4);
+        }
+        else
+        {
+            item_index = Random.Range(4, 10);
+        }
+
+        GameObject collectible_item = GameObject.Instantiate(ReferenceAssistor.Instance.collectible_items[item_index], world_root);
+        collectible_item.transform.localRotation = Random.rotation; 
+        Vector3 spawn_location = getSpawnLocation(5.0f, false);
+        collectible_item.transform.localPosition = spawn_location;
+        collectible_item.GetComponent<CollectibleItem>().setSerialNumber(ship_inventory.generateSerialNumber());
+        collectible_item.GetComponent<Collider>().excludeLayers = LayerMask.GetMask("None");
+
+        collectible_item.GetComponent<NetworkObject>().SynchronizeTransform = true;
+        collectible_item.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
+        collectible_item.GetComponent<NetworkObject>().TrySetParent(world_root);
     }
 
     //sets entrance/exit channel points and rotations
@@ -153,7 +254,10 @@ public class ScenarioManager : NetworkBehaviour
             powerAllStationsRPC();
         //}
 
-        //assign the piloting system the new World Root
+        //clear spawn locations
+        occupied_spawn_locations.Clear();
+
+        //assign the piloting system the new WorldRoot
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
         
         //generate new entrance/exit path locations and angles
@@ -169,6 +273,10 @@ public class ScenarioManager : NetworkBehaviour
         {
             scenario_script.initiateScenario();
         }
+
+        //spawn collectibles
+        spawnCollectibleItem(true);
+        spawnCollectibleItem(false);
     }
 
     //only run by host, called by PlayerManager.startScenarioRPC()

@@ -2,7 +2,7 @@
     ReferenceAssistor.cs
     - Used to streamline referencing for certain commonly-used things
     Contributor(s): Jake Schott
-    Last Updated: 3/16/2026
+    Last Updated: 3/24/2026
 */
 
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ public class ReferenceAssistor : MonoBehaviour
     public static string[] STATION_NAMES = { "PILOT", "TACTICIAN", "ENGINEER", "CAPTAIN" };
 
     public List<Texture> position_icons = null;
+
     public Material lit_neon;
     public Material unlit_neon;
     public Material lit_red;
@@ -29,6 +30,8 @@ public class ReferenceAssistor : MonoBehaviour
     public Material pure_black;
 
     public List<GameObject> module_handlers;
+
+    public List<GameObject> collectible_items;
 
     public PowerManager power_manager;
     public EffectsHandler effects_handler;

@@ -3,7 +3,7 @@
     - Handles arming and firing of torpedoes
     - Moves base and lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 3/6/2026
+    Last Updated: 3/26/2026
 */
 
 using System.Collections;
@@ -26,6 +26,8 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     private List<Button> BUTTONS = new List<Button>();
 
     public AudioSource torpedo_ready_sound;
+    public List<AudioClip> torpedo_launch_sound_options = null;
+    public AudioSource torpedo_launch_sound;
     public GameObject trigger_base;
     public GameObject trigger_green_light;
     public GameObject trigger_red_light;
@@ -124,6 +126,9 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 
     IEnumerator torpedoFire()
     {
+        torpedo_launch_sound.clip = torpedo_launch_sound_options[Random.Range(0, torpedo_launch_sound_options.Count)];
+        torpedo_launch_sound.Play();
+
         trigger_percentage = 1.0f;
 
         if (red_button_coroutine != null)

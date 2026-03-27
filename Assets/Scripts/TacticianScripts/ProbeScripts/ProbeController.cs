@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 1/20/2026
+    Last Updated: 3/26/2026
 */
 
 using System.Collections;
@@ -31,6 +31,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
     public List<GameObject> probe_dial_displays = null;
     public GameObject probe_controller_display;
     public GameObject probe_actual_prefab;
+    public AudioSource probe_launch_sound;
     public EffectsHandler effects_handler;
 
     private Transform ship = null;
@@ -278,6 +279,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable
             yield return null;
         }
 
+        probe_launch_sound.Play();
         spawnProbe(serial_num);
         updateDialDisplays();
 

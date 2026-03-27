@@ -42,6 +42,11 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
         return (thruster_percentage[1] - thruster_percentage[0]);
     }
 
+    public float getMaxThrusterValue()
+    {
+        return Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
+    }
+
     IEnumerator adjustingThrust()
     {
         while (keys_down.Count > 0 || !checkNeutralState())
@@ -72,6 +77,9 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable
     }
     private void displayAdjustment()
     {
+        //adjust thruster sound
+        GetComponent<HorizontalThrusters>().adjustThrusterSound();
+
         //adjust physical buttons
         adjustButton(thruster_buttons[0], 0);
         adjustButton(thruster_buttons[1], 1);

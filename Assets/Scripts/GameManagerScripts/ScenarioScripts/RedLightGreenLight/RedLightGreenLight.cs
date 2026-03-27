@@ -21,7 +21,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 {
     //CLASS CONSTANTS
     private static string DEATH_MESSAGE = "Stolen ship SEACC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
-    public static int[] GREEN_LIGHT_PERIOD_TIMES = new int[] { 40, 35, 30, 20 };
+    public static int[] GREEN_LIGHT_PERIOD_TIMES = new int[] { 40, 35, 30, 20 }; //easy, medium, hard, expert
     private static float CENTER_SPEED = 50.0f;
     private static float[] RING_SPEEDS = new float[] { 25.0f, 60.0f, 40.0f, 75.0f };
 
@@ -34,6 +34,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
     public VisualSpectacleLighting visualSpectacleLighting;
+    public AudioSource RLGLsound;
 
     private GameObject spaceship;
     private Transform scenarioDatabaseRLGL;
@@ -97,6 +98,11 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         playerPrefab = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
     }
 
+    private void Update()
+    {
+        RLGLsound.volume = impulse.getCurrentImpulse() * 0.5f;
+    }
+
     //only run by host
     public void initiateScenario()
     {
@@ -105,7 +111,10 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             return;
         }
 
-        GetComponent<AsteroidField>().initiateScenario();
+        //visual spectacle
+        scenarioManager.forceSpawnLocation(new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f), 650.0f, true);
+        //asteroid field
+        GetComponent<AsteroidField>().spawnField(100);
 
         //initialize pattern, randomize initial colors and textures
         randomizeColors();

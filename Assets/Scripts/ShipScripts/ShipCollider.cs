@@ -6,6 +6,7 @@
     Last Updated: 3/21/2026
 */
 
+using Unity.Netcode;
 using UnityEngine;
 
 public class ShipCollider : MonoBehaviour, IDamageable
@@ -17,6 +18,10 @@ public class ShipCollider : MonoBehaviour, IDamageable
 
     private void Start()
     {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            Destroy(this);
+        }
         shipHealth = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipHealth>();
     }
 

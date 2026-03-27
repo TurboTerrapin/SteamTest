@@ -26,6 +26,8 @@ public class ShipHealth : NetworkBehaviour, IPowerable
     public GameObject hull_integrity_display;
     public GameObject ship_overview_display;
     public LightsManager lights_manager;
+    public List<AudioClip> hull_creak_sounds = new List<AudioClip>();
+    public AudioSource hull_creak_source;
     private PlayerManager player_manager;
     private ScenarioManager scenario_manager;
     private ShieldStrength shield_strength;
@@ -141,11 +143,20 @@ public class ShipHealth : NetworkBehaviour, IPowerable
     }
 
     //compares before and after health of a given section and does damage / 5 for flicker time in that section
-    private void handleLightFlicker(int section, float damage)
+    private void showDamageEffects(int section, float damage)
     {
         if (damage == 0.0f)
         {
             return;
+        }
+
+        if (damage > 0.5f)
+        {
+            if (hull_creak_source.isPlaying == false)
+            {
+                hull_creak_source.clip = hull_creak_sounds[Random.Range(0, hull_creak_sounds.Count)];
+                hull_creak_source.Play();
+            }
         }
 
         float flicker_time = damage * 0.2f;
@@ -253,7 +264,7 @@ public class ShipHealth : NetworkBehaviour, IPowerable
         float[] damages = new float[4] { health_areas[0] - fwd_health, health_areas[1] - port_health, health_areas[2] - stbd_health, health_areas[3] - aft_health };
         for (int i = 0; i < 4; i++)
         {
-            handleLightFlicker(i, damages[i]);
+            showDamageEffects(i, damages[i]);
         }
 
         //set areas

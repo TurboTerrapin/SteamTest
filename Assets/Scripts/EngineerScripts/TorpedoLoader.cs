@@ -104,10 +104,9 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable
         torpedo_bay_slots[bay] = -1;
         torpedo_serial_nums[bay] = "";
         displayShipOverviewAdjustment(bay);
-        displayTorpedoDirectionAdjustment();
+        onInventoryChange();
     }
     
-
     //unloads all torpedoes currently loaded and adds them to ship inventory
     public void resetToDefault()
     {

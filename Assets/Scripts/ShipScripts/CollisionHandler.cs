@@ -43,10 +43,24 @@ public class CollisionHandler : MonoBehaviour
         int sectionIndex = shipColliders.IndexOf(shipSectionCollider);
         float damage_to_deal = impulseThrottle.getCurrentImpulse() * engineCoolantSupply.getMaxImpulseSpeedBasedOnEngineTemperature() * COLLISION_DAMAGE_INFLICTION;
 
+        if (damage_to_deal <= 0.0f)
+        {
+            return;
+        }
+
+        if (sectionIndex > 0) 
+        {
+            damage_to_deal *= 0.5f; //do half the damage if not forward section (not a head-on collision)
+        }
+
+        //damage the object being impacted
         IDamageable[] damage_targets = impactObjectCollider.GetComponents<IDamageable>();
         foreach (IDamageable damage_target in damage_targets)
         {
             damage_target.damage(damage_to_deal);
         }
+
+        //damage the ship directly
+        shipHealth.damageSection(damage_to_deal * 0.5f, sectionIndex);
     }
 }

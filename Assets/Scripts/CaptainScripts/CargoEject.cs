@@ -28,16 +28,16 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     private List<Button> BUTTONS = new List<Button>(0);
 
     public GameObject dial;
-    public GameObject cargo_jettison_display;
+    public GameObject cargo_eject_display;
     public GameObject active_indicator;
     public GameObject inactive_indicator;
-    public List<GameObject> ejectable_items;
+    public List<AudioSource> cargo_eject_sounds = null;
 
     private CargoEjectLoader cargo_eject_loader;
 
     private bool is_powered = false;
     private bool is_active = false;
-    private int spawn_index = 0;
+    private int spawn_index = 0; //either 0 or 1
     private float dial_turn_percentage = 0.0f;
     private Vector3 initial_pos;
     private Coroutine dial_turn_coroutine = null;
@@ -68,9 +68,9 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
 
     private void setDisplayColor(Color c)
     {
-        cargo_jettison_display.transform.GetChild(0).GetComponent<TMP_Text>().color = c;
-        cargo_jettison_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
-        foreach (Transform image in cargo_jettison_display.transform.GetChild(3))
+        cargo_eject_display.transform.GetChild(0).GetComponent<TMP_Text>().color = c;
+        cargo_eject_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        foreach (Transform image in cargo_eject_display.transform.GetChild(3))
         {
             image.GetComponent<UnityEngine.UI.RawImage>().color = c;
         }
@@ -79,10 +79,10 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     public void activate()
     {
         is_active = true;
-        cargo_jettison_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText("READY");
-        cargo_jettison_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().texture = cargo_eject_loader.getCurrentItemImage();
-        cargo_jettison_display.transform.GetChild(1).gameObject.SetActive(true);
-        cargo_jettison_display.transform.GetChild(2).gameObject.SetActive(false);
+        cargo_eject_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText("READY");
+        cargo_eject_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().texture = cargo_eject_loader.getCurrentItemImage();
+        cargo_eject_display.transform.GetChild(1).gameObject.SetActive(true);
+        cargo_eject_display.transform.GetChild(2).gameObject.SetActive(false);
 
         Color icon_color = cargo_eject_loader.getCurrentItemColor();
         icon_color.a = 1.0f;
@@ -100,9 +100,9 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     public void deactivate()
     {
         is_active = false;
-        cargo_jettison_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText("EMPTY");
-        cargo_jettison_display.transform.GetChild(1).gameObject.SetActive(false);
-        cargo_jettison_display.transform.GetChild(2).gameObject.SetActive(true);
+        cargo_eject_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText("EMPTY");
+        cargo_eject_display.transform.GetChild(1).gameObject.SetActive(false);
+        cargo_eject_display.transform.GetChild(2).gameObject.SetActive(true);
         setDisplayColor(new Color(0.0f, 0.84f, 1.0f, 0.2f));
 
         if (is_powered == true)
@@ -188,12 +188,8 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         {
             Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
             int eject_index = cargo_eject_loader.getEjectItemIndex();
-            GameObject ejected_item = GameObject.Instantiate(ejectable_items[eject_index], spaceship);
-            spawn_index += 1;
-            if (spawn_index > SPAWN_X_COORDINATES.Length - 1)
-            {
-                spawn_index = 0;
-            }
+            GameObject ejected_item = GameObject.Instantiate(ReferenceAssistor.Instance.collectible_items[eject_index], spaceship);
+
             ejected_item.transform.position = spaceship.transform.position + (spaceship.transform.right * SPAWN_X_COORDINATES[spawn_index]) + new Vector3(0.0f, -7.0f, 0.0f) + (spaceship.forward * 50.0f);
             ejected_item.transform.rotation = spaceship.rotation;
             Vector3 curr_rotation = ejected_item.transform.rotation.eulerAngles;
@@ -203,6 +199,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
             ejected_item.GetComponent<CollectibleItem>().setSerialNumber(cargo_eject_loader.getCurrentItemSerialNumber());
             StartCoroutine(cargoTransformAdjustment(ejected_item));
         }
+        cargo_eject_sounds[spawn_index].Play();
         deactivate();
         cargo_eject_loader.onCargoEject();
 
@@ -267,7 +264,8 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
                 BUTTONS[0].toggle(0.2f);
                 BUTTONS[0].updateInteractable(false);
                 BUTTONS[1].updateInteractable(false);
-                transmitEjectRPC();
+                int index_to_spawn = 1 - spawn_index;
+                transmitEjectRPC(index_to_spawn);
                 return;
             }
         }
@@ -292,7 +290,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         {
             activate();
         }
-        cargo_jettison_display.SetActive(true);
+        cargo_eject_display.SetActive(true);
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(cargo_eject_coroutine == null && is_active);
     }
@@ -300,7 +298,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     public void powerOff(int position, float time)
     {
         is_powered = false;
-        cargo_jettison_display.SetActive(false);
+        cargo_eject_display.SetActive(false);
         active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
         inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
         BUTTONS[0].updateInteractable(false);
@@ -319,8 +317,9 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitEjectRPC()
+    private void transmitEjectRPC(int si)
     {
+        spawn_index = si;
         if (cargo_eject_coroutine != null)
         {
             StopCoroutine(cargo_eject_coroutine);

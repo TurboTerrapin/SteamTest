@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 3/16/2026
+    Last Updated: 3/26/2026
 */
 
 using System.Collections;
@@ -32,11 +32,12 @@ public class LightsManager : MonoBehaviour
         new int[]{ 9 }, //port lit elements
         new int[]{ 10 }, //starboard lit elements
         new int[]{ 11 } //aft lit elements
-};
+    };
 
     public GameObject default_light_group;
     public GameObject emergency_light_group;
     public GameObject lit_element_group;
+    public AudioSource light_flicker_sound;
 
     private List<Light>[] default_lights = new List<Light>[4];
     private List<Renderer>[] default_renderers = new List<Renderer>[4];
@@ -223,6 +224,9 @@ public class LightsManager : MonoBehaviour
 
         //stop flicker coroutines
         endFlickerCoroutines();
+
+        //stop sound effect
+        light_flicker_sound.Stop();
 
         //default lights enabled to start, emergency lights disabled to start
         enabled_lights[0] = true;
@@ -454,6 +458,10 @@ public class LightsManager : MonoBehaviour
         }
         else
         {
+            if (light_flicker_sound.isPlaying == false)
+            {
+                light_flicker_sound.Play();
+            }
             flicker_times[section] = time;
             flicker_coroutines[section] = StartCoroutine(sectionFlicker(section));
         }
@@ -499,6 +507,20 @@ public class LightsManager : MonoBehaviour
         }
 
         flicker_coroutines[section] = null;
+
+        //end sound if no flickers active
+        bool no_flickers_active = true;
+        for (int i = 0; i < 4; i++)
+        {
+            if (flicker_coroutines[i] != null)
+            {
+                no_flickers_active = false;
+            }
+        }
+        if (no_flickers_active == true)
+        {
+            light_flicker_sound.Stop();
+        }
 
         //set to normal material
         displayLightMaterials(0);
