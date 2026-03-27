@@ -1,8 +1,7 @@
 /*
     MineField.cs
-    - Spawns a bunch of mines that do nothing
     Contributor(s): Henryk Musial
-    Last Updated: 2/25/2026
+    Last Updated: 3/26/2026
 */
 
 using System.Collections.Generic;
@@ -12,63 +11,57 @@ using UnityEngine;
 public class MineField : NetworkBehaviour, IScenario
 {
     //CLASS CONSTANTS
-    private static int MINE_QUANTITY = 100;
-    private static string DEATH_MESSAGE = "Encompassed in a large field of glowing orange orbs, stolen ship NCC-3002 was found adrift with no obvious sign of distress. Investigations will continue to identify possible causes of failure.";
+    private static int MINE_QUANTITY = 30;
+    private static int SEEKER_MINE_QUANTITY = 20;
+    private static string DEATH_MESSAGE = "You died buddy get better at this game";
 
     public GameObject mine;
-
-    private Vector3 world_root_center;
-    private List<Vector3> spawned_locations = new List<Vector3>();
-
-    private Vector3 getRandomSpawnLocation()
-    {
-        bool found_valid_location = false;
-        Vector3 valid_location = Vector3.zero;
-        while (found_valid_location == false)
-        {
-            Vector2 x_and_z = Random.insideUnitCircle * (ScenarioManager.BOUNDARY_SIZE * 0.5f);
-            float x_coordinate = x_and_z.x;
-            float y_coordinate = Random.Range(-(ScenarioManager.BOUNDARY_ALTITUDE), ScenarioManager.BOUNDARY_ALTITUDE);
-            float z_coordinate = x_and_z.y;
-            valid_location =
-                new Vector3(x_coordinate, y_coordinate, z_coordinate);
-
-            found_valid_location = true;
-            foreach (Vector3 existing_location in spawned_locations)
-            {
-                if (Vector3.Distance(existing_location, valid_location) < 50.0f)
-                {
-                    found_valid_location = false;
-                    break;
-                }
-            }
-        }
-
-        spawned_locations.Add(valid_location);
-
-        return valid_location;
-    }
+    public GameObject seekerMine;
 
     //only run by the host
     public void initiateScenario()
     {
         if (NetworkManager.Singleton.IsHost == false)
-        {
             return;
-        }
 
-        world_root_center = new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f);
+        // Calculate cylinder dimensions
+        float radius = ScenarioManager.BOUNDARY_SIZE * 0.5f;   // 2500
+        float height = ScenarioManager.BOUNDARY_ALTITUDE * 2f; // 200
+        float minDistance = 50.0f; 
+
+        int totalMines = MINE_QUANTITY + SEEKER_MINE_QUANTITY;
+
+        // Generate spawn points
+        List<Vector3> positions = SpawnPointGenerator.GenerateSpawnLocations(radius, height, minDistance, totalMines);
 
         Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+        Vector3 world_root_center = new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f);
+
+        // Spawn regular mines
         for (int i = 0; i < MINE_QUANTITY; i++)
         {
             GameObject curr_mine = GameObject.Instantiate(mine, world_root);
             curr_mine.name = "Mine_" + i;
             curr_mine.GetComponent<NetworkObject>().SynchronizeTransform = true;
-            Vector3 spawn_location = getRandomSpawnLocation() + world_root_center;
-            curr_mine.transform.localPosition = spawn_location;
 
-            curr_mine.transform.localRotation = Random.rotation; // Applies random rotation to mines
+            Vector3 spawn_location = positions[i] + world_root_center;
+            curr_mine.transform.localPosition = spawn_location;
+            curr_mine.transform.localRotation = Random.rotation;
+
+            curr_mine.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
+            curr_mine.GetComponent<NetworkObject>().TrySetParent(world_root);
+        }
+
+        // Spawn seeker mines
+        for (int i = 0; i < SEEKER_MINE_QUANTITY; i++)
+        {
+            GameObject curr_mine = GameObject.Instantiate(seekerMine, world_root);
+            curr_mine.name = "Seeker_Mine_" + i;
+            curr_mine.GetComponent<NetworkObject>().SynchronizeTransform = true;
+
+            Vector3 spawn_location = positions[MINE_QUANTITY + i] + world_root_center;
+            curr_mine.transform.localPosition = spawn_location;
+            curr_mine.transform.localRotation = Random.rotation;
 
             curr_mine.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             curr_mine.GetComponent<NetworkObject>().TrySetParent(world_root);

@@ -28,7 +28,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
-    private bool[] enabled_reducers = new bool[2] { false, false };
+    public bool[] enabled_reducers = new bool[2] { false, false };
     private float[] enabled_reducer_progress = new float[2] { 0.0f, 0.0f };
     private float[] switch_angles = new float[2] { 90.0f, 90.0f };
     private Coroutine[] reducer_switch_coroutines = new Coroutine[2] { null, null };
@@ -247,6 +247,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable
         }
         power_loss_coroutine = StartCoroutine(returnToZero(time));
     }
+
 
     [Rpc(SendTo.Everyone)]
     private void transmitReducerChangeRPC(int index, bool is_enabled)
