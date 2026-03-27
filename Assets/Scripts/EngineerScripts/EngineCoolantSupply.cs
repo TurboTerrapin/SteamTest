@@ -12,8 +12,9 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Windows;
 
-public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
+public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float TURN_SPEED = 0.25f;
@@ -45,6 +46,15 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public List<GameObject> hand_placements = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+    private bool increasing = false;
+
     private void Start()
     {
         piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
@@ -63,6 +73,50 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        float shortestDistance;
+        int shortestIndex = 0;
+        if (increasing)
+        {
+            shortestDistance = Vector3.Distance(hand_placements[1].transform.position, IK_targets[0].transform.position);
+            for (int i = 1; i < IK_targets.Count; i++)
+            {
+                float distance = Vector3.Distance(hand_placements[1].transform.position, IK_targets[i].transform.position);
+                if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    shortestIndex = i;
+                }
+            }
+        }
+        else
+        {
+            shortestDistance = Vector3.Distance(hand_placements[1].transform.position, IK_targets[0].transform.position);
+            for (int i = 1; i < IK_targets.Count; i++)
+            {
+                float distance = Vector3.Distance(hand_placements[1].transform.position, IK_targets[i].transform.position);
+                if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    shortestIndex = i;
+                }
+            }
+        }
+        return IK_targets[shortestIndex].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public void resetToDefault()
@@ -167,10 +221,12 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable
         if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to to increase
         {
             turn_direction += 1;
+            increasing = true;
         }
         if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrease
         {
             turn_direction -= 1;
+            increasing = false;
         }
         if (turn_direction != 0)
         {

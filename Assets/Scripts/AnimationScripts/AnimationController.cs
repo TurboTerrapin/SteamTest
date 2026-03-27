@@ -35,7 +35,10 @@ public class AnimationController : MonoBehaviour
         HandPose = myAnimator.GetFloat("HandPose");
     }
     */
-
+    public bool getIKActiveRightArm()
+    {
+        return myAnimatorHandler.getIKActiveRightArm();
+    }
 
     public void setIKActive(bool value)
     {
@@ -149,6 +152,7 @@ public class AnimationController : MonoBehaviour
     }
     public void setHandInteractionType(HandInteractionType handInteractionType)
     {
+        Debug.Log(handInteractionType);
         myAnimator.SetInteger("HandInteractionType", (int)handInteractionType);
     }
 
