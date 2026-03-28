@@ -42,7 +42,7 @@ public class AnimatorHandler : MonoBehaviour
         myAnimator.applyRootMotion = true;
     }
 
-
+     
 
     public bool getIKActiveRightArm()
     {
