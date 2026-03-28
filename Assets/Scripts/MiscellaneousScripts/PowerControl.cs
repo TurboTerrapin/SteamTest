@@ -29,12 +29,6 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     public GameObject dial_sounds;
     public List<GameObject> light_indicator_groups = null;
 
-    [Header("IK Targetable Details")]
-    public List<GameObject> IK_targets = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
-
     private bool[] active_dials = new bool[4] { true, true, true, true };
     private bool[] current_seats = new bool[4] { false, false, false, false };
     private List<string> ray_targets = new List<string>{"pilot_power", "tactician_power", "engineer_power", "captain_power"};
@@ -42,6 +36,14 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     private Coroutine player_notifier_coroutine = null;
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public List<AnimatorHandler.HandInteractionType> hand_interaction_types = null;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    private int my_control_index = 0;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -56,11 +58,12 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
+        my_control_index = index;
         return IK_targets[index].transform;
     }
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
-        return hand_interaction_type; 
+        return hand_interaction_types[my_control_index]; 
     }
     public float getHandPose()
     {

@@ -152,7 +152,6 @@ public class AnimationController : MonoBehaviour
     }
     public void setHandInteractionType(HandInteractionType handInteractionType)
     {
-        Debug.Log(handInteractionType);
         myAnimator.SetInteger("HandInteractionType", (int)handInteractionType);
     }
 

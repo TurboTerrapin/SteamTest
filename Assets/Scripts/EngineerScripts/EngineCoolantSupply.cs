@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Windows;
+using static AnimatorHandler;
 
 public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -53,6 +53,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
     public int finger_position = 0;
+
     private bool increasing = false;
 
     private void Start()
@@ -221,12 +222,10 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
         if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //E to to increase
         {
             turn_direction += 1;
-            increasing = true;
         }
         if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))  //Q to decrease
         {
             turn_direction -= 1;
-            increasing = false;
         }
         if (turn_direction != 0)
         {
