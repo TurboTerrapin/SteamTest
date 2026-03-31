@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
+public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float ARM_TIME = 1.0f;
@@ -47,6 +47,12 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+
     private void Start()
     {
         torpedo_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>();
@@ -67,7 +73,22 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
+    }
     private void displayAdjustment()
     {
         float trigger_base_distance_percentage = Mathf.Min(1.0f, trigger_percentage / 0.8f);

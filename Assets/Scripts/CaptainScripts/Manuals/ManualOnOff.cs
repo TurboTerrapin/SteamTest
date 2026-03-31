@@ -34,6 +34,12 @@ public class ManualOnOff : NetworkBehaviour, IControllable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> ik_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+
     private void Start()
     {
         manuals[0] = GetComponent<ProcedureManual>();
@@ -56,6 +62,23 @@ public class ManualOnOff : NetworkBehaviour, IControllable
         hud_info.setInfo(INFO_MESSAGES[index]);
         hud_info.setPowerConsumption(getManualPowerConsumption(index));
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return ik_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public float getManualPowerConsumption(int index)

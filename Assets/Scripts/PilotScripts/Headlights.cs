@@ -33,7 +33,6 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     public GameObject headlights_display;
     public GameObject ship_headlights;
     public Material headlights_material;
-    public GameObject IK_target;
     private EffectsHandler effects_handler;
 
     private bool is_powered = false;
@@ -46,6 +45,12 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
 
     private void Start()
     {
@@ -68,10 +73,21 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     {
         return hud_info;
     }
-
-    public Transform getIKTarget()
+    public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     private void setHeadlights(float range, float intensity)
