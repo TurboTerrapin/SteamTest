@@ -117,15 +117,10 @@ public class WeaponsSystem : MonoBehaviour
 
     }
 
-    private void InitializeTorpedoes() { }
-
     private void Start()
     { 
-
         InitializeLongRangePhaser();
         InitializeShortRangePhasers();
-        InitializeTorpedoes();
-
     }
 
     public bool AssignControlReferences(GameObject controlHandler) // Called by ShipController.cs
@@ -262,4 +257,3 @@ public class WeaponsSystem : MonoBehaviour
     }
 
 }
-

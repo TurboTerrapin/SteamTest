@@ -12,7 +12,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
+public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.35f;
@@ -38,18 +38,11 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     private static HUDInfo hud_info = null;
 
-    [Header("IK Targetable Details")]
-    public List<GameObject> IK_targets = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
-    public int finger_position = 0;
-
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
-        for (int i = 0; i <= 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             //set buttons
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
@@ -63,30 +56,14 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
         hud_info.setButtons(BUTTON_LISTS[0], 7);
         hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 7);
-
+        hud_info.setPowerConsumption(power_levels[index] * (MAX_POWER_CONSUMPTION / 4f));
         return hud_info;
-    }
-    public Transform getIKTarget(GameObject current_target)
-    {
-        int index = ray_targets.IndexOf(current_target.name);
-        return IK_targets[index].transform;
-    }
-    public AnimatorHandler.HandInteractionType getHandInteractionType()
-    {
-        return hand_interaction_type;
-    }
-    public float getHandPose()
-    {
-        return hand_pose;
-    }
-    public bool getRightHandFlip()
-    {
-        return does_right_hand_flip;
     }
 
     public float getPowerLevel(int index) 
@@ -102,7 +79,6 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
             consumed_power += (power_levels[i] * 0.25f * MAX_POWER_CONSUMPTION);
         }
         ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
-        hud_info.setPowerConsumption(consumed_power);
     }
 
     private void displayAdjustment(int index)
@@ -112,7 +88,7 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
         //update bars on screen
         float tmp_pwr = power_levels[index];
-        for (int i = 0; i <= 19; i++)
+        for (int i = 0; i < 20; i++)
         {
             tmp_pwr = power_levels[index] - (0.05f * i);
             float a = tmp_pwr / 0.05f;

@@ -2,40 +2,27 @@
     TorpedoLauncher.cs
     - Spawns torpedoes at the correct bay
     - Configures torpedo stats on spawn
-    Last Updated: 2/13/2026
+    Last Updated: 3/6/2026
 */
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections.Generic;
 
 public class TorpedoLauncher : NetworkBehaviour
 {
     [Header("References")]
-    public TorpedoSelector torpedoSelector;
-    public TorpedoPowers torpedoPowers;
-    public GameObject torpedoPrefab;
+    public List<GameObject> torpedoPrefabs;
 
     // Forward [0], Port [1], Starboard [2], Aft [3] 
     public Transform[] spawn_points = new Transform[4];
 
-    [Header("Torpedo Configuration")]
-    public TorpedoType current_ammo_type = TorpedoType.Photon;
-    public float default_angle_delta = 90.0f; // Degrees the torpedo can turn
-
     // Can be called by TorpedoTrigger.cs inside transmitTorpedoFireRPC
-    public void fireTorpedo()
+    public void fireTorpedo(int bay_index, int torpedo_type, float power_percent)
     {
-        if (!IsServer) return; // Only spawn on server
+        if (NetworkManager.Singleton.IsHost == false) return; // Only spawn on server
 
-        // 1. Get Selected Bay Index (0-3)
-        int bay_index = torpedoSelector.getSelectionIndex();
-
-        // 2. Get Power Level for that Bay
-        float power_percent = torpedoPowers.getPowerLevel(bay_index);
-
-        // 3. Instantiate
+        // Instantiate
         if (bay_index < spawn_points.Length)
         {
             // Find the floating origin so the torpedo shares the same coordinate space as the targets
@@ -43,13 +30,15 @@ public class TorpedoLauncher : NetworkBehaviour
             Transform parent_transform = world_root != null ? world_root.transform : null;
 
             // Instantiate as a child of the world root
-            GameObject new_torpedo = Instantiate(torpedoPrefab, spawn_points[bay_index].position, spawn_points[bay_index].rotation, parent_transform);
+            GameObject new_torpedo = GameObject.Instantiate(torpedoPrefabs[torpedo_type], parent_transform);
+            new_torpedo.transform.position = spawn_points[bay_index].position;
+            new_torpedo.transform.rotation = spawn_points[bay_index].rotation;
 
-            // 4. Configure
+            // Configure
             Torpedo torpedo_script = new_torpedo.GetComponent<Torpedo>();
             if (torpedo_script != null)
             {
-                torpedo_script.Initialize(current_ammo_type, power_percent, default_angle_delta);
+                torpedo_script.Initialize(power_percent);
             }
 
             // 5. Spawn over network
@@ -66,11 +55,5 @@ public class TorpedoLauncher : NetworkBehaviour
                 }
             }
         }
-    }
-
-    // Call this to change ammo type (e.g. from UI)
-    public void setAmmoType(TorpedoType new_type)
-    {
-        current_ammo_type = new_type;
     }
 }

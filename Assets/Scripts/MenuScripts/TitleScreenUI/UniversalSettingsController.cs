@@ -1,9 +1,10 @@
 // Universal Settings Controller
 
+using System;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System.Collections.Generic;
 
 public class UniversalSettingsController : MonoBehaviour
 {
@@ -38,6 +39,9 @@ public class UniversalSettingsController : MonoBehaviour
     // HUD Visibility
     public TMP_Dropdown HUDVisibilityDropdown;
     public GameObject control_script_holder;
+
+    // Hints
+    public Toggle HintsToggle;
 
     void Start()
     {
@@ -108,7 +112,14 @@ public class UniversalSettingsController : MonoBehaviour
         // Sets dropdown UI to display option corresponding to selected index
         HUDVisibilityDropdown.value = HUDIndex;
         // Applies option based on index
-        HandleHUDDropdownClicked(HUDIndex); 
+        HandleHUDDropdownClicked(HUDIndex);
+
+        // Loads player hints toggle preference (default is true if nothing is saved)
+        bool isHintsOn = PlayerPrefs.GetInt("Hints", 0) == 1;
+        // Sets dropdown UI to display option corresponding to selected index
+        HintsToggle.isOn = isHintsOn;
+        // Applies hints
+        HandleHintsToggleClicked(isHintsOn);
 
         // Listens for changes
         FullScreenToggle.onValueChanged.AddListener(HandleFullScreenToggleClicked);
@@ -118,6 +129,7 @@ public class UniversalSettingsController : MonoBehaviour
         MasterVolumeSlider.onValueChanged.AddListener(HandleMasterVolumeDragged);
         CameraSensitivitySlider.onValueChanged.AddListener(HandleCameraSensitivityDragged);
         HUDVisibilityDropdown.onValueChanged.AddListener(HandleHUDDropdownClicked);
+        HintsToggle.onValueChanged.AddListener(HandleHintsToggleClicked);
     }
 
     // For testing FPS
@@ -258,50 +270,77 @@ public class UniversalSettingsController : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    public void HandleCameraSensitivityDragged(float mouseSensitivity)
+    public float GetCameraSensitivity()
     {
+        float mouseSensitivity = PlayerPrefs.GetFloat("CameraSensitivity");
+
         // Converts slider value (0-1) to (.25-3)
         float actualSensitivity = Mathf.Lerp(0.25f, 3f, mouseSensitivity);
 
-        // Converts to % and updates sensitivity text
-        int percent = Mathf.RoundToInt(mouseSensitivity * 100f);
-        ActualCameraSensitivityLabel.text = percent.ToString();
+        return actualSensitivity;
+    }
 
-        if (Camera.main != null)
-        {
-            // Gets the PlayerCameraMove component attached to camera
-            CameraMove camMove = Camera.main.GetComponent<CameraMove>();
-
-            if (camMove != null)
-            {
-                // Apply sensitivity to camera controller
-                camMove.SetMouseSensitvity(actualSensitivity);
-            }
-        }
-
+    public void HandleCameraSensitivityDragged(float mouseSensitivity)
+    {
         // Saves camera preference
         PlayerPrefs.SetFloat("CameraSensitivity", mouseSensitivity);
 
         // Writes changes to disk
         PlayerPrefs.Save();
+
+        // Converts to % and updates sensitivity text
+        int percent = Mathf.RoundToInt(mouseSensitivity * 100f);
+        ActualCameraSensitivityLabel.text = percent.ToString();
+
+        if (control_script_holder != null)
+        {
+            PrimaryScript x = PrimaryScript.Instance;
+
+            if (x != null)
+            {
+                // Sends the sensitivity to PrimaryScript
+                x.setCameraSensitivity(GetCameraSensitivity());
+            }
+        }
     }
 
     public void HandleHUDDropdownClicked(int index)
     {
         if (control_script_holder != null)
         {
-            // Gets the ControlScript component
+            // Gets the PrimaryScript component
             PrimaryScript x = PrimaryScript.Instance;
 
             if (x != null)
             {
-                // Sends the index to the control script 
+                // Sends the index to PrimaryScript
                 x.setHUD(index);
             }
         }
 
         // Saves player preferences
         PlayerPrefs.SetInt("HUDVisibility", index);
+
+        // Writes changes to disk
+        PlayerPrefs.Save();
+    }
+
+    public void HandleHintsToggleClicked(bool isOn)
+    {
+        if (control_script_holder != null)
+        {
+            // Gets the PrimaryScript component
+            PrimaryScript x = PrimaryScript.Instance;
+
+            if (x != null)
+            {
+                // Sends the bool to PrimaryScript
+                x.setHintsEnabled(isOn);
+            }
+        }
+
+        // Saves players preferece (1 = true, 0 = false)
+        PlayerPrefs.SetInt("Hints", isOn ? 1 : 0);
 
         // Writes changes to disk
         PlayerPrefs.Save();

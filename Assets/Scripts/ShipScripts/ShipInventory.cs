@@ -4,7 +4,7 @@
     - Updates inventory display in engineer position
     - Only the host accepts add/remove/set item queries and passes on to other clients
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 3/13/2026
 */
 
 using System.Collections.Generic;
@@ -25,6 +25,21 @@ public class ShipInventory : NetworkBehaviour, IPowerable
     private static List<int> TORPEDO_WEIGHTS = new List<int>() { 5000, 3350, 6000, 1100, 500, 8900 };
     private static List<Vector2> TORPEDO_SIZES = new List<Vector2>() { new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.1f, 3.5f), new Vector2(2.5f, 4.1f) };
 
+    //based on difficulty (easy, medium, hard, expert [0-3]), determines the starting quantities of items/torpedoes at the very start of a run
+    private static int[][] STARTING_QUANTITIES = new int[][]
+    {
+        new int[]{ 3, 2, 2, 1 }, //probe
+        new int[]{ 4, 3, 2, 1 }, //ecape pod
+        new int[]{ 12, 10, 8, 4 }, //shield battery
+        new int[]{ 4, 3, 2, 1 }, //cargo container
+        new int[]{ 8, 6, 4, 2 }, //photon
+        new int[]{ 4, 3, 2, 1 }, //proton
+        new int[]{ 2, 2, 1, 1 }, //ion
+        new int[]{ 2, 1, 0, 0 }, //quantum
+        new int[]{ 2, 1, 0, 0 }, //superluminal
+        new int[]{ 1, 0, 0, 0 }, //chroniton
+    };
+
     public GameObject inventory_display;
 
     private ProbeController probe_controller;
@@ -35,9 +50,9 @@ public class ShipInventory : NetworkBehaviour, IPowerable
     private GameObject torpedo_count_indicators;
 
     //actual # of items in inventory (Probe, Escape Pod, Shield Battery, Cargo Container)
-    private List<int> item_quantities = new List<int>() { 2, 4, 10, 2 };
+    private List<int> item_quantities = new List<int>() { 0, 0, 0, 0 };
     //actual # of torpedoes in inventory (Photon, Ion, Proton, Quantum, Superluminal, Chroniton)
-    private List<int> torpedo_quantities = new List<int>() { 10, 4, 2, 1, 1, 1 };
+    private List<int> torpedo_quantities = new List<int>() { 0, 0, 0, 0, 0, 0 };
 
     private List<string> used_serial_nums = new List<string>();
     private Stack<string>[] item_serial_nums;
@@ -55,13 +70,16 @@ public class ShipInventory : NetworkBehaviour, IPowerable
         //if host, initialize and begin handling serial numbers
         if (NetworkManager.Singleton.IsHost == true)
         {
+            int game_difficulty = GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().getDifficulty();
             item_serial_nums = new Stack<string>[item_quantities.Count];
             torpedo_serial_nums = new Stack<string>[torpedo_quantities.Count];
 
             //initialize items
             for (int i = 0; i < item_quantities.Count; i++)
             {
+                item_quantities[i] = STARTING_QUANTITIES[i][game_difficulty];
                 item_serial_nums[i] = new Stack<string>();
+
                 for (int x = 0; x < item_quantities[i]; x++)
                 {
                     bool serial_num_found = false;
@@ -74,12 +92,16 @@ public class ShipInventory : NetworkBehaviour, IPowerable
                     item_serial_nums[i].Push(serial_num);
                     used_serial_nums.Add(serial_num);
                 }
+
+                itemInventoryUpdateRPC(0, i, item_quantities[i]);
             }
 
             //initialize torpedoes
             for (int i = 0; i < torpedo_quantities.Count; i++)
             {
+                torpedo_quantities[i] = STARTING_QUANTITIES[i + 4][game_difficulty];
                 torpedo_serial_nums[i] = new Stack<string>();
+
                 for (int x = 0; x < torpedo_quantities[i]; x++)
                 {
                     bool serial_num_found = false;
@@ -92,6 +114,8 @@ public class ShipInventory : NetworkBehaviour, IPowerable
                     torpedo_serial_nums[i].Push(serial_num);
                     used_serial_nums.Add(serial_num);
                 }
+
+                itemInventoryUpdateRPC(1, i, torpedo_quantities[i]);
             }
 
         }

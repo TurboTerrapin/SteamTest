@@ -3,7 +3,7 @@
     - Handles visuals for an energy pattern as seen in the engineer position
     - Currently operates under the assumption that there are only four rings
     Contributor(s): Jake Schott
-    Last Updated: 8/16/2025
+    Last Updated: 2/22/2026
 */
 
 using System.Collections;
@@ -22,8 +22,15 @@ public class PatternVisualizer : MonoBehaviour
     private Coroutine size_change_coroutine = null;
     private Coroutine color_change_coroutine = null;
 
+    private EnergyPattern energy_pattern;
+
     private float ring_min_size = 0.05f;
     private float ring_separation_distance = 0.01f;
+
+    private void Start()
+    {
+        energy_pattern = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>();
+    }
 
     private void patternSizeHelper(float ring_size)
     {
@@ -48,18 +55,26 @@ public class PatternVisualizer : MonoBehaviour
     }
 
     //handles color changes in (runs for anim_time)
-    IEnumerator patternColorChange(List<Color> end_ring_colors, Color end_center_color, float anim_time)
+    IEnumerator patternColorChange(List<int> end_ring_colors, int end_center_color, float anim_time)
     {
         //get current colors before change
         Color[] starting_colors = new Color[pattern_information.getNumberOfRings() + 1];
         for (int i = 0; i < pattern_information.getNumberOfRings(); i++)
         {
-            starting_colors[i] = pattern_information.getRingColors()[i];
+            starting_colors[i] = energy_pattern.color_options[pattern_information.getRingColors()[i]];
         }
-        starting_colors[pattern_information.getNumberOfRings()] = pattern_information.getCenterColor();
+        starting_colors[pattern_information.getNumberOfRings()] = energy_pattern.color_options[pattern_information.getCenterColor()];
         
         //identify solid rings
-        List<bool> is_solid = pattern_information.getRingSolids();
+        List<bool> is_dotted = pattern_information.getRingIsDotted();
+
+        //identify end colors
+        List<Color> r_ending_colors = new List<Color>();
+        for (int i = 0; i < pattern_information.getNumberOfRings(); i++)
+        {
+            r_ending_colors.Add(energy_pattern.color_options[end_ring_colors[i]]);
+        }
+        Color c_ending_color = energy_pattern.color_options[end_center_color];
 
         //color change animation
         float time_remaining = anim_time;
@@ -71,12 +86,12 @@ public class PatternVisualizer : MonoBehaviour
             for (int r = 0; r < pattern_information.getNumberOfRings(); r++)
             {
                 Color temp_color =
-                    new Color(Mathf.Lerp(starting_colors[r].r, end_ring_colors[r].r, 1.0f - (time_remaining / anim_time)),
-                              Mathf.Lerp(starting_colors[r].g, end_ring_colors[r].g, 1.0f - (time_remaining / anim_time)),
-                              Mathf.Lerp(starting_colors[r].b, end_ring_colors[r].b, 1.0f - (time_remaining / anim_time)),
+                    new Color(Mathf.Lerp(starting_colors[r].r, r_ending_colors[r].r, 1.0f - (time_remaining / anim_time)),
+                              Mathf.Lerp(starting_colors[r].g, r_ending_colors[r].g, 1.0f - (time_remaining / anim_time)),
+                              Mathf.Lerp(starting_colors[r].b, r_ending_colors[r].b, 1.0f - (time_remaining / anim_time)),
                               1.0f);
 
-                if (is_solid[r] == false) //must recolor each individual dot
+                if (is_dotted[r] == true) //must recolor each individual dot
                 {
                     for (int x = 1; x < rings[r].transform.GetChild(0).childCount; x++)
                     {
@@ -91,9 +106,9 @@ public class PatternVisualizer : MonoBehaviour
 
             //recolor center
             pattern_center.GetComponent<UnityEngine.UI.RawImage>().color = 
-                new Color(Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].r, end_center_color.r, 1.0f - (time_remaining / anim_time)),
-                          Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].g, end_center_color.g, 1.0f - (time_remaining / anim_time)),
-                          Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].b, end_center_color.b, 1.0f - (time_remaining / anim_time)),
+                new Color(Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].r, c_ending_color.r, 1.0f - (time_remaining / anim_time)),
+                          Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].g, c_ending_color.g, 1.0f - (time_remaining / anim_time)),
+                          Mathf.Lerp(starting_colors[pattern_information.getNumberOfRings()].b, c_ending_color.b, 1.0f - (time_remaining / anim_time)),
                           1.0f);
 
             yield return null;
@@ -163,16 +178,16 @@ public class PatternVisualizer : MonoBehaviour
     public void displayPattern(PatternData pattern_info)
     {
         //set center
-        pattern_center.GetComponent<UnityEngine.UI.RawImage>().texture = pattern_info.getCenterTexture();
-        pattern_center.GetComponent<UnityEngine.UI.RawImage>().color = pattern_info.getCenterColor();
+        pattern_center.GetComponent<UnityEngine.UI.RawImage>().texture = energy_pattern.center_options[pattern_info.getCenterTexture()];
+        pattern_center.GetComponent<UnityEngine.UI.RawImage>().color = energy_pattern.color_options[pattern_info.getCenterColor()];
 
         //set rings
         for (int r = 0; r < pattern_info.getNumberOfRings(); r++)
         {
-            if (pattern_info.getRingSolids()[r] == true) //is just a texture that spins around
+            if (pattern_info.getRingIsDotted()[r] == false) //is just a texture that spins around
             {
-                rings[r].GetComponent<UnityEngine.UI.RawImage>().texture = pattern_info.getRingTextures()[r];
-                rings[r].GetComponent<UnityEngine.UI.RawImage>().color = pattern_info.getRingColors()[r];
+                rings[r].GetComponent<UnityEngine.UI.RawImage>().texture = energy_pattern.ring_options[pattern_info.getRingTextures()[r]];
+                rings[r].GetComponent<UnityEngine.UI.RawImage>().color = energy_pattern.color_options[pattern_info.getRingColors()[r]];
             }
             else //is comprised of more than one textures (ex. circles, diamonds)
             {
@@ -183,8 +198,8 @@ public class PatternVisualizer : MonoBehaviour
                 for (int i = 0; i < NUM_OF_ITEMS_PER_RING; i++)
                 {
                     GameObject new_item = Object.Instantiate(rings[r].transform.GetChild(0).GetChild(0).gameObject, rings[r].transform.GetChild(0));
-                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = pattern_info.getRingTextures()[r];
-                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = pattern_info.getRingColors()[r];
+                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = energy_pattern.dot_options[pattern_info.getRingTextures()[r]];
+                    new_item.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = energy_pattern.color_options[pattern_info.getRingColors()[r]];
                     new_item.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, i * (360.0f / NUM_OF_ITEMS_PER_RING));
                     new_item.SetActive(true);
                 }
@@ -206,7 +221,7 @@ public class PatternVisualizer : MonoBehaviour
         default_rotation_coroutine = StartCoroutine(spinRings(rotate_speeds));
     }
 
-    public void changeColors(List<Color> new_ring_colors, Color new_center_color, float anim_time)
+    public void changeColors(List<int> new_ring_colors, int new_center_color, float anim_time)
     {
         if (color_change_coroutine != null)
         {
@@ -214,6 +229,22 @@ public class PatternVisualizer : MonoBehaviour
         }
 
         color_change_coroutine = StartCoroutine(patternColorChange(new_ring_colors, new_center_color, anim_time));
+    }
+
+    public void changeColors(int[] new_ring_colors, int new_center_color, float anim_time)
+    {
+        if (color_change_coroutine != null)
+        {
+            StopCoroutine(color_change_coroutine);
+        }
+
+        List<int> temp_colors = new List<int>();
+        for (int i = 0; i < new_ring_colors.Length; i++)
+        {
+            temp_colors.Add(new_ring_colors[i]);
+        }
+
+        color_change_coroutine = StartCoroutine(patternColorChange(temp_colors, new_center_color, anim_time));
     }
 
     public void contractPattern(float time_interval)

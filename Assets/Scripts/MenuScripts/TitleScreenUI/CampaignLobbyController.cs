@@ -9,9 +9,6 @@ using UnityEngine;
 
 public class CampaignLobbyController : MonoBehaviour
 {
-    //CLASS CONSTANTS
-    private static int DEFAULT_DIFFICULTY = 0; //Easy
-
     public GameObject CampaignOptions;
     public GameObject CampaignLobby;
     public GameObject FriendListBox;
@@ -29,8 +26,10 @@ public class CampaignLobbyController : MonoBehaviour
 
     private void OnEnable()
     {
-        DisplayDifficultyChange(DEFAULT_DIFFICULTY);
-        HandleDifficultyChange();
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().updateDifficulty(LobbyHandler.DEFAULT_DIFFICULTY);
+        }
         DeactivateEngageButton();
         DeactivateDifficultyGroup();
         CheckForLobbyUpdates();
@@ -270,7 +269,7 @@ public class CampaignLobbyController : MonoBehaviour
             }
         }
 
-        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().updateDifficulty(difficultyIndex);
+        GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().updateDifficulty(difficultyIndex);
     }
 
     public void HandleEngageButtonClick()
@@ -281,7 +280,7 @@ public class CampaignLobbyController : MonoBehaviour
         //Lock the lobby once game starts
         GameNetworkManager.Instance.currentLobby.Value.SetInvisible();
         GameNetworkManager.Instance.currentLobby.Value.SetJoinable(false);
-        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoadForAllPlayers();
+        GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().startLoadForAllPlayers();
         CharacterCustomization[] players = GameObject.FindObjectsByType<CharacterCustomization>(FindObjectsSortMode.InstanceID);
         foreach (CharacterCustomization c in players)
         {

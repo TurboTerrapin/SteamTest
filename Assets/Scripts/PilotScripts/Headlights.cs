@@ -4,7 +4,7 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/24/2026
 */
 
 using System.Collections;
@@ -17,19 +17,24 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.25f;
     private static float DELAY_TIME = 0.1f;
-    private static Vector3 FINAL_POS = new Vector3(0.0f, 0.0593f, 0.1451f);
+    private static float MAX_RANGE = 500.0f;
+    private static float MAX_INTENSITY = 500.0f;
+    private static float CONE_HALF_ANGLE = 4.0f;
+    private static Vector3 FINAL_POS = new Vector3(0.0f, 0.059f, 0.145f);
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
 
     private string CONTROL_NAME = "HEADLIGHTS";
     private static string INFO_MESSAGE = "Increases visibility and illuminates the surrounding area outside of the window.";
     private List<string> CONTROL_DESCS = new List<string> {"DIM", "BRIGHTEN"};
-    private List<int> CONTROL_INDEXES = new List<int>() {2, 0};
+    private List<int> CONTROL_INDEXES = new List<int>() {4, 5};
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject slider;
     public GameObject headlights_display;
     public GameObject ship_headlights;
+    public Material headlights_material;
     public GameObject IK_target;
+    private EffectsHandler effects_handler;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -41,11 +46,11 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
+
     private void Start()
     {
+        effects_handler = ReferenceAssistor.Instance.effects_handler;
+
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
@@ -53,36 +58,29 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         hud_info.setInfo(INFO_MESSAGE);
 
         initial_pos = slider.transform.localPosition;
+        for (int i = 0; i < 2; i++)
+        {
+            effects_handler.initializeConeGameObject(ship_headlights.transform.GetChild(i), headlights_material);
+        }
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
-    public Transform getIKTarget(GameObject current_target)
+
+    public Transform getIKTarget()
     {
         return IK_target.transform;
     }
-    public AnimatorHandler.HandInteractionType getHandInteractionType()
-    {
-        return hand_interaction_type;
-    }
-    public float getHandPose()
-    {
-        return hand_pose;
-    }
-    public bool getRightHandFlip()
-    {
-        return does_right_hand_flip;
-    }
-    private void setHeadlights(float a, float range, float scale)
+
+    private void setHeadlights(float range, float intensity)
     {
         foreach (Transform light in ship_headlights.transform)
         {
             light.GetComponent<Light>().range = range;
-            light.GetComponent<Light>().intensity = range;
-            light.GetChild(0).GetComponent<SpriteRenderer>().color = new Color(0.0f, 0.84f, 1.0f, a);
-            light.GetChild(0).localScale = new Vector3(scale, scale, 1.0f);
+            light.GetComponent<Light>().intensity = intensity;
+            effects_handler.drawConeMesh(light.GetComponent<MeshFilter>().mesh, range * 0.05f, CONE_HALF_ANGLE);
         }
     }
 
@@ -93,14 +91,11 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         Vector3 starting_pos = slider.transform.localPosition;
         Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, headlight_configuration / 7.0f);
 
-        float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
-        float dest_a = Mathf.Lerp(0.0f, 0.5f, headlight_configuration / 7.0f);
-
         float starting_range = ship_headlights.transform.GetChild(0).GetComponent<Light>().range;
-        float dest_range = Mathf.Lerp(0.0f, 2000.0f, headlight_configuration / 7.0f);
+        float dest_range = Mathf.Lerp(0.0f, MAX_RANGE, headlight_configuration / 7.0f);
 
-        float starting_scale = ship_headlights.transform.GetChild(0).GetChild(0).localScale.x;
-        float dest_scale = Mathf.Lerp(0.5f, 1.5f, headlight_configuration / 7.0f);
+        float starting_intensity = ship_headlights.transform.GetChild(0).GetComponent<Light>().intensity;
+        float dest_intensity = Mathf.Lerp(0.0f, MAX_INTENSITY, headlight_configuration / 7.0f);
 
         float starting_fill = headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount;
         float dest_fill = headlight_configuration / 7.0f;
@@ -115,7 +110,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
             slider.transform.localPosition = Vector3.Lerp(starting_pos, dest_pos, slide_percentage);
 
-            setHeadlights(Mathf.Lerp(starting_a, dest_a, slide_percentage), Mathf.Lerp(starting_range, dest_range, slide_percentage), Mathf.Lerp(starting_scale, dest_scale, slide_percentage));
+            setHeadlights(Mathf.Lerp(starting_range, dest_range, slide_percentage), Mathf.Lerp(starting_intensity, dest_intensity, slide_percentage));
             
             headlights_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill, dest_fill, slide_percentage);
             yield return null;
@@ -218,9 +213,8 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     IEnumerator returnToZero(float power_off_time)
     {
         Vector3 start_pos = slider.transform.localPosition;
-        float starting_a = ship_headlights.transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().color.a;
         float starting_range = ship_headlights.transform.GetChild(0).GetComponent<Light>().range;
-        float starting_scale = ship_headlights.transform.GetChild(0).GetChild(0).localScale.x;
+        float starting_intensity = ship_headlights.transform.GetChild(0).GetComponent<Light>().intensity;
 
         float anim_time = power_off_time;
         headlight_configuration = 0;
@@ -230,7 +224,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
             float off_percentage = 1.0f - (anim_time / power_off_time);
             slider.transform.localPosition = Vector3.Lerp(start_pos, initial_pos, off_percentage);
-            setHeadlights(Mathf.Lerp(starting_a, 0.0f, off_percentage), Mathf.Lerp(starting_range, 0.0f, off_percentage), Mathf.Lerp(starting_scale, 0.0f, off_percentage));
+            setHeadlights(Mathf.Lerp(starting_range, 0.0f, off_percentage), Mathf.Lerp(starting_intensity, 0.0f, off_percentage));
             yield return null;
         }
 

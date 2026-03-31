@@ -2,7 +2,7 @@
     PhaserFrequency.cs
     - Handles inputs for engineer phaser frequency adjustment
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/17/2026
 */
 
 using Unity.Netcode;
@@ -21,7 +21,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
     private static int[] MIN_FREQUENCIES = { 40, 20 }; //long-range, short-range
     private static int[] MAX_FREQUENCIES = { 70, 90 }; //long-range, short-range
 
-    private string CONTROL_NAME = "PHASER FREQUENCY";
+    private string CONTROL_NAME = "PHASER FREQUENCIES";
     private static string INFO_MESSAGE = "Adjusts phaser frequency for either long-range or short-range phasers to improve efficiency.";
     private List<string> CONTROL_DESCS = new List<string> { "SWITCH", "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 4, 5 };

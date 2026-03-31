@@ -32,8 +32,6 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
 
     private void Start()
     {
-        button_initial_pos = thruster_buttons[0].transform.localPosition;
-
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
@@ -71,6 +69,11 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
         return (thruster_percentage[1] - thruster_percentage[0]);
     }
 
+    public float getMaxThrusterValue()
+    {
+        return Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
+    }
+
     IEnumerator adjustingThrust()
     {
         while (keys_down.Count > 0 || !checkNeutralState())
@@ -100,6 +103,9 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
     }
     private void displayAdjustment()
     {
+        //adjust thruster sound
+        GetComponent<HorizontalThrusters>().adjustThrusterSound();
+
         //adjust physical buttons
         adjustButton(thruster_buttons[0], 0);
         adjustButton(thruster_buttons[1], 1);

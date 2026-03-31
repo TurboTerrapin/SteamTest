@@ -730,7 +730,9 @@ MonoBehaviour:
   size: 50
   is_ship: 0
   is_visible: 1
+  is_interest_item: 1
   icon_color: {r: 0, g: 0.8352941, b: 1, a: 1}
+  icon_texture: {fileID: 2800000, guid: 626e34281117a324996a673c2788f132, type: 3}
 --- !u!114 &-8698064860174034086
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -749,6 +751,9 @@ MonoBehaviour:
   item_category: 0
   item_index: 2
   is_illuminated: 1
+  item_health: 5
+  explosion_color: {r: 0, g: 0.8352941, b: 1, a: 1}
+  explosion_size: 2
 --- !u!33 &5802337388768708675
 MeshFilter:
   m_ObjectHideFlags: 0

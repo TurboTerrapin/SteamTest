@@ -1,9 +1,10 @@
 /*
     HorizontalThrusters.cs
     - Handles inputs for horizontal thrusters
+    - HANDLES THRUSTERS AUDIO FOR HORIZONTAL AND VERTICAL THRUSTERS
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/26/2026
 */
 
 using System.Collections;
@@ -20,6 +21,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
     private List<Button> BUTTONS = new List<Button>();
 
     private List<KeyCode> keys_down = new List<KeyCode>();
+    public AudioSource thrusters_sound;
 
     private bool is_powered = false;
 
@@ -32,8 +34,6 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
 
     private void Start()
     {
-        button_initial_pos = thruster_buttons[0].transform.localPosition;
-
         hud_info = new HUDInfo(CONTROL_NAME, true);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
@@ -103,8 +103,30 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
 
         thruster_coroutine = null;
     }
+
+    public void adjustThrusterSound()
+    {
+        float thruster_volume = Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
+        thruster_volume = Mathf.Max(thruster_volume, GetComponent<VerticalThrusters>().getMaxThrusterValue());
+        if (thruster_volume > 0.0f)
+        {
+            thrusters_sound.volume = 0.2f * thruster_volume;
+            if (thrusters_sound.isPlaying == false)
+            {
+                thrusters_sound.Play();
+            }
+        }
+        else
+        {
+            thrusters_sound.Stop();
+        }
+    }
+
     private void displayAdjustment()
     {
+        //adjust thruster sound
+        adjustThrusterSound();
+
         //adjust physical buttons
         adjustButton(thruster_buttons[0], 0);
         adjustButton(thruster_buttons[1], 1);

@@ -2,7 +2,7 @@
     CollectibleTest.cs
     - Spawns a bunch of collectible items
     Contributor(s): Jake Schott
-    Last Updated: 12/9/2025
+    Last Updated: 2/27/2025
 */
 
 using System.Collections.Generic;
@@ -63,6 +63,7 @@ public class CollectibleTest : NetworkBehaviour, IScenario
         for (int i = 0; i < COLLECTIBLE_QUANTITY; i++)
         {
             GameObject curr_collectible = GameObject.Instantiate(possible_collectibles[Random.Range(0, possible_collectibles.Count)], world_root);
+            curr_collectible.GetComponent<CollectibleItem>().setSerialNumber(GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>().generateSerialNumber());
             curr_collectible.GetComponent<NetworkObject>().SynchronizeTransform = true;
             Vector3 spawn_location = getRandomSpawnLocation() + world_root_center;
             curr_collectible.transform.localPosition = spawn_location;

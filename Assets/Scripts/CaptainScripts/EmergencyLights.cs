@@ -129,7 +129,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     {
         float starting_rotation = emergency_lights_dial.transform.localRotation.eulerAngles.z;
         displayAdjustment(0.0f);
-        lights_manager.disableEmergencyLights();
+        lights_manager.setEmergencyLights(false);
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)
@@ -203,14 +203,7 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
             StopCoroutine(emergency_lights_switch_coroutine);
         }
 
-        if (emergency_lights_enabled == false)
-        {
-            lights_manager.enableEmergencyLights();
-        }
-        else
-        {
-            lights_manager.disableEmergencyLights();
-        }
+        lights_manager.setEmergencyLights(!emergency_lights_enabled);
 
         emergency_lights_switch_coroutine = StartCoroutine(lightSwitch());
     }

@@ -114,17 +114,22 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
 
     public void activate(bool power_online)
     {
-        if (power_online == false)
+        if (auxiliary_power_available == true)
         {
-            if (auxiliary_power_emergency_flasher_coroutine == null)
+            if (power_online == false)
             {
-                auxiliary_power_emergency_flasher_coroutine = StartCoroutine(auxiliaryPowerEmergencyFlasher());
+                if (auxiliary_power_emergency_flasher_coroutine == null)
+                {
+                    auxiliary_power_emergency_flasher_coroutine = StartCoroutine(auxiliaryPowerEmergencyFlasher());
+                }
             }
-        }
-        else
-        {
-            if (auxiliary_power_available == true)
+            else
             {
+                if (auxiliary_power_emergency_flasher_coroutine != null)
+                {
+                    StopCoroutine(auxiliary_power_emergency_flasher_coroutine);
+                    auxiliary_power_emergency_flasher_coroutine = null;
+                }
                 displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 1.0f));
             }
         }

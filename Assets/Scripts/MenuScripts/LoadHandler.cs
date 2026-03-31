@@ -1,9 +1,8 @@
 /*
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
-    - ALSO HOLDS/HANDLES THE GAME DIFFICULTY
     Contributor(s): Jake Schott
-    Last Updated: 2/7/2026
+    Last Updated: 3/14/2026
 */
 
 using System.Collections;
@@ -13,16 +12,14 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LoadHandler : NetworkBehaviour
+public class LoadHandler : MonoBehaviour
 {
     //LOAD CIRCLE SETTINGS
-    private static Color[] LOAD_COLORS = new Color[4] { new Color(0f, 0.84f, 1f), new Color(0.129f, 1f, 0.04f), new Color(0.69f, 0f, 0.69f), new Color(1.0f, 0.47f, 0f) };
     private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 200.0f, 70.0f };
-
-    private int difficulty = -1;
 
     private GameObject load_screen;
     private GameObject load_ring;
+    private GameObject dummy_camera;
     private Coroutine fade_black_coroutine = null;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
 
@@ -40,6 +37,7 @@ public class LoadHandler : NetworkBehaviour
 
         load_screen = transform.GetChild(0).gameObject;
         load_ring = load_screen.transform.GetChild(2).gameObject;
+        dummy_camera = transform.GetChild(1).gameObject;
     }
 
     //called by CampaignLobbyController and FriendJoinWithButton to ensure that handleSceneLoad() gets connected to the right NetworkManager
@@ -99,6 +97,7 @@ public class LoadHandler : NetworkBehaviour
     //terminates the loading screen
     public void endLoad(bool fade)
     {
+        dummy_camera.SetActive(false);
         if (load_coroutines.Count == 0)
         {
             return;
@@ -115,21 +114,6 @@ public class LoadHandler : NetworkBehaviour
         }
     }
 
-    public void updateDifficulty(int new_difficulty)
-    {
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            return;
-        }
-
-        updateDifficultyRPC(new_difficulty);
-    }
-
-    public int getDifficulty()
-    {
-        return difficulty;
-    }
-
     //randomizes the colors for the load circle
     private void randomizeColors()
     {
@@ -142,7 +126,7 @@ public class LoadHandler : NetworkBehaviour
         for (int i = 0; i < 3; i++)
         {
             int c = Random.Range(0, possible_colors.Count);
-            load_ring.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = LOAD_COLORS[possible_colors[c]];
+            load_ring.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[possible_colors[c]];
             possible_colors.RemoveAt(c);
         }
     }
@@ -172,6 +156,8 @@ public class LoadHandler : NetworkBehaviour
 
     IEnumerator loadBridgeEnvironment(AsyncOperation load_operation)
     {
+        dummy_camera.SetActive(true);
+
         //find player
         string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
         GameObject player_prefab = GameObject.Find(player_prefab_name);
@@ -271,34 +257,5 @@ public class LoadHandler : NetworkBehaviour
         load_screen.SetActive(false);
 
         fade_black_coroutine = null;
-    }
-
-    //called by host when restarting a game or when engage is clicked
-    public void startLoadForAllPlayers()
-    {
-        allPlayersLoadRPC(); //triggers below RPC
-    }
-
-    //called by host when change in difficulty
-    [Rpc(SendTo.Everyone)]
-    private void updateDifficultyRPC(int new_difficulty)
-    {
-        difficulty = new_difficulty;
-
-        GameObject campaignLobby = GameObject.Find("CampaignLobby");
-        if (campaignLobby != null)
-        {
-            campaignLobby.GetComponent<CampaignLobbyController>().DisplayDifficultyChange(new_difficulty);
-        }
-    }
-
-    //only called when loading into the start of a game (there is a waiting period when the host loads into BridgeEnvironment compared to clients)
-    [Rpc(SendTo.Everyone)]
-    private void allPlayersLoadRPC()
-    {
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            startLoad();
-        }
     }
 }

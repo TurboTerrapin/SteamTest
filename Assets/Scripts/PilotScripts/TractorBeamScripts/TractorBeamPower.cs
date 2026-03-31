@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 1/31/2026
+    Last Updated: 3/27/2026
 */
 
 using System.Collections;
@@ -28,8 +28,10 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     public GameObject tractor_beam_handle;
     public GameObject tractor_beam_active_indicator;
     public GameObject tractor_beam_inactive_indicator;
+    public AudioSource tractor_beam_sound;
     public GameObject bars_display; //used to display the bars beneath the handle
     public GameObject info_display;
+
     private GameObject range_display; 
     private GameObject item_captured_display;
     private TractorBeamOptions tractor_beam_options;
@@ -80,6 +82,17 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     }
     private void displayAdjustment()
     {
+        //update audio
+        tractor_beam_sound.volume = power * 0.2f;
+        if (power == 0.0f)
+        {
+            tractor_beam_sound.Stop();
+        }
+        else if (power > 0.0f && tractor_beam_sound.isPlaying == false)
+        {
+            tractor_beam_sound.Play();
+        }
+
         //update bars on screen
         float tmp_pwr = power;
         for (int i = 0; i <= 9; i++)

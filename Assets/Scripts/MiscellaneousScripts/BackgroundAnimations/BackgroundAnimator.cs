@@ -2,21 +2,24 @@
     BackgroundAnimator.cs
     - Handles screen animations in the background of the ship
     Contributor(s): Jake Schott
-    Last Updated: 11/10/2025
+    Last Updated: 3/16/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class BackgroundAnimator : MonoBehaviour
 {
     public GameObject background_screens;
     public List<GameObject> alternate_screens = null;
+    public List<GameObject> energy_circles = null;
 
     private List<GameObject> screen_displays = new List<GameObject>();
     private List<IAnimable> animable_components = new List<IAnimable>();
+
+    private float wall_energy_percentage = 0.0f;
+    private float ceiling_energy_percentage = 0.0f;
 
     private Coroutine screen_enable_coroutine = null;
 
@@ -79,6 +82,22 @@ public class BackgroundAnimator : MonoBehaviour
         screen_enable_coroutine = StartCoroutine(screenEnableSequence(time));
     }
 
+    public void enableEnergyCircles()
+    {
+        foreach (GameObject energy_circle in energy_circles)
+        {
+            energy_circle.SetActive(true);
+        }
+    }
+
+    public void disableEnergyCircles()
+    {
+        foreach (GameObject energy_circle in energy_circles)
+        {
+            energy_circle.SetActive(false);
+        }
+    }
+
     IEnumerator screenEnableSequence(float time)
     {
         List<GameObject> all_screens = new List<GameObject>();
@@ -112,12 +131,36 @@ public class BackgroundAnimator : MonoBehaviour
         screen_enable_coroutine = null;
     }
 
+    private void adjustEnergyCircles(float dt)
+    {
+        wall_energy_percentage += dt;
+        if (wall_energy_percentage > 1.0f)
+        {
+            wall_energy_percentage %= 1.0f;
+        }
+        ceiling_energy_percentage += dt;
+        if (ceiling_energy_percentage > 2.0f)
+        {
+            ceiling_energy_percentage %= 2.0f;
+        }
+        float positional_adjustment = (1.0f - wall_energy_percentage) * 0.45f;
+        energy_circles[0].transform.localPosition = new Vector3(0.0f, -positional_adjustment, 0.0f);
+        energy_circles[1].transform.localPosition = new Vector3(0.0f, 0.0f, -positional_adjustment);
+        energy_circles[2].transform.localPosition = new Vector3(0.0f, 0.0f, positional_adjustment);
+        energy_circles[3].transform.localPosition = new Vector3(0.0f, positional_adjustment, 0.0f);
+        positional_adjustment = ceiling_energy_percentage;
+        energy_circles[4].transform.localPosition = new Vector3(0.0f, 0.0f, ceiling_energy_percentage);
+    }
+
     //animate components
     private void Update()
     {
+        float dt = Mathf.Min(1.0f / 30.0f, Time.deltaTime);
         foreach (IAnimable animation in animable_components)
         {
-            animation.animate(Mathf.Min(1.0f / 30.0f, Time.deltaTime));
+            animation.animate(dt);
         }
+
+        adjustEnergyCircles(dt);
     }
 }

@@ -12,6 +12,7 @@ public class Manual : MonoBehaviour, IPowerable
     public GameObject welcome_screen;
     public GameObject home_screen;
     public GameObject curr_screen;
+    public GameObject manual_logo;
 
     protected bool is_powered = false;
     protected GameObject curr_button;
@@ -151,6 +152,10 @@ public class Manual : MonoBehaviour, IPowerable
             curr_screen.SetActive(false);
             curr_screen = curr_button.GetComponent<ManualButton>().select_panel;
             curr_screen.SetActive(true);
+            if (curr_button.GetComponent<ManualCodeLinker>() != null)
+            {
+                curr_button.GetComponent<ManualCodeLinker>().link();
+            }
             if (curr_screen.GetComponent<PanelInfo>().default_button != null)
             {
                 curr_button = curr_screen.GetComponent<PanelInfo>().default_button;
@@ -179,6 +184,7 @@ public class Manual : MonoBehaviour, IPowerable
     {
         is_powered = true;
         currently_enabled = false;
+        manual_logo.SetActive(true);
         GetComponent<ManualOnOff>().reactivate(manual_index);
     }
 
@@ -186,6 +192,7 @@ public class Manual : MonoBehaviour, IPowerable
     {
         is_powered = false;
         currently_enabled = false;
+        manual_logo.SetActive(false);
         GetComponent<ManualOnOff>().disableManual(manual_index, time);
         cancelActivation();
     }

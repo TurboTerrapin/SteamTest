@@ -21,7 +21,7 @@ public class ShipController : NetworkBehaviour
 
     void Start()
     {
-        if (pilotingSystem.AssignControlReferences(ReferenceAssistor.Instance.module_handlers[0].gameObject)
+        if (pilotingSystem.AssignControlReferences()
             && weaponsSystem.AssignControlReferences(ReferenceAssistor.Instance.module_handlers[1].gameObject))
         {
             shipReady = true;

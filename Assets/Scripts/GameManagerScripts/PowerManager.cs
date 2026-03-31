@@ -423,12 +423,13 @@ public class PowerManager : NetworkBehaviour, IPowerable
     IEnumerator shutdownProcess()
     {
         //handle shutdown effects (lights, sounds)
-        lights_manager.disableDefaultLights();
-        lights_manager.disableEmergencyLights();
+        lights_manager.setDefaultLights(false);
+        lights_manager.setEmergencyLights(false);
         power_off_sound.Play();
         ship_beeps_sound.Stop();
         overconsumption_warning_sound.Stop();
         background_animator.disableAllScreens();
+        background_animator.disableEnergyCircles();
 
         //stop orange flashing at positions where a player is sitting but power dial is not active
         power_control.updatePlayerNotifiers();
@@ -458,12 +459,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
 
         //clear out all power sources
-        transform.GetComponent<PowerRegulator>().disableAllPowerSources();
+        GetComponent<PowerRegulator>().disableAllPowerSources();
 
         yield return new WaitForSeconds(2.0f);
 
         lights_manager.disableRedAlert();
-        lights_manager.enableEmergencyLights();
+        lights_manager.setEmergencyLights(true);
 
         shutdown_coroutine = null;
     }
@@ -548,7 +549,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_on_sound.Play();
 
         //show power enabled on power status screen in engineer position
-        transform.GetComponent<PowerRegulator>().displayPowerRestoration();
+        GetComponent<PowerRegulator>().displayPowerRestoration();
 
         yield return new WaitForSeconds(3.0f);
 
@@ -556,10 +557,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
         ship_has_power = true;
 
         //handle restart effects (lights, sounds)
-        lights_manager.enableDefaultLights();
-        lights_manager.disableEmergencyLights();
+        lights_manager.setDefaultLights(true);
+        lights_manager.setEmergencyLights(false);
         ship_beeps_sound.Play();
         background_animator.enableAllScreens(1.5f);
+        background_animator.enableEnergyCircles();
 
         //start updating power consumption
         if (power_updater_coroutine == null)
@@ -647,7 +649,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //9
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //10
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("TractorBeamPower")); //11
-        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("InertialDampeners")); //12
+        pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("InertialDampener")); //12
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("Headlights")); //13
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("Warp")); //14
         pilot_modules.Add(ReferenceAssistor.Instance.module_handlers[0].GetComponent("VerticalThrusters")); //15
@@ -677,7 +679,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProximityMap")); //13
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoTrigger")); //14
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProximityMapOptions")); //15
-        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoSelector")); //16
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoBaySelector")); //16
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ThreatDetectors")); //17
         positional_modules[1] = tactician_modules;
     }
@@ -711,10 +713,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         List<Component> captain_modules = new List<Component>();
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipStatus")); //1
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("SelfDestruct")); //2
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipManual")); //3
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ProcedureManual")); //3
         captain_modules.Add(this); //4
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //5
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("CommunicationsManual")); //6
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperationsManual")); //6
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerOverride")); //7
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //8
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //9

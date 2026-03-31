@@ -31,6 +31,8 @@ public class Probe : MonoBehaviour, IDamageable
     //orange flashing
     public void toggleSelfDestructVisual()
     {
+        GetComponent<MapItem>().setColor(ReferenceAssistor.COLOR_OPTIONS[2]);
+        GetComponent<AudioSource>().Play();
         StopAllCoroutines();
         self_destruct_coroutine = StartCoroutine(selfDestruct());
     }

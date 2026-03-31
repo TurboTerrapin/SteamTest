@@ -3,7 +3,7 @@
     - Handles allocating shield battery to each of the four ship sections
     - Flips the switches
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/8/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
 {
     //CLASS CONSTANTS
     private static float ADJUST_TIME = 0.15f;
+    private static float[] SHIELD_EFFECT_TIMES = new float[] { 12.0f, 10.0f, 8.0f, 5.0f }; //corresponds to easy, medium, hard, expert
     private static float MAX_POWER_CONSUMPTION = 0.4f; //equates to 4 circles
 
     private string[] CONTROL_NAMES = new string[] { "FORWARD", "PORT", "STARBOARD", "AFT" };
@@ -26,13 +27,17 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
 
     public GameObject shield_strength_display;
-    public GameObject shield_indicators; //on the ship overview screen
+    public GameObject shield_dots; //on the ship overview screen
+    public GameObject shield_protections; //on the ship overview screen
     public List<GameObject> shield_strength_switches;
     private ShipInventory ship_inventory;
+    private ScenarioManager scenario_manager;
 
     private bool is_powered = false;
-    private int[] shield_strengths = new int[4] { 0, 0, 0, 0 };
+    private int[] shield_strengths = new int[4] { 0, 0, 0, 0 }; //corresponds to forward, port, starboard, aft
+    private float[] shield_effect_times = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to forward, port, starboard, aft
     private Stack<string>[] shield_strength_serial_nums = new Stack<string>[4];
+    private Coroutine shield_effect_coroutine = null;
     private Coroutine[] shield_strength_adjustment_coroutines = new Coroutine[4] { null, null, null, null };
 
     private List<string> ray_targets = new List<string> { "shield_strength_forward", "shield_strength_port", "shield_strength_starboard", "shield_strength_aft" };
@@ -56,6 +61,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         }
 
         ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
+        scenario_manager = GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0] + " SHIELD STRENGTH", true);
         hud_info.setButtons(BUTTON_LISTS[0], 7);
@@ -65,10 +71,9 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
-
         hud_info.setTitle(CONTROL_NAMES[index] + " SHIELD STRENGTH");
         hud_info.setButtons(BUTTON_LISTS[index], 7);
-
+        hud_info.setPowerConsumption(getShieldStrength(index) * (MAX_POWER_CONSUMPTION / 20.0f));
         return hud_info;
     }
     public Transform getIKTarget(GameObject current_target)
@@ -91,17 +96,12 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
 
     public void onInventoryChange(int available_batteries)
     {
-        if (is_powered == false)
-        {
-            return;
-        }
-
         for (int i = 0; i < 4; i++)
         {
             if (shield_strength_adjustment_coroutines[i] == null)
             {
-                BUTTON_LISTS[i][0].updateInteractable(shield_strengths[i] > 0);
-                BUTTON_LISTS[i][1].updateInteractable(shield_strengths[i] < 5 && available_batteries > 0);
+                BUTTON_LISTS[i][0].updateInteractable(is_powered && shield_strengths[i] > 0);
+                BUTTON_LISTS[i][1].updateInteractable(is_powered && shield_strengths[i] < 5 && available_batteries > 0);
             }
         }
 
@@ -111,21 +111,27 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
             a = 0.08f;
         }
 
-        shield_strength_display.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
-        shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
-        if (available_batteries == 1)
+        shield_strength_display.transform.GetChild(1).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        shield_strength_display.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        string s_available_batteries = available_batteries.ToString();
+        if (available_batteries < 10)
         {
-            shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().SetText("1 BATTERY AVAILABLE");
+            s_available_batteries = "0" + s_available_batteries;
         }
-        else
+        else if (available_batteries > 99)
         {
-            shield_strength_display.transform.GetChild(4).GetComponent<TMP_Text>().SetText(available_batteries + " BATTERIES AVAILABLE");
+            s_available_batteries = "99";
+        }
+        shield_strength_display.transform.GetChild(2).GetComponent<TMP_Text>().SetText(s_available_batteries);
+        for (int i = 0; i < 4; i++)
+        {
+            shield_strength_display.transform.GetChild(2).GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
         }
     }
 
-    public float getShieldStrength(int location)
+    public int getShieldStrength(int location)
     {
-        return (shield_strengths[location]);
+        return shield_strengths[location];
     }
 
     public float getPowerConsumption()
@@ -136,6 +142,11 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
             total_consumption += getShieldStrength(i) * (MAX_POWER_CONSUMPTION / 20.0f);
         }
         return total_consumption;
+    }
+
+    public float getShieldEffectTime(int section)
+    {
+        return shield_effect_times[section];
     }
 
     //helper method used to deal with the blue shield strength bars
@@ -149,7 +160,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         bar.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
     }
 
-    private void displayAdjustment(int index)
+    private void displayShieldBatteryAdjustment(int index)
     {
         //adjust bars
         for (int i = 0; i < 5; i++)
@@ -172,15 +183,32 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         float shield_strength_percentage = (shield_strengths[index] / 5.0f);
 
         //adjust dots on ship overview screen
-        foreach (Transform dot in shield_indicators.transform.GetChild(index))
+        foreach (Transform dot in shield_dots.transform.GetChild(index))
         {
             dot.GetComponent<RectTransform>().sizeDelta = new Vector2(0.002f + (shield_strength_percentage * 0.008f), 0.002f + (shield_strength_percentage * 0.008f));
             dot.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.1f + (shield_strength_percentage * 0.9f));
         }
+    }
 
-        //adjust power consumption
-        hud_info.setPowerConsumption(getPowerConsumption());
-        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
+    private void displayShieldProtectionsAdjustment()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            //adjust arrow
+            shield_protections.transform.GetChild(i).GetChild(0).GetChild(0).gameObject.SetActive(shield_strengths[i] > 0 || shield_effect_times[i] > 0.0f);
+
+            //adjust progress bar
+            float fill_amount = 0.0f;
+            if (shield_effect_times[i] > 0.0f)
+            {
+                fill_amount = shield_effect_times[i] / SHIELD_EFFECT_TIMES[scenario_manager.getDifficulty()];
+            }
+            else if (shield_strengths[i] > 0)
+            {
+                fill_amount = 1.0f;
+            }
+            shield_protections.transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = fill_amount;
+        }
     }
 
     //turns the dial and calls displayAdjustment()
@@ -212,11 +240,6 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
 
                 yield return null;
             }
-
-            if (i == 0 && is_powered == true)
-            {
-                displayAdjustment(index);
-            }
         }
 
         BUTTON_LISTS[index][0].untoggle();
@@ -229,6 +252,36 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         }
 
         shield_strength_adjustment_coroutines[index] = null;
+    }
+
+    //helper function that returns true if at least one shield cooldown is above 0
+    private bool checkShieldEffectActive()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (shield_effect_times[i] > 0.0f)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //decreases shield cooldown as long as one is above 0
+    IEnumerator shieldEffectReducer()
+    {
+        while (checkShieldEffectActive() == true)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                shield_effect_times[i] = Mathf.Max(0.0f, shield_effect_times[i] - Time.deltaTime);
+            }
+            displayShieldProtectionsAdjustment();
+
+            yield return null;
+        }
+
+        shield_effect_coroutine = null;
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -283,7 +336,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
             shield_strengths[i] = 0;
             BUTTON_LISTS[i][0].updateInteractable(false);
             BUTTON_LISTS[i][1].updateInteractable(false);
-            displayAdjustment(i);
+            displayShieldBatteryAdjustment(i);
         }
         //handle inventory adjustment
         if (NetworkManager.Singleton.IsHost == true)
@@ -291,6 +344,41 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
             ship_inventory.addItems(0, 2, shield_battery_serial_nums);
         }
         hud_info.setPowerConsumption(0.0f);
+    }
+
+    //returns true if shield is active and if so, uses a shield battery and notifies other clients
+    public bool attemptShieldUsage(int index)
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return false;
+        }
+
+        if (shield_strengths[index] == 0)
+        {
+            return false;
+        }
+
+        transmitShieldBatteryUsageRPC(index, shield_strengths[index] - 1);
+        return true;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void transmitShieldBatteryUsageRPC(int index, int new_allocation)
+    {
+        shield_strengths[index] = new_allocation;
+
+        shield_effect_times[index] = SHIELD_EFFECT_TIMES[scenario_manager.getDifficulty()];
+
+        if (shield_effect_coroutine == null)
+        {
+            shield_effect_coroutine = StartCoroutine(shieldEffectReducer());
+        }
+
+        displayShieldBatteryAdjustment(index);
+        BUTTON_LISTS[index][0].updateInteractable(shield_strength_adjustment_coroutines[index] == null && shield_strengths[index] > 0);
+        BUTTON_LISTS[index][1].updateInteractable(shield_strength_adjustment_coroutines[index] == null && shield_strengths[index] < 5 && ship_inventory.getItemQuantity(0, 2) > 0);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
     }
 
     [Rpc(SendTo.Everyone)]
@@ -312,6 +400,10 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
                 ship_inventory.addItem(0, 2, shield_strength_serial_nums[index].Pop());
             }
         }
+
+        displayShieldBatteryAdjustment(index);
+        displayShieldProtectionsAdjustment();
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, getPowerConsumption());
 
         if (shield_strength_adjustment_coroutines[index] != null)
         {

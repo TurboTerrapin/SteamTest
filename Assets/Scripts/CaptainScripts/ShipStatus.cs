@@ -3,7 +3,7 @@
     - Handles slider
     - Enables/disables red alert
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/23/2026
 */
 
 using System.Collections;
@@ -14,7 +14,7 @@ using Unity.Netcode;
 public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    Color[] COLOR_OPTIONS = new Color[3] { new Color(0f, 0.84f, 1f), new Color(0.89f, 1f, 0.0f), new Color(1f, 0.01f, 0.0f)};
+    Color[] COLOR_OPTIONS = new Color[3] { new Color(0f, 0.84f, 1f), new Color(1.0f, 0.47f, 0.0f), new Color(1f, 0.0f, 0.0f)};
     private static float MOVE_TIME = 0.5f;
     private static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
     private static Vector3 FINAL_POS = new Vector3(0.0f, 0.0f, 0.081f);
@@ -27,7 +27,6 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
-    public List<GameObject> position_warnings = null;
     public List<GameObject> indicators = null;
     public GameObject selector_lever;
     public LightsManager lights_manager;

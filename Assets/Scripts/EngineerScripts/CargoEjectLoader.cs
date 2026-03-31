@@ -2,7 +2,7 @@
     CargoEjectLoader.cs
     - Handles the loading and unloading of items in the cargo eject launcher
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/8/2026
 */
 
 using System.Collections;
@@ -19,8 +19,8 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
     private static float LOAD_CONFIRMATION_TIME = 0.8f;
     private static Vector3 ITEM_TYPE_SWITCH_DIRECTION = new Vector3(-0.0182f, 0.0f, -0.0182f);
 
-    private string[] CONTROL_NAMES = new string[] { "CARGO EJECT ITEM TYPE SELECTOR", "CARGO EJECT ITEM VARIATION", "CARGO EJECT LOADER" };
-    private List<string> INFO_MESSAGES = new List<string>() { "Switches between normal items and torpedoes.", "Selects which item to load into cargo eject bay.", "Loads and unloads item from cargo eject bay." };
+    private string[] CONTROL_NAMES = new string[] { "CARGO EJECT TYPE SELECTOR", "CARGO EJECT ITEM VARIATION", "CARGO EJECT LOADER" };
+    private List<string> INFO_MESSAGES = new List<string>() { "Switches between utility items and torpedoes.", "Selects which item to load into cargo eject bay.", "Loads and unloads item from cargo eject bay." };
     private List<string> CONTROL_DESCS = new List<string> { "SWITCH", "SELECT LEFT", "SELECT RIGHT", "LOAD", "UNLOAD" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 4, 5, 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
@@ -38,7 +38,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
     private int item_type_category = 0;
     private int item_variation_index = 0;
     private bool item_loaded = false;
-    private bool item_ejecting = false;
     private string item_serial_num = "";
     private Vector3 item_type_switch_initial_position;
     private Coroutine item_type_adjustment_coroutine = null;
@@ -170,14 +169,12 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
     private void displayAdjustment(bool adjusting)
     {
         string name_of_item = ship_inventory.getItemName(item_type_category, item_variation_index);
+        Color item_color = ship_inventory.getItemColor(item_type_category, item_variation_index);
 
         TMP_Text item_name = cargo_eject_load_display.transform.GetChild(0).GetComponent<TMP_Text>();
-        TMP_Text item_id = cargo_eject_load_display.transform.GetChild(1).GetComponent<TMP_Text>();
-        UnityEngine.UI.RawImage item_icon = cargo_eject_load_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>();
+        UnityEngine.UI.RawImage item_icon = cargo_eject_load_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>();
+        TMP_Text item_counter = cargo_eject_load_display.transform.GetChild(2).GetComponent<TMP_Text>();
         TMP_Text item_info = cargo_eject_load_display.transform.GetChild(3).GetComponent<TMP_Text>();
-        TMP_Text quantity_text = cargo_eject_load_display.transform.GetChild(4).GetComponent<TMP_Text>();
-
-        Color item_color = ship_inventory.getItemColor(item_type_category, item_variation_index);
 
         //make transparent if none available/loading
         float a = 1.0f;
@@ -196,10 +193,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
         }
         item_name.SetText(item_title);
 
-        //set id text
-        item_id.color = item_color;
-        item_id.SetText("ITEM ID: " + ship_inventory.getItemID(name_of_item));
-
         //set icon
         item_icon.color = item_color;
         item_icon.texture = ship_inventory.getItemTexture(item_type_category, item_variation_index);
@@ -207,34 +200,32 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
         //set item info
         item_info.color = item_color;
         Vector2 item_size = ship_inventory.getItemSize(name_of_item);
-        item_info.SetText("WEIGHT: " + ship_inventory.getItemWeight(name_of_item) + "kg\nHEIGHT: " + item_size.x + "m\nLENGTH: " + item_size.y + "m");
+        item_info.SetText("ITEM ID: " + ship_inventory.getItemID(name_of_item) + "\nWEIGHT: " + ship_inventory.getItemWeight(name_of_item) + "kg\nHEIGHT: " + item_size.x + "m\nLENGTH: " + item_size.y + "m");
 
-        //change bar colors
-        foreach (Transform bar in cargo_eject_load_display.transform.GetChild(6))
+        //set item counter color
+        item_counter.color = item_color;
+        item_counter.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(item_color.r, item_color.g, item_color.b, 0.04f);
+        for (int i = 0; i < 4; i++)
         {
-            bar.GetComponent<UnityEngine.UI.RawImage>().color = item_color;
+            item_counter.transform.GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
         }
-        cargo_eject_load_display.transform.GetChild(5).GetComponent<UnityEngine.UI.Image>().color = item_color;
 
-        //set quantity text
-        quantity_text.color = item_color;
-        if (adjusting == true && item_loaded == false)
+        //change load bar/text color
+        cargo_eject_load_display.transform.GetChild(4).GetComponent<TMP_Text>().color = new Color(item_color.r, item_color.g, item_color.b, 1.0f);
+        cargo_eject_load_display.transform.GetChild(5).GetComponent<UnityEngine.UI.Image>().color = new Color(item_color.r, item_color.g, item_color.b, 1.0f);
+        cargo_eject_load_display.transform.GetChild(5).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(item_color.r, item_color.g, item_color.b, 0.08f);
+
+        //set item counter text
+        string s_available_item = ship_inventory.getItemQuantity(item_type_category, item_variation_index).ToString();
+        if (s_available_item.Length == 1)
         {
-            quantity_text.SetText("ITEM LOADING");
+            s_available_item = "0" + s_available_item;
         }
-        else if (item_ejecting == false && item_loaded == true)
+        else if (s_available_item.Length == 3)
         {
-            quantity_text.SetText("ITEM LOADED");
+            s_available_item = "99";
         }
-        else if (adjusting == true && item_ejecting == true)
-        {
-            quantity_text.SetText("ITEM EJECTED");
-        }
-        else
-        {
-            string item_quantity = "QUANTITY: " + ship_inventory.getItemQuantity(item_type_category, item_variation_index);
-            quantity_text.SetText(item_quantity);
-        }
+        item_counter.SetText(s_available_item);
     }
 
     //handles the switch between normal/torpedo items
@@ -325,6 +316,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
 
         if (is_loading == false)
         {
+            cargo_eject_load_display.transform.GetChild(4).gameObject.SetActive(false);
             destination_rotation = 0.0f;
             start_rotation = 90.0f;
         }
@@ -352,6 +344,7 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
 
         if (is_loading == true)
         {
+            cargo_eject_load_display.transform.GetChild(4).gameObject.SetActive(true);
             cargo_eject.activate();
             BUTTON_LISTS[2][0].updateDesc(CONTROL_DESCS[4]);
         }
@@ -362,7 +355,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
         }
 
         item_loaded = is_loading;
-        item_ejecting = false;
         cargo_eject_load_confirmation_coroutine = null;
 
         displayAdjustment(false);
@@ -372,8 +364,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
     //called by CargoEject on cargo ejection
     public void onCargoEject()
     {
-        item_ejecting = true;
-
         if (cargo_eject_load_confirmation_coroutine != null)
         {
             StopCoroutine(cargo_eject_load_confirmation_coroutine);

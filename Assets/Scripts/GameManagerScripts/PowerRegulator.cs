@@ -3,7 +3,7 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 2/3/2026
+    Last Updated: 2/23/2026
 */
 
 using System.Collections;
@@ -18,7 +18,7 @@ public class PowerRegulator : NetworkBehaviour
     private static float[] DEPLETION_TIME = new float[] { 40.0f, 35.0f, 28.0f, 20.0f }; //how long it takes for a single control to go from enabled to disabled
     private static float[] NEUTRAL_TIME = new float[] { 30.0f, 25.0f, 20.0f, 10.0f }; //randomizes between this number and 5 seconds less
     private static float POWER_BAR_UPDATE_SPEED = 1.0f; //how fast the power bars update
-    private static float DEPLETION_WARNING_FLASH_SPEED = 0.25f; //how often the warning light flashes
+    private static float DEPLETION_WARNING_FLASH_SPEED = 2.0f; //how fast the warning light flashes
     private static Color[] POWER_STATUS_COLORS = new Color[3]{ new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f) };
     private static string[] POWER_STATUS_MESSAGES = new string[3]{ "NOMINAL", "CRITICAL", "OFFLINE" };
 
@@ -193,6 +193,7 @@ public class PowerRegulator : NetworkBehaviour
         //change state to online
         restartPowerBarUpdater();
         updatePowerStatus(0);
+        auxiliary_power.activate(true);
     }
 
     //called when a power regulation module "minigame" has been completed
@@ -312,7 +313,7 @@ public class PowerRegulator : NetworkBehaviour
     //waits a random amount of time (NEUTRAL_TIME - 5 seconds to NEUTRAL_TIME) to deplete a random power source
     IEnumerator neutralState()
     {
-        float neutral_time = NEUTRAL_TIME[GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty()];
+        float neutral_time = NEUTRAL_TIME[GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().getDifficulty()];
         yield return new WaitForSeconds(Random.Range(neutral_time - 5.0f, neutral_time));
 
         //begin depleting a new power source
@@ -387,7 +388,7 @@ public class PowerRegulator : NetworkBehaviour
         time_bar.color = new Color(1.0f, 0.47f, 0.0f);
         time_bar.fillAmount = 1.0f;
 
-        float depletion_time = DEPLETION_TIME[GameObject.Find("LoadHandler").GetComponent<LoadHandler>().getDifficulty()];
+        float depletion_time = DEPLETION_TIME[GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().getDifficulty()];
         float anim_time = depletion_time;
 
         while (anim_time > 0.0f)

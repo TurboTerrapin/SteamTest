@@ -2,7 +2,7 @@
     ShipManualSelector.cs
     - Sends inputs to ShipManual and CommunicationsManual (directional, selection, and back)
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 2/19/2026
 */
 
 using Unity.Netcode;
@@ -17,12 +17,13 @@ public class ManualSelector : NetworkBehaviour, IControllable
     private static float COOLDOWN_TIME = 0.0f;
     private static Vector3[] PUSH_DIRECTIONS = { new Vector3(-0.003f, -0.0074f, 0f), new Vector3(0.003f, -0.0074f, 0f) };
 
-    private string[] CONTROL_NAMES = new string[] { "SHIP MANUAL", "COMMUNICATIONS MANUAL" };
+    private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATIONS MANUAL" };
     private List<string> CONTROL_DESCS = new List<string> { "SELECT", "BACK", "UP", "DOWN", "LEFT", "RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 12, 0, 2, 1, 3 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
     public List<GameObject> button_holders;
+    public GameObject manual_input_sounds;
     private Component[] manuals = new Component[2];
 
     private Vector3[] initial_pos = new Vector3[12];
@@ -30,13 +31,14 @@ public class ManualSelector : NetworkBehaviour, IControllable
     private bool[] is_active = new bool[] { false, false };
     private Coroutine[] manual_input_coroutine = new Coroutine[] { null, null };
 
-    private List<string> ray_targets = new List<string> { "ship_manual_options", "communications_manual_options" };
+    private List<string> ray_targets = new List<string> { "procedure_manual_options", "operations_manual_options" };
 
     private static HUDInfo hud_info = null;
+
     private void Start()
     {
-        manuals[0] = GetComponent<ShipManual>();
-        manuals[1] = GetComponent<CommunicationsManual>();
+        manuals[0] = GetComponent<ProcedureManual>();
+        manuals[1] = GetComponent<OperationsManual>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
         for (int i = 0; i < 2; i++)
@@ -61,6 +63,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
             }
         }
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -100,6 +103,9 @@ public class ManualSelector : NetworkBehaviour, IControllable
 
     IEnumerator manualInput(int button, int manual_index)
     {
+        //play sound
+        manual_input_sounds.transform.GetChild(manual_index).GetComponent<AudioSource>().Play();
+
         //set buttons to initial positions
         for (int b = 0; b < 6; b++)
         {
@@ -124,10 +130,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
                     push_percentage = (push_time / half_time);
                 }
 
-                button_holders[manual_index].transform.GetChild(button).transform.localPosition =
-                    new Vector3(Mathf.Lerp(initial_pos[button + (manual_index * 6)].x, final_pos.x, push_percentage),
-                                Mathf.Lerp(initial_pos[button + (manual_index * 6)].y, final_pos.y, push_percentage),
-                                Mathf.Lerp(initial_pos[button + (manual_index * 6)].z, final_pos.z, push_percentage));
+                button_holders[manual_index].transform.GetChild(button).transform.localPosition = Vector3.Lerp(initial_pos[button + (manual_index * 6)], final_pos, push_percentage);
 
                 yield return null;
             }

@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 2/9/2026
+    Last Updated: 3/2/2026
 */
 
 using System.Collections;
@@ -20,9 +20,9 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
     private static float ENABLED_BLINKER_REFRESH = 2.0f;
 
-    private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER" };
+    private string[] CONTROL_NAMES = { "ENERGY PATTERN POWER", "ENERGY PATTERN VIEWER" };
     private List<string> INFO_MESSAGES = new List<string>() { "Enables/disables the energy pattern viewer used to analyze spatial anomalies." };
-    private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE", "SHIFT DOWN", "SHIFT UP" };
+    private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[1] { new List<Button>() };
 
@@ -30,6 +30,11 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public GameObject energy_pattern_display;
     public GameObject energy_pattern_signal_display;
     public GameObject enabled_indicator;
+
+    public List<Texture> center_options;
+    public List<Texture> ring_options;
+    public List<Texture> dot_options;
+    public List<Color> color_options;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
@@ -39,7 +44,9 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     private Coroutine signal_indicator_coroutine = null;
     private Coroutine energy_pattern_power_coroutine = null;
 
-    private static HUDInfo hud_info = null;
+    private List<string> ray_targets = new List<string> { "energy_pattern_power", "energy_pattern_viewer" };
+
+    private static HUDInfo[] hud_infos = new HUDInfo[2];
 
     [Header("IK Targetable Details")]
     public GameObject IK_target;
@@ -49,16 +56,18 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_infos[0] = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1], true);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
-        hud_info.setButtons(BUTTON_LISTS[0], 6);
-        hud_info.setInfo(INFO_MESSAGES[0]);
+        hud_infos[0].setButtons(BUTTON_LISTS[0], 6);
+        hud_infos[0].setInfo(INFO_MESSAGES[0]);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
-        return hud_info;
+        int index = ray_targets.IndexOf(current_target.name);
+        return hud_infos[index];
     }
     public Transform getIKTarget(GameObject current_target)
     {
@@ -81,12 +90,14 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         if (display_enabled == true)
         {
             ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, MAX_POWER_CONSUMPTION);
-            hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
+            hud_infos[0].setPowerConsumption(MAX_POWER_CONSUMPTION);
+            hud_infos[1].setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
             ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
-            hud_info.setPowerConsumption(0.0f);
+            hud_infos[0].setPowerConsumption(0.0f);
+            hud_infos[1].setPowerConsumption(0.0f);
         }
     }
 
@@ -129,7 +140,13 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     }
 
     //updates the colors in the PatternData and corresponding visualizer
-    public void updateColors(List<Color> new_ring_colors, Color new_center_color, float anim_time)
+    public void updateColors(List<int> new_ring_colors, int new_center_color, float anim_time)
+    {
+        energy_pattern_display.GetComponent<PatternVisualizer>().changeColors(new_ring_colors, new_center_color, anim_time);
+    }
+
+    //updates the colors in the PatternData and corresponding visualizer
+    public void updateColors(int[] new_ring_colors, int new_center_color, float anim_time)
     {
         energy_pattern_display.GetComponent<PatternVisualizer>().changeColors(new_ring_colors, new_center_color, anim_time);
     }
@@ -161,7 +178,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         line.GetChild(1).localPosition = new Vector3(-0.004f - to_size_to, 0.0f, 0.0f);
     }
 
-    //handles the increasing/decreasing bar animation on the screen above the energy pattern viewer
+    //handles the increasing/decreasing bar animation on the screen above the energy pattern power dial
     IEnumerator sourceIndicatorAnimator()
     {
         int num_lines = energy_pattern_signal_display.transform.GetChild(0).childCount - 1;
@@ -294,8 +311,8 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
             energy_pattern_dial.transform.localRotation =
                 Quaternion.Euler(energy_pattern_dial.transform.localEulerAngles.x,
-                            energy_pattern_dial.transform.localEulerAngles.y,
-                            Mathf.Lerp(180.0f, 90.0f, switch_percentage));
+                                 energy_pattern_dial.transform.localEulerAngles.y,
+                                 Mathf.Lerp(180.0f, 90.0f, switch_percentage));
 
             yield return null;
         }
@@ -319,6 +336,11 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         if (is_powered == false || energy_pattern_power_coroutine != null)
+        {
+            return;
+        }
+
+        if (ray_targets.IndexOf(current_target.name) == 1)
         {
             return;
         }
@@ -379,7 +401,8 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
             StopCoroutine(energy_pattern_power_coroutine);
             energy_pattern_power_coroutine = null;
         }
-        hud_info.setPowerConsumption(0.0f);
+        hud_infos[0].setPowerConsumption(0.0f);
+        hud_infos[1].setPowerConsumption(0.0f);
 
         //return energy pattern dial to off
         if (power_loss_coroutine != null)

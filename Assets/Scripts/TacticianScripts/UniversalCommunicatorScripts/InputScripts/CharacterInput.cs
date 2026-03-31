@@ -5,13 +5,12 @@
     Last Updated: 1/31/2026
 */
 
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
+using System.Collections;
+using System.Collections.Generic;
 
-public class CharacterInput : NetworkBehaviour, IControllable, IIKTargetable
+public class CharacterInput : NetworkBehaviour, IControllable
 {
     //CLASS CONSTANTS
     private static float PUSH_TIME = 0.25f;
@@ -35,13 +34,6 @@ public class CharacterInput : NetworkBehaviour, IControllable, IIKTargetable
 
     private static HUDInfo hud_info = null;
 
-    [Header("IK Targetable Details")]
-    public List<GameObject> IK_targets = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
-    public int finger_position = 0;
-
     private void Start()
     {
         universal_communicator = GetComponent<UniversalCommunicator>();
@@ -57,26 +49,10 @@ public class CharacterInput : NetworkBehaviour, IControllable, IIKTargetable
             initial_pos[i] = input_buttons.transform.GetChild(i).localPosition;
         }
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
-    }
-    public Transform getIKTarget(GameObject current_target)
-    {
-        int index = ray_targets.IndexOf(current_target.name);
-        return IK_targets[index].transform;
-    }
-    public AnimatorHandler.HandInteractionType getHandInteractionType()
-    {
-        return hand_interaction_type;
-    }
-    public float getHandPose()
-    {
-        return hand_pose;
-    }
-    public bool getRightHandFlip()
-    {
-        return does_right_hand_flip;
     }
 
     IEnumerator inputCharacter(int button_index)

@@ -1,128 +1,78 @@
 /*
     ComputerRegulator.cs
-    - Pushes in the four movement buttons
-    - Controls cursor
-    - Handles generating "algorithmic patterns"
+    - Allows the toggling of various computer programs
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 3/24/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
 public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
 {
     //CLASS CONSTANTS
-    private static float BUTTON_SPEED = 15.0f;
     private static Vector3 BUTTON_MOVE_DIRECTION = new Vector3(0.002f, -0.004f, -0.002f);
-    private static float CONFIRM_BUTTON_TIME = 0.25f;
-    private static float CURSOR_MOVE_SPEED = 0.1f;
-    private static Vector2 CURSOR_BOUNDS = new Vector2(0.069f, 0.095f);
-    private static Color[] COLOR_OPTIONS = new Color[3] { new Color(0.129f, 1f, 0.04f, 0.2f), new Color(0.69f, 0f, 0.69f, 0.2f), new Color(0.84f, 0.62f, 0f, 0.2f) };
+    private static float BUTTON_PRESS_TIME = 0.12f;
+    private static Color ACTIVE_COLOR = new Color(0.0f, 1.0f, 0.0f);
+    private static Color INACTIVE_COLOR = new Color(1.0f, 0.0f, 0.0f);
+    private static Color[] PROGRAM_COLORS = new Color[] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[3], ReferenceAssistor.COLOR_OPTIONS[2] };
+
+    private static string[] PROGRAM_NAMES = new string[] { "RESEARCH", "SECURITY", "DATA STORAGE", "LIFE SUPPORT" };
+    private static string[][] PROGRAM_FEATURES = new string[][] { 
+        new string[]{ "BIOLOGY", "GEOLOGY", "RADIATION", "LINGUISTICS", "CHEMISTRY" },
+        new string[]{ "ELEVATORS", "DOORS", "CAMERAS", "VAULT", "BRIG" },
+        new string[]{ "COMMUNICATIONS", "PASSKEYS", "SHIP LOGS", "CREW INFO", "NAVIGATION" },
+        new string[]{ "FOOD SUPPLY", "VENTILATION", "HEATING", "WATER", "LAUNDRY" },
+    };
 
     private string CONTROL_NAME = "COMPUTER REGULATOR";
     private static string INFO_MESSAGE = "Controls overall ship computer infrastructure to handle malfunctions or hack attempts.";
-    private List<string> CONTROL_DESCS = new List<string> { "UP", "DOWN", "SELECT", "LEFT", "RIGHT" };
+    private List<string> CONTROL_DESCS = new List<string> { "UP", "DOWN", "TOGGLE", "LEFT", "RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 0, 2, 6, 1, 3 };
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject computer_regulator_display;
+    public AudioSource computer_regulator_boop_sound;
+    public List<GameObject> computer_regulator_buttons = null;
 
-    private GameObject cursor;
-    private GameObject shapes_holder;
+    private GameObject header;
+    private GameObject bullets;
+    private GameObject footer;
 
-    public List<GameObject> computer_regulator_cursor_buttons = null;
-    public GameObject computer_regulator_confirm_button;
+    private int current_page = 0; //0-3, research, security, data storage, life support
+    private int current_selection = 0; //0-4, top-down bullets
+    private bool[][] active_programs = new bool[][]
+    {
+        new bool[] {false, false, false, false, false},
+        new bool[] {false, false, false, false, false},
+        new bool[] {false, false, false, false, false},
+        new bool[] {false, false, false, false, false},
+    };
 
     private bool is_powered = false;
-    private GameObject[] shapes = new GameObject[10] { null, null, null, null, null, null, null, null, null, null };
-    private int[] shape_colors = new int[10] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    private Vector3[] initial_positions = new Vector3[5];
-    private Vector3[] final_positions = new Vector3[5];
-    private float[] cursor_movement_factors = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f }; //up, down, left, right
-    private Vector2 cursor_position = new Vector2(0.0f, 0.0f);
-    private Coroutine cursor_adjustment_coroutine = null;
-    private Coroutine cursor_confirm_coroutine = null;
-
-    private List<KeyCode> keys_down = new List<KeyCode>();
+    private Coroutine button_press_coroutine = null;
 
     private static HUDInfo hud_info = null;
 
-    //used to space out the different shapes
-    private struct area
-    {
-        public Vector2 tlc;
-        public Vector2 brc;
-
-        public area(Vector2 top_left_coordinate, Vector2 bottom_right_coordinate)
-        {
-            tlc = top_left_coordinate;
-            brc = bottom_right_coordinate;
-        }
-
-        public bool pointIsInArea(Vector2 to_test)
-        {
-            return ((to_test.x > tlc.x && to_test.x < brc.x) && (to_test.y < tlc.y && to_test.y > brc.y));
-        }
-
-        public bool canFitShape(float shape_size)
-        {
-            shape_size += 0.015f; //add a little cushion
-            float area_width = brc.x - tlc.x;
-            float area_height = tlc.y - brc.y;
-            return (area_width > shape_size && area_height > shape_size);
-        }
-
-        public bool isOverlapping(area other)
-        {
-            return (pointIsInArea(other.tlc) || pointIsInArea(other.brc) || pointIsInArea(new Vector2(other.tlc.x, other.brc.y)) || pointIsInArea(new Vector2(other.brc.x, other.tlc.y)));
-        }
-
-        public List<Vector2> addPoints(List<Vector2> points_list)
-        {
-            points_list.Add(brc);
-            points_list.Add(tlc);
-            points_list.Add(new Vector2(brc.x, tlc.y));
-            points_list.Add(new Vector2(tlc.x, brc.y));
-            return points_list;
-        }
-    }
-
     private void Start()
     {
+        header = computer_regulator_display.transform.GetChild(0).gameObject;
+        bullets = computer_regulator_display.transform.GetChild(1).gameObject;
+        footer = computer_regulator_display.transform.GetChild(2).gameObject;
+
         hud_info = new HUDInfo(CONTROL_NAME);
 
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[2], CONTROL_INDEXES[2], false, true));
-        BUTTONS.Add(new Button(CONTROL_DESCS[3], CONTROL_INDEXES[3], false, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[4], CONTROL_INDEXES[4], false, false));
+        BUTTONS.Add(new Button(CONTROL_DESCS[3], CONTROL_INDEXES[3], false, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[4], CONTROL_INDEXES[4], false, true));
 
         hud_info.setButtons(BUTTONS, 9);
         hud_info.setInfo(INFO_MESSAGE);
-
-        cursor = computer_regulator_display.transform.GetChild(1).gameObject;
-        shapes_holder = computer_regulator_display.transform.GetChild(0).gameObject;
-
-        for (int i = 0; i < 5; i++)
-        {
-            if (i != 2)
-            {
-                int index = i;
-                if (i > 2)
-                {
-                    index -= 1;
-                }
-                initial_positions[i] = computer_regulator_cursor_buttons[index].transform.localPosition;
-            }
-            else
-            {
-                initial_positions[i] = computer_regulator_confirm_button.transform.localPosition;
-            }
-            final_positions[i] = initial_positions[i] + BUTTON_MOVE_DIRECTION;
-        }
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -130,135 +80,114 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         return hud_info;
     }
 
-    //returns -1 if none
-    private int getSelectedShape()
+    public void initializeComputerRegulator()
     {
-        int selected_shape = -1;
-        float closest_dist = 9999.9f;
-        for (int i = 0; i < 10; i++)
+        if (NetworkManager.Singleton.IsHost == false)
         {
-            if (shapes[i] != null)
+            return;
+        }
+
+        int[][] temp_active_programs = new int[4][];
+
+        for (int x = 0; x < 4; x++)
+        {
+            temp_active_programs[x] = new int[5];
+            for (int y = 0; y < 5; y++)
             {
-                float dist = Vector2.Distance(cursor_position, new Vector2(shapes[i].transform.localPosition.x, shapes[i].transform.localPosition.y));
-                if (dist < closest_dist && (dist < shapes[i].GetComponent<RectTransform>().sizeDelta.x * 0.5f + 0.003f))
+                int active = 0;
+                if (Random.Range(0, 3) == 0)
                 {
-                    selected_shape = i;
-                    closest_dist = dist;
+                    active = 1;
                 }
+                temp_active_programs[x][y] = active;
             }
         }
-        return selected_shape;
+
+        transmitActiveProgramsRPC(DataConverter.arrayToString(temp_active_programs[0]),
+                                  DataConverter.arrayToString(temp_active_programs[1]),
+                                  DataConverter.arrayToString(temp_active_programs[2]),
+                                  DataConverter.arrayToString(temp_active_programs[3]));
     }
 
-    private void displayAdjustment()
+    public void resetToDefault()
     {
-        //push buttons
+        current_page = 0;
+        current_selection = 0;
+        displayPageAdjustment();
+        displaySelectionAdjustment();
+    }
+
+    private void displayPageAdjustment()
+    {
+        Color page_color = PROGRAM_COLORS[current_page];
+
+        //adjust header
         for (int i = 0; i < 4; i++)
         {
-            int index = i;
-            if (i >= 2)
-            {
-                index += 1;
-            }
-            computer_regulator_cursor_buttons[i].transform.localPosition = Vector3.Lerp(initial_positions[index], final_positions[index], cursor_movement_factors[i]);
+            header.transform.GetChild(0).GetChild(i).gameObject.SetActive(i == current_page);
         }
+        header.transform.GetChild(1).GetComponent<TMP_Text>().SetText(PROGRAM_NAMES[current_page]);
+        header.transform.GetChild(1).GetComponent<TMP_Text>().color = page_color;
+        header.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().color = page_color;
 
-        //place cursor
-        cursor.transform.localPosition = new Vector3(cursor_position.x, cursor_position.y, 0.0f);
-
-        //highlight current
-        int highlighted_shape = getSelectedShape();
-        for (int i = 0; i < 10; i++)
+        //adjust bullets
+        for (int i = 0; i < 5; i++)
         {
-            if (shapes[i] != null)
-            {
-                shapes[i].transform.GetChild(0).gameObject.SetActive(i != highlighted_shape);
-                if (i == highlighted_shape)
-                {
-                    shapes[i].GetComponent<UnityEngine.UI.RawImage>().color = COLOR_OPTIONS[shape_colors[i]];
-                }
-                else
-                {
-                    shapes[i].GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.2f);
-                }
-            }
+            bullets.transform.GetChild(i).GetChild(2).GetComponent<TMP_Text>().SetText(PROGRAM_FEATURES[current_page][i]);
         }
+
+        //adjust footer
+        for (int i = 0; i < 2; i++)
+        {
+            footer.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = page_color;
+            footer.transform.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = page_color;
+        }
+        footer.transform.GetChild(2).GetComponent<TMP_Text>().SetText("PAGE " + (current_page + 1));
+        footer.transform.GetChild(2).GetComponent<TMP_Text>().color = page_color;
     }
 
-    private bool isNeutralState()
+    private void displaySelectionAdjustment()
     {
-        for (int i = 0; i <  4; i++)
+        Color page_color = PROGRAM_COLORS[current_page];
+
+        //adjust bullets
+        for (int i = 0; i < 5; i++)
         {
-            if (cursor_movement_factors[i] != 0.0f)
+            Color c = page_color;
+            if (i != current_selection)
             {
-                return false;
+                c.a = 0.2f;
             }
-        }
-        return true;
-    }
-
-    IEnumerator cursorAdjustment()
-    {
-        while (keys_down.Count > 0 || !isNeutralState())
-        {
-            float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-
-            cursor_position = new Vector2(cursor.transform.localPosition.x, cursor.transform.localPosition.y);
-
-            if (is_powered == true)
+            bullets.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = c;
+            bullets.transform.GetChild(i).GetChild(2).GetComponent<TMP_Text>().color = c;
+            c = ACTIVE_COLOR;
+            if (active_programs[current_page][i] == false)
             {
-                //check inputs/return buttons to default
-                for (int i = 0; i < 4; i++)
-                {
-                    int index = i;
-                    if (i >= 2)
-                    {
-                        index += 1;
-                    }
-                    if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[index], keys_down))
-                    {
-                        cursor_movement_factors[i] = Mathf.Min(1.0f, cursor_movement_factors[i] + dt * BUTTON_SPEED);
-                    }
-                    else
-                    {
-                        cursor_movement_factors[i] = Mathf.Max(0.0f, cursor_movement_factors[i] - dt * BUTTON_SPEED);
-                    }
-                }
+                c = INACTIVE_COLOR;
             }
-
-            //update cursor position
-            if (Mathf.Abs(cursor_movement_factors[0] - cursor_movement_factors[1]) > 0.0f)
+            if (i != current_selection)
             {
-                cursor_position.y += (cursor_movement_factors[0] - cursor_movement_factors[1]) * dt * CURSOR_MOVE_SPEED;
-                cursor_position.y = Mathf.Clamp(cursor_position.y, CURSOR_BOUNDS.y * -1.0f + 0.01f, CURSOR_BOUNDS.y - 0.01f);
+                c.a = 0.2f;
             }
-            if (Mathf.Abs(cursor_movement_factors[3] - cursor_movement_factors[2]) > 0.0f)
-            {
-                cursor_position.x += (cursor_movement_factors[3] - cursor_movement_factors[2]) * dt * CURSOR_MOVE_SPEED;
-                cursor_position.x = Mathf.Clamp(cursor_position.x, CURSOR_BOUNDS.x * -1.0f + 0.01f, CURSOR_BOUNDS.x - 0.01f);
-            }
-
-            for (int i = 0; i < 4; i++)
-            {
-                if (cursor_movement_factors[i] != 1.0f)
-                {
-                    transmitCursorAdjustmentRPC(cursor_position, cursor_movement_factors[0], cursor_movement_factors[1], cursor_movement_factors[2], cursor_movement_factors[3]);
-                    break;
-                }
-            }
-
-            keys_down.Clear();
-            yield return null;
+            bullets.transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
         }
 
-        cursor_adjustment_coroutine = null;
+        //adjust footer
+        footer.transform.GetChild(3).GetChild(1).gameObject.SetActive(active_programs[current_page][current_selection]);
+        footer.transform.GetChild(3).GetChild(3).gameObject.SetActive(!active_programs[current_page][current_selection]);
     }
 
-    IEnumerator cursorConfirmation()
+    IEnumerator buttonPress(int index, int pg, int s)
     {
-        for (int i = 0; i <= 1; i++)
+        for (int i = 0; i < 5; i++)
         {
-            float half_time = CONFIRM_BUTTON_TIME * 0.5f;
+            BUTTONS[i].updateInteractable(false);
+            computer_regulator_buttons[i].transform.localPosition = Vector3.zero;
+        }
+
+        for (int i = 0; i < 2; i++)
+        {
+            float half_time = BUTTON_PRESS_TIME * 0.5f;
             float push_time = half_time;
 
             while (push_time > 0.0f)
@@ -271,206 +200,95 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
                     push_percentage = (push_time / half_time);
                 }
 
-                computer_regulator_confirm_button.transform.localPosition = Vector3.Lerp(initial_positions[2], final_positions[2], push_percentage);
+                computer_regulator_buttons[index].transform.localPosition = Vector3.Lerp(Vector3.zero, BUTTON_MOVE_DIRECTION, push_percentage);
 
                 yield return null;
             }
 
             if (i == 0)
             {
-                if (NetworkManager.Singleton.IsHost == true)
+                computer_regulator_boop_sound.Play();
+                if (current_page != pg)
                 {
-                    int selected_shape = getSelectedShape();
-                    if (selected_shape >= 0)
-                    {
-                        transmitShapeRemovalRPC(selected_shape);
-                    }
+                    current_page = pg;
+                    displayPageAdjustment();
                 }
+                displaySelectionAdjustment();
             }
         }
 
-        BUTTONS[2].untoggle();
-        BUTTONS[2].updateInteractable(true);
+        for (int i = 0; i < 5; i++)
+        {
+            BUTTONS[i].untoggle();
+            BUTTONS[i].updateInteractable(true);
+        }
 
-        cursor_confirm_coroutine = null;
+        button_press_coroutine = null;
     }
+
     
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
-        if (is_powered == false)
+        if (is_powered == false || button_press_coroutine != null)
         {
             return;
         }
 
-        keys_down = inputs;
-        if (cursor_confirm_coroutine == null)
+        if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs))
         {
-            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs))
-            {
-                BUTTONS[2].toggle();
-                BUTTONS[2].updateInteractable(false);
-                transmitCursorConfirmRPC();
-            }
+            BUTTONS[2].toggle();
+            BUTTONS[2].updateInteractable(false);
+            transmitProgramActiveAdjustmentRPC(current_page, current_selection, !active_programs[current_page][current_selection]);
+            return;
         }
 
-        if (cursor_adjustment_coroutine == null)
+        for (int i = 0; i < CONTROL_INDEXES.Count; i++)
         {
-            for (int i = 0; i < CONTROL_INDEXES.Count; i++)
+            if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && i != 2)
             {
-                if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], inputs) && i != 2)
+                int new_page = current_page;
+                int new_selection = current_selection;
+                if (i == 0)
                 {
-                    cursor_adjustment_coroutine = StartCoroutine(cursorAdjustment());
-                    return;
-                }
-            }
-        }
-    }
-
-    private Vector2 getRandomLocation(float size, int c)
-    {
-        Vector2 valid_location = Vector2.zero;
-        List<area> unoccupied_areas = new List<area>();
-        List<area> occupied_areas = new List<area>();
-
-        List<Vector2> connecting_points = new List<Vector2>();
-
-        area default_space = new area(new Vector2(CURSOR_BOUNDS.x * -1.0f, CURSOR_BOUNDS.y), new Vector2(CURSOR_BOUNDS.x, CURSOR_BOUNDS.y * -1.0f));
-        connecting_points = default_space.addPoints(connecting_points);
-
-        //check existing shapes
-        for (int i = 0; i < 10; i++)
-        {
-            if (shapes[i] != null)
-            {
-                area occupied_space = new area();
-                occupied_space.tlc = new Vector2(shapes[i].transform.localPosition.x - (shapes[i].GetComponent<RectTransform>().sizeDelta.x * 0.5f), shapes[i].transform.localPosition.y + (shapes[i].GetComponent<RectTransform>().sizeDelta.y * 0.5f));
-                occupied_space.brc = new Vector2(shapes[i].transform.localPosition.x + (shapes[i].GetComponent<RectTransform>().sizeDelta.x * 0.5f), shapes[i].transform.localPosition.y - (shapes[i].GetComponent<RectTransform>().sizeDelta.y * 0.5f));
-                
-                connecting_points = occupied_space.addPoints(connecting_points);
-                occupied_areas.Add(occupied_space);
-            }
-        }
-
-        //start at 1 to skip bottom right corner
-        for (int i = 1; i < connecting_points.Count; i++)
-        {
-            for (int k = 0; k < connecting_points.Count; k++)
-            {
-                if (connecting_points[i] != connecting_points[k])
-                {
-                    area rectangular_space = new area(connecting_points[i], connecting_points[k]);
-
-                    //ensure tlc is actually top-left coordinate
-                    if (rectangular_space.tlc.x > rectangular_space.brc.x)
+                    new_selection--;
+                    if (new_selection < 0)
                     {
-                        float switch_x = rectangular_space.brc.x;
-                        rectangular_space.brc.x = rectangular_space.tlc.x;
-                        rectangular_space.tlc.x = switch_x;
+                        new_selection = 4;
                     }
-
-                    //ensure brc is actually bottom-right coordinate
-                    if (rectangular_space.brc.y > rectangular_space.tlc.y)
+                }
+                else if (i == 1)
+                {
+                    new_selection++;
+                    if (new_selection > 4)
                     {
-                        float switch_y = rectangular_space.brc.y;
-                        rectangular_space.brc.y = rectangular_space.tlc.y;
-                        rectangular_space.tlc.y = switch_y;
+                        new_selection = 0;
                     }
-
-                    unoccupied_areas.Add(rectangular_space);
                 }
+                else if (i == 3)
+                {
+                    new_page--;
+                    if (new_page < 0)
+                    {
+                        new_page = 3;
+                    }
+                }
+                else
+                {
+                    new_page++;
+                    if (new_page > 3)
+                    {
+                        new_page = 0;
+                    }
+                }
+
+                BUTTONS[i].toggle();
+                BUTTONS[i].updateInteractable(false);
+                transmitSelectionAdjustmentRPC(i, new_page, new_selection);
+                return;
             }
         }
-
-        List<area> candidate_areas = new List<area>();
-
-        //filter out spaces
-        foreach (area possible_area in unoccupied_areas)
-        {
-            bool successful_candidate = true;
-
-            //make sure to not include already included areas
-            for (int i = 0; i < candidate_areas.Count; i++)
-            {
-                if (possible_area.tlc == candidate_areas[i].tlc && possible_area.brc == candidate_areas[i].brc)
-                {
-                    successful_candidate = false;
-                }
-            }
-
-            //not big enough
-            if (possible_area.canFitShape(size) == false)
-            {
-                successful_candidate = false;
-            }
-            
-            //compare against occupied areas
-            for (int i = 0; i < occupied_areas.Count; i++)
-            {
-                //check if occupied or overlapping with occupied
-                if ((possible_area.tlc == occupied_areas[i].tlc && possible_area.brc == occupied_areas[i].brc) || (possible_area.isOverlapping(occupied_areas[i]) == true)) 
-                {
-                    successful_candidate = false;
-                    break;
-                }
-            }
-
-            if (successful_candidate == true) //passes tests, add as candidate
-            {
-                candidate_areas.Add(possible_area);
-            }
-        }
-
-        //pick candidate area with greatest size to spread out as much as possible
-        if (candidate_areas.Count > 0)
-        {
-            int candidate_to_choose = 0;
-            float greatest_dist = 0.0f;
-            for (int i = 0; i < candidate_areas.Count; i++)
-            {
-                float dist = Vector2.Distance(candidate_areas[i].tlc, candidate_areas[i].brc);
-                if (dist > greatest_dist)
-                {
-                    candidate_to_choose = i;
-                    greatest_dist = dist;
-                }
-            }
-            valid_location.x = Random.Range(candidate_areas[candidate_to_choose].tlc.x + (size * 0.5f) + 0.0075f, candidate_areas[candidate_to_choose].brc.x - (size * 0.5f) - 0.0075f);
-            valid_location.y = Random.Range(candidate_areas[candidate_to_choose].brc.y + (size * 0.5f) + 0.0075f, candidate_areas[candidate_to_choose].tlc.y - (size * 0.5f) - 0.0075f);
-        }
-
-        return valid_location;
     }
 
-    private void generateNewShape(int slot, int shape_index, float shape_size, Vector2 location, int color_index)
-    {
-        //base off template
-        GameObject new_shape = GameObject.Instantiate(shapes_holder.transform.GetChild(0).GetChild(shape_index).gameObject, shapes_holder.transform);
-
-        //resize
-        float cover_up_difference = new_shape.GetComponent<RectTransform>().sizeDelta.x - new_shape.transform.GetChild(0).GetComponent<RectTransform>().sizeDelta.x;
-        new_shape.GetComponent<RectTransform>().sizeDelta = new Vector2(shape_size, shape_size);
-        new_shape.transform.GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(shape_size - cover_up_difference, shape_size - cover_up_difference);
-
-        //record color
-        shape_colors[slot] = color_index;
-
-        //place
-        new_shape.transform.localPosition = new Vector3(location.x, location.y, 0.0f);
-
-        //make visible
-        new_shape.SetActive(true);
-
-        //set slot
-        shapes[slot] = new_shape;
-    }
-
-    private void clearAllShapes()
-    {
-        for (int i = shapes_holder.transform.childCount - 1; i > 0; i--)
-        {
-            GameObject.Destroy(shapes_holder.transform.GetChild(i).gameObject);
-        }
-    }
 
     public void powerOn(int position)
     {
@@ -478,24 +296,9 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
 
         computer_regulator_display.SetActive(true);
 
-        cursor_position = new Vector2(0.0f, 0.0f);
-        displayAdjustment();
-
         for (int i = 0; i < 5; i++)
         {
             BUTTONS[i].updateInteractable(true);
-        }
-
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                float shape_size = Random.Range(0.015f, 0.02f);
-                int shape_index = Random.Range(0, 3);
-                int color_index = Random.Range(0, 3);
-                Vector2 shape_location = getRandomLocation(shape_size, i);
-                transmitShapeAdditionRPC(i, shape_index, shape_size, shape_location, color_index);
-            }
         }
     }
 
@@ -509,51 +312,48 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         {
             BUTTONS[i].updateInteractable(false);
         }
-
-        clearAllShapes();
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitCursorAdjustmentRPC(Vector2 new_pos, float up, float down, float left, float right)
+    private void transmitActiveProgramsRPC(string r, string s, string ds, string ls)
     {
-        cursor_movement_factors[0] = up;
-        cursor_movement_factors[1] = down;
-        cursor_movement_factors[2] = left;
-        cursor_movement_factors[3] = right;
-        cursor_position = new_pos;
-        displayAdjustment();
-    }
+        int[][] programs_to_update = new int[4][];
+        programs_to_update[0] = DataConverter.stringToArray(r); //research
+        programs_to_update[1] = DataConverter.stringToArray(s); //security
+        programs_to_update[2] = DataConverter.stringToArray(ds); //data storage
+        programs_to_update[3] = DataConverter.stringToArray(ls); //life support
 
-    [Rpc(SendTo.Everyone)]
-    private void transmitCursorConfirmRPC()
-    {
-        if (cursor_confirm_coroutine != null)
+        for (int x = 0; x < 4; x++)
         {
-            StopCoroutine(cursor_confirm_coroutine);
+            for (int y = 0; y < 5; y++)
+            {
+                active_programs[x][y] = (programs_to_update[x][y] == 1);
+            }
         }
 
-        cursor_confirm_coroutine = StartCoroutine(cursorConfirmation());
+        displayPageAdjustment();
+        displaySelectionAdjustment();
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitShapeAdditionRPC(int slot, int si, float size, Vector2 loc, int ci)
+    private void transmitProgramActiveAdjustmentRPC(int pg, int s, bool active)
     {
-        if (shapes[slot] != null)
+        active_programs[pg][s] = active;
+        if (button_press_coroutine != null)
         {
-            GameObject.Destroy(shapes[slot].gameObject);
+            StopCoroutine(button_press_coroutine);
         }
-        generateNewShape(slot, si, size, loc, ci);
-        displayAdjustment();
+        button_press_coroutine = StartCoroutine(buttonPress(2, pg, s));
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitShapeRemovalRPC(int slot)
+    private void transmitSelectionAdjustmentRPC(int index, int pg, int s)
     {
-        if (shapes[slot] != null)
+        current_selection = s;
+        if (button_press_coroutine != null)
         {
-            GameObject.Destroy(shapes[slot].gameObject);
-            shapes[slot] = null;
+            StopCoroutine(button_press_coroutine);
         }
-        displayAdjustment();
+        button_press_coroutine = StartCoroutine(buttonPress(index, pg, s));
     }
 }

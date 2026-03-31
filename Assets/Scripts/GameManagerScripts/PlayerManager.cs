@@ -20,6 +20,7 @@ public class PlayerManager : NetworkBehaviour
     private static float LOAD_IN_DELAY = 1.5f; //how long it takes after all players have their scenes loaded to actually unlock them
 
     public GameObject spawn_points;
+    public GameObject players_holder;
     public GameObject audio_manager;
     public GameObject scenario_transitioner;
 
@@ -50,6 +51,7 @@ public class PlayerManager : NetworkBehaviour
     public void addPlayer(GameObject this_player, LoadHandler lh)
     {
         local_player = this_player;
+        local_player.GetComponent<NetworkObject>().TrySetParent(players_holder.transform);
         load_handler = lh;
 
         individualBridgeEnvironmentLoadedRPC(SteamClient.Name, SteamClient.SteamId, local_player.GetComponent<NetworkObject>().OwnerClientId);
@@ -81,7 +83,7 @@ public class PlayerManager : NetworkBehaviour
             NetworkObject plr_no = plr.GetComponent<NetworkObject>();
             if (plr_no != null)
             {
-                plr_no.TrySetParent(GameObject.FindGameObjectWithTag("Spaceship").transform, true);
+                plr_no.TrySetParent(players_holder.transform, true);
             }
         }
 
@@ -154,6 +156,7 @@ public class PlayerManager : NetworkBehaviour
         players_ready = 0;
         if (NetworkManager.Singleton.IsHost == true)
         {
+            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().intializeScenarioDatabase();
             GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().loadNewScenario();
         }
     }
@@ -185,7 +188,7 @@ public class PlayerManager : NetworkBehaviour
 
     public static void clearDontDestroyOnLoads()
     {
-        List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas" };
+        List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas", "LobbyHandler" };
         foreach (string d in to_destroy)
         {
             GameObject.Destroy(GameObject.Find(d));
@@ -339,7 +342,7 @@ public class PlayerManager : NetworkBehaviour
         PrimaryScript.Instance.activate();
 
         //reactivate camera
-        local_player.transform.GetComponent<CameraMove>().reactivateCamera();
+        local_player.transform.GetComponent<CameraMove>().ReactivateCamera();
         
         //update screens to account for ship's new location/rotation in newly-generated entrance path
         handleShipRepositioning();

@@ -2,7 +2,7 @@
     ProximityMap.cs
     - Handles tactician radar map
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 3/7/2026
 */
 
 using System.Collections;
@@ -14,8 +14,8 @@ public class ProximityMap : MonoBehaviour, IPowerable
     //CLASS CONSTANTS
     private static float MAP_UPDATE_DELAY = 1.5f; //updates every 1.5 seconds
     private static float MAP_CUTOFF = 0.138f;
-    private static float MAP_SIZE_RELATIVE_TO_BOUNDARY = 0.5f; //40% the size of the boundary
-    private static float MAP_CENTER_SIZE = 100.0f;
+    private static float MAP_SIZE_RELATIVE_TO_BOUNDARY = 0.5f; //50% the size of the boundary
+    private static float MAP_CENTER_SIZE = 130.0f; //the triangle
 
     public GameObject map_display;
 
@@ -63,9 +63,9 @@ public class ProximityMap : MonoBehaviour, IPowerable
     {
         for (int i = 0; i < 3; i++)
         {
-            for (int m = map_display.transform.GetChild(2 + i).childCount - 1; m >= 1; m--)
+            for (int m = map_display.transform.GetChild(2).GetChild(i + 1).childCount - 1; m >= 0; m--)
             {
-                Object.Destroy(map_display.transform.GetChild(2 + i).transform.GetChild(m).gameObject);
+                Object.Destroy(map_display.transform.GetChild(2).GetChild(i + 1).GetChild(m).gameObject);
             }
         }
     }
@@ -92,6 +92,7 @@ public class ProximityMap : MonoBehaviour, IPowerable
         float center_size = (MAP_CENTER_SIZE / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY)) * (MAP_CUTOFF * 2.0f);
         center_size = center_size + (center_size * zoom_percentage);
         map_center_icon.GetComponent<RectTransform>().sizeDelta = new Vector2(center_size, center_size);
+        map_center_icon.transform.GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(center_size, center_size);
 
         float pos_conversion_factor = (MAP_CUTOFF) / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f);
 
@@ -116,10 +117,7 @@ public class ProximityMap : MonoBehaviour, IPowerable
 
     public void rotateMap()
     {
-        for (int i = 0; i < 3; i++)
-        {
-            map_display.transform.GetChild(2 + i).transform.localRotation = Quaternion.Euler(0.0f, 0.0f, this_ship.transform.localEulerAngles.y);
-        }
+        map_display.transform.GetChild(2).transform.localRotation = Quaternion.Euler(0.0f, 0.0f, this_ship.transform.localEulerAngles.y);
     }
 
     private void updateMap()
@@ -141,7 +139,7 @@ public class ProximityMap : MonoBehaviour, IPowerable
                 if (test_map_item != null)
                 {
                     Vector2 m_position_xy = new Vector2(m.position.x, m.position.z);
-                    if (test_map_item.isVisible() && Vector2.Distance(Vector2.zero, m_position_xy) < (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f))
+                    if (test_map_item.isVisible() && Vector2.Distance(Vector2.zero, m_position_xy) < ((test_map_item.getSize() * 0.5f) + ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f))
                     {
                         map_items.Add(m.gameObject);
                     }
@@ -149,22 +147,6 @@ public class ProximityMap : MonoBehaviour, IPowerable
             }
         }
 
-        /*
-        Torpedo[] active_torpedoes = FindObjectsOfType<Torpedo>();
-        foreach (Torpedo t in active_torpedoes)
-        {
-            MapItem test_map_item = t.GetComponent<MapItem>();
-            if (test_map_item != null)
-            {
-                Vector2 m_position_xy = new Vector2(t.transform.position.x, t.transform.position.z);
-                if (test_map_item.isVisible() && Vector2.Distance(Vector2.zero, m_position_xy) < (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f))
-                {
-                    map_items.Add(t.gameObject);
-                }
-            }
-        }
-        */
-        //
         corresponding_locations = new Vector2[map_items.Count];
         corresponding_icons = new GameObject[map_items.Count];
         corresponding_colors = new Color[map_items.Count];
@@ -178,29 +160,34 @@ public class ProximityMap : MonoBehaviour, IPowerable
             GameObject item_to_add = null;
             MapItem item_info = map_items[i].GetComponent<MapItem>();
             bool item_is_ship = item_info.isShip();
-            int insert_index = 0; //obstacle
+            int type_index = 0; //obstacle
             if (item_is_ship == true)
             {
-                insert_index = 2; //ship
+                type_index = 2; //ship
             }
             else if (item_info.gameObject.GetComponent<CollectibleItem>() != null)
             {
-                insert_index = 1; //collectible item
+                type_index = 1; //collectible item
             }
-            item_to_add = GameObject.Instantiate(map_display.transform.GetChild(2 + insert_index).GetChild(0).gameObject, map_display.transform.GetChild(2 + insert_index));
+            item_to_add = GameObject.Instantiate(map_display.transform.GetChild(2).GetChild(0).gameObject, map_display.transform.GetChild(2).GetChild(type_index + 1));
 
             //if ship or obstacle, rotate
-            if (insert_index == 0 || insert_index == 2)
+            if (type_index == 0 || type_index == 2)
             {
                 item_to_add.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -item_info.transform.eulerAngles.y);
             }
             else
             {
-                item_to_add.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -map_display.transform.GetChild(3).transform.localRotation.eulerAngles.z);
+                item_to_add.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, -map_display.transform.GetChild(2).transform.localRotation.eulerAngles.z);
             }
 
             Color icon_color = item_info.getColor();
+            Texture icon_texture = item_info.getTexture();
             item_to_add.GetComponent<UnityEngine.UI.RawImage>().color = new Color(icon_color.r, icon_color.g, icon_color.b, 0.5f);
+            if (icon_texture != null)
+            {
+                item_to_add.GetComponent<UnityEngine.UI.RawImage>().texture = icon_texture;
+            }
 
             corresponding_icons[i] = item_to_add;
             corresponding_colors[i] = icon_color;

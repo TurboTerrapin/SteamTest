@@ -282,31 +282,14 @@ public class TransmissionHandler : NetworkBehaviour
     //flashes orange alert indicator
     IEnumerator alertIndicatorFlasher()
     {
-        float anim_time = 0.25f;
-        Color orange_color;
+        float elapsed_time = 0.0f;
         while (true)
         {
-            for (int x = 0; x < 2; x++)
-            {
-                anim_time = 0.25f;
-                while (anim_time > 0.0f)
-                {
-                    anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+            elapsed_time += Time.deltaTime * 2.0f;
+            float a = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
+            alert_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.47f, 0.0f, a);
 
-                    if (x == 0)
-                    {
-                        orange_color = new Color(0.84f, 0.62f, 0.0f, 1.0f - (0.8f * (1.0f - (anim_time / 0.25f))));
-                    }
-                    else
-                    {
-                        orange_color = new Color(0.84f, 0.62f, 0.0f, 0.2f + (0.8f * (1.0f - (anim_time / 0.25f))));
-                    }
-
-                    alert_indicator.color = orange_color;
-
-                    yield return null;
-                }
-            }
+            yield return null;
         }
     }
 
@@ -501,7 +484,7 @@ public class TransmissionHandler : NetworkBehaviour
         //check if need to alert
         if (cw != 0 && alert_indicator_coroutine == null)
         {
-            alert_indicator.color = new Color(0.84f, 0.62f, 0.0f);
+            alert_indicator.color = new Color(1.0f, 0.47f, 0.0f);
             alert_indicator_coroutine = StartCoroutine(alertIndicatorFlasher());
         }
     }
