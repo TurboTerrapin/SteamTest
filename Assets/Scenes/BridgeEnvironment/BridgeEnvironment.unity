@@ -30095,6 +30095,11 @@ MonoBehaviour:
   torpedo_confirm_button: {fileID: 7581657541965981425}
   IK_targets:
   - {fileID: 263469761}
+  - {fileID: 1890368950}
+  - {fileID: 1480683640}
+  - {fileID: 449032534}
+  - {fileID: 2114819698}
+  - {fileID: 1652558807}
   hand_interaction_type: 2
   hand_pose: 0
   does_right_hand_flip: 0
@@ -62844,7 +62849,7 @@ Transform:
   m_GameObject: {fileID: 263469761}
   serializedVersion: 2
   m_LocalRotation: {x: 0.00000044703486, y: -0.70710677, z: -0.7071068, w: 0}
-  m_LocalPosition: {x: 0.02384905, y: 0.09762107, z: 0.06849666}
+  m_LocalPosition: {x: 0.0331, y: -0.1611, z: 0.0685}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -108813,6 +108818,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 449002322}
   m_CullTransparentMesh: 1
+--- !u!1 &449032534
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 449032535}
+  m_Layer: 0
+  m_Name: TorpedoLoaderButtonStarboardIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &449032535
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 449032534}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.25606468, y: -0.61819637, z: -0.68657625, w: -0.28438935}
+  m_LocalPosition: {x: 6.3931, y: 9.2361, z: -0.2782}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1543449444451016060}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &449271948
 GameObject:
   m_ObjectHideFlags: 0
@@ -195617,7 +195653,7 @@ GameObject:
   m_Component:
   - component: {fileID: 806698669}
   m_Layer: 0
-  m_Name: PowerControlIKTarget
+  m_Name: PilotPowerControlIKTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -361376,7 +361412,7 @@ MonoBehaviour:
   impulse_bars_display: {fileID: 1796765673}
   IK_target: {fileID: 1448652323}
   hand_interaction_type: 0
-  hand_pose: 0
+  hand_pose: 0.7
   does_right_hand_flip: 0
 --- !u!114 &1468829072
 MonoBehaviour:
@@ -364105,6 +364141,37 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -25}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1480683640
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1480683641}
+  m_Layer: 0
+  m_Name: TorpedoLoaderButtonPortIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1480683641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1480683640}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.25606468, y: -0.61819637, z: -0.68657625, w: -0.28438935}
+  m_LocalPosition: {x: 6.4198, y: 9.2094, z: -0.2782}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5709575129852506214}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &1481726992
 GameObject:
   m_ObjectHideFlags: 0
@@ -368943,8 +369010,11 @@ MonoBehaviour:
   - {fileID: 389766168}
   IK_targets:
   - {fileID: 806698668}
-  hand_interaction_types: 
-  hand_pose: 0
+  - {fileID: 520732686}
+  - {fileID: 1633618877}
+  - {fileID: 1101777636}
+  hand_interaction_types: 01000000030000000300000003000000
+  hand_pose: 0.35
   does_right_hand_flip: 0
 --- !u!1 &1502729272
 GameObject:
@@ -403928,6 +403998,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1652331200}
   m_CullTransparentMesh: 1
+--- !u!1 &1652558807
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1652558808}
+  m_Layer: 0
+  m_Name: TorpedoLoaderConfirmButtonIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1652558808
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1652558807}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.25606474, y: -0.6181963, z: -0.6865762, w: -0.28438938}
+  m_LocalPosition: {x: 6.3337007, y: 9.295493, z: -0.27819824}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3819815680613881213}
+  m_LocalEulerAnglesHint: {x: -44.687, y: 81.545, z: 95.967}
 --- !u!1 &1652586129
 GameObject:
   m_ObjectHideFlags: 0
@@ -462139,6 +462240,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1889964390}
   m_CullTransparentMesh: 1
+--- !u!1 &1890368950
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1890368951}
+  m_Layer: 0
+  m_Name: TorpedoLoaderButtonForwardIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1890368951
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1890368950}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.25606468, y: -0.61819637, z: -0.68657625, w: -0.28438935}
+  m_LocalPosition: {x: 6.4338, y: 9.1954, z: -0.2782}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4307865281633898753}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &1890775887
 GameObject:
   m_ObjectHideFlags: 0
@@ -511697,6 +511829,37 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: -1
   m_TargetDisplay: 0
+--- !u!1 &2114819698
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2114819699}
+  m_Layer: 0
+  m_Name: TorpedoLoaderButtonAftIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2114819699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2114819698}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.25606468, y: -0.61819637, z: -0.68657625, w: -0.28438935}
+  m_LocalPosition: {x: 6.3648, y: 9.2644, z: -0.2782}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4054503466070745924}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &2114983042
 GameObject:
   m_ObjectHideFlags: 0
@@ -527115,7 +527278,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 449032535}
   m_Father: {fileID: 908973449}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1556555956040292837
@@ -538502,6 +538666,7 @@ Transform:
   m_Children:
   - {fileID: 6023291103470882866}
   - {fileID: 4780971380476605367}
+  - {fileID: 1652558808}
   m_Father: {fileID: 49779451}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3820964542522672448
@@ -539400,7 +539565,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2114819699}
   m_Father: {fileID: 908973449}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &4057488326085175102
@@ -540587,7 +540753,8 @@ Transform:
   m_LocalPosition: {x: 0.003, y: -0.006, z: -0.003}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1890368951}
   m_Father: {fileID: 908973449}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4315379441541552099
@@ -546311,7 +546478,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1480683641}
   m_Father: {fileID: 908973449}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5719000600507598023
