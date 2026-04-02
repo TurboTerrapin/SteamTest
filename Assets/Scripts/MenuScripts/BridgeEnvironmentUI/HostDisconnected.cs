@@ -30,13 +30,12 @@ public class HostDisconnected : MonoBehaviour
     {
         Debug.Log(clientID);
 
-        if (clientID != NetworkManager.ServerClientId) // someone other than the host disconnected
+        if (clientID != NetworkManager.Singleton.LocalClientId) 
         {
             return;
         }
 
         PrimaryScript.Instance.unpause(); //forces unpause  
-
         PrimaryScript.Instance.deactivate(false, true); //stops control interaction
 
         HostDisconnectedScreen.SetActive(true);
