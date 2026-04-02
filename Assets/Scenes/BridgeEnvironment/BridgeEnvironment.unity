@@ -30047,9 +30047,12 @@ MonoBehaviour:
   cargo_eject_item_type_switch: {fileID: 8682391355997305723}
   cargo_eject_item_variation_switch: {fileID: 751475541}
   cargo_eject_load_dial: {fileID: 1917726043421589919}
-  IK_target: {fileID: 2071094544}
-  hand_interaction_type: 0
-  hand_pose: 0
+  IK_targets:
+  - {fileID: 1114133330}
+  - {fileID: 303189756}
+  - {fileID: 2071094544}
+  hand_interaction_types: 020000000300000000000000
+  hand_pose: 0.45
   does_right_hand_flip: 0
   finger_position: 0
 --- !u!114 &119824848
@@ -72892,6 +72895,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 302537626}
   m_CullTransparentMesh: 1
+--- !u!1 &303189756
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 303189757}
+  m_Layer: 0
+  m_Name: CargoLoaderSelectorSwitchIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &303189757
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 303189756}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.56098557, y: 0.56098557, z: 0.43045938, w: 0.43045938}
+  m_LocalPosition: {x: -0.0788, y: -0.0337, z: 0.1111}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 751475542}
+  m_LocalEulerAnglesHint: {x: 0, y: 105, z: 90}
 --- !u!1 &303477226
 GameObject:
   m_ObjectHideFlags: 0
@@ -183986,6 +184020,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 320407821}
+  - {fileID: 303189757}
   m_Father: {fileID: 1817957089}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!23 &751475543
@@ -274345,6 +274380,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1114092688}
   m_CullTransparentMesh: 1
+--- !u!1 &1114133330
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1114133331}
+  m_Layer: 0
+  m_Name: CargoLoaderTypeSwitchIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1114133331
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1114133330}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.40557975, y: -0.40557975, z: -0.579228, w: 0.579228}
+  m_LocalPosition: {x: -3.3813, y: 6.0691, z: -0.0993}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2700902514953142104}
+  m_LocalEulerAnglesHint: {x: 0, y: -70, z: -90}
 --- !u!1 &1114176581
 GameObject:
   m_ObjectHideFlags: 0
@@ -533725,6 +533791,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3509212785529879270}
+  - {fileID: 1114133331}
   m_Father: {fileID: 2030308249}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &2702590273779445803
