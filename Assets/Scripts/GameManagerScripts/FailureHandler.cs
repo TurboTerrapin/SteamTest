@@ -88,11 +88,16 @@ public class FailureHandler : NetworkBehaviour
         yield return StartCoroutine(printTextCharbyChar(Report, msg));
 
         //set player names and default states
-        for (int i = 0; i < lobbyNames.Length; i++)
+        for (int i = 0; i < playerNames.Length; i++)
         {
-            playerNames[i].text = lobbyNames[i];
-            playerVotes[i].text = "Not Ready";
-            playerVotes[i].color = Color.white;
+            string name = lobbyNames[i];
+            
+            if (!string.IsNullOrEmpty(name)) 
+            {
+                playerNames[i].text = name;
+                playerVotes[i].text = "Not Ready";
+                playerVotes[i].color = Color.white;
+            }
         }
         // fade in restart button, quit button, player names, and their votes
         yield return new WaitForSeconds(0.5f);

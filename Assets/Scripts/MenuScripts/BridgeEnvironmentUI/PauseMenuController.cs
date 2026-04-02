@@ -10,6 +10,7 @@ public class PauseMenuController : MonoBehaviour
     public GameObject PauseMenu;
     public GameObject ControlsMenu;
     public GameObject SettingsMenu;
+    public GameObject ConfirmQuitMenu;
 
     public void HandleResumeButtonClick()
     {
@@ -27,9 +28,9 @@ public class PauseMenuController : MonoBehaviour
         SwitchTo(SettingsMenu);
     }
 
-    public void HandleQuitButtonClick()
+    public void HandleMainMenuButtonClick()
     {
-        PlayerManager.leaveGame();
+        SwitchTo(ConfirmQuitMenu);
     }
 
     private void SwitchTo(GameObject target)
@@ -37,6 +38,7 @@ public class PauseMenuController : MonoBehaviour
         PauseMenu.SetActive(false);
         ControlsMenu.SetActive(false);
         SettingsMenu.SetActive(false);
+        ConfirmQuitMenu.SetActive(false);
 
         target.SetActive(true);
     }
