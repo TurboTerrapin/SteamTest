@@ -35,6 +35,8 @@ public class HostDisconnected : MonoBehaviour
             return;
         }
 
+        FailureHandlerCamera.SetActive(true);
+
         PrimaryScript.Instance.unpause(); //forces unpause  
         PrimaryScript.Instance.deactivate(false, true); //stops control interaction
 
