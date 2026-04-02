@@ -51,10 +51,11 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     [Header("IK Targetable Details")]
     public List<GameObject> IK_targets = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public List<AnimatorHandler.HandInteractionType> hand_interaction_types = null;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
     public int finger_position = 0;
+    private int my_control_index = 0;
 
     private void Start()
     {
@@ -97,14 +98,16 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
+        my_control_index = index;
         return IK_targets[index].transform;
     }
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
-        return hand_interaction_type;
+        return hand_interaction_types[my_control_index];
     }
     public float getHandPose()
     {
