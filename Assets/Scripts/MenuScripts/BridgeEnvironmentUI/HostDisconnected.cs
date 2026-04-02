@@ -9,7 +9,9 @@ public class HostDisconnected : MonoBehaviour
     {
        if (NetworkManager.Singleton != null)
        {
-            NetworkManager.Singleton.OnServerStopped += OnHostDisconnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnHostDisconnected;
+            
+            Debug.Log("Subscribed");
        }
     }
 
@@ -17,11 +19,13 @@ public class HostDisconnected : MonoBehaviour
     {
         if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.OnServerStopped -= OnHostDisconnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnHostDisconnected;
+
+            Debug.Log("Unsubscribed");
         }
     }
 
-    private void OnHostDisconnected(bool wasHost)
+    private void OnHostDisconnected(ulong clientID)
     {
         Debug.Log("Host disconnected.");
 
@@ -30,6 +34,8 @@ public class HostDisconnected : MonoBehaviour
         PrimaryScript.Instance.deactivate(false, true); //stops control interaction
 
         HostDisconnectedScreen.SetActive(true);
+
+        Debug.Log("Host disconnected screen up.");
     }
     public void HandleMainMenuButtonClick()
     {
