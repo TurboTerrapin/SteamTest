@@ -30,7 +30,10 @@ public class HostDisconnected : MonoBehaviour
     {
         Debug.Log("Host disconnected.");
 
-        FailureHandlerCamera.SetActive(true);
+        if (clientID != 0) // someone other than the host disconnected
+        {
+            return;
+        }
 
         PrimaryScript.Instance.unpause(); //forces unpause  
 
