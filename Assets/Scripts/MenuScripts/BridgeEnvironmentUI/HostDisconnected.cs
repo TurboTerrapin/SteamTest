@@ -28,9 +28,9 @@ public class HostDisconnected : MonoBehaviour
 
     private void OnHostDisconnected(ulong clientID)
     {
-        Debug.Log("Host disconnected.");
+        Debug.Log(clientID);
 
-        if (clientID != 0) // someone other than the host disconnected
+        if (clientID != NetworkManager.ServerClientId) // someone other than the host disconnected
         {
             return;
         }
