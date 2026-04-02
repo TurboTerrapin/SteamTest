@@ -11,7 +11,7 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
+public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static Vector3 BUTTON_MOVE_DIRECTION = new Vector3(0.002f, -0.004f, -0.002f);
@@ -57,6 +57,14 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+    private int button_index = 0;
+
     private void Start()
     {
         header = computer_regulator_display.transform.GetChild(0).gameObject;
@@ -78,6 +86,22 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return IK_targets[button_index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public void initializeComputerRegulator()
@@ -179,6 +203,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
 
     IEnumerator buttonPress(int index, int pg, int s)
     {
+        button_index = index;
         for (int i = 0; i < 5; i++)
         {
             BUTTONS[i].updateInteractable(false);
@@ -199,7 +224,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
                 {
                     push_percentage = (push_time / half_time);
                 }
-
+                
                 computer_regulator_buttons[index].transform.localPosition = Vector3.Lerp(Vector3.zero, BUTTON_MOVE_DIRECTION, push_percentage);
 
                 yield return null;
@@ -224,6 +249,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable
         }
 
         button_press_coroutine = null;
+        button_index = 5;
     }
 
     

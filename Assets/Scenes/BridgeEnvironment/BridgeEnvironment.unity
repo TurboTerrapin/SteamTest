@@ -30031,6 +30031,17 @@ MonoBehaviour:
   - {fileID: 1146851832123605885}
   - {fileID: 4766078839969386482}
   - {fileID: 4884461451106363402}
+  IK_targets:
+  - {fileID: 601433571}
+  - {fileID: 402975379}
+  - {fileID: 945778715}
+  - {fileID: 563339773}
+  - {fileID: 503030892}
+  - {fileID: 1702635834}
+  hand_interaction_type: 2
+  hand_pose: 0
+  does_right_hand_flip: 0
+  finger_position: 0
 --- !u!114 &119824847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96242,6 +96253,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 402355992}
   m_CullTransparentMesh: 1
+--- !u!1 &402975379
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 402975380}
+  m_Layer: 0
+  m_Name: ComputerRegulatorDownButtonIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &402975380
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 402975379}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.21442235, y: -0.517661, z: -0.7652322, w: -0.31696993}
+  m_LocalPosition: {x: 5.9817, y: 9.6343, z: -0.3441}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7960639289368038361}
+  m_LocalEulerAnglesHint: {x: -34.463, y: 43.34, z: 120.949}
 --- !u!1 &403034540
 GameObject:
   m_ObjectHideFlags: 0
@@ -123286,6 +123328,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 502948409}
   m_CullTransparentMesh: 1
+--- !u!1 &503030892
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 503030893}
+  m_Layer: 0
+  m_Name: ComputerRegulatorRightButtonIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &503030893
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503030892}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.11270488, y: -0.55460495, z: -0.7866734, w: -0.24668993}
+  m_LocalPosition: {x: 6.013, y: 9.672801, z: -0.31270027}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 714673366092477810}
+  m_LocalEulerAnglesHint: {x: -34.463, y: 43.34, z: 120.949}
 --- !u!1 &503405527
 GameObject:
   m_ObjectHideFlags: 0
@@ -140304,6 +140377,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 563088767}
   m_CullTransparentMesh: 1
+--- !u!1 &563339773
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 563339774}
+  m_Layer: 0
+  m_Name: ComputerRegulatorLeftButtonIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &563339774
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 563339773}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.31247035, y: -0.4718595, z: -0.730698, w: -0.38182634}
+  m_LocalPosition: {x: 6.011897, y: 9.664977, z: -0.3152008}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 852681457480823378}
+  m_LocalEulerAnglesHint: {x: -34.463, y: 43.34, z: 120.949}
 --- !u!1 &563390409
 GameObject:
   m_ObjectHideFlags: 0
@@ -149144,6 +149248,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 601074394}
   m_CullTransparentMesh: 1
+--- !u!1 &601433571
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 601433572}
+  m_Layer: 0
+  m_Name: ComputerRegulatorUpButtonIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &601433572
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 601433571}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.21442235, y: -0.517661, z: -0.7652322, w: -0.31696993}
+  m_LocalPosition: {x: 6.0415, y: 9.693999, z: -0.28759956}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4513458234814262181}
+  m_LocalEulerAnglesHint: {x: -41.021, y: 60.449, z: 110.41}
 --- !u!1 &602127790
 GameObject:
   m_ObjectHideFlags: 0
@@ -229052,6 +229187,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 945727128}
   m_CullTransparentMesh: 1
+--- !u!1 &945778715
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 945778716}
+  m_Layer: 0
+  m_Name: ComputerRegulatorConfirmButtonIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &945778716
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945778715}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.21442235, y: -0.517661, z: -0.7652322, w: -0.31696993}
+  m_LocalPosition: {x: 6.008, y: 9.6606, z: -0.3176}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1174292299738537644}
+  m_LocalEulerAnglesHint: {x: -34.463, y: 43.34, z: 120.949}
 --- !u!1 &945887273
 GameObject:
   m_ObjectHideFlags: 0
@@ -348127,6 +348293,7 @@ Transform:
   - {fileID: 1174292299738537644}
   - {fileID: 852681457480823378}
   - {fileID: 714673366092477810}
+  - {fileID: 1702635835}
   m_Father: {fileID: 1206812660}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1417472436
@@ -416505,6 +416672,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1702496185}
   m_CullTransparentMesh: 1
+--- !u!1 &1702635834
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1702635835}
+  m_Layer: 0
+  m_Name: ComputerRegulatorNeutralIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1702635835
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1702635834}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.09904571, y: 0.8923992, z: 0.23911746, w: 0.36964384}
+  m_LocalPosition: {x: 6.007, y: -0.3005, z: -9.662399}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1417409665}
+  m_LocalEulerAnglesHint: {x: -30, y: 135, z: 0}
 --- !u!1 &1702743540
 GameObject:
   m_ObjectHideFlags: 0
@@ -522751,7 +522949,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 503030893}
   m_Father: {fileID: 1417409665}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &717486485220903606
@@ -523387,7 +523586,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 563339774}
   m_Father: {fileID: 1417409665}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &854933932025552714
@@ -525358,7 +525558,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 945778716}
   m_Father: {fileID: 1417409665}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1176528728061844176
@@ -541414,7 +541615,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 601433572}
   m_Father: {fileID: 1417409665}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4517566093513394807
@@ -557444,7 +557646,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 402975380}
   m_Father: {fileID: 1417409665}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &7966937710734252367
