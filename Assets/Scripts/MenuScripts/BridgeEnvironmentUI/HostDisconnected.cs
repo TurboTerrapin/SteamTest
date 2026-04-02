@@ -4,6 +4,7 @@ using UnityEngine;
 public class HostDisconnected : MonoBehaviour
 {
     public GameObject HostDisconnectedScreen;
+    public GameObject FailureHandlerCamera;
 
     void Start()
     {
@@ -28,6 +29,8 @@ public class HostDisconnected : MonoBehaviour
     private void OnHostDisconnected(ulong clientID)
     {
         Debug.Log("Host disconnected.");
+
+        FailureHandlerCamera.SetActive(true);
 
         PrimaryScript.Instance.unpause(); //forces unpause  
 
