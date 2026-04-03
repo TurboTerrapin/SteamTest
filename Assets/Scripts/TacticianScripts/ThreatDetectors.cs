@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable, IIKTargetable
+public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
 {
     //CLASS CONSTANTS
     private static float FLASH_ANIMATION_SPEED = 1.0f;
@@ -33,13 +33,6 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable, IIKTa
 
     private static HUDInfo hud_info = null;
 
-    [Header("IK Targetable Details")]
-    public List<GameObject> IK_targets = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
-    public int finger_position = 0;
-
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
@@ -52,23 +45,6 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable, IIKTa
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setInfo(INFO_MESSAGE + INFO_MESSAGE_ENDINGS[index]);
         return hud_info;
-    }
-    public Transform getIKTarget(GameObject current_target)
-    {
-        int index = ray_targets.IndexOf(current_target.name);
-        return IK_targets[index].transform;
-    }
-    public AnimatorHandler.HandInteractionType getHandInteractionType()
-    {
-        return hand_interaction_type;
-    }
-    public float getHandPose()
-    {
-        return hand_pose;
-    }
-    public bool getRightHandFlip()
-    {
-        return does_right_hand_flip;
     }
 
     //resets threat detection to default (none)

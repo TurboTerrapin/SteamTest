@@ -45,6 +45,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
     public int finger_position = 0;
+    private int probe_dir = 0;
 
     private void Start()
     {

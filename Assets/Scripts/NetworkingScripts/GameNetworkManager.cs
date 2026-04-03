@@ -25,7 +25,10 @@ public class GameNetworkManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        //Debug.Log(SteamClient.RestartAppIfNecessary(480));
     }
+
 
     private void Start()
     {

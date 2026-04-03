@@ -12,7 +12,7 @@ using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.Rendering;
 
-public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable
+public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float MOVE_TIME = 0.5f;

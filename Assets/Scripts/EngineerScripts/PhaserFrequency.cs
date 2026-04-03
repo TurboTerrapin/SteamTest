@@ -5,13 +5,15 @@
     Last Updated: 2/17/2026
 */
 
-using Unity.Netcode;
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
+using Unity.VisualScripting;
+using UnityEngine;
+using static AnimatorHandler;
 
-public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
+public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float DIAL_SPEED = 100.0f;
@@ -42,6 +44,17 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
     private Coroutine phaser_switch_coroutine = null;
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public List<GameObject> hand_placements = null;
+    public List<AnimatorHandler.HandInteractionType> hand_interaction_types = null;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public int finger_position = 0;
+    private int button_index = 0;
+    private bool increasing = false;
+
     private void Start()
     {
         phaser_freq_slider_initial_pos = phaser_frequency_slider.transform.localPosition;
@@ -56,6 +69,58 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        if (button_index == 0)
+        {
+            return IK_targets[button_index].transform; 
+        }
+        else
+        {
+            float shortestDistance;
+            int shortestIndex = 1;
+            if (increasing)
+            {
+                
+                shortestDistance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[shortestIndex].transform.position);
+                for (int i = 2; i < IK_targets.Count; i++)
+                {
+                    float distance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[i].transform.position);
+                    if (distance < shortestDistance)
+                    {
+                        shortestDistance = distance;
+                        shortestIndex = i;
+                    }
+                }
+            }
+            else
+            {
+                shortestDistance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[shortestIndex].transform.position);
+                for (int i = 2; i < IK_targets.Count; i++)
+                {
+                    float distance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[i].transform.position);
+                    if (distance < shortestDistance)
+                    {
+                        shortestDistance = distance;
+                        shortestIndex = i;
+                    }
+                }
+            }
+            return IK_targets[shortestIndex].transform;
+        }
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_types[button_index];
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     private void displayFrequencyAdjustment()
@@ -114,6 +179,7 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
         {
             if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs)) //phaser switch
             {
+                button_index = 0;
                 BUTTONS[0].toggle(0.2f);
                 BUTTONS[1].updateInteractable(false);
                 BUTTONS[2].updateInteractable(false);
@@ -121,13 +187,16 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable
             }
             else
             {
+                button_index = 1;
                 int dial_direction = 0;
                 if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[2], inputs)) //E to increment
                 {
+                    increasing = true;
                     dial_direction += 1;
                 }
                 if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs)) //Q to decrement
                 {
+                    increasing = false;
                     dial_direction -= 1;
                 }
                 if (dial_direction != 0)

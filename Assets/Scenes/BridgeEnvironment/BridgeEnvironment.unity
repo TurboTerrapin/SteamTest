@@ -5761,6 +5761,12 @@ MonoBehaviour:
   dials:
   - {fileID: 1266898579}
   - {fileID: 6897164504216728913}
+  IK_targets:
+  - {fileID: 1443438323}
+  - {fileID: 1574954115}
+  hand_interaction_types: 0300000003000000
+  hand_pose: 0.45
+  does_right_hand_flip: 0
 --- !u!114 &27992957
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5787,6 +5793,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   input_output_switch: {fileID: 4064227444867611669}
+  IK_target: {fileID: 2073384395}
+  hand_interaction_type: 1
+  hand_pose: 0
+  does_right_hand_flip: 0
+  finger_position: 0
 --- !u!114 &27992959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5830,6 +5841,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   delete_button: {fileID: 6857751422126539239}
+  IK_target: {fileID: 924290732}
+  hand_interaction_type: 2
+  hand_pose: 0
+  does_right_hand_flip: 0
+  finger_position: 0
 --- !u!114 &27992961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5844,8 +5860,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   color_selector_lever: {fileID: 858674660283734044}
   IK_target: {fileID: 286712389}
-  hand_interaction_type: 1
-  hand_pose: 0
+  hand_interaction_type: 3
+  hand_pose: 0.45
   does_right_hand_flip: 0
   finger_position: 0
 --- !u!114 &27992962
@@ -6093,7 +6109,7 @@ MonoBehaviour:
   long_range_dial: {fileID: 4294122985144314008}
   long_range_direction_display: {fileID: 1643205388}
   long_range_degree_display: {fileID: 1318205380}
-  IK_target: {fileID: 0}
+  IK_target: {fileID: 1610339186}
   hand_interaction_type: 1
   hand_pose: 0
   does_right_hand_flip: 0
@@ -6113,11 +6129,6 @@ MonoBehaviour:
   threat_detectors_display: {fileID: 1354782244}
   lit_indicators: {fileID: 814585316}
   threat_detector_alert_sound: {fileID: 565765752}
-  IK_targets: []
-  hand_interaction_type: 1
-  hand_pose: 0
-  does_right_hand_flip: 0
-  finger_position: 0
 --- !u!114 &27992976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30425,6 +30436,18 @@ MonoBehaviour:
   phaser_frequency_display: {fileID: 569753825}
   phaser_frequency_slider: {fileID: 5802844881511404125}
   phaser_frequency_dial: {fileID: 2854263550428324240}
+  IK_targets:
+  - {fileID: 351060090}
+  - {fileID: 1733024002}
+  - {fileID: 521139981}
+  - {fileID: 1068538156}
+  - {fileID: 1983296240}
+  hand_placements:
+  - {fileID: 1387282240}
+  hand_interaction_types: 0200000001000000
+  hand_pose: 0
+  does_right_hand_flip: 0
+  finger_position: 0
 --- !u!114 &119824861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -68555,7 +68578,7 @@ Transform:
   m_GameObject: {fileID: 286712389}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.7071068, z: 0.7071068, w: 0}
-  m_LocalPosition: {x: -2.0575, y: 2.372901, z: -0.6355996}
+  m_LocalPosition: {x: -2.0488, y: 2.381, z: -0.6584}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -84523,6 +84546,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 350894749}
   m_CullTransparentMesh: 1
+--- !u!1 &351060090
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 351060091}
+  m_Layer: 0
+  m_Name: PhaserFrequencySelectorSliderIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &351060091
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 351060090}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.52776045, y: -0.21860518, z: -0.31409913, w: 0.7583024}
+  m_LocalPosition: {x: -1.1083, y: 1.3195, z: -0.0427}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 736245131137064003}
+  m_LocalEulerAnglesHint: {x: 35.234, y: -44.935, z: -59.962}
 --- !u!1 &351077896
 GameObject:
   m_ObjectHideFlags: 0
@@ -128256,6 +128310,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 520831270}
   m_CullTransparentMesh: 1
+--- !u!1 &521139981
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 521139982}
+  m_Layer: 0
+  m_Name: PhaserFrequencyDialTopIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &521139982
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 521139981}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.7933532, y: -0.000000029802322, z: -0.000000029802322, w: -0.6087617}
+  m_LocalPosition: {x: -0.029601585, y: 0.11120123, z: 0.08799982}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6001916924061064159}
+  m_LocalEulerAnglesHint: {x: 75, y: -180, z: 180}
 --- !u!1 &521301764
 GameObject:
   m_ObjectHideFlags: 0
@@ -224096,6 +224181,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 577717386}
   m_LocalEulerAnglesHint: {x: 0, y: 5, z: 0}
+--- !u!1 &924290732
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 924290733}
+  m_Layer: 0
+  m_Name: CharacterDeleteButtonIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &924290733
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 924290732}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0000003905599, y: 0.7071068, z: 0.7071068, w: -0.00000039055988}
+  m_LocalPosition: {x: -2.2986, y: 2.3053, z: -0.6546}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2320368063056404}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &925102637
 GameObject:
   m_ObjectHideFlags: 0
@@ -262918,6 +263034,37 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1 &1068538156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1068538157}
+  m_Layer: 0
+  m_Name: PhaserFrequencyDialLeftIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1068538157
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1068538156}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5609854, y: 0.5609852, z: 0.4304597, w: -0.43045962}
+  m_LocalPosition: {x: 0.11119789, y: 0.029601552, z: 0.08799973}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6001916924061064159}
+  m_LocalEulerAnglesHint: {x: -180, y: 75, z: 90}
 --- !u!1 &1068646040
 GameObject:
   m_ObjectHideFlags: 0
@@ -306691,6 +306838,7 @@ Transform:
   m_Children:
   - {fileID: 736245131137064003}
   - {fileID: 6001916924061064159}
+  - {fileID: 1387282241}
   - {fileID: 2877030672514232332}
   m_Father: {fileID: 231498563}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -312983,6 +313131,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1812272418}
+  - {fileID: 1443438324}
   m_Father: {fileID: 793866656}
   m_LocalEulerAnglesHint: {x: 248, y: 0, z: 0}
 --- !u!23 &1266898581
@@ -340440,6 +340589,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1386856655}
   m_CullTransparentMesh: 1
+--- !u!1 &1387282240
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1387282241}
+  m_Layer: 0
+  m_Name: PhaserFrequencyDialRightHandPlacement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1387282241
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1387282240}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.069739096, y: -0.90840906, z: -0.16836435, w: -0.3762752}
+  m_LocalPosition: {x: 8.808869, y: -0.20528734, z: -7.0554695}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1240848655}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &1387308792
 GameObject:
   m_ObjectHideFlags: 0
@@ -354816,6 +354996,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1443381271}
   m_CullTransparentMesh: 1
+--- !u!1 &1443438323
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1443438324}
+  m_Layer: 0
+  m_Name: SignalReceiveDialIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1443438324
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443438323}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071065, y: -0, z: -0, w: 0.7071071}
+  m_LocalPosition: {x: -0.0386, y: 0.099, z: 0.0824}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1266898580}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1443489536
 GameObject:
   m_ObjectHideFlags: 0
@@ -355851,6 +356062,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1446240452}
   m_CullTransparentMesh: 1
+--- !u!1 &1446404986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1446404987}
+  m_Layer: 0
+  m_Name: InertialDampenerSwitchIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1446404987
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446404986}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.00000012734205, y: 0.70710707, z: 0.7071065, w: -0.00000012121389}
+  m_LocalPosition: {x: 0.0313, y: -0.0964, z: 0.1048}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3870857917821238886}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &1446743466
 GameObject:
   m_ObjectHideFlags: 0
@@ -361728,6 +361970,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dampener_switch: {fileID: 4855852494015218504}
   dampener_display: {fileID: 573189383}
+  IK_target: {fileID: 1446404986}
+  hand_interaction_type: 3
+  hand_pose: 0.45
+  does_right_hand_flip: 0
+  finger_position: 0
 --- !u!1 &1469321382
 GameObject:
   m_ObjectHideFlags: 0
@@ -386163,6 +386410,37 @@ Transform:
   - {fileID: 951363037}
   m_Father: {fileID: 1399484674}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1574954115
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1574954116}
+  m_Layer: 0
+  m_Name: SignalBroadcastDialIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1574954116
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574954115}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.0386, y: 0.099, z: 0.0824}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6156591146612710861}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1575242500
 GameObject:
   m_ObjectHideFlags: 0
@@ -394874,7 +395152,7 @@ Transform:
   m_GameObject: {fileID: 1610339186}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.7071067, z: 0.70710677, w: 0}
-  m_LocalPosition: {x: -0.014299987, y: -0.063501276, z: 0.090300456}
+  m_LocalPosition: {x: 0.031, y: -0.1222, z: 0.0621}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -423867,6 +424145,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1732688686}
   m_CullTransparentMesh: 1
+--- !u!1 &1733024002
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1733024003}
+  m_Layer: 0
+  m_Name: PhaserFrequencyDialBottomIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1733024003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733024002}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000014901161, y: 0.79335314, z: 0.60876167, w: 0.000000029802322}
+  m_LocalPosition: {x: 0.029600918, y: -0.11120066, z: 0.08800048}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6001916924061064159}
+  m_LocalEulerAnglesHint: {x: -105, y: 0, z: 180}
 --- !u!1 &1733070629
 GameObject:
   m_ObjectHideFlags: 0
@@ -483138,6 +483447,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1983140154}
   m_CullTransparentMesh: 1
+--- !u!1 &1983296240
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1983296241}
+  m_Layer: 0
+  m_Name: PhaserFrequencyDialRightIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1983296241
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983296240}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.56098545, y: -0.56098545, z: -0.43045944, w: -0.4304595}
+  m_LocalPosition: {x: -0.11120193, y: -0.029598981, z: 0.087999895}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6001916924061064159}
+  m_LocalEulerAnglesHint: {x: -180, y: -75, z: -90}
 --- !u!1 &1983929010
 GameObject:
   m_ObjectHideFlags: 0
@@ -502649,6 +502989,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2071995659}
   m_CullTransparentMesh: 1
+--- !u!1 &2073384395
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2073384396}
+  m_Layer: 0
+  m_Name: InputOutputToggleSwitchIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2073384396
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073384395}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.00000011520204, y: 0.70710695, z: 0.7071066, w: 0.000000115202354}
+  m_LocalPosition: {x: -2.209, y: 2.391, z: -0.628}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8758998707109936569}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &2073436626
 GameObject:
   m_ObjectHideFlags: 0
@@ -519366,7 +519737,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 924290733}
   m_Father: {fileID: 1611009612}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6756538253180706
@@ -523121,6 +523493,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1672836196286325307}
+  - {fileID: 351060091}
   m_Father: {fileID: 1240848655}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &736819887622876775
@@ -539090,6 +539463,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5103558526563209697}
+  - {fileID: 1446404987}
   m_Father: {fileID: 1121353205}
   m_LocalEulerAnglesHint: {x: -113, y: 0, z: 180}
 --- !u!1 &3872123881759855002
@@ -548096,6 +548470,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 112258202150876271}
+  - {fileID: 1733024003}
+  - {fileID: 521139982}
+  - {fileID: 1068538157}
+  - {fileID: 1983296241}
   m_Father: {fileID: 1240848655}
   m_LocalEulerAnglesHint: {x: -54, y: -45, z: 0}
 --- !u!23 &6004693941200486327
@@ -548696,6 +549074,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3803363095538763403}
+  - {fileID: 1574954116}
   m_Father: {fileID: 793866656}
   m_LocalEulerAnglesHint: {x: 248, y: 0, z: 0}
 --- !u!4 &6157575671189505147
@@ -561281,6 +561660,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8315598679191050457}
+  - {fileID: 2073384396}
   m_Father: {fileID: 1611009612}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &8762826954012318170

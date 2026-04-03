@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class SignalOptions : NetworkBehaviour, IControllable
+public class SignalOptions : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float TURN_TIME = 0.5f;
@@ -35,6 +35,13 @@ public class SignalOptions : NetworkBehaviour, IControllable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public List<AnimatorHandler.HandInteractionType> hand_interaction_types = null;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    private int my_control_index = 0;
+
     private void Start()
     {
         universal_communicator = GetComponent<UniversalCommunicator>();
@@ -51,6 +58,24 @@ public class SignalOptions : NetworkBehaviour, IControllable
     public HUDInfo getHUDinfo()
     {
         return hud_info;
+    }
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        my_control_index = index;
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_types[my_control_index];
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
