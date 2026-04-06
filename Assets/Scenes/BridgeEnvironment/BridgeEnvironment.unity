@@ -44503,6 +44503,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 174134329}
   m_CullTransparentMesh: 1
+--- !u!1 &174218733
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 174218734}
+  m_Layer: 0
+  m_Name: HandPlacement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &174218734
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 174218733}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.83388585, y: -0, z: -0, w: 0.551937}
+  m_LocalPosition: {x: -1.424, y: -0.58, z: 2.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1045614959}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &174271986
 GameObject:
   m_ObjectHideFlags: 0
@@ -56474,7 +56505,7 @@ GameObject:
   m_Component:
   - component: {fileID: 230296006}
   m_Layer: 0
-  m_Name: PilotShipSteeringWheelIKTarget
+  m_Name: PilotShipSteeringWheelRightIKTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -232657,6 +232688,37 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
+--- !u!1 &955289325
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 955289326}
+  m_Layer: 0
+  m_Name: PilotShipSteeringWheelNeutralIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &955289326
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 955289325}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.83388585, y: -0, z: -0, w: 0.551937}
+  m_LocalPosition: {x: -1.424, y: -0.58, z: 2.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1045614959}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &955430602
 GameObject:
   m_ObjectHideFlags: 0
@@ -256806,6 +256868,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1490280753062537076}
+  - {fileID: 174218734}
+  - {fileID: 955289326}
   - {fileID: 5217678659913032604}
   - {fileID: 590902613}
   m_Father: {fileID: 954077548}
@@ -361904,7 +361968,13 @@ MonoBehaviour:
   wheel: {fileID: 5157796844640770434}
   wheel_light: {fileID: 8767489367799101587}
   fill_circle: {fileID: 377052753}
-  IK_target: {fileID: 230296005}
+  IK_targets:
+  - {fileID: 955289325}
+  - {fileID: 230296005}
+  - {fileID: 1620227177}
+  - {fileID: 1996897584}
+  hand_placements:
+  - {fileID: 174218733}
   hand_interaction_type: 0
   hand_pose: 0
   does_right_hand_flip: 0
@@ -396918,6 +396988,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1620035902}
   m_CullTransparentMesh: 1
+--- !u!1 &1620227177
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1620227178}
+  m_Layer: 0
+  m_Name: PilotShipSteeringWheelTopIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1620227178
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620227177}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0.1278, z: 0.0768}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1490280753062537076}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1620297008
 GameObject:
   m_ObjectHideFlags: 0
@@ -486587,6 +486688,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1996788353}
   m_CullTransparentMesh: 1
+--- !u!1 &1996897584
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1996897585}
+  m_Layer: 0
+  m_Name: PilotShipSteeringWheelLeftIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1996897585
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1996897584}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.1278, y: 0, z: 0.0768}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1490280753062537076}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &1997060712
 GameObject:
   m_ObjectHideFlags: 0
@@ -527636,6 +527768,8 @@ Transform:
   - {fileID: 5887840216133262879}
   - {fileID: 3593911975334940425}
   - {fileID: 230296006}
+  - {fileID: 1620227178}
+  - {fileID: 1996897585}
   m_Father: {fileID: 1045614959}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1493575179613395260

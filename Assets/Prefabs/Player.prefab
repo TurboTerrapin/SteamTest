@@ -949,6 +949,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 9177163274481919694}
   m_SourcePrefab: {fileID: 100100000, guid: 27f0dddf90b4e264e87d1b2927078c1f, type: 3}
+--- !u!4 &184802317024244549 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3699898355520597503, guid: 27f0dddf90b4e264e87d1b2927078c1f, type: 3}
+  m_PrefabInstance: {fileID: 3587153704815255226}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &3603337162174284039 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8950480641416126531, guid: 27f0dddf90b4e264e87d1b2927078c1f, type: 3}
@@ -1003,6 +1008,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8c0110d32b87e44b8a051e370bd9bd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myAnimator: {fileID: 6310913860878337281}
+  bone: {fileID: 184802317024244549}
+  angle: 0
   ikActive: 1
   ikHead: 1
   ikRightArm: 0

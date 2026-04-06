@@ -30,7 +30,6 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     public GameObject wheel;
     public GameObject wheel_light;
     public GameObject fill_circle;
-    public GameObject IK_target;
 
     // State variables
     private float angularVelocity = 0f;
@@ -42,9 +41,16 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public List<GameObject> hand_placements = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
+
+    private bool wheel_in_use = true;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -60,7 +66,27 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     }
     public Transform getIKTarget(GameObject current_target)
     {
-        return IK_target.transform;
+        if(!wheel_in_use)
+        {
+            return  IK_targets[0].transform;
+        }
+
+        float shortestDistance;
+        int shortestIndex = 1;
+
+        shortestDistance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[shortestIndex].transform.position);
+        for (int i = 2; i < IK_targets.Count; i++)
+        {
+            float distance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[i].transform.position);
+            if (distance < shortestDistance)
+            {
+                shortestDistance = distance;
+                shortestIndex = i;
+            }
+        }
+        return IK_targets[shortestIndex].transform;
+
+        //return IK_targets[0].transform;
     }
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
@@ -206,8 +232,10 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         keys_down = inputs;
+        wheel_in_use = true;
         if (wheel_spin_coroutine == null && inputs.Count > 0)
         {
+            wheel_in_use = false;
             wheel_spin_coroutine = StartCoroutine(wheelSpinning());
         }
     }

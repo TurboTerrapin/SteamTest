@@ -207,6 +207,7 @@ public class AnimatorHandler : MonoBehaviour
             // Set the look target position, if one has been assigned
             if (lookObj != null)
             {
+                //myAnimator.SetLookAtWeight(.25f, 1, 0.125f, 0, 0.5f);
                 myAnimator.SetLookAtWeight(1);
                 myAnimator.SetLookAtPosition(lookObj.position);
             }
