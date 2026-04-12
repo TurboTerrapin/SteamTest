@@ -167,7 +167,6 @@ public class WeaponsSystem : MonoBehaviour
         longRangePhaser.startWidth = finalWidth;
         longRangePhaser.endWidth = finalWidth * LRBeamEndDiameterRatio;
 
-        longRangePhaserOrigin.transform.localRotation = Quaternion.Euler(0, longRangePhaserAngle, 0);
         Vector3 startPos = longRangePhaserOrigin.transform.position;
         Vector3 endPos = startPos + longRangePhaserOrigin.transform.forward * LONG_RANGE_BEAM_LENGTH;
         longRangePhaser.SetPosition(0, startPos);

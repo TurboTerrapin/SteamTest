@@ -118,7 +118,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            current_probe.transform.localPosition = new Vector3(0.0f, current_probe.transform.localPosition.y, 55.0f + Mathf.Lerp(30.0f, 0.0f, anim_time / PROBE_TRANSFORM_ADJUSTMENT_TIME));
+            current_probe.transform.localPosition = new Vector3(5.6f, -4.6f, 77.0f + Mathf.Lerp(30.0f, 0.0f, anim_time / PROBE_TRANSFORM_ADJUSTMENT_TIME));
 
             yield return null;
         }

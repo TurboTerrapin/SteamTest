@@ -4,7 +4,7 @@
     - Communicates with TractorBeamOptions once item collected
     - Driven by TractorBeamPower.cs by power
     Contributor(s): Henryk Musial
-    Last Updated: 2/27/2026
+    Last Updated: 4/11/2026
 */
 
 using System.Collections;
@@ -22,10 +22,10 @@ public class TractorBeam : NetworkBehaviour
     private TractorBeamOptions tractorBeamOptions;
 
     private float baseAttractionSpeed = 15f;
-    private float captureDistance = 8f; // Distance before object is considered captured
+    private float captureDistance = 7f; // Distance before object is considered captured
     private float captureTransformAdjustmentTime = 1f; // How long it takes for the item to be brought in once capured
     public AnimationCurve attractionCurve = AnimationCurve.EaseInOut(0f, 0.2f, 1f, 1f); // Attraction acceleration curve
-    private float beamRangeOffset = 11f; // Distance that the tractor beam origin point is set back inside the ship
+    private float beamRangeOffset = 5f; // Distance that the tractor beam origin point is set back inside the ship
 
     private List<Transform> activeTargetXforms = new List<Transform>();
     private Coroutine tractorBeamLoopCoroutine = null;
@@ -46,6 +46,7 @@ public class TractorBeam : NetworkBehaviour
         effectsHandler = ReferenceAssistor.Instance.effects_handler;
 
         effectsHandler.initializeConeGameObject(beamOriginPoint, tractorBeamMaterial);
+        beamOriginPoint.GetComponent<Renderer>().renderingLayerMask = 2;
     }
 
     public void UpdateBeam(float power)
@@ -61,8 +62,12 @@ public class TractorBeam : NetworkBehaviour
     // Runs every frame while tractor beam power is greater than 0
     private IEnumerator TractorBeamLoop()
     {
+        float elapsed_time = 0.0f;
         while (tractorBeamPower.getTractorBeamPower() > 0.0f)
         {
+            elapsed_time += Time.fixedDeltaTime;
+            tractorBeamMaterial.SetColor("_EmissionColor", new Color(0.0f, 0.09f, Mathf.Lerp(0.3f, 0.75f, Mathf.PingPong(elapsed_time, 0.4f) / 0.4f)));
+
             FindTargets();
             if (!itemCurrentlyCaptured)
             {
@@ -187,7 +192,7 @@ public class TractorBeam : NetworkBehaviour
         {
             transformAdjustmentTime = Mathf.Max(0.0f, transformAdjustmentTime - Time.deltaTime);
 
-            capturedItem.transform.position = Vector3.Lerp(beamOriginPoint.transform.position, startingPosition,  transformAdjustmentTime / captureTransformAdjustmentTime);
+            capturedItem.transform.position = Vector3.Lerp(beamOriginPoint.transform.position + new Vector3(0.0f, -7.0f, -15.0f), startingPosition,  transformAdjustmentTime / captureTransformAdjustmentTime);
 
             yield return null;
         }

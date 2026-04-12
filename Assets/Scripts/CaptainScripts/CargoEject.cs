@@ -2,7 +2,7 @@
     CargoEject.cs
     - Launches item loaded in cargo bay
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 4/12/2026
 */
 
 using System.Collections;
@@ -19,7 +19,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     private static float COOLDOWN_TIME = 1.5f;
     private static float CARGO_TRANSFORM_ADJUSTMENT_TIME = 3.0f;
     private static Vector3 PUSH_DIRECTION = new Vector3(0.006f, -0.0151f, 0.0f);
-    private static float[] SPAWN_X_COORDINATES = new float[] { -8.0f, 8.0f }; //cargo spawn positions so they don't bump into each other
+    private static float[] SPAWN_X_COORDINATES = new float[] { -3.3f, 3.3f }; //cargo spawn positions so they don't bump into each other
 
     private string CONTROL_NAME = "CARGO EJECT";
     private static string INFO_MESSAGE = "Ejects whatever cargo is held in the cargo eject as loaded in the engineer position.";
@@ -31,6 +31,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
     public GameObject cargo_eject_display;
     public GameObject active_indicator;
     public GameObject inactive_indicator;
+    public ShipExteriorFeatures ship_exterior_features;
     public List<AudioSource> cargo_eject_sounds = null;
 
     private CargoEjectLoader cargo_eject_loader;
@@ -168,7 +169,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            ejected_item.transform.localPosition = new Vector3(ejected_item.transform.localPosition.x, ejected_item.transform.localPosition.y, Mathf.Lerp(90.0f, 50.0f, anim_time / CARGO_TRANSFORM_ADJUSTMENT_TIME));
+            ejected_item.transform.localPosition = new Vector3(ejected_item.transform.localPosition.x, ejected_item.transform.localPosition.y, Mathf.Lerp(100.0f, 65.0f, anim_time / CARGO_TRANSFORM_ADJUSTMENT_TIME));
 
             yield return null;
         }
@@ -183,6 +184,9 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
 
     IEnumerator ejectCargo()
     {
+        //open door
+        ship_exterior_features.adjustCargoDoorOpen(1, true);
+
         //spawn item as a NetworkObject if host
         if (NetworkManager.Singleton.IsHost == true)
         {
@@ -190,7 +194,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
             int eject_index = cargo_eject_loader.getEjectItemIndex();
             GameObject ejected_item = GameObject.Instantiate(ReferenceAssistor.Instance.collectible_items[eject_index], spaceship);
 
-            ejected_item.transform.position = spaceship.transform.position + (spaceship.transform.right * SPAWN_X_COORDINATES[spawn_index]) + new Vector3(0.0f, -7.0f, 0.0f) + (spaceship.forward * 50.0f);
+            ejected_item.transform.position = spaceship.transform.position + (spaceship.transform.right * SPAWN_X_COORDINATES[spawn_index]) + new Vector3(0.0f, -10.5f, 0.0f) + (spaceship.forward * 65.0f);
             ejected_item.transform.rotation = spaceship.rotation;
             Vector3 curr_rotation = ejected_item.transform.rotation.eulerAngles;
             ejected_item.transform.rotation = Quaternion.Euler(curr_rotation.x + Random.Range(-15.0f, 15.0f), curr_rotation.y + Random.Range(-15.0f, 15.0f), curr_rotation.z + Random.Range(-15.0f, 15.0f));
@@ -239,6 +243,9 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable
 
             yield return null;
         }
+
+        //close door
+        ship_exterior_features.adjustCargoDoorOpen(1, false);
 
         BUTTONS[1].updateInteractable(is_powered && is_active);
         dial_turn_percentage = 0.0f;
