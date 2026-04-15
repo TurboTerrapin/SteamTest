@@ -90,18 +90,41 @@ public class FailureHandler : NetworkBehaviour
         //set player names and default states
         for (int i = 0; i < playerNames.Length; i++)
         {
-            string name = lobbyNames[i];
-            
-            if (!string.IsNullOrEmpty(name)) 
+
+            if (i < lobbyNames.Length && !string.IsNullOrEmpty(lobbyNames[i]))
             {
-                playerNames[i].text = name;
+                playerNames[i].text = lobbyNames[i];
+
                 playerVotes[i].text = "Not Ready";
                 playerVotes[i].color = Color.white;
+
+
+            }
+            else
+            {
+                playerNames[i].text = "";
+                playerVotes[i].text = "";
             }
         }
         // fade in restart button, quit button, player names, and their votes
         yield return new WaitForSeconds(0.5f);
         StartCoroutine(fadeGroup(fadeInGroup, 1f, 2f));
+
+        ////set player names and default states
+        //for (int i = 0; i < playerNames.Length; i++)
+        //{
+        //    string name = lobbyNames[i];
+
+        //    if (!string.IsNullOrEmpty(name))
+        //    {
+        //        playerNames[i].text = name;
+        //        playerVotes[i].text = "Not Ready";
+        //        playerVotes[i].color = Color.white;
+        //    }
+        //}
+        //// fade in restart button, quit button, player names, and their votes
+        //yield return new WaitForSeconds(0.5f);
+        //StartCoroutine(fadeGroup(fadeInGroup, 1f, 2f));
     }
 
     IEnumerator printTextCharbyChar(TMP_Text targetText, string fullText)
