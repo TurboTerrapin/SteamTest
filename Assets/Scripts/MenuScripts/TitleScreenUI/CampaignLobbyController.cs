@@ -189,7 +189,7 @@ public class CampaignLobbyController : MonoBehaviour
         FriendObjects.Clear();
 
         //Get invitable friends
-        List<Friend> invitableFriends = CheckFriends.GetOnlineFriendsNotInAnyLobby();
+        List<Friend> invitableFriends = CheckFriends.GetOnlineFriends();
 
         //Display invitable friends
         foreach (Friend friend in invitableFriends)
