@@ -11,7 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
+public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float DIGIT_CHANGE_TIME = 0.2f;
@@ -41,6 +41,14 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
     private List<string> ray_targets = new List<string> { "destruct_digit_a", "destruct_digit_b", "destruct_digit_c", "destruct_digit_d", "destruct_or_abort" };
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    public float lerp_speed = 5f;
 
     private void Start()
     {
@@ -72,7 +80,32 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable
 
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return IK_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
+    }
+    
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
+    }
     private void showDestructCountdown(bool to_show)
     {
         destruct_display.transform.GetChild(0).gameObject.SetActive(!to_show);

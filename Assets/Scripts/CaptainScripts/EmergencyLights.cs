@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
+public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f;
@@ -35,6 +35,15 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public GameObject ik_target = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME, true);
@@ -46,7 +55,31 @@ public class EmergencyLights : NetworkBehaviour, IControllable, IPowerable
     {
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        return ik_target.transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
+    }
+    
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
+    }
     public bool getEmergencyLightsEnabled()
     {
         return emergency_lights_enabled;

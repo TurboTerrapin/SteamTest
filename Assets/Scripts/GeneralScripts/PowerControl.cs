@@ -42,6 +42,10 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     public List<AnimatorHandler.HandInteractionType> hand_interaction_types = null;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
+
     private int my_control_index = 0;
 
     private void Start()
@@ -54,6 +58,13 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         }
 
         hud_info.setInfo(INFO_MESSAGE);
+    }
+    
+    public HUDInfo getHUDinfo(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        hud_info.setButtons(BUTTON_LISTS[index]);
+        return hud_info;
     }
     public Transform getIKTarget(GameObject current_target)
     {
@@ -73,11 +84,13 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     {
         return does_right_hand_flip;
     }
-    public HUDInfo getHUDinfo(GameObject current_target)
+    public Vector3 getRightHandOffset()
     {
-        int index = ray_targets.IndexOf(current_target.name);
-        hud_info.setButtons(BUTTON_LISTS[index]);
-        return hud_info;
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
     }
     
     //updates knob light, adjacent circle lights (for all positions)

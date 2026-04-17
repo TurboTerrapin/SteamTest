@@ -10,7 +10,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class ManualSelector : NetworkBehaviour, IControllable
+public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float PUSH_TIME = 0.15f;
@@ -34,6 +34,17 @@ public class ManualSelector : NetworkBehaviour, IControllable
     private List<string> ray_targets = new List<string> { "procedure_manual_options", "operations_manual_options" };
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
+
+    private int button_index = 0;
 
     private void Start()
     {
@@ -75,6 +86,38 @@ public class ManualSelector : NetworkBehaviour, IControllable
         return hud_info;
     }
 
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        if (index == 0)
+        {
+            return IK_targets[button_index].transform;
+        }
+        else
+        {
+            return IK_targets[6 + button_index].transform;
+        }
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
+    }
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
+    }
     public void activate(int index)
     {
         is_active[index] = true;
@@ -183,6 +226,7 @@ public class ManualSelector : NetworkBehaviour, IControllable
                             BUTTON_LISTS[manual_index][x].updateInteractable(false);
                         }
                     }
+                    button_index = i;
                     transmitManualInputRPC(i, manual_index);
                     return;
                 }

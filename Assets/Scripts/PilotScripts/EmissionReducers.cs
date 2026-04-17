@@ -26,12 +26,6 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
     public List<GameObject> emission_switches = null;
     public GameObject emission_display;
 
-    [Header("IK Targetable Details")]
-    public List<GameObject> IK_targets = null;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
-
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
     private bool[] enabled_reducers = new bool[2] { false, false };
@@ -42,6 +36,15 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
     private List<string> ray_targets = new List<string> { "port_reducer_switch", "starboard_reducer_switch" };
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public List<GameObject> IK_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
 
     private void Start()
     {
@@ -81,6 +84,14 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
+    }
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
     }
 
     private void displayReducerChange(int reducer_to_change, float current_percentage)

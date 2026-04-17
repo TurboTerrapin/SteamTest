@@ -27,12 +27,6 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     public GameObject handle;
     public GameObject impulse_bars_display; //used to display the bars beneath the handle
 
-    [Header("IK Targetable Details")]
-    public GameObject IK_target;
-    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
-    public float hand_pose = 0;
-    public bool does_right_hand_flip = false;
-
     private EngineMonitoring engine_monitoring;
 
     private bool is_powered = false;
@@ -47,6 +41,16 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     private List<KeyCode> keys_down = new List<KeyCode>();
 
     private static HUDInfo hud_info = null;
+
+    [Header("IK Targetable Details")]
+    public GameObject IK_target;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
+
     private void Start()
     {
         engine_monitoring = GetComponent<EngineMonitoring>();
@@ -80,6 +84,14 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
+    }
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
     }
     public void adjustInertialDampenerModifier(float new_modifier)
     {

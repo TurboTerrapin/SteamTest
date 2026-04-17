@@ -43,7 +43,9 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
-    public int finger_position = 0;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
 
     private void Start()
     {
@@ -88,6 +90,14 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
+    }
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
     }
 
     public float getPowerLevel(int index) 

@@ -137,7 +137,14 @@ public class AnimationController : MonoBehaviour
         myAnimator.SetFloat("HandAnimSpeed", 0);
         myAnimator.SetFloat("HandPose", pose);
     }
-
+    public void setLerpSpeed(float speed)
+    {
+        myAnimatorHandler.setLerpSpeed(speed);
+    }
+    public void resetLerpSpeed()
+    {
+        myAnimatorHandler.resetLerpSpeed();
+    }
     public void setAnimatorBool(string name, bool value)
     {
         myAnimator.SetBool(name, value);

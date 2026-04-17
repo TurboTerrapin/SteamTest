@@ -49,7 +49,8 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
-    public int finger_position = 0;
+    public Vector3 right_hand_offset = Vector3.zero;
+    public float lerp_speed = 5f;
 
     private void Start()
     {
@@ -94,7 +95,15 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         return does_right_hand_flip;
     }
-
+    
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
+    }
     public float getPowerAllocation(int position)
     {
         return (allocated_units[position] * 0.1f);

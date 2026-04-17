@@ -42,10 +42,15 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     private Coroutine power_loss_coroutine = null;
     private float power = 0.0f;
 
+    [Header("IK Targetable Details")]
     private static HUDInfo hud_info = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Grasp;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
+
     private void Start()
     {
         tractor_beam_options = GetComponent<TractorBeamOptions>();
@@ -79,6 +84,14 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
+    }
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
     }
     private void displayAdjustment()
     {

@@ -46,6 +46,10 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
+
     public int finger_position = 0;
 
     private void Start()
@@ -87,6 +91,14 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
+    }
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
     }
 
     private void changeRingState(GameObject to_change, bool solid)

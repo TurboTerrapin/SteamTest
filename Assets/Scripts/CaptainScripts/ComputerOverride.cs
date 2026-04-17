@@ -9,8 +9,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using static AnimatorHandler;
 
-public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
+public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.2f; //how long the switch takes to be flipped
@@ -36,6 +37,15 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
 
     private static HUDInfo hud_info = null;
 
+    [Header("IK Targetable Details")]
+    public List<GameObject> ik_targets = null;
+    public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
+    public float hand_pose = 0;
+    public bool does_right_hand_flip = false;
+    public Vector3 right_hand_offset = Vector3.zero;
+    [Tooltip("Set to -1 for no lerp")]
+    public float lerp_speed = 5f;
+
     private void Start()
     {
         hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], true);
@@ -58,7 +68,31 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
 
         return hud_info;
     }
-
+    public Transform getIKTarget(GameObject current_target)
+    {
+        int index = ray_targets.IndexOf(current_target.name);
+        return ik_targets[index].transform;
+    }
+    public AnimatorHandler.HandInteractionType getHandInteractionType()
+    {
+        return hand_interaction_type;
+    }
+    public float getHandPose()
+    {
+        return hand_pose;
+    }
+    public bool getRightHandFlip()
+    {
+        return does_right_hand_flip;
+    }
+    public Vector3 getRightHandOffset()
+    {
+        return right_hand_offset;
+    }
+    public float getLerpSpeed()
+    {
+        return lerp_speed;
+    }
     private void handlePowerConsumptionChange()
     {
         float consumed_power = 0.0f;

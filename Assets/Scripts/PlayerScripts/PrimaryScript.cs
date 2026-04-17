@@ -686,6 +686,12 @@ public class PrimaryScript : MonoBehaviour
                                                                                                                                                                                               //if the ray target has a specific IK target, then use the IK target
                             if (target_IK != null)
                             {
+                                //Set hand agnostic stuff first
+                                //Set the animation type
+                                my_animation_controller.setHandInteractionType(target_IK.getHandInteractionType());
+                                my_animation_controller.setHandPose(target_IK.getHandPose());
+                                my_animation_controller.setLerpSpeed(target_IK.getLerpSpeed());
+
                                 //Debug.Log(Vector3.SignedAngle(player_prefab.transform.forward, plr_camera.transform.forward, player_prefab.transform.up));
                                 if (Vector3.SignedAngle(player_prefab.transform.forward, plr_camera.transform.forward, player_prefab.transform.up) > 0)
                                 //if (Vector3.SignedAngle(seat_script_holder.GetComponent<SeatManager>().physical_seats[curr_pos].transform.GetChild(2).forward, plr_camera.transform.forward, Vector3.up) > 0)
@@ -698,11 +704,8 @@ public class PrimaryScript : MonoBehaviour
                                     //Flip the arm rotation if the control needs it, usually for controls like the aux power lever
                                     my_animation_controller.flipRightArmIKRotation(target_IK.getRightHandFlip());
                                     //Move the right hand to a specific spot offset from the actual target, usually when the the animation is press or pinch
-                                    //my_animation_controller.adjustRightArmIKPosition(new Vector3(0.05f, 0, 0));
+                                    my_animation_controller.adjustRightArmIKPosition(target_IK.getRightHandOffset());
 
-                                    //Set the animation type
-                                    my_animation_controller.setHandInteractionType(target_IK.getHandInteractionType());
-                                    my_animation_controller.setHandPose(target_IK.getHandPose());
                                     my_animation_controller.setAnimatorLayerWeight("RightHandLayer", 1f);
                                     //my_animation_controller.setRightArmIKRotation(target_IK.getIKTarget().rotation);
                                 }
@@ -713,9 +716,6 @@ public class PrimaryScript : MonoBehaviour
                                     my_animation_controller.setIKRightArm(false);
                                     my_animation_controller.setLeftArmIKTransform(target_IK.getIKTarget(current_ray_target.gameObject));
 
-                                    //Set the animation type
-                                    my_animation_controller.setHandInteractionType(target_IK.getHandInteractionType());
-                                    my_animation_controller.setHandPose(target_IK.getHandPose());
                                     my_animation_controller.setAnimatorLayerWeight("LeftHandLayer", 1f);
                                     //my_animation_controller.setLeftArmIKRotation(target_IK.getIKTarget().rotation);
                                 }
@@ -797,6 +797,7 @@ public class PrimaryScript : MonoBehaviour
             }
             my_animation_controller.setIKRightArm(false);
             my_animation_controller.setIKLeftArm(false);
+            my_animation_controller.resetLerpSpeed();
             my_animation_controller.setAnimatorLayerWeight("RightHandLayer", 0f);
             my_animation_controller.setAnimatorLayerWeight("LeftHandLayer", 0f);
 

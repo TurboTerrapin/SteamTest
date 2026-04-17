@@ -1,9 +1,9 @@
 /*
-    IControllable.cs
-    - Interface for all controls
-    - Used to define information retrieval and input handling
-    Contributor(s): Jake Schott
-    Last Updated: 5/12/2025
+    IIKTargetable.cs
+    - Interface for all controls that are interactable by the player
+    - Used to define information retrieval for Inverse Kinematics
+    Contributor(s): John Aylward
+    Last Updated: 4/16/2026
 */
 
 using UnityEngine;
@@ -14,4 +14,6 @@ public interface IIKTargetable
     public AnimatorHandler.HandInteractionType getHandInteractionType();
     public float getHandPose();
     public bool getRightHandFlip();
+    public Vector3 getRightHandOffset();
+    public float getLerpSpeed();
 }
