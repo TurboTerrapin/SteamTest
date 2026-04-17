@@ -1,22 +1,25 @@
-using UnityEngine;
-using Unity.Netcode;
+using System;
+using System.Collections;
+using Netcode.Transports.Facepunch;
 using Steamworks;
 using Steamworks.Data;
-using Netcode.Transports.Facepunch;
+using TMPro;
+using Unity.Netcode;
+using UnityEngine;
 
 public class GameNetworkManager : MonoBehaviour
 {
     public static GameNetworkManager Instance { get; private set; } = null;
 
     private FacepunchTransport transport = null;
-
+    public GameObject connectingBox;
     public Lobby? currentLobby { get; private set; } = null;
 
-    public ulong hostID;
+    private Coroutine connectingCoroutine = null;
 
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
         {
             Instance = this;
         }
@@ -25,10 +28,8 @@ public class GameNetworkManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         //Debug.Log(SteamClient.RestartAppIfNecessary(480));
     }
-
 
     private void Start()
     {
@@ -42,6 +43,7 @@ public class GameNetworkManager : MonoBehaviour
         SteamMatchmaking.OnLobbyGameCreated += SteamMatchmaking_OnLobbyGameCreated;
         SteamFriends.OnGameLobbyJoinRequested += SteamFriends_OnGameLobbyJoinRequested;
     }
+
     private void OnDestroy()
     {
         SteamMatchmaking.OnLobbyCreated -= SteamMatchmaking_OnLobbyCreated;
@@ -52,7 +54,7 @@ public class GameNetworkManager : MonoBehaviour
         SteamMatchmaking.OnLobbyGameCreated -= SteamMatchmaking_OnLobbyGameCreated;
         SteamFriends.OnGameLobbyJoinRequested -= SteamFriends_OnGameLobbyJoinRequested;
 
-        if(NetworkManager.Singleton == null)
+        if (NetworkManager.Singleton == null)
         {
             return;
         }
@@ -67,19 +69,34 @@ public class GameNetworkManager : MonoBehaviour
         Disconnect();
     }
 
-
     private async void SteamFriends_OnGameLobbyJoinRequested(Lobby lobby, SteamId steamId)
     {
         RoomEnter joinedLobby = await lobby.Join();
-        if(joinedLobby != RoomEnter.Success)
+        if (joinedLobby != RoomEnter.Success)
         {
             Debug.Log("Failed to join lobby");
         }
         else
         {
             currentLobby = lobby;
-            GameManager.Instance.ConnectedAsAClient();
             Debug.Log("Successfully joined lobby");
+        }
+    }
+
+    //Handles the ... animation for connecting
+    IEnumerator ConnectingAnimation()
+    {
+        TMP_Text connectingText = connectingBox.transform.GetChild(1).GetComponent<TMP_Text>();
+        while (true)
+        {
+            string elipse = "";
+            for (int i = 0; i < 4; i++)
+            {
+                connectingText.SetText("CONNECTING" + elipse);
+                yield return new WaitForSeconds(0.25f);
+                elipse += ".";
+            }
+            yield return null;
         }
     }
 
@@ -93,7 +110,6 @@ public class GameNetworkManager : MonoBehaviour
         else
         {
             currentLobby = lobby;
-            GameManager.Instance.ConnectedAsAClient();
             Debug.Log("Successfully joined lobby");
         }
     }
@@ -113,14 +129,14 @@ public class GameNetworkManager : MonoBehaviour
         Debug.Log("Member leave");
     }
 
-    private void SteamMatchmaking_OnLobbyMemberJoined(Lobby arglobby1, Friend friend)
+    private void SteamMatchmaking_OnLobbyMemberJoined(Lobby lobby, Friend friend)
     {
         Debug.Log("Member join");
     }
 
     private void SteamMatchmaking_OnLobbyEntered(Lobby lobby)
     {
-        if(NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost == true)
         {
             return;
         }
@@ -143,12 +159,10 @@ public class GameNetworkManager : MonoBehaviour
         }
     }
 
-
     public async void StartHost(int maxMembers)
     {
         NetworkManager.Singleton.OnServerStarted += Singleton_OnServerStarted;
         NetworkManager.Singleton.StartHost();
-        GameManager.Instance.myClientId = NetworkManager.Singleton.LocalClientId;
         currentLobby = await SteamMatchmaking.CreateLobbyAsync(maxMembers);
     }
 
@@ -157,7 +171,6 @@ public class GameNetworkManager : MonoBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += Singleton_OnClientConnectedCallback;
         NetworkManager.Singleton.OnClientDisconnectCallback += Singleton_OnClientDisconnectCallback;
         transport.targetSteamId = id;
-        GameManager.Instance.myClientId = NetworkManager.Singleton.LocalClientId;
         if (NetworkManager.Singleton.StartClient())
         {
             Debug.Log("Client Started");
@@ -167,11 +180,11 @@ public class GameNetworkManager : MonoBehaviour
     public void Disconnect()
     {
         currentLobby?.Leave();
-        if(NetworkManager.Singleton == null)
+        if (NetworkManager.Singleton == null)
         {
             return;
         }
-        if(NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost == true)
         {
             NetworkManager.Singleton.OnServerStarted -= Singleton_OnServerStarted;
         }
@@ -180,27 +193,32 @@ public class GameNetworkManager : MonoBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback -= Singleton_OnClientConnectedCallback;
         }
         NetworkManager.Singleton.Shutdown(true);
-        GameManager.Instance.Disconnect();
         Debug.Log("Disconnected");
     }
 
     private void Singleton_OnClientDisconnectCallback(ulong clientId)
     {
         NetworkManager.Singleton.OnClientDisconnectCallback -= Singleton_OnClientDisconnectCallback;
-        if(clientId == 0)
+        if (clientId == 0)
         {
             Disconnect();
         }
     }
 
-    private void Singleton_OnClientConnectedCallback(ulong obj)
+    private void Singleton_OnClientConnectedCallback(ulong clientId)
     {
         Debug.Log("Client connected");
+        if (clientId == 0)
+        {
+            /*
+                ResetCoroutines();
+                SwitchTo(CampaignLobby);
+            */
+        }
     }
 
     private void Singleton_OnServerStarted()
     {
         Debug.Log("Host Started");
-        GameManager.Instance.HostCreated();
     }
 }
