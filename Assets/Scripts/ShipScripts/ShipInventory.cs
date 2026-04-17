@@ -67,59 +67,6 @@ public class ShipInventory : NetworkBehaviour, IPowerable
         shield_strength = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ShieldStrength>();
         torpedo_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>();
 
-        //if host, initialize and begin handling serial numbers
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            int game_difficulty = GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().getDifficulty();
-            item_serial_nums = new Stack<string>[item_quantities.Count];
-            torpedo_serial_nums = new Stack<string>[torpedo_quantities.Count];
-
-            //initialize items
-            for (int i = 0; i < item_quantities.Count; i++)
-            {
-                item_quantities[i] = STARTING_QUANTITIES[i][game_difficulty];
-                item_serial_nums[i] = new Stack<string>();
-
-                for (int x = 0; x < item_quantities[i]; x++)
-                {
-                    bool serial_num_found = false;
-                    string serial_num = "";
-                    while (serial_num_found == false)
-                    {
-                        serial_num = generateSerialNumber();
-                        serial_num_found = !serialNumberExists(serial_num);
-                    }
-                    item_serial_nums[i].Push(serial_num);
-                    used_serial_nums.Add(serial_num);
-                }
-
-                itemInventoryUpdateRPC(0, i, item_quantities[i]);
-            }
-
-            //initialize torpedoes
-            for (int i = 0; i < torpedo_quantities.Count; i++)
-            {
-                torpedo_quantities[i] = STARTING_QUANTITIES[i + 4][game_difficulty];
-                torpedo_serial_nums[i] = new Stack<string>();
-
-                for (int x = 0; x < torpedo_quantities[i]; x++)
-                {
-                    bool serial_num_found = false;
-                    string serial_num = "";
-                    while (serial_num_found == false)
-                    {
-                        serial_num = generateSerialNumber();
-                        serial_num_found = !serialNumberExists(serial_num);
-                    }
-                    torpedo_serial_nums[i].Push(serial_num);
-                    used_serial_nums.Add(serial_num);
-                }
-
-                itemInventoryUpdateRPC(1, i, torpedo_quantities[i]);
-            }
-
-        }
-
         displayAdjustment();
     }
 
@@ -145,6 +92,63 @@ public class ShipInventory : NetworkBehaviour, IPowerable
             }
         }
         return false;
+    }
+
+    //run by host when all clients are loaded in to initialize inventory
+    public void initializeInventory()
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        int game_difficulty = GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().getDifficulty();
+        item_serial_nums = new Stack<string>[item_quantities.Count];
+        torpedo_serial_nums = new Stack<string>[torpedo_quantities.Count];
+
+        //initialize items
+        for (int i = 0; i < item_quantities.Count; i++)
+        {
+            item_quantities[i] = STARTING_QUANTITIES[i][game_difficulty];
+            item_serial_nums[i] = new Stack<string>();
+
+            for (int x = 0; x < item_quantities[i]; x++)
+            {
+                bool serial_num_found = false;
+                string serial_num = "";
+                while (serial_num_found == false)
+                {
+                    serial_num = generateSerialNumber();
+                    serial_num_found = !serialNumberExists(serial_num);
+                }
+                item_serial_nums[i].Push(serial_num);
+                used_serial_nums.Add(serial_num);
+            }
+
+            itemInventoryUpdateRPC(0, i, item_quantities[i]);
+        }
+
+        //initialize torpedoes
+        for (int i = 0; i < torpedo_quantities.Count; i++)
+        {
+            torpedo_quantities[i] = STARTING_QUANTITIES[i + 4][game_difficulty];
+            torpedo_serial_nums[i] = new Stack<string>();
+
+            for (int x = 0; x < torpedo_quantities[i]; x++)
+            {
+                bool serial_num_found = false;
+                string serial_num = "";
+                while (serial_num_found == false)
+                {
+                    serial_num = generateSerialNumber();
+                    serial_num_found = !serialNumberExists(serial_num);
+                }
+                torpedo_serial_nums[i].Push(serial_num);
+                used_serial_nums.Add(serial_num);
+            }
+
+            itemInventoryUpdateRPC(1, i, torpedo_quantities[i]);
+        }
     }
 
     //updates the entire inventory screen based on item_quantities and torpedo_quantities

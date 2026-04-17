@@ -11,6 +11,7 @@
 
 using System.Collections;
 using Steamworks;
+using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
 using Unity.Netcode;
 using UnityEngine;
 

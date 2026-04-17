@@ -2,7 +2,7 @@
     LobbyHandler.cs
     - Handles RPCs that pertain to lobby functions, ex. load initiation, difficulty handling
     Contributor(s): Jake Schott
-    Last Updated: 3/13/2026
+    Last Updated: 4/15/2026
 */
 
 using UnityEngine;
@@ -15,9 +15,17 @@ public class LobbyHandler : NetworkBehaviour
 
     private int difficulty = -1;
 
-    private void Start()
+    private void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        gameObject.name = "LobbyHandler";
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            DontDestroyOnLoad(gameObject);
+        }
     }
 
     public void updateDifficulty(int new_difficulty)

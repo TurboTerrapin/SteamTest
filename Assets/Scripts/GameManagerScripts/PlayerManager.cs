@@ -334,7 +334,6 @@ public class PlayerManager : NetworkBehaviour
         //end transition (whether looking at the cinematic shot or load screen)
         scenario_transitioner.GetComponent<TransitionHandler>().EndTransition();
 
-
         //end load (whether looking at the cinematic shot or load screen)
         load_handler.endLoad(false);
 
@@ -363,7 +362,7 @@ public class PlayerManager : NetworkBehaviour
             if (players_ready >= num_starting_players)
             {
                 resetPlayersReady();
-                GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario(game_initialized);
+                GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario(!game_initialized);
                 if (game_initialized == false)
                 {
                     //wait LOAD_IN_DELAY
