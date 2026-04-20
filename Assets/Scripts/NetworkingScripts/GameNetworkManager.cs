@@ -63,12 +63,6 @@ public class GameNetworkManager : MonoBehaviour
         Disconnect();
     }
 
-    //Ensure you disconnect if you hard quit
-    private void OnApplicationQuit()
-    {
-        Disconnect();
-    }
-
     //Called when joining through Steam invite or clicking on lobby "JOIN" button in join screen
     private async void AttemptJoin(Lobby lobbyToJoin)
     {
@@ -194,7 +188,7 @@ public class GameNetworkManager : MonoBehaviour
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().displayLostConnection("Connection interrupted.");
     }
 
-    //Used to link client updates
+    //Called when starting host/client, used to link client updates
     private void LinkNetworkManagerEvents()
     {
         NetworkManager.Singleton.OnClientConnectedCallback += Singleton_OnClientConnectedCallback;
