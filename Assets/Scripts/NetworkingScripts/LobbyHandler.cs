@@ -1,8 +1,10 @@
 /*
     LobbyHandler.cs
     - Handles RPCs that pertain to lobby functions, ex. load initiation, difficulty handling
+    - Keeps track of who is actually in and connected in the lobby
+    - Handles 
     Contributor(s): Jake Schott
-    Last Updated: 4/18/2026
+    Last Updated: 4/20/2026
 */
 
 using UnityEngine;
@@ -10,7 +12,6 @@ using Unity.Netcode;
 using System.Collections.Generic;
 using Steamworks;
 using Steamworks.Data;
-using UnityEngine.SceneManagement;
 
 public class LobbyHandler : NetworkBehaviour
 {
@@ -37,7 +38,7 @@ public class LobbyHandler : NetworkBehaviour
             player_names[0] = GameNetworkManager.Instance.currentLobby.Value.Owner.Name;
             player_connecteds[0] = true;
         }
-        NetworkManager.Singleton.OnClientConnectedCallback += onConnectionChange;
+        NetworkManager.Singleton.OnClientConnectedCallback += onClientConnect;
     }
 
     private void OnDisable()
@@ -48,7 +49,7 @@ public class LobbyHandler : NetworkBehaviour
             SteamMatchmaking.OnLobbyMemberLeave -= onLobbyChange;
             SteamMatchmaking.OnLobbyCreated -= onLobbyCreated;
         }
-        NetworkManager.Singleton.OnClientConnectedCallback -= onConnectionChange;
+        NetworkManager.Singleton.OnClientConnectedCallback -= onClientConnect;
     }
 
     public override void OnNetworkSpawn()
@@ -59,6 +60,7 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
+    //called by CampaignLobbyController.cs when checking difficulty boxes
     public void updateDifficulty(int new_difficulty)
     {
         if (NetworkManager.Singleton.IsHost == false)
@@ -69,6 +71,7 @@ public class LobbyHandler : NetworkBehaviour
         updateDifficultyRPC(new_difficulty);
     }
 
+    //returns game difficulty (0-3, easy, medium, hard, or expert)
     public int getDifficulty()
     {
         return difficulty;
@@ -92,7 +95,7 @@ public class LobbyHandler : NetworkBehaviour
         allPlayersLoadRPC(); //triggers below RPC
     }
 
-    //resizes the list of player names, eliminating gaps
+    //resizes the list of player names, eliminating gaps (only called by host)
     private void rebuildLobbyList()
     {
         List<string> copied_names = new List<string>();
@@ -120,7 +123,8 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
-    private void onConnectionChange(ulong id)
+    //called when a client is connected to the NetworkManager lobby
+    private void onClientConnect(ulong id)
     {
         if (id == NetworkManager.Singleton.LocalClientId)
         {
@@ -128,6 +132,7 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
+    //called when the host's created Steam lobby comes back with a result
     private void onLobbyCreated(Result r, Lobby l)
     {
         if (r == Result.OK)
@@ -138,33 +143,35 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
+    //called on lobby member join or leaving (only run by host)
     private void onLobbyChange(Lobby l, Friend f)
     {
-        if (NetworkManager.Singleton.IsHost == true)
+        if (NetworkManager.Singleton.IsHost == false)
         {
-            if (player_names.Contains(f.Name) == true) //requires removal
+            return;
+        }
+
+        if (player_names.Contains(f.Name) == true) //remove player from list
+        {
+            player_names[player_names.IndexOf(f.Name)] = "";
+        }
+        else //add player to list
+        {
+            for (int i = 0; i < 4; i++)
             {
-                player_names[player_names.IndexOf(f.Name)] = "";
-                rebuildLobbyList();
-            }
-            else //requires addition
-            {
-                for (int i = 0; i < 4; i++)
+                if (player_names[i] == "")
                 {
-                    if (player_names[i] == "")
-                    {
-                        player_names[i] = f.Name;
-                        player_connecteds[i] = false;
-                        break;
-                    }
+                    player_names[i] = f.Name;
+                    player_connecteds[i] = false;
+                    break;
                 }
             }
-            rebuildLobbyList();
-            lobbyUpdateRPC(player_names[1], player_names[2], player_names[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
         }
+        rebuildLobbyList();
+        lobbyUpdateRPC(player_names[1], player_names[2], player_names[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
     }
 
-    //only called when loading into the start of a game (there is a waiting period when the host loads into BridgeEnvironment compared to clients)
+    //called when loading into the start of a game (there is a waiting period when the host loads into BridgeEnvironment compared to clients)
     [Rpc(SendTo.Everyone)]
     private void allPlayersLoadRPC()
     {
@@ -174,20 +181,24 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
+    //called by a client when they are connected to the lobby which gets sent to the host and relayed back to the other clients
     [Rpc(SendTo.Everyone)]
     private void lobbyConnectionUpdateRPC(string player_name)
     {
-        if (NetworkManager.Singleton.IsHost == true)
+        if (NetworkManager.Singleton.IsHost == false)
         {
-            for (int i = 0; i < 4; i++)
+            return;
+        }
+
+        //find index of connected player
+        for (int i = 0; i < 4; i++)
+        {
+            if (player_names[i] == player_name)
             {
-                if (player_names[i] == player_name)
-                {
-                    player_connecteds[i] = true;
-                    rebuildLobbyList();
-                    lobbyUpdateRPC(player_names[1], player_names[2], player_names[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
-                    return;
-                }
+                player_connecteds[i] = true;
+                rebuildLobbyList();
+                lobbyUpdateRPC(player_names[1], player_names[2], player_names[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
+                return;
             }
         }
     }
@@ -196,9 +207,11 @@ public class LobbyHandler : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void lobbyUpdateRPC(string p2, string p3, string p4, bool c2, bool c3, bool c4)
     {
+        //player_names[0] = GameNetworkManager.Instance.currentLobby.value.Owner.name;
         player_names[1] = p2;
         player_names[2] = p3;
         player_names[3] = p4;
+        //player_connecteds[0] = true;
         player_connecteds[1] = c2;
         player_connecteds[2] = c3;
         player_connecteds[3] = c4;
@@ -209,7 +222,7 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
-    //called by host when change in difficulty
+    //called by host when change in difficulty or need to push current difficulty to newly-joined player
     [Rpc(SendTo.Everyone)]
     private void updateDifficultyRPC(int new_difficulty)
     {

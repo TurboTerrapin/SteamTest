@@ -2,7 +2,7 @@
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
     Contributor(s): Jake Schott
-    Last Updated: 4/17/2026
+    Last Updated: 4/20/2026
 */
 
 using System.Collections;
@@ -21,8 +21,10 @@ public class LoadHandler : MonoBehaviour
     private GameObject load_screen;
     private GameObject load_ring;
     private GameObject connecting_box;
+    private GameObject connection_lost;
     private GameObject dummy_camera;
     private Coroutine fade_black_coroutine = null;
+    private Coroutine connecting_coroutine = null;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
 
     private void Start()
@@ -40,7 +42,8 @@ public class LoadHandler : MonoBehaviour
         load_screen = transform.GetChild(0).gameObject;
         load_ring = load_screen.transform.GetChild(2).gameObject;
         connecting_box = transform.GetChild(1).gameObject;
-        dummy_camera = transform.GetChild(2).gameObject;
+        connection_lost = transform.GetChild(2).gameObject;
+        dummy_camera = transform.GetChild(3).gameObject;
     }
 
     //called by CampaignLobbyController and FriendJoinWithButton to ensure that handleSceneLoad() gets linked to the right NetworkManager
@@ -66,6 +69,11 @@ public class LoadHandler : MonoBehaviour
         {
             StopCoroutine(fade_black_coroutine);
             fade_black_coroutine = null;
+        }
+        if (connecting_coroutine != null)
+        {
+            StopCoroutine(connecting_coroutine);
+            connecting_coroutine = null;
         }
         foreach (Coroutine c in load_coroutines)
         {
@@ -97,8 +105,8 @@ public class LoadHandler : MonoBehaviour
         load_screen.SetActive(true);
     }
 
-    //will begin the connecting screen (until terminated by endConnecting())
-    public void startConnecting()
+    //if currently on TitleScreen scene, hide all elements
+    private void hideTitleAndMainMenuElements()
     {
         if (SceneManager.GetActiveScene().name == "TitleScreen")
         {
@@ -110,8 +118,20 @@ public class LoadHandler : MonoBehaviour
             GameObject title_screen = GameObject.Find("TitleScreenCanvas").transform.GetChild(0).gameObject;
             title_screen.SetActive(false);
         }
+    }
+
+    //will begin the connecting screen (until terminated by endConnecting())
+    public void startConnecting()
+    {
+        //check if already connecting
+        if (connecting_coroutine != null)
+        {
+            return;
+        }
+
+        hideTitleAndMainMenuElements();
         resetAllCoroutines();
-        load_coroutines.Add(StartCoroutine(connectingLoop()));
+        connecting_coroutine = StartCoroutine(connectingLoop());
         connecting_box.SetActive(true);
     }
 
@@ -120,8 +140,12 @@ public class LoadHandler : MonoBehaviour
     {
         resetAllCoroutines();
         connecting_box.SetActive(false);
-        GameObject main_menu = GameObject.Find("MainMenuCanvas");
-        main_menu.transform.GetChild(2).gameObject.SetActive(true);
+
+        if (SceneManager.GetActiveScene().name == "TitleScreen")
+        {
+            GameObject main_menu = GameObject.Find("MainMenuCanvas");
+            main_menu.transform.GetChild(2).gameObject.SetActive(true);
+        }
     }
 
     //terminates the loading screen
@@ -141,6 +165,31 @@ public class LoadHandler : MonoBehaviour
         else
         {
             load_screen.SetActive(false);
+        }
+    }
+
+    public void displayLostConnection(string message)
+    {
+        if (connection_lost.activeSelf == true)
+        {
+            return;
+        }
+
+        hideTitleAndMainMenuElements();
+        resetAllCoroutines();
+        connection_lost.transform.GetChild(3).GetComponent<TMP_Text>().SetText(message + " Please return to the main menu.");
+        connecting_box.SetActive(false);
+        connection_lost.SetActive(true);
+    }
+
+    //called when clicking the main menu button on connection lost screen
+    public void returnToMainMenu()
+    {
+        if (SceneManager.GetActiveScene().name == "TitleScreen")
+        {
+            connection_lost.SetActive(false);
+            GameObject main_menu = GameObject.Find("MainMenuCanvas");
+            main_menu.transform.GetChild(0).gameObject.SetActive(true);
         }
     }
 
