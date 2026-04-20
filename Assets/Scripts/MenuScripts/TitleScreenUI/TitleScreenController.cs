@@ -7,14 +7,14 @@ public class TitleScreenController : MonoBehaviour
     //TitleScreen
     public TextMeshProUGUI PressStartText;
     public float FadeDuration = 1.5f; // Time for a full fade in/out
-    public GameObject TitleScreenCanvas;
+    public GameObject TitleScreen;
 
     //MainMenu
     public GameObject MainMenu;
 
     void Start()
     {
-        TitleScreenCanvas.SetActive(true);
+        TitleScreen.SetActive(true);
         StartCoroutine(FadeText());
         MainMenu.SetActive(false);
 
@@ -28,7 +28,7 @@ public class TitleScreenController : MonoBehaviour
     // Call SwitchCanvas() if any key is pressed
     void Update()
     {
-        if (Input.anyKeyDown)
+        if (Input.anyKeyDown && TitleScreen.activeSelf)
         {
             SwitchToMainMenu();
         }
@@ -60,9 +60,9 @@ public class TitleScreenController : MonoBehaviour
         PressStartText.color = new Color(color.r, color.g, color.b, targetAlpha);
     }
 
-    void SwitchToMainMenu()
+    private void SwitchToMainMenu()
     {
-         TitleScreenCanvas.SetActive(false);
+         TitleScreen.SetActive(false);
          MainMenu.SetActive(true);
     }
 }

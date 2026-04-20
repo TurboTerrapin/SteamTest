@@ -11,6 +11,7 @@ public class CampaignOptionsController : MonoBehaviour
 
     public void HandleHostGameButtonClick()
     {
+        Debug.Log(GameNetworkManager.Instance.currentLobby.HasValue);
         //only start host if haven't done so already
         if (GameNetworkManager.Instance.currentLobby.HasValue == false)
         {

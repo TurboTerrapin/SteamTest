@@ -51,13 +51,10 @@ public class JoinCampaignMenuController : MonoBehaviour
     }
 
     //Called by FriendJoinWithButton
-    public void ConnectToLobby()
+    public void StopCheckingLobbies()
     {
         //Stop checking lobbies
         ResetCoroutines();
-
-        //Switch to connecting box
-        JoinableLobbyList.SetActive(false);
     }
 
     public void UpdateJoinableLobbiesList()

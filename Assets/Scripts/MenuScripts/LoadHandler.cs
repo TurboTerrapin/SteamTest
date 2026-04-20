@@ -2,12 +2,13 @@
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
     Contributor(s): Jake Schott
-    Last Updated: 3/14/2026
+    Last Updated: 4/17/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -19,6 +20,7 @@ public class LoadHandler : MonoBehaviour
 
     private GameObject load_screen;
     private GameObject load_ring;
+    private GameObject connecting_box;
     private GameObject dummy_camera;
     private Coroutine fade_black_coroutine = null;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
@@ -37,11 +39,12 @@ public class LoadHandler : MonoBehaviour
 
         load_screen = transform.GetChild(0).gameObject;
         load_ring = load_screen.transform.GetChild(2).gameObject;
-        dummy_camera = transform.GetChild(1).gameObject;
+        connecting_box = transform.GetChild(1).gameObject;
+        dummy_camera = transform.GetChild(2).gameObject;
     }
 
-    //called by CampaignLobbyController and FriendJoinWithButton to ensure that handleSceneLoad() gets connected to the right NetworkManager
-    public void connectNetworkManager()
+    //called by CampaignLobbyController and FriendJoinWithButton to ensure that handleSceneLoad() gets linked to the right NetworkManager
+    public void linkNetworkManager()
     {
         StartCoroutine(yieldForNetworkSceneManager());
     }
@@ -94,6 +97,33 @@ public class LoadHandler : MonoBehaviour
         load_screen.SetActive(true);
     }
 
+    //will begin the connecting screen (until terminated by endConnecting())
+    public void startConnecting()
+    {
+        if (SceneManager.GetActiveScene().name == "TitleScreen")
+        {
+            GameObject main_menu = GameObject.Find("MainMenuCanvas");
+            for (int i = 0; i < main_menu.transform.childCount; i++)
+            {
+                main_menu.transform.GetChild(i).gameObject.SetActive(false);
+            }
+            GameObject title_screen = GameObject.Find("TitleScreenCanvas").transform.GetChild(0).gameObject;
+            title_screen.SetActive(false);
+        }
+        resetAllCoroutines();
+        load_coroutines.Add(StartCoroutine(connectingLoop()));
+        connecting_box.SetActive(true);
+    }
+
+    //will end the connecting screen
+    public void endConnecting()
+    {
+        resetAllCoroutines();
+        connecting_box.SetActive(false);
+        GameObject main_menu = GameObject.Find("MainMenuCanvas");
+        main_menu.transform.GetChild(2).gameObject.SetActive(true);
+    }
+
     //terminates the loading screen
     public void endLoad(bool fade)
     {
@@ -138,6 +168,23 @@ public class LoadHandler : MonoBehaviour
         {
             float z = load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation.eulerAngles.z + SPIN_SPEEDS[i] * Time.deltaTime;
             load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation = Quaternion.Euler(0.0f, 0.0f, z);
+        }
+    }
+
+    //handles the ... animation for connecting
+    IEnumerator connectingLoop()
+    {
+        TMP_Text connecting_text = connecting_box.transform.GetChild(1).GetComponent<TMP_Text>();
+        while (true)
+        {
+            string elipse = "";
+            for (int i = 0; i < 4; i++)
+            {
+                connecting_text.SetText("CONNECTING" + elipse);
+                yield return new WaitForSeconds(0.25f);
+                elipse += ".";
+            }
+            yield return null;
         }
     }
 

@@ -45,10 +45,8 @@ public class FriendJoinWithButton : MonoBehaviour
     {
         if (GetPlayers() < 4)
         {
-            joinCampaignMenuController.ConnectToLobby();
-            //used for loading
-            GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
-            GameNetworkManager.Instance.JoinWithButton(lobby);
+            joinCampaignMenuController.StopCheckingLobbies();
+            GameNetworkManager.Instance.JoinUsingButton(lobby);
         }
     }
 
