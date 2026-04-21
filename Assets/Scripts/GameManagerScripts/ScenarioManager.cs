@@ -507,7 +507,7 @@ public class ScenarioManager : NetworkBehaviour
         PrimaryScript.Instance.deactivate(false, true);
 
         //display death screen using scenario number sn and death message frm
-        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), sn, frm);
+        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), sn, frm);
     }
 
     //used to update the boundary expiration timer in engineer position
