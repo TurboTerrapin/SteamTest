@@ -2,7 +2,6 @@
     LobbyHandler.cs
     - Handles RPCs that pertain to lobby functions, ex. load initiation, difficulty handling
     - Keeps track of who is actually in and connected in the lobby
-    - Handles 
     Contributor(s): Jake Schott
     Last Updated: 4/20/2026
 */
@@ -12,6 +11,7 @@ using Unity.Netcode;
 using System.Collections.Generic;
 using Steamworks;
 using Steamworks.Data;
+using UnityEngine.SceneManagement;
 
 public class LobbyHandler : NetworkBehaviour
 {
@@ -19,6 +19,8 @@ public class LobbyHandler : NetworkBehaviour
     public const int DEFAULT_DIFFICULTY = 0; //Easy
 
     private int difficulty = -1;
+    private List<ulong> player_steam_ids = new List<ulong>() { 0, 0, 0, 0 };
+    private Dictionary<ulong, ulong> player_client_ids = new Dictionary<ulong, ulong>(); //key client ID, value steam ID
     private List<string> player_names = new List<string>() { "", "", "", "" };
     private bool[] player_connecteds = new bool[] { false, false, false, false };
 
@@ -27,6 +29,8 @@ public class LobbyHandler : NetworkBehaviour
         gameObject.name = "LobbyHandler";
         if (NetworkManager.Singleton.IsHost == true)
         {
+            player_steam_ids[0] = SteamClient.SteamId;
+            player_client_ids.Add(0, SteamClient.SteamId);
             player_names[0] = SteamClient.Name;
             player_connecteds[0] = false;
             SteamMatchmaking.OnLobbyMemberJoined += onLobbyChange;
@@ -35,6 +39,7 @@ public class LobbyHandler : NetworkBehaviour
         }
         else
         {
+            player_steam_ids[0] = GameNetworkManager.Instance.currentLobby.Value.Owner.Id;
             player_names[0] = GameNetworkManager.Instance.currentLobby.Value.Owner.Name;
             player_connecteds[0] = true;
         }
@@ -77,6 +82,12 @@ public class LobbyHandler : NetworkBehaviour
         return difficulty;
     }
 
+    //returns list of steam IDs in order of joining
+    public List<ulong> getPlayerSteamIDsInLobby()
+    {
+        return player_steam_ids;
+    }
+
     //returns list of players in lobby in order of joining
     public List<string> getPlayerNamesInLobby()
     {
@@ -89,35 +100,72 @@ public class LobbyHandler : NetworkBehaviour
         return player_connecteds;
     }
 
+    //returns 0-3 index of player by name
+    public int getPlayerIndex(ulong steam_id)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (steam_id == player_steam_ids[i])
+            {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    //returns steam ID corresponding to client ID
+    public ulong getPlayerSteamID(ulong client_id)
+    {
+        if (player_client_ids.ContainsKey(client_id) == false)
+        {
+            return 0;
+        }
+        return player_client_ids[client_id];
+    }
+
     //called by host when restarting a game or when engage is clicked
     public void startLoadForAllPlayers()
     {
+        //send out client IDs as a one-time RPC if in lobby
+        if (SceneManager.GetActiveScene().name == "TitleScreen")
+        {
+            ulong[] client_ids = new ulong[3] { 0, 0, 0 };
+            foreach (KeyValuePair<ulong, ulong> id_match in player_client_ids)
+            {
+                if (id_match.Key != 0 && player_steam_ids.Contains(id_match.Value) == true)
+                {
+                    client_ids[player_steam_ids.IndexOf(id_match.Value) - 1] = id_match.Key;
+                }
+            }
+            lobbyFinalizedRPC(client_ids[0], client_ids[1], client_ids[2]);
+        }
+
         allPlayersLoadRPC(); //triggers below RPC
     }
 
     //resizes the list of player names, eliminating gaps (only called by host)
     private void rebuildLobbyList()
     {
-        List<string> copied_names = new List<string>();
+        List<ulong> copied_steam_ids = new List<ulong>();
         List<bool> copied_connections = new List<bool>();
         for (int i = 0; i < 4; i++)
         {
-            if (player_names[i] != "")
+            if (player_steam_ids[i] != 0)
             {
-                copied_names.Add(player_names[i]);
+                copied_steam_ids.Add(player_steam_ids[i]);
                 copied_connections.Add(player_connecteds[i]);
             }
         }
         for (int i = 0; i < 4; i++)
         {
-            if (i < copied_names.Count)
+            if (i < copied_steam_ids.Count)
             {
-                player_names[i] = copied_names[i];
+                player_steam_ids[i] = copied_steam_ids[i];
                 player_connecteds[i] = copied_connections[i];
             }
             else
             {
-                player_names[i] = "";
+                player_steam_ids[i] = 0;
                 player_connecteds[i] = false;
             }
         }
@@ -128,7 +176,7 @@ public class LobbyHandler : NetworkBehaviour
     {
         if (id == NetworkManager.Singleton.LocalClientId)
         {
-            lobbyConnectionUpdateRPC(SteamClient.Name);
+            lobbyConnectionUpdateRPC(SteamClient.SteamId, NetworkManager.Singleton.LocalClientId);
         }
     }
 
@@ -139,7 +187,7 @@ public class LobbyHandler : NetworkBehaviour
         {
             player_connecteds[0] = true;
             rebuildLobbyList();
-            lobbyUpdateRPC(player_names[1], player_names[2], player_names[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
+            lobbyUpdateRPC(player_steam_ids[1], player_steam_ids[2], player_steam_ids[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
         }
     }
 
@@ -151,24 +199,35 @@ public class LobbyHandler : NetworkBehaviour
             return;
         }
 
-        if (player_names.Contains(f.Name) == true) //remove player from list
+        if (player_steam_ids.Contains(f.Id) == true) //remove player from list
         {
-            player_names[player_names.IndexOf(f.Name)] = "";
+            //remove from client dictionary
+            foreach (KeyValuePair<ulong, ulong> id_match in player_client_ids)
+            {
+                if (id_match.Value == f.Id)
+                {
+                    player_client_ids.Remove(id_match.Key);
+                    break;
+                }
+            }
+
+            //remove from steam list
+            player_steam_ids[player_steam_ids.IndexOf(f.Id)] = 0;
         }
         else //add player to list
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 1; i < 4; i++)
             {
-                if (player_names[i] == "")
+                if (player_steam_ids[i] == 0)
                 {
-                    player_names[i] = f.Name;
+                    player_steam_ids[i] = f.Id;
                     player_connecteds[i] = false;
                     break;
                 }
             }
         }
         rebuildLobbyList();
-        lobbyUpdateRPC(player_names[1], player_names[2], player_names[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
+        lobbyUpdateRPC(player_steam_ids[1], player_steam_ids[2], player_steam_ids[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
     }
 
     //called when loading into the start of a game (there is a waiting period when the host loads into BridgeEnvironment compared to clients)
@@ -183,21 +242,31 @@ public class LobbyHandler : NetworkBehaviour
 
     //called by a client when they are connected to the lobby which gets sent to the host and relayed back to the other clients
     [Rpc(SendTo.Everyone)]
-    private void lobbyConnectionUpdateRPC(string player_name)
+    private void lobbyConnectionUpdateRPC(ulong steam_id, ulong client_id)
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
             return;
         }
 
+        //add to or update dictionary
+        if (player_client_ids.ContainsKey(client_id) == false)
+        {
+            player_client_ids.Add(client_id, steam_id);
+        }
+        else
+        {
+            player_client_ids[client_id] = steam_id;
+        }
+
         //find index of connected player
         for (int i = 0; i < 4; i++)
         {
-            if (player_names[i] == player_name)
+            if (player_steam_ids[i] == steam_id)
             {
                 player_connecteds[i] = true;
                 rebuildLobbyList();
-                lobbyUpdateRPC(player_names[1], player_names[2], player_names[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
+                lobbyUpdateRPC(player_steam_ids[1], player_steam_ids[2], player_steam_ids[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
                 return;
             }
         }
@@ -205,20 +274,56 @@ public class LobbyHandler : NetworkBehaviour
 
     //called by host when a non-host player joins/leaves or connects/disconnects from the lobby
     [Rpc(SendTo.Everyone)]
-    private void lobbyUpdateRPC(string p2, string p3, string p4, bool c2, bool c3, bool c4)
+    private void lobbyUpdateRPC(ulong p2, ulong p3, ulong p4, bool c2, bool c3, bool c4)
     {
-        //player_names[0] = GameNetworkManager.Instance.currentLobby.value.Owner.name;
-        player_names[1] = p2;
-        player_names[2] = p3;
-        player_names[3] = p4;
+        //player_steam_ids[0] = GameNetworkManager.Instance.currentLobby.value.Owner.id;
         //player_connecteds[0] = true;
+        player_steam_ids[1] = p2;
         player_connecteds[1] = c2;
+        player_steam_ids[2] = p3;
         player_connecteds[2] = c3;
+        player_steam_ids[3] = p4;
         player_connecteds[3] = c4;
+
+        //get/assign names of current lobby members (excluding host which should be set in stone)
+        for (int i = 1; i < 4; i++)
+        {
+            if (player_steam_ids[i] != 0)
+            {
+                player_names[i] = new Friend(player_steam_ids[i]).Name;
+            }
+            else
+            {
+                player_names[i] = "";
+            }
+        }
+
+        //trigger visual lobby update if in TitleScreen
         GameObject campaign_lobby = GameObject.Find("CampaignLobby");
         if (campaign_lobby != null)
         {
             campaign_lobby.GetComponent<CampaignLobbyController>().OnLobbyChange();
+        }
+    }
+
+    //called by host on lobby finalized to assign steam IDs to client IDs
+    [Rpc(SendTo.Everyone)]
+    public void lobbyFinalizedRPC(ulong client_id1, ulong client_id2, ulong client_id3)
+    {
+        //skip if host, already cached client IDs
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            return;
+        }
+
+        //if client, cache client IDs based on Steam IDs
+        ulong[] client_ids = new ulong[4] { 0, client_id1, client_id2, client_id3 };
+        for (int i = 0; i < 4; i++)
+        {
+            if (player_steam_ids[i] != 0)
+            {
+                player_client_ids.Add(client_ids[i], player_steam_ids[i]);
+            }
         }
     }
 

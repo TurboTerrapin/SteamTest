@@ -6,10 +6,11 @@
     - Handles giving sit down/get up directions for physical seats
     - Handles storing/giving seat indexes (where they are shifted)
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 4/20/2026
 */
 
 using System.Collections.Generic;
+using Steamworks;
 using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
 using Unity.Netcode;
 using UnityEngine;
@@ -31,7 +32,7 @@ public class SeatManager : NetworkBehaviour
     private PlayerManager player_manager;
     private PowerControl power_control;
 
-    private int[] occupied_seats = new int[4] { -1, -1, -1, -1 }; //corresponds to player index (ex. if occupied_seats[0] is 1, that means player #2 is in the pilot seat)
+    private ulong[] occupied_seats = new ulong[4] { 0, 0, 0, 0 }; //corresponds to player's steam ID (will be 0 if unoccupied)
     private int[] seat_indexes = new int[4] { 1, 0, 0, -1 }; //goes left-to-right from 0 to # of possible seat positions (minus one), -1 for captain because no shifting
     private ulong[] seat_ids = new ulong[4] { 0, 0, 0, 0 }; //nasty hack
 
@@ -47,7 +48,7 @@ public class SeatManager : NetworkBehaviour
         int closest_pos = -1;
         for (int i = 0; i < 4; i++)
         {
-            if (occupied_seats[i] == -1)
+            if (occupied_seats[i] == 0)
             {
                 if (i == 3)
                 {
@@ -131,11 +132,11 @@ public class SeatManager : NetworkBehaviour
     //called to trigger an RPC to occupy a seat
     public bool sitDown(int seat)
     {
-        if (occupied_seats[seat] != -1)
+        if (occupied_seats[seat] != 0)
         {
             return false;
         }
-        transmitSeatOccupantChangeRPC(seat, NetworkManager.Singleton.LocalClientId, player_manager.getPlayerIndex(), true);
+        transmitSeatOccupantChangeRPC(seat, NetworkManager.Singleton.LocalClientId, SteamClient.SteamId, true);
         return true;
     }
 
@@ -187,9 +188,9 @@ public class SeatManager : NetworkBehaviour
     //called to trigger an RPC to relinquish a seat
     public bool getUp(int seat)
     {
-        if (occupied_seats[seat] == player_manager.getPlayerIndex())
+        if (occupied_seats[seat] == SteamClient.SteamId)
         {
-            transmitSeatOccupantChangeRPC(seat, NetworkManager.Singleton.LocalClientId, player_manager.getPlayerIndex(), false);
+            transmitSeatOccupantChangeRPC(seat, NetworkManager.Singleton.LocalClientId, SteamClient.SteamId, false);
             return true;
         }
         return false;
@@ -232,12 +233,12 @@ public class SeatManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitSeatOccupantChangeRPC(int seat, ulong client_id, int occupant, bool occupied)
+    private void transmitSeatOccupantChangeRPC(int seat, ulong client_id, ulong occupant_steam_id, bool occupied)
     {
         if (occupied == true)
         {
-            occupied_seats[seat] = occupant;
-            player_manager.freezePlayer(occupant);
+            occupied_seats[seat] = occupant_steam_id;
+            player_manager.freezePlayer(occupant_steam_id);
             if (seat < 3)
             {
                 if (NetworkManager.Singleton.IsHost == true)
@@ -252,8 +253,8 @@ public class SeatManager : NetworkBehaviour
         }
         else
         {
-            occupied_seats[seat] = -1;
-            player_manager.unfreezePlayer(occupant);
+            occupied_seats[seat] = 0;
+            player_manager.unfreezePlayer(occupant_steam_id);
             replaceSeatPrefab(seat);
         }
         bool[] curr_seats = new bool[4];

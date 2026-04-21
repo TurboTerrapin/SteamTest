@@ -3,7 +3,7 @@
     - Handles loading and managing of players
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 4/20/2026
 */
 
 using System.Collections;
@@ -26,39 +26,69 @@ public class PlayerManager : NetworkBehaviour
 
     private GameObject local_player;
     private LoadHandler load_handler;
-    private int num_starting_players = 0; //how many players are at the start of the game
-    private string[] player_prefab_names = new string[4] { "", "", "", "" };
-    private string[] player_steam_names = new string[4] { "", "", "", "" };
-    private ulong[] player_steam_ids = new ulong[4];
-    private GameObject[] player_prefabs = new GameObject[4] { null, null, null, null };
+    private LobbyHandler lobby_handler;
 
+    private Dictionary<ulong, GameObject> player_prefabs = new Dictionary<ulong, GameObject>(); //key steam ID, value player prefab
+    private Dictionary<ulong, bool> players_ready = new Dictionary<ulong, bool>(); //key steam ID, value ready or not
     private bool game_initialized = false;
-    private int players_ready = 0;
 
     //---------------------------------------------------------------------------------------//
     //----------------------------------INITIAL LOAD-IN--------------------------------------//
     //---------------------------------------------------------------------------------------//
 
-    private void Start()
+    private void Awake()
     {
-        if (NetworkManager.Singleton.IsHost == true)
+        lobby_handler = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>();
+        List<ulong> player_steam_ids = lobby_handler.getPlayerSteamIDsInLobby();
+        for (int i = 0; i < player_steam_ids.Count; i++)
         {
-            num_starting_players = NetworkManager.ConnectedClients.Count;
+            if (player_steam_ids[i] != 0) //ignore empty slots
+            {
+                players_ready.Add(player_steam_ids[i], false);
+            }
         }
     }
 
     //called by LoadHandler after BridgeEnvironment is loaded in
-    public void addPlayer(GameObject this_player, LoadHandler lh)
+    public void addPlayer(GameObject client_player, LoadHandler lh)
     {
-        local_player = this_player;
+        local_player = client_player;
         local_player.GetComponent<NetworkObject>().TrySetParent(players_holder.transform);
         load_handler = lh;
 
-        individualBridgeEnvironmentLoadedRPC(SteamClient.Name, SteamClient.SteamId, local_player.GetComponent<NetworkObject>().OwnerClientId);
+        individualBridgeEnvironmentLoadedRPC(SteamClient.SteamId);
 
         if (NetworkManager.Singleton.IsHost == true)
         {
             StartCoroutine(waitForOthers());
+        }
+    }
+
+    //returns how many players have loaded in current scene
+    private int getNumReadyPlayers()
+    {
+        int num_ready_players = 0;
+        List<ulong> player_steam_ids = lobby_handler.getPlayerSteamIDsInLobby();
+        for (int i = 0; i < player_steam_ids.Count; i++)
+        {
+            if (player_steam_ids[i] != 0 && players_ready[player_steam_ids[i]] == true)
+            {
+                num_ready_players++;
+            }
+        }
+        return num_ready_players;
+    }
+
+    //reset ready players
+    public void resetReadyPlayers()
+    {
+        List<ulong> player_steam_ids = lobby_handler.getPlayerSteamIDsInLobby();
+        for (int i = 0; i < player_steam_ids.Count; i++)
+        {
+            if (players_ready.ContainsKey(player_steam_ids[i]) == true)
+            {
+                players_ready[player_steam_ids[i]] = false;
+            }
         }
     }
 
@@ -72,7 +102,7 @@ public class PlayerManager : NetworkBehaviour
         }
 
         //wait until MINIMUM_PLAYERS have loaded in
-        while (players_ready < minimum_players)
+        while (getNumReadyPlayers() < minimum_players)
         {
             yield return null;
         }
@@ -88,72 +118,37 @@ public class PlayerManager : NetworkBehaviour
         }
 
         //ensure all players are on the same page
-        //------------------------------------//
-        collectiveBridgeEnvironmentLoadedRPC(
-                      player_steam_names[0], 
-                      player_steam_ids[0],
-                      player_steam_names[1],
-                      player_steam_ids[1],
-                      player_steam_names[2],
-                      player_steam_ids[2],
-                      player_steam_names[3],
-                      player_steam_ids[3]
-                      );
+        collectiveBridgeEnvironmentLoadedRPC();
     }
 
     //called when ONE player is done loading into BridgeEnvironment for the first time
     [Rpc(SendTo.Everyone)]
-    private void individualBridgeEnvironmentLoadedRPC(string plr_steam_name, ulong plr_steam_id, ulong plr_game_id)
+    private void individualBridgeEnvironmentLoadedRPC(ulong steam_id)
     {
-        //record Steam name (ex. EPICJAKEISCOOL)
-        player_steam_names[plr_game_id] = plr_steam_name;
-        //record Steam user ID (ex. 13590185091)
-        player_steam_ids[plr_game_id] = plr_steam_id;
-        //record player prefab name (ex. EPICJAKEISCOOL_13590185091)
-        player_prefab_names[plr_game_id] = plr_steam_name + "_" + plr_steam_id;
-
         if (NetworkManager.Singleton.IsHost == true)
         {
-            players_ready++;
+            players_ready[steam_id] = true;
         }
     }
 
     //called when EVERYONE in the lobby is done loading into BridgeEnvironment for the first time
     [Rpc(SendTo.Everyone)]
-    private void collectiveBridgeEnvironmentLoadedRPC(string plr_a_steam_name, ulong plr_a_steam_id, string plr_b_steam_name, ulong plr_b_steam_id, string plr_c_steam_name, ulong plr_c_steam_id, string plr_d_steam_name, ulong plr_d_steam_id)
+    private void collectiveBridgeEnvironmentLoadedRPC()
     {
-        player_steam_names[0] = plr_a_steam_name;
-        player_steam_ids[0] = plr_a_steam_id;
-        player_steam_names[1] = plr_b_steam_name;
-        player_steam_ids[1] = plr_b_steam_id;
-        player_steam_names[2] = plr_c_steam_name;
-        player_steam_ids[2] = plr_c_steam_id;
-        player_steam_names[3] = plr_d_steam_name;
-        player_steam_ids[3] = plr_d_steam_id;
-
-        //prepare player prefab names
-        for (int i = 0; i < 4; i++)
+        //store every player
+        foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
         {
-            player_prefab_names[i] = player_steam_names[i] + "_" + player_steam_ids[i];
+            ulong player_steam_id = lobby_handler.getPlayerSteamID(plr.GetComponent<NetworkObject>().OwnerClientId);
+            int player_index = lobby_handler.getPlayerIndex(player_steam_id);
+            plr.name = lobby_handler.getPlayerNamesInLobby()[player_index] + "_" + lobby_handler.getPlayerSteamIDsInLobby()[player_index];
+            player_prefabs.Add(player_steam_id, plr);
         }
 
         //position local player
-        local_player.transform.localPosition = spawn_points.transform.GetChild(getPlayerIndex()).localPosition;
+        local_player.transform.localPosition = spawn_points.transform.GetChild(lobby_handler.getPlayerIndex(lobby_handler.getPlayerSteamID(NetworkManager.Singleton.LocalClientId))).localPosition;
 
-        foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
-        {
-            NetworkObject plr_no = plr.GetComponent<NetworkObject>();
-            if (plr_no != null)
-            {
-                int index = (int)plr_no.OwnerClientId;
-                if (index < 4)
-                {
-                    player_prefabs[index] = plr;
-                    player_prefabs[index].name = player_prefab_names[index];
-                }
-            }
-        }
-        players_ready = 0;
+        //reset ready player counter to 0 to prepare for scenario load instead of BridgeEnvironment load
+        resetReadyPlayers();
         if (NetworkManager.Singleton.IsHost == true)
         {
             GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().intializeScenarioDatabase();
@@ -165,11 +160,11 @@ public class PlayerManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void unlockPlayersRPC()
     {
-        for (int i = 0; i < 4; i++)
+        foreach (GameObject plr in player_prefabs.Values)
         {
-            if (player_prefabs[i] != null)
+            if (plr != null)
             {
-                unfreezePlayer(i);
+                unfreezePlayer(plr);
             }
         }
         PrimaryScript.Instance.unlockPlayer(local_player);
@@ -198,8 +193,7 @@ public class PlayerManager : NetworkBehaviour
     //called by PauseMenuController and FailureHandler
     public static void leaveGame()
     {
-        GameNetworkManager.Instance.currentLobby.Value.Leave();
-        GameObject.Destroy(GameObject.Find("NetworkManager"));
+        GameNetworkManager.Instance.Disconnect();
         clearDontDestroyOnLoads();
         SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
         SceneData.targetUI = "MainMenu";
@@ -222,7 +216,7 @@ public class PlayerManager : NetworkBehaviour
         plr.GetComponent<Rigidbody>().useGravity = true;
     }
 
-    //called by FailureHandler
+    //called by FailureHandler.cs
     public void freezeAllPlayers()
     {
         foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
@@ -231,54 +225,27 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    public void freezePlayer(int index)
+    public void freezePlayer(ulong steam_id)
     {
-        if (index > player_prefabs.Length || player_prefabs[index] == null)
+        if (player_prefabs.ContainsKey(steam_id) == false)
         {
             return;
         }
-        freezePlayer(player_prefabs[index]);
+        freezePlayer(player_prefabs[steam_id]);
     }
 
-    public void unfreezePlayer(int index)
+    public void unfreezePlayer(ulong steam_id)
     {
-        if (index > player_prefabs.Length || player_prefabs[index] == null)
+        if (player_prefabs.ContainsKey(steam_id) == false)
         {
             return;
         }
-        unfreezePlayer(player_prefabs[index]);
+        unfreezePlayer(player_prefabs[steam_id]);
     }
 
     //---------------------------------------------------------------------------------------//
     //----------------------------------USEFUL INFORMATION-----------------------------------//
     //---------------------------------------------------------------------------------------//
-
-    //returns how many players there were at the start of the game (ideally should always be 4)
-    public int getNumStartingPlayers()
-    {
-        return num_starting_players;
-    }
-
-    //returns the 0-3 index of the player with respect to the lobby (0 = host)
-    public int getPlayerIndex()
-    {
-        if (local_player == null)
-        {
-            return -1;
-        }
-        if (local_player.GetComponent<NetworkObject>() != null)
-        {
-            return (int)local_player.GetComponent<NetworkObject>().OwnerClientId;
-        }
-        for (int i = 0; i < player_steam_names.Length; i++)
-        {
-            if (player_steam_names[i] == SteamClient.Name)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     //returns the player prefab of the local client
     public GameObject getLocalPlayer()
@@ -286,26 +253,14 @@ public class PlayerManager : NetworkBehaviour
         return local_player;
     }
 
-    //returns a string table of the player Steam usernames corresponding to their order of when they joined (0 = host)
-    public string[] getPlayerNames()
-    {
-        return player_steam_names;
-    }
-
     //---------------------------------------------------------------------------------------//
     //------------------------------------SCENARIO LOADING-----------------------------------//
     //---------------------------------------------------------------------------------------//
 
-    //called by ScenarioManager
-    public void resetPlayersReady()
-    {
-        players_ready = 0;
-    }
-
-    //called by LoadHandler
+    //called by LoadHandler.cs
     public void signifyScenarioLoaded()
     {
-        scenarioLoadedRPC();
+        scenarioLoadedRPC(SteamClient.SteamId);
     }
 
     //when paths are generated, ship is relocated into entrance path, thus requiring an update to ship screens
@@ -350,18 +305,18 @@ public class PlayerManager : NetworkBehaviour
         GameObject.Find("AudioManager").GetComponent<AudioManager>().UnmuteAudio();
     }
 
-    //fired when a client's AsyncOperation for loading a scene is complete
+    //fired when a client's AsyncOperation for loading a scenario (not BridgeEnvironment) is complete
     [Rpc(SendTo.Everyone)]
-    private void scenarioLoadedRPC()
+    private void scenarioLoadedRPC(ulong steam_id)
     {
-        players_ready++;
+        players_ready[steam_id] = true;
 
         //if host, check if all players are ready
         if (NetworkManager.Singleton.IsHost == true)
         {
-            if (players_ready >= num_starting_players)
+            if (getNumReadyPlayers() >= NetworkManager.Singleton.ConnectedClientsIds.Count)
             {
-                resetPlayersReady();
+                resetReadyPlayers();
                 GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario(!game_initialized);
                 if (game_initialized == false)
                 {
