@@ -186,6 +186,7 @@ public class GameNetworkManager : MonoBehaviour
     {
         Debug.Log("Steam connection lost");
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().displayLostConnection("Connection interrupted.");
+        Disconnect();
     }
 
     //Called when starting host/client, used to link client updates

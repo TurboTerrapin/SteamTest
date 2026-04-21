@@ -12,17 +12,20 @@ using System.Collections.Generic;
 using Steamworks;
 using Steamworks.Data;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class LobbyHandler : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    public const int DEFAULT_DIFFICULTY = 0; //Easy
+    public const int DEFAULT_DIFFICULTY = 0; //easy
+    private static float HEARTBEAT_LENGTH = 5.0f; //time in seconds that a client can go without getting a ping from host before it disconnects
 
     private int difficulty = -1;
     private List<ulong> player_steam_ids = new List<ulong>() { 0, 0, 0, 0 };
     private Dictionary<ulong, ulong> player_client_ids = new Dictionary<ulong, ulong>(); //key client ID, value steam ID
     private List<string> player_names = new List<string>() { "", "", "", "" };
     private bool[] player_connecteds = new bool[] { false, false, false, false };
+    private Coroutine heartbeat_coroutine = null;
 
     private void Awake()
     {
@@ -36,12 +39,14 @@ public class LobbyHandler : NetworkBehaviour
             SteamMatchmaking.OnLobbyMemberJoined += onLobbyChange;
             SteamMatchmaking.OnLobbyMemberLeave += onLobbyChange;
             SteamMatchmaking.OnLobbyCreated += onLobbyCreated;
+            heartbeat_coroutine = StartCoroutine(heartbeatSender()); //send out heartbeat pings
         }
         else
         {
             player_steam_ids[0] = GameNetworkManager.Instance.currentLobby.Value.Owner.Id;
             player_names[0] = GameNetworkManager.Instance.currentLobby.Value.Owner.Name;
             player_connecteds[0] = true;
+            heartbeat_coroutine = StartCoroutine(heartbeatChecker()); //track reception of heartbeat pings
         }
         NetworkManager.Singleton.OnClientConnectedCallback += onClientConnect;
     }
@@ -338,5 +343,39 @@ public class LobbyHandler : NetworkBehaviour
         {
             campaign_lobby.GetComponent<CampaignLobbyController>().DisplayDifficultyChange(new_difficulty);
         }
+    }
+
+    IEnumerator heartbeatChecker()
+    {
+        yield return new WaitForSeconds(HEARTBEAT_LENGTH);
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().displayLostConnection("The host has disconnected.");
+        GameNetworkManager.Instance.Disconnect();
+        heartbeat_coroutine = null;
+    }
+
+    IEnumerator heartbeatSender()
+    {
+        float half_heartbeat = HEARTBEAT_LENGTH * 0.5f;
+        while (true)
+        {
+            yield return new WaitForSeconds(half_heartbeat);
+            heartbeatRPC();
+        }
+    }
+
+    //called by host every HEARTBEAT_TIME to let the players know that a connection is still active
+    [Rpc(SendTo.Everyone)]
+    private void heartbeatRPC()
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            return;
+        }
+
+        if (heartbeat_coroutine != null)
+        {
+            StopCoroutine(heartbeat_coroutine);
+        }
+        heartbeat_coroutine = StartCoroutine(heartbeatChecker());
     }
 }

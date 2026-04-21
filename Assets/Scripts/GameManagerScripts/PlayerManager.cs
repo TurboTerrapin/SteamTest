@@ -186,14 +186,18 @@ public class PlayerManager : NetworkBehaviour
         List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas", "LobbyHandler" };
         foreach (string d in to_destroy)
         {
-            GameObject.Destroy(GameObject.Find(d));
+            GameObject attempt_to_destroy = GameObject.Find(d);
+            if (attempt_to_destroy != null)
+            {
+                GameObject.Destroy(attempt_to_destroy);
+            }
         }
     }
 
     //called by PauseMenuController and FailureHandler
     public static void leaveGame()
     {
-        GameNetworkManager.Instance.Disconnect();
+        GameObject.Destroy(NetworkManager.Singleton.gameObject);
         clearDontDestroyOnLoads();
         SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
         SceneData.targetUI = "MainMenu";

@@ -7,6 +7,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
@@ -23,6 +24,7 @@ public class LoadHandler : MonoBehaviour
     private GameObject connecting_box;
     private GameObject connection_lost;
     private GameObject dummy_camera;
+    private AsyncOperation load_operation = null;
     private Coroutine fade_black_coroutine = null;
     private Coroutine connecting_coroutine = null;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
@@ -83,16 +85,17 @@ public class LoadHandler : MonoBehaviour
     }
 
     //only called when NetworkManager.Singleton.SceneManager changes the scene
-    private void handleSceneLoad(ulong clientId, string sceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
+    private void handleSceneLoad(ulong client_id, string scene_name, LoadSceneMode load_scene_mode, AsyncOperation async_operation)
     {
         resetAllCoroutines();
-        if (sceneName == "BridgeEnvironment") //BridgeEnvironment load-in
+        load_operation = async_operation;
+        if (scene_name == "BridgeEnvironment") //BridgeEnvironment load-in
         {
-            load_coroutines.Add(StartCoroutine(loadBridgeEnvironment(asyncOperation)));
+            load_coroutines.Add(StartCoroutine(loadBridgeEnvironment()));
         }
-        else //scenario transition
+        else //scenario load-in
         {
-            load_coroutines.Add(StartCoroutine(loadScenarioTransition(asyncOperation)));
+            load_coroutines.Add(StartCoroutine(loadScenarioTransition()));
         }
     }
 
@@ -168,6 +171,34 @@ public class LoadHandler : MonoBehaviour
         }
     }
 
+    IEnumerator lostConnectionDisplayer(string message)
+    {
+        while (load_operation != null && load_operation.isDone == false)
+        {
+            yield return null;
+        }
+
+        if (load_coroutines.Count > 0) //if currently loading into BridgeEnvironment, loading a scene, or transitioning between scenes
+        {
+            GameObject.Destroy(NetworkManager.Singleton.gameObject);
+            PlayerManager.clearDontDestroyOnLoads();
+            SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
+            SceneData.targetUI = "MainMenu";
+            startLoad();
+            while (SceneManager.GetActiveScene().name != "TitleScreen") //get back to TitleScreen
+            {
+                yield return null;
+            }
+            endLoad(false);
+        }
+        hideTitleAndMainMenuElements();
+        resetAllCoroutines();
+
+        connection_lost.transform.GetChild(3).GetComponent<TMP_Text>().SetText(message + " Please return to the main menu.");
+        connecting_box.SetActive(false);
+        connection_lost.SetActive(true);
+    }
+
     public void displayLostConnection(string message)
     {
         if (connection_lost.activeSelf == true)
@@ -175,11 +206,7 @@ public class LoadHandler : MonoBehaviour
             return;
         }
 
-        hideTitleAndMainMenuElements();
-        resetAllCoroutines();
-        connection_lost.transform.GetChild(3).GetComponent<TMP_Text>().SetText(message + " Please return to the main menu.");
-        connecting_box.SetActive(false);
-        connection_lost.SetActive(true);
+        StartCoroutine(lostConnectionDisplayer(message));
     }
 
     //called when clicking the main menu button on connection lost screen
@@ -250,7 +277,7 @@ public class LoadHandler : MonoBehaviour
         }
     }
 
-    IEnumerator loadBridgeEnvironment(AsyncOperation load_operation)
+    IEnumerator loadBridgeEnvironment()
     {
         dummy_camera.SetActive(true);
 
@@ -281,6 +308,7 @@ public class LoadHandler : MonoBehaviour
             spinRings();
             yield return null;
         }
+        load_operation = null;
         GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
 
         //wait until PlayerManager interrupts load screen using endLoad()
@@ -292,7 +320,7 @@ public class LoadHandler : MonoBehaviour
     }
 
     //called whenever the client loads into a scenario 
-    IEnumerator loadScenarioTransition(AsyncOperation load_operation)
+    IEnumerator loadScenarioTransition()
     {
         PlayerManager player_manager = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>();
         GameObject transition_canvas = GameObject.Find("ScenarioTransitioner").GetComponent<TransitionHandler>().TransitionCanvas;
@@ -302,11 +330,12 @@ public class LoadHandler : MonoBehaviour
         {
             if (scenario_loaded == false)
             {
-                if (load_operation.isDone == true)
+                if (load_operation != null && load_operation.isDone == true)
                 {
                     //tell PlayerManager that the new scenario is loaded
                     player_manager.signifyScenarioLoaded();
                     scenario_loaded = true;
+                    load_operation = null;
                 }
             }
 
