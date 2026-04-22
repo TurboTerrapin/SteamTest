@@ -34,7 +34,7 @@ public class SeatManager : NetworkBehaviour
 
     private ulong[] occupied_seats = new ulong[4] { 0, 0, 0, 0 }; //corresponds to player's steam ID (will be 0 if unoccupied)
     private int[] seat_indexes = new int[4] { 1, 0, 0, -1 }; //goes left-to-right from 0 to # of possible seat positions (minus one), -1 for captain because no shifting
-    private ulong[] seat_ids = new ulong[4] { 0, 0, 0, 0 }; //nasty hack
+    private ulong[] seat_ids = new ulong[4] { 0, 0, 0, 0 }; //keep track of seats' network object IDs
 
     private void Start()
     {
