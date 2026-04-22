@@ -7,16 +7,9 @@ public class AudioManager : MonoBehaviour
     public AudioMixer masterMixer;
     public List<GameObject> audioSources;
 
-    private List<float> startingVolumes = new List<float>();
-
     public void InitializeAudio()
     {
         SetMasterVolume(0.75f);
-
-        foreach (GameObject audioSource in audioSources)
-        {
-            startingVolumes.Add(audioSource.GetComponent<AudioSource>().volume);
-        }
 
         audioSources[0].GetComponent<AudioSource>().Play(); //play ambient noise
         audioSources[1].GetComponent<AudioSource>().Play(); //play ship beeps
@@ -30,17 +23,11 @@ public class AudioManager : MonoBehaviour
 
     public void MuteAudio()
     {
-        foreach (GameObject audioSource in audioSources)
-        {
-            audioSource.transform.GetComponent<AudioSource>().volume = 0.0f;
-        }
+        masterMixer.SetFloat("SFXVolume", -80.0f);
     }
 
     public void UnmuteAudio()
     {
-        foreach (GameObject audioSource in audioSources)
-        {
-            audioSource.transform.GetComponent<AudioSource>().volume = startingVolumes[audioSources.IndexOf(audioSource)];
-        }
+        masterMixer.SetFloat("SFXVolume", 0.0f);
     }
 }

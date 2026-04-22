@@ -11,7 +11,6 @@
 
 using System.Collections;
 using Steamworks;
-using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -65,7 +64,7 @@ public class PlayerMove : NetworkBehaviour
         }
     }
 
-    //called by FailureHandler on game restart
+    //called by FailureHandler.cs on game restart
     public void resetPlayerMove()
     {
         StopAllCoroutines();
@@ -73,9 +72,16 @@ public class PlayerMove : NetworkBehaviour
         seat_change_coroutine = null;
         shift_coroutine = null;
         reposition_coroutine = null;
+        myAnimationController.setAnimatorBool("IsLeft", false);
+        myAnimationController.setAnimatorInteger("Seat", 0);
+        myAnimationController.setAnimatorFloat("Movement", 0.0f);
+        myAnimationController.setAnimatorFloat("Forward", 0.0f);
+        myAnimationController.setAnimatorBool("SittingDown", false);
+        myAnimationController.setAnimatorBool("GettingUp", false);
+        myAnimationController.setCharacterPosition(Vector3.zero);
     }
 
-    //called by ControlScript
+    //called by PrimaryScript.cs
     public void sitDown(int pos)
     {
         resetPlayerMove();
@@ -270,7 +276,7 @@ public class PlayerMove : NetworkBehaviour
         }
     }
 
-    void Move()
+    private void Move()
     {
         Vector3 movement; //= Vector3.zero;
 

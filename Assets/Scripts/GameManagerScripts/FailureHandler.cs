@@ -182,7 +182,7 @@ public class FailureHandler : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost == true)
         {
             int restartVotes = 0;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < playerStates.Count; i++)
             {
                 if (playerStates[i] == 1) // if player is ready
                 {

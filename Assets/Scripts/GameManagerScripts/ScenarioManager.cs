@@ -401,6 +401,9 @@ public class ScenarioManager : NetworkBehaviour
             plr.transform.parent = GameObject.Find("NetworkManager").transform.parent;
         }
 
+        //destroy seats
+        GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().destroySeats();
+
         handleFailureRPC(scenario_number, failure_report_message);
     }
 

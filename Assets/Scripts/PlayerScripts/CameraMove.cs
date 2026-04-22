@@ -104,12 +104,16 @@ public class CameraMove : MonoBehaviour
         cameraLocked = false;
     }
 
-    //Called by FailureHandler on game restart
+    //Called by FailureHandler.cs on game restart
     public void ResetCamera()
     {
+        StopAllCoroutines();
+        parentRotationLock = false;
         cameraLocked = false;
+        captainMode = false;
         prevPos = new Vector2(0.0f, 0.0f);
         cameraShakeEffects.Clear();
+        cameraShakeIntensity = 0.0f;
         cameraHolder.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         rb.angularVelocity = Vector3.zero;

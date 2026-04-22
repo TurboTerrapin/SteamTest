@@ -176,7 +176,7 @@ public class PlayerManager : NetworkBehaviour
 
     public static void clearDontDestroyOnLoads()
     {
-        List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas", "LobbyHandler" };
+        List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas" };
         foreach (string d in to_destroy)
         {
             GameObject attempt_to_destroy = GameObject.Find(d);
