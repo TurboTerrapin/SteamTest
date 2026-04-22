@@ -1,9 +1,9 @@
 /*
     PlayerManager.cs
-    - Handles loading and managing of players
+    - Handles loading and managing of players/scenes
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 4/20/2026
+    Last Updated: 4/21/2026
 */
 
 using System.Collections;
@@ -16,7 +16,6 @@ using UnityEngine.SceneManagement;
 public class PlayerManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static int MINIMUM_PLAYERS = -1; //if -1, will default to how many players are in the game
     private static float LOAD_IN_DELAY = 1.5f; //how long it takes after all players have their scenes loaded to actually unlock them
 
     public GameObject spawn_points;
@@ -95,19 +94,13 @@ public class PlayerManager : NetworkBehaviour
     //only run by the host
     IEnumerator waitForOthers()
     {
-        int minimum_players = MINIMUM_PLAYERS;
-        if (minimum_players < 0)
-        {
-            minimum_players = NetworkManager.Singleton.ConnectedClients.Count;
-        }
-
-        //wait until MINIMUM_PLAYERS have loaded in
-        while (getNumReadyPlayers() < minimum_players)
+        //wait until all connected players have loaded in
+        while (getNumReadyPlayers() < NetworkManager.Singleton.ConnectedClientsIds.Count)
         {
             yield return null;
         }
 
-        //parent all players to spaceship
+        //parent all players to players_holder
         foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
         {
             NetworkObject plr_no = plr.GetComponent<NetworkObject>();
@@ -135,7 +128,7 @@ public class PlayerManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void collectiveBridgeEnvironmentLoadedRPC()
     {
-        //store every player
+        //store every player in player_prefabs and rename to STEAMNAME_STEAMID
         foreach (GameObject plr in GameObject.FindGameObjectsWithTag("Player"))
         {
             ulong player_steam_id = lobby_handler.getPlayerSteamID(plr.GetComponent<NetworkObject>().OwnerClientId);
