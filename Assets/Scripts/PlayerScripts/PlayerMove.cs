@@ -67,11 +67,7 @@ public class PlayerMove : NetworkBehaviour
     //called by FailureHandler.cs on game restart
     public void resetPlayerMove()
     {
-        StopAllCoroutines();
-        move_coroutine = null;
-        seat_change_coroutine = null;
-        shift_coroutine = null;
-        reposition_coroutine = null;
+        resetCoroutines();
         myAnimationController.setAnimatorBool("IsLeft", false);
         myAnimationController.setAnimatorInteger("Seat", 0);
         myAnimationController.setAnimatorFloat("Movement", 0.0f);
@@ -81,10 +77,20 @@ public class PlayerMove : NetworkBehaviour
         myAnimationController.setCharacterPosition(Vector3.zero);
     }
 
+    //called by resetPlayerMove()
+    private void resetCoroutines()
+    {
+        StopAllCoroutines();
+        move_coroutine = null;
+        seat_change_coroutine = null;
+        shift_coroutine = null;
+        reposition_coroutine = null;
+    }
+
     //called by PrimaryScript.cs
     public void sitDown(int pos)
     {
-        resetPlayerMove();
+        resetCoroutines();
         seat_change_coroutine = StartCoroutine(sitDownSequence(pos));
     }
 
@@ -109,7 +115,7 @@ public class PlayerMove : NetworkBehaviour
 
     public void getUp(int pos)
     {
-        resetPlayerMove();
+        resetCoroutines();
         seat_change_coroutine = StartCoroutine(getUpSequence(pos));
     }
 
