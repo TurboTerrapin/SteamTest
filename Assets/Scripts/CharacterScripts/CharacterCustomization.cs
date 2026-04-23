@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using TMPro;
 
 public class CharacterCustomization : NetworkBehaviour
 {
@@ -12,8 +13,6 @@ public class CharacterCustomization : NetworkBehaviour
     private GameObject rightEyeObject = null;
     [SerializeField]
     private GameObject playerObject = null;
-
-
 
     [SerializeField]
     private List<GameObject> hairModels = new List<GameObject>();
@@ -86,7 +85,7 @@ public class CharacterCustomization : NetworkBehaviour
                 ApplySkinTone(SkinTone);
             }
 
-            // Load player name
+            //// Load player name
             //FirstNameInput.text = data.FirstName;
             //LastNameInput.text = data.LastName;
 
