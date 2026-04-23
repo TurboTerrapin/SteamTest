@@ -76,10 +76,10 @@ public class CustomizeCharacterMenu : MonoBehaviour
         SkinToneHexInput.characterLimit = 6;
         SkinToneHexInput.onValidateInput = CheckHexValue;
 
-        FirstNameInput.characterLimit = 8;
+        FirstNameInput.characterLimit = 10;
         FirstNameInput.onValidateInput = CheckName;
 
-        LastNameInput.characterLimit = 8;
+        LastNameInput.characterLimit = 10;
         LastNameInput.onValidateInput = CheckName;
 
         // Listen for when player hits enter, call OnSubmit and pass the hex value to it.
