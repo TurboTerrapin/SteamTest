@@ -3,7 +3,7 @@
     - Handles loading and managing of players/scenes
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 4/21/2026
+    Last Updated: 4/22/2026
 */
 
 using System.Collections;
@@ -187,10 +187,13 @@ public class PlayerManager : NetworkBehaviour
         }
     }
 
-    //called by PauseMenuController and FailureHandler
+    //called by PauseMenuController.cs and FailureHandler.cs
     public static void leaveGame()
     {
-        GameObject.Destroy(NetworkManager.Singleton.gameObject);
+        if (NetworkManager.Singleton != null)
+        {
+            GameObject.Destroy(NetworkManager.Singleton.gameObject);
+        }
         clearDontDestroyOnLoads();
         SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
         SceneData.targetUI = "MainMenu";

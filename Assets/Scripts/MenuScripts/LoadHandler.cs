@@ -1,13 +1,14 @@
 /*
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
-    Contributor(s): Jake Schott
-    Last Updated: 4/20/2026
+    - Handles displaying disconnection and connecting (...) screens
+    - Handles initial Steam check
+    Contributor(s): Jake Schott, Beata Musial
+    Last Updated: 4/22/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
@@ -19,10 +20,13 @@ public class LoadHandler : MonoBehaviour
     //LOAD CIRCLE SETTINGS
     private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 200.0f, 70.0f };
 
+    public GameObject title_screen_canvas; //only used/needed on application open
+
     private GameObject load_screen;
     private GameObject load_ring;
     private GameObject connecting_box;
     private GameObject connection_lost;
+    private GameObject steam_failure;
     private GameObject dummy_camera;
     private AsyncOperation load_operation = null;
     private Coroutine fade_black_coroutine = null;
@@ -35,20 +39,36 @@ public class LoadHandler : MonoBehaviour
         transform.name = "TempLoadHandler";
         if (GameObject.Find("LoadHandler") != null)
         {
+            if (GameObject.Find("LoadHandler").GetComponent<LoadHandler>().isLoading() == true) //end the load of the other LoadHandler if loading back into TitleScreen
+            {
+                GameObject.Find("LoadHandler").GetComponent<LoadHandler>().endLoad(false);
+                GameObject.Find("LoadHandler").GetComponent<LoadHandler>().returnToMainMenu();
+            }
             GameObject.Destroy(gameObject);
         }
         transform.name = "LoadHandler";
-
-        DontDestroyOnLoad(gameObject);
 
         load_screen = transform.GetChild(0).gameObject;
         load_ring = load_screen.transform.GetChild(2).gameObject;
         connecting_box = transform.GetChild(1).gameObject;
         connection_lost = transform.GetChild(2).gameObject;
-        dummy_camera = transform.GetChild(3).gameObject;
+        steam_failure = transform.GetChild(3).gameObject;
+        dummy_camera = transform.GetChild(4).gameObject;
+
+        //check for Steam at beginning
+        if (SteamClient.IsValid == false || SteamClient.IsLoggedOn == false)
+        {
+            steam_failure.SetActive(true);
+        }
+        else
+        {
+            title_screen_canvas.SetActive(true);
+        }
+
+        DontDestroyOnLoad(gameObject);
     }
 
-    //called by CampaignLobbyController and FriendJoinWithButton to ensure that handleSceneLoad() gets linked to the right NetworkManager
+    //called by CampaignLobbyController.cs and FriendJoinWithButton.cs to ensure that handleSceneLoad() gets linked to the right NetworkManager
     public void linkNetworkManager()
     {
         StartCoroutine(yieldForNetworkSceneManager());
@@ -106,6 +126,12 @@ public class LoadHandler : MonoBehaviour
         randomizeColors();
         load_coroutines.Add(StartCoroutine(loadLoop()));
         load_screen.SetActive(true);
+    }
+
+    //returns true if loading at least one scene/scenario
+    public bool isLoading()
+    {
+        return load_coroutines.Count > 0;
     }
 
     //if currently on TitleScreen scene, hide all elements
@@ -191,6 +217,13 @@ public class LoadHandler : MonoBehaviour
             }
             endLoad(false);
         }
+        else if (SceneManager.GetActiveScene().name != "TitleScreen") //currently playing in an active session
+        {
+            PrimaryScript.Instance.unpause(); //forces unpause
+            PrimaryScript.Instance.deactivate(false, true); //stops control interaction
+            GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio(); //mute SFX
+            dummy_camera.SetActive(true);
+        }
         hideTitleAndMainMenuElements();
         resetAllCoroutines();
 
@@ -212,11 +245,15 @@ public class LoadHandler : MonoBehaviour
     //called when clicking the main menu button on connection lost screen
     public void returnToMainMenu()
     {
+        connection_lost.SetActive(false);
         if (SceneManager.GetActiveScene().name == "TitleScreen")
         {
-            connection_lost.SetActive(false);
             GameObject main_menu = GameObject.Find("MainMenuCanvas");
             main_menu.transform.GetChild(0).gameObject.SetActive(true);
+        }
+        else
+        {
+            PlayerManager.leaveGame();
         }
     }
 
@@ -245,6 +282,12 @@ public class LoadHandler : MonoBehaviour
             float z = load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation.eulerAngles.z + SPIN_SPEEDS[i] * Time.deltaTime;
             load_ring.transform.GetChild(i).GetComponent<RectTransform>().rotation = Quaternion.Euler(0.0f, 0.0f, z);
         }
+    }
+
+    //links to the quit button in the Steam connection failure
+    public void handleQuitButtonClick()
+    {
+        Application.Quit();
     }
 
     //handles the ... animation for connecting
