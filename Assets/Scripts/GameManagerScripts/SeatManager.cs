@@ -2,13 +2,15 @@
     SeatManager.cs
     - Used to ensure two players are not sitting in the same seat at the same time
     - Checks if a player is close enough to sit down
-    - Handles RPC which positions the seats
+    - Handles RPCs which position the seats
     - Handles giving sit down/get up directions for physical seats
     - Handles storing/giving seat indexes (where they are shifted)
+    - Handles weird captain chair mechanics (the moving parts)
     Contributor(s): Jake Schott
-    Last Updated: 4/21/2026
+    Last Updated: 4/25/2026
 */
 
+using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
 using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
@@ -29,12 +31,15 @@ public class SeatManager : NetworkBehaviour
     //GAME OBJECTS
     public List<GameObject> physical_seats = null;
     public List<GameObject> seat_prefabs = null;
+    public List<GameObject> captain_flipouts = null; //0 is port, 1 is starboard
+    public GameObject captain_retractables;
     private PlayerManager player_manager;
     private PowerControl power_control;
 
     private ulong[] occupied_seats = new ulong[4] { 0, 0, 0, 0 }; //corresponds to player's steam ID (will be 0 if unoccupied)
     private int[] seat_indexes = new int[4] { 1, 0, 0, -1 }; //goes left-to-right from 0 to # of possible seat positions (minus one), -1 for captain because no shifting
     private ulong[] seat_ids = new ulong[4] { 0, 0, 0, 0 }; //keep track of seats' network object IDs
+    private Coroutine captain_seat_transformation_coroutine = null;
 
     private void Start()
     {
@@ -211,6 +216,7 @@ public class SeatManager : NetworkBehaviour
         return false;
     }
 
+    //used for pilot, tactician, and engineers seats
     private void replaceSeatPrefab(int seat) 
     {
         if (seat == 3)
@@ -247,6 +253,115 @@ public class SeatManager : NetworkBehaviour
         transmitShiftBeginRPC(seat);
     }
 
+    IEnumerator adjustRetractablesHeight(float shift_time, bool up)
+    {
+        float starting_y_pos = captain_retractables.transform.localPosition.y;
+        float dest_y_pos = 0.0f;
+        if (up == false)
+        {
+            dest_y_pos = -0.25f;
+        }
+
+        float anim_time = shift_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            captain_retractables.transform.localPosition = new Vector3(0.0f, Mathf.Lerp(dest_y_pos, starting_y_pos,  anim_time / shift_time), captain_retractables.transform.localPosition.z);
+
+            yield return null;
+        }
+    }
+
+    IEnumerator adjustRetractablesForwardPosition(float shift_time, bool back)
+    {
+        float starting_z_pos = captain_retractables.transform.localPosition.z;
+        float dest_z_pos = -0.32f;
+        if (back == false)
+        {
+            dest_z_pos = 0.0f;
+        }
+
+        float anim_time = shift_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            captain_retractables.transform.localPosition = new Vector3(0.0f, captain_retractables.transform.localPosition.y, Mathf.Lerp(dest_z_pos, starting_z_pos, anim_time / shift_time));
+
+            yield return null;
+        }
+    }
+
+    IEnumerator adjustFlipoutsRotation(float rotation_time, bool enclosed)
+    {
+        Vector2[] rotation_values = new Vector2[] { new Vector2(0.0f, 90.0f), new Vector2(360.0f, 270.0f) };
+        if (enclosed == false)
+        {
+            rotation_values = new Vector2[] { new Vector2(90.0f, 0.0f), new Vector2(270.0f, 360.0f) };
+        }
+
+        float anim_time = rotation_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            for (int i = 0; i < 2; i++)
+            {
+                captain_flipouts[i].transform.localRotation = Quaternion.Euler(-90.0f, 0.0f, Mathf.Lerp(rotation_values[i].y, rotation_values[i].x,  anim_time / rotation_time));
+            }
+
+            yield return null;
+        }
+    }
+
+    IEnumerator onCaptainSeatSitDown()
+    {
+        yield return StartCoroutine(adjustRetractablesHeight(0.25f, false));
+        yield return StartCoroutine(adjustFlipoutsRotation(0.5f, true));
+        yield return StartCoroutine(adjustRetractablesForwardPosition(0.25f, true));
+        yield return StartCoroutine(adjustRetractablesHeight(0.25f, true));
+
+        captain_seat_transformation_coroutine = null;
+    }
+
+    IEnumerator onCaptainSeatGetUp()
+    {
+        yield return StartCoroutine(adjustRetractablesHeight(0.25f, false));
+        yield return StartCoroutine(adjustFlipoutsRotation(0.25f, false));
+        yield return StartCoroutine(adjustRetractablesForwardPosition(0.25f, false));
+        yield return StartCoroutine(adjustRetractablesHeight(0.5f, true));
+
+        captain_seat_transformation_coroutine = null;
+    }
+
+    public void encloseCaptainSeat()
+    {
+        transmitCaptainAnimationRPC(true);
+    }
+
+    public void releaseCaptainSeat()
+    {
+        transmitCaptainAnimationRPC(false);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void transmitCaptainAnimationRPC(bool enclose)
+    {
+        if (captain_seat_transformation_coroutine != null)
+        {
+            StopCoroutine(captain_seat_transformation_coroutine);
+        }
+        if (enclose == true)
+        {
+            captain_seat_transformation_coroutine = StartCoroutine(onCaptainSeatSitDown());
+        }
+        else
+        {
+            captain_seat_transformation_coroutine = StartCoroutine(onCaptainSeatGetUp());
+        }
+    }
+
     [Rpc(SendTo.Everyone)]
     private void transmitSeatOccupantChangeRPC(int seat, ulong client_id, ulong occupant_steam_id, bool occupied)
     {
@@ -275,7 +390,7 @@ public class SeatManager : NetworkBehaviour
         bool[] curr_seats = new bool[4];
         for (int i = 0; i < 4; i++)
         {
-            curr_seats[i] = occupied_seats[i] >= 0;
+            curr_seats[i] = occupied_seats[i] > 0;
         }
         power_control.updatePlayerNotifiers(seat, curr_seats);
     }

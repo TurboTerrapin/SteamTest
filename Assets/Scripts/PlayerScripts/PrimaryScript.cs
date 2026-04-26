@@ -469,6 +469,12 @@ public class PrimaryScript : MonoBehaviour
     //called by AnimatorHandler when sit down animation is completed
     public void assumePosition()
     {
+        //if captain, trigger the seat enclosure animaiton
+        if (curr_pos == 3)
+        {
+            seat_manager.encloseCaptainSeat();
+        }
+
         player_prefab.GetComponent<CameraMove>().parentRotationLock = true;
         player_prefab.GetComponent<CameraMove>().captainMode = (curr_pos == 3);
         if (curr_pos != 3)
@@ -494,7 +500,7 @@ public class PrimaryScript : MonoBehaviour
         control_check_coroutine = StartCoroutine(controlCheck());
     }
 
-    //called by AnimatorHandler on end of get up
+    //called by AnimatorHandler.cs on end of get up
     public void relinquishPosition()
     {
         player_prefab.GetComponent<CameraMove>().parentRotationLock = false;
@@ -520,6 +526,12 @@ public class PrimaryScript : MonoBehaviour
     private void getUp()
     {
         is_sitting = false;
+
+        //if captain, trigger the seat free animation
+        if (curr_pos == 3)
+        {
+            seat_manager.releaseCaptainSeat();
+        }
 
         my_animation_controller.setIKActive(false);
 

@@ -127,7 +127,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable
                 anim_time = Mathf.Max(0.0f, anim_time - dt);
 
                 float percent_to_full = 1.0f - (anim_time / FLASH_TIME);
-                float dot_size = Mathf.Lerp(0.008f, 0.03f, percent_to_full);
+                float dot_size = Mathf.Lerp(0.002f, 0.015f, percent_to_full);
 
                 flashing_beacon.GetComponent<RectTransform>().sizeDelta = new Vector2(dot_size, dot_size);
                 cover_up.GetComponent<RectTransform>().sizeDelta = new Vector2(dot_size - (0.012f * (1.0f - percent_to_full)), dot_size - (0.012f * (1.0f - percent_to_full)));

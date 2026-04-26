@@ -2,7 +2,7 @@
     ComputerOverride.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 4/25/2026
 */
 
 using System.Collections;
@@ -15,24 +15,24 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.2f; //how long the switch takes to be flipped
     private static float COOLDOWN_TIME = 0.2f; //how long until it can be switched again after being switched
-    private static string[] COLOR_NAMES = { "RED", "YELLOW", "DARK BLUE", "WHITE", "LIGHT BLUE", "GREEN", "PURPLE", "ORANGE" };
+    private static string[] COLOR_NAMES = { "RED", "YELLOW", "BLUE", "GREEN", "PURPLE", "ORANGE" };
     private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "OVERRIDE SWITCH ";
     private static string INFO_MESSAGE = "Enables/disables computer override based on corresponding color for internal operations.";
     private List<string> CONTROL_DESCS = new List<string>() { "ENABLE", "DISABLE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
-    private List<Button>[] BUTTON_LISTS = new List<Button>[8];
+    private List<Button>[] BUTTON_LISTS = new List<Button>[6];
 
     public List<GameObject> override_displays = null;
     public GameObject override_switches;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
-    private bool[] enabled_overrides = new bool[8] { false, false, false, false, false, false, false, false };
-    private Coroutine[] override_switch_coroutines = new Coroutine[8] { null, null, null, null, null, null, null, null };
+    private bool[] enabled_overrides = new bool[6] { false, false, false, false, false, false};
+    private Coroutine[] override_switch_coroutines = new Coroutine[6] { null, null, null, null, null, null };
 
-    private List<string> ray_targets = new List<string> { "override_switch_a1", "override_switch_a2", "override_switch_a3", "override_switch_a4", "override_switch_b1", "override_switch_b2", "override_switch_b3", "override_switch_b4" };
+    private List<string> ray_targets = new List<string> { "override_switch_a1", "override_switch_a2", "override_switch_a3", "override_switch_b1", "override_switch_b2", "override_switch_b3" };
 
     private static HUDInfo hud_info = null;
 
@@ -40,7 +40,7 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
     {
         hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], true);
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 6; i++)
         {
             BUTTON_LISTS[i] = new List<Button>();
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -62,11 +62,12 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
     private void handlePowerConsumptionChange()
     {
         float consumed_power = 0.0f;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 6; i++)
         {
             if (enabled_overrides[i] == true)
             {
-                consumed_power += (MAX_POWER_CONSUMPTION / 8);
+                consumed_power = MAX_POWER_CONSUMPTION;
+                break;
             }
         }
         ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, consumed_power);
@@ -76,14 +77,14 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
     private void displayAdjustment(int index)
     {
         //adjust corresponding color indicator
-        Color c = override_displays[index / 4].transform.GetChild(index % 4).GetComponent<UnityEngine.UI.RawImage>().color;
+        Color c = override_displays[index / 3].transform.GetChild(index % 3).GetComponent<UnityEngine.UI.RawImage>().color;
         c.a = 0.2f;
         if (enabled_overrides[index] == true)
         {
             c.a = 1.0f;
         }
-        override_displays[index / 4].transform.GetChild(index % 4).GetComponent<UnityEngine.UI.RawImage>().color = c;
-        override_displays[index / 4].transform.GetChild(index % 4).GetChild(1).gameObject.SetActive(enabled_overrides[index]);
+        override_displays[index / 3].transform.GetChild(index % 3).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        override_displays[index / 3].transform.GetChild(index % 3).GetChild(1).gameObject.SetActive(enabled_overrides[index]);
     }
 
     IEnumerator overrideChange(int override_to_change)
@@ -160,8 +161,8 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
     //used by powerOff
     IEnumerator returnToZero(float power_off_time)
     {
-        float[] starting_rotations = new float[8] { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-        for (int i = 0; i < 8; i++)
+        float[] starting_rotations = new float[6] { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+        for (int i = 0; i < 6; i++)
         {
             if (override_switch_coroutines[i] != null)
             {
@@ -183,7 +184,7 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
             //turn switches
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 6; i++)
             {
                 override_switches.transform.GetChild(i).localRotation =
                     Quaternion.Euler(Mathf.Lerp(starting_rotations[i], 320.0f, 1.0f - (anim_time / power_off_time)), -90.0f, 180.0f);
@@ -195,13 +196,12 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable
         power_loss_coroutine = null;
     }
 
-
     public void powerOn(int position)
     {
         is_powered = true;
         override_displays[0].SetActive(true);
         override_displays[1].SetActive(true);
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 6; i++)
         {
             BUTTON_LISTS[i][0].updateInteractable(true);
         }
