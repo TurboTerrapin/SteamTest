@@ -360,6 +360,9 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             last_spawned_distance = 120.0f;
         }
 
+        Collider c = ejected_item.GetComponent<Collider>();
+        c.excludeLayers = LayerMask.GetMask("ShipColliders");
+
         while (ejected_item != null && anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
@@ -373,7 +376,6 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         {
             Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
             ejected_item.GetComponent<NetworkObject>().TrySetParent(world_root, true);
-            Collider c = ejected_item.GetComponent<Collider>();
             c.excludeLayers = LayerMask.GetMask("None");
         }
     }
@@ -427,6 +429,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
         GameObject ejected_item = GameObject.Instantiate(ReferenceAssistor.Instance.collectible_items[getEjectItemIndex()], spaceship);
 
+        spawn_index = 1 - spawn_index;
         ejected_item.transform.position = spaceship.transform.position + (spaceship.transform.right * SPAWN_X_COORDINATES[spawn_index]) + new Vector3(0.0f, -10.5f, 0.0f) + (spaceship.forward * 65.0f);
         ejected_item.transform.rotation = spaceship.rotation;
         Vector3 curr_rotation = ejected_item.transform.rotation.eulerAngles;
