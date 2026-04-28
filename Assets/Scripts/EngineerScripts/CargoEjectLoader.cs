@@ -32,7 +32,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
     public GameObject cargo_eject_load_dial;
 
     private ShipInventory ship_inventory;
-    private CargoEject cargo_eject;
 
     private bool is_powered = false;
     private int item_type_category = 0;
@@ -59,7 +58,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
     private void Start()
     {
         ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
-        cargo_eject = ReferenceAssistor.Instance.module_handlers[3].GetComponent<CargoEject>();
 
         item_type_switch_initial_position = cargo_eject_item_type_switch.transform.localPosition;
 
@@ -134,7 +132,6 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
         item_type_category = 0;
         item_variation_index = 0;
         displayAdjustment(false);
-        cargo_eject.deactivate();
     }
 
     public Texture getCurrentItemImage()
@@ -348,12 +345,10 @@ public class CargoEjectLoader : NetworkBehaviour, IControllable, IPowerable, IIK
         if (is_loading == true)
         {
             cargo_eject_load_display.transform.GetChild(4).gameObject.SetActive(true);
-            cargo_eject.activate();
             BUTTON_LISTS[2][0].updateDesc(CONTROL_DESCS[4]);
         }
         else
         {
-            cargo_eject.deactivate();
             BUTTON_LISTS[2][0].updateDesc(CONTROL_DESCS[3]);
         }
 
