@@ -43,7 +43,7 @@ public class ShipInventory : NetworkBehaviour, IPowerable
     public GameObject inventory_display;
 
     private ProbeController probe_controller;
-    private CargoEjectLoader cargo_eject_loader;
+    private CargoEject cargo_eject;
     private ShieldStrength shield_strength;
     private TorpedoLoader torpedo_loader;
     private GameObject item_count_indicators;
@@ -63,7 +63,7 @@ public class ShipInventory : NetworkBehaviour, IPowerable
         item_count_indicators = inventory_display.transform.GetChild(1).gameObject;
         torpedo_count_indicators = inventory_display.transform.GetChild(2).gameObject;
         probe_controller = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>();
-        cargo_eject_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>();
+        cargo_eject = ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEject>();
         shield_strength = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ShieldStrength>();
         torpedo_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>();
 
@@ -294,11 +294,11 @@ public class ShipInventory : NetworkBehaviour, IPowerable
         return possible_items[item_category].Count;
     }
 
-    //links to ProbeController and CargoEjectLoader
+    //links to ProbeController.cs and CargoEject.cs
     private void sendInventoryUpdates()
     {
         probe_controller.onInventoryChange(item_quantities[0]);
-        cargo_eject_loader.onInventoryChange();
+        cargo_eject.onInventoryChange();
         shield_strength.onInventoryChange(item_quantities[2]);
         torpedo_loader.onInventoryChange();
     }

@@ -247,6 +247,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         trigger_green_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
         trigger_red_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
     }
+
     public void powerOff(int position, float time)
     {
         is_powered = false;

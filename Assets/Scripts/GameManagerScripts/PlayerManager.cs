@@ -3,7 +3,7 @@
     - Handles loading and managing of players/scenes
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 4/22/2026
+    Last Updated: 4/27/2026
 */
 
 using System.Collections;

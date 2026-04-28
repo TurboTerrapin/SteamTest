@@ -1568,7 +1568,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6273005}
   m_Layer: 6
-  m_Name: CargoEjectLoader
+  m_Name: CargoEject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30317,7 +30317,7 @@ GameObject:
   - component: {fileID: 119824850}
   - component: {fileID: 119824849}
   - component: {fileID: 119824848}
-  - component: {fileID: 119824847}
+  - component: {fileID: 119824864}
   - component: {fileID: 119824846}
   m_Layer: 0
   m_Name: EngineerModules
@@ -30391,30 +30391,6 @@ MonoBehaviour:
   - {fileID: 1702635834}
   hand_interaction_type: 2
   hand_pose: 0
-  does_right_hand_flip: 0
-  finger_position: 0
---- !u!114 &119824847
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 119824839}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a04389aa6dcb2f947b6f2699b2a503f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cargo_eject_load_display: {fileID: 677072717}
-  cargo_eject_item_type_switch: {fileID: 3682802414094964791}
-  cargo_eject_item_variation_switch: {fileID: 4715810821794829802}
-  cargo_eject_load_dial: {fileID: 6770113389112768492}
-  IK_targets:
-  - {fileID: 1114133330}
-  - {fileID: 303189756}
-  - {fileID: 2071094544}
-  hand_interaction_types: 020000000300000000000000
-  hand_pose: 0.45
   does_right_hand_flip: 0
   finger_position: 0
 --- !u!114 &119824848
@@ -30837,6 +30813,34 @@ MonoBehaviour:
   - {fileID: 21300000, guid: c1b51cf6a4e06214fbb90eeade59d018, type: 3}
   - {fileID: 21300000, guid: 8bb1e12c40e066742857be606779fe5d, type: 3}
   - {fileID: 21300000, guid: b03861f0c3538fe4b8c063e28ff4cf46, type: 3}
+--- !u!114 &119824864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 119824839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b8567dd89510841b1f650785db59ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cargo_eject_display: {fileID: 677072717}
+  cargo_eject_item_type_switch: {fileID: 3682802414094964791}
+  cargo_eject_item_variation_switch: {fileID: 4715810821794829802}
+  cargo_eject_dial: {fileID: 6770113389112768492}
+  ship_exterior_features: {fileID: 1166516159}
+  cargo_eject_sounds:
+  - {fileID: 28988972}
+  - {fileID: 275169962}
+  IK_targets:
+  - {fileID: 1114133330}
+  - {fileID: 303189756}
+  - {fileID: 2071094544}
+  hand_interaction_types: 020000000300000000000000
+  hand_pose: 0.45
+  does_right_hand_flip: 0
+  finger_position: 0
 --- !u!1 &121081322
 GameObject:
   m_ObjectHideFlags: 0
@@ -72858,7 +72862,7 @@ GameObject:
   m_Component:
   - component: {fileID: 303189757}
   m_Layer: 0
-  m_Name: CargoLoaderSelectorSwitchIKTarget
+  m_Name: CargoEjectSelectorSwitchIKTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -72873,7 +72877,7 @@ Transform:
   m_GameObject: {fileID: 303189756}
   serializedVersion: 2
   m_LocalRotation: {x: 0.56098545, y: 0.56098557, z: 0.4304594, w: 0.43045938}
-  m_LocalPosition: {x: -0.0788002, y: -0.033700936, z: 0.11110068}
+  m_LocalPosition: {x: -0.0788, y: -0.0337, z: 0.1111}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -99288,7 +99292,7 @@ GameObject:
   - component: {fileID: 414068939}
   - component: {fileID: 414068940}
   m_Layer: 6
-  m_Name: cargo_eject_load_dial
+  m_Name: cargo_eject_dial
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -135305,7 +135309,7 @@ GameObject:
   - component: {fileID: 547197511}
   - component: {fileID: 547197510}
   m_Layer: 5
-  m_Name: CargoLoaderCanvas
+  m_Name: CargoEjectCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149024,7 +149028,7 @@ GameObject:
   - component: {fileID: 602140353}
   - component: {fileID: 602140352}
   m_Layer: 5
-  m_Name: ReadyToEject
+  m_Name: EjectDescription
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149046,7 +149050,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0, y: -0.058}
+  m_AnchoredPosition: {x: -0, y: -0.055}
   m_SizeDelta: {x: 0.1, y: 0.005}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &602140352
@@ -149069,7 +149073,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: READY TO EJECT
+  m_text: LOADING
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d24b90a6427c83b4096d2d5ed236fac7, type: 2}
   m_sharedMaterial: {fileID: -8488295769908592752, guid: d24b90a6427c83b4096d2d5ed236fac7, type: 2}
@@ -149096,8 +149100,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 0.007
-  m_fontSizeBase: 0.007
+  m_fontSize: 0.01
+  m_fontSizeBase: 0.01
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 0.012
@@ -165817,7 +165821,7 @@ GameObject:
   m_Component:
   - component: {fileID: 677072718}
   m_Layer: 5
-  m_Name: CargoLoaderDisplay
+  m_Name: CargoEjectDisplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -274974,7 +274978,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1114133331}
   m_Layer: 0
-  m_Name: CargoLoaderTypeSwitchIKTarget
+  m_Name: CargoEjectTypeSwitchIKTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -274989,7 +274993,7 @@ Transform:
   m_GameObject: {fileID: 1114133330}
   serializedVersion: 2
   m_LocalRotation: {x: 0.4055798, y: -0.4055797, z: -0.579228, w: 0.57922804}
-  m_LocalPosition: {x: -3.3813014, y: 6.0691004, z: -0.09929931}
+  m_LocalPosition: {x: -3.3813, y: 6.0691004, z: -0.0993}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -297837,7 +297841,7 @@ GameObject:
   - component: {fileID: 1205593684}
   - component: {fileID: 1205593685}
   m_Layer: 6
-  m_Name: cargo_eject_load_item_selector
+  m_Name: cargo_eject_variation_selector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -445857,7 +445861,7 @@ GameObject:
   - component: {fileID: 1818443788}
   - component: {fileID: 1818443789}
   m_Layer: 6
-  m_Name: cargo_eject_load_item_type
+  m_Name: cargo_eject_type_switch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -479021,7 +479025,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1964963403}
   m_Layer: 6
-  m_Name: CargoEjectLoader
+  m_Name: CargoEject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -501947,7 +501951,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2071094545}
   m_Layer: 0
-  m_Name: CargoLoaderDialIKTarget
+  m_Name: CargoEjectDialIKTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -501962,7 +501966,7 @@ Transform:
   m_GameObject: {fileID: 2071094544}
   serializedVersion: 2
   m_LocalRotation: {x: 0.00000013411044, y: 0.70710677, z: 0.7071069, w: 0.00000023841855}
-  m_LocalPosition: {x: 0.005999401, y: -0.093699485, z: 0.07689964}
+  m_LocalPosition: {x: 0.006, y: -0.094, z: 0.077}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -510783,7 +510787,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2109874754}
   m_Layer: 6
-  m_Name: CargoEjectLoader
+  m_Name: CargoEject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
