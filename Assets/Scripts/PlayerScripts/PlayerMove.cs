@@ -106,7 +106,7 @@ public class PlayerMove : NetworkBehaviour
         yield return repositionCoroutine;
         repositionCoroutine = null;
 
-        animator.applyRootMotion = true;
+        animator.applyRootMotion = (pos != 3);
         myAnimationController.setAnimatorBool("SittingDown", true);
         myAnimationController.setAnimatorBool("GettingUp", false); //Trigger sit down animation
     }
