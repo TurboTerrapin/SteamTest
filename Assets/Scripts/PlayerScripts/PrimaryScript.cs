@@ -452,7 +452,7 @@ public class PrimaryScript : MonoBehaviour
                         primary_info.SetActive(false);
                         player_prefab.GetComponent<CameraMove>().LockCamera();
                         player_prefab.GetComponent<CameraMove>().cameraHolder.parent = player_prefab.GetComponent<CameraMove>().headTransform;
-                        player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
+                        player_prefab.GetComponent<PlayerMove>().triggerSitDownAnimation(curr_pos);
                     }
                 }
             }
@@ -540,7 +540,7 @@ public class PrimaryScript : MonoBehaviour
         minimized_list_frame.transform.GetChild(0).gameObject.SetActive(true);
         clearButtons();
 
-        player_prefab.GetComponent<PlayerMove>().getUp(curr_pos);
+        player_prefab.GetComponent<PlayerMove>().triggerGetUpAnimation(curr_pos);
     }
 
     //runs on FixedUpdate() time (this code is meant to improve raycast consistency/avoid flickering)

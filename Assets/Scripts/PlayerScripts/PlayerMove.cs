@@ -2,11 +2,11 @@
     PlayerMove.cs
     - Names the player prefab to USERNAME_STEAMID if client, or OTHER_CLIENT if not
     - Handles player movement
-    - Handles seating/unseating teleporting
+    - Handles sitting down and getting up movement/animations
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 4/26/2026
+    Last Updated: 4/29/2026
 */
 
 using System.Collections;
@@ -19,16 +19,15 @@ public class PlayerMove : NetworkBehaviour
     //CLASS CONSTANTS
     private static float SHIFT_SPEED = 1.5f;
     private static float MOVE_SPEED = 5.0f;
-    private static Vector3 SIT_ANIMATION_ADJUSTMENT = new Vector3(0.595f, 0.0f, 0.0f);
+    private static float SIT_ANIMATION_LATERAL_ADJUSTMENT = 0.595f;
 
     private Vector2 moveDir = new Vector2();
     [SerializeField]
     private Rigidbody playerRB = null;
 
-    private Coroutine seatChangeCoroutine = null;
-    private Coroutine shiftCoroutine = null;
-    private Coroutine moveCoroutine = null;
-    private Coroutine repositionCoroutine = null;
+    private Coroutine seatChangeCoroutine = null; //Used for sit down or get up animations
+    private Coroutine shiftCoroutine = null; //Used for seat shifting
+    private Coroutine moveCoroutine = null; //Used for movement checking
     private SeatManager seatManager = null;
 
     [SerializeField]
@@ -83,16 +82,16 @@ public class PlayerMove : NetworkBehaviour
         moveCoroutine = null;
         seatChangeCoroutine = null;
         shiftCoroutine = null;
-        repositionCoroutine = null;
     }
 
     //called by PrimaryScript.cs
-    public void sitDown(int pos)
+    public void triggerSitDownAnimation(int pos)
     {
         resetCoroutines();
-        seatChangeCoroutine = StartCoroutine(sitDownSequence(pos));
+        seatChangeCoroutine = StartCoroutine(sitDownAnimation(pos));
     }
 
+    //Used to move the bean during a sit or get up animation, timed to match the in place animation to simulate movement
     IEnumerator playerAnimationTransformationAdjustment(bool left)
     {
         yield return new WaitForSeconds(1.0f);
@@ -102,11 +101,11 @@ public class PlayerMove : NetworkBehaviour
         Vector3 end_pos = Vector3.zero;
         if (left == true)
         {
-            end_pos = transform.localPosition - (transform.right * 0.595f);
+            end_pos = transform.localPosition - (transform.right * SIT_ANIMATION_LATERAL_ADJUSTMENT);
         }
         else
         {
-            end_pos = transform.localPosition + (transform.right * 0.595f);
+            end_pos = transform.localPosition + (transform.right * SIT_ANIMATION_LATERAL_ADJUSTMENT);
         }
         while (anim_time > 0.0f)
         {
@@ -119,7 +118,7 @@ public class PlayerMove : NetworkBehaviour
     }
 
     //Handles sit down sequence
-    IEnumerator sitDownSequence(int pos)
+    IEnumerator sitDownAnimation(int pos)
     {
         animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
 
@@ -130,9 +129,7 @@ public class PlayerMove : NetworkBehaviour
         myAnimationController.setAnimatorFloat("Forward", 0.0f);
 
         GameObject toOrient = seatManager.getSitDownPosition(pos, transform.position);
-        repositionCoroutine = StartCoroutine(repositionPlayer(toOrient.transform.localPosition + toOrient.transform.parent.localPosition, toOrient.transform.localRotation.eulerAngles.y, 0.2f));
-        yield return repositionCoroutine;
-        repositionCoroutine = null;
+        yield return StartCoroutine(repositionPlayer(toOrient.transform.localPosition + toOrient.transform.parent.localPosition, toOrient.transform.localRotation.eulerAngles.y, 0.2f));
 
         myAnimationController.setAnimatorBool("SittingDown", true);
         myAnimationController.setAnimatorBool("GettingUp", false); //Trigger sit down animation
@@ -140,22 +137,20 @@ public class PlayerMove : NetworkBehaviour
         //If not captain, move the player DURING the animation because the animation happens in place
         if (pos != 3)
         {
-            repositionCoroutine = StartCoroutine(playerAnimationTransformationAdjustment(isLeft));
-            yield return repositionCoroutine;
-            repositionCoroutine = null;
+            yield return StartCoroutine(playerAnimationTransformationAdjustment(isLeft));
         }
 
         seatChangeCoroutine = null;
     }
 
-    public void getUp(int pos)
+    public void triggerGetUpAnimation(int pos)
     {
         resetCoroutines();
-        seatChangeCoroutine = StartCoroutine(getUpSequence(pos));
+        seatChangeCoroutine = StartCoroutine(getUpAnimation(pos));
     }
 
     //Handles get up sequence
-    IEnumerator getUpSequence(int pos)
+    IEnumerator getUpAnimation(int pos)
     {
         Transform cameraHolder = transform.GetComponent<CameraMove>().cameraHolder;
 
@@ -183,9 +178,7 @@ public class PlayerMove : NetworkBehaviour
         //If not captain, move the player DURING the animation because the animation happens in place
         if (pos != 3)
         {
-            repositionCoroutine = StartCoroutine(playerAnimationTransformationAdjustment(!isLeft));
-            yield return repositionCoroutine;
-            repositionCoroutine = null;
+            yield return StartCoroutine(playerAnimationTransformationAdjustment(!isLeft));
         }
 
         seatChangeCoroutine = null;
