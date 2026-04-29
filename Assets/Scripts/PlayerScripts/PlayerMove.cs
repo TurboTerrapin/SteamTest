@@ -19,6 +19,7 @@ public class PlayerMove : NetworkBehaviour
     //CLASS CONSTANTS
     private static float SHIFT_SPEED = 1.5f;
     private static float MOVE_SPEED = 5.0f;
+    private static Vector3 SIT_ANIMATION_ADJUSTMENT = new Vector3(0.595f, 0.0f, 0.0f);
 
     private Vector2 moveDir = new Vector2();
     [SerializeField]
@@ -92,23 +93,59 @@ public class PlayerMove : NetworkBehaviour
         seatChangeCoroutine = StartCoroutine(sitDownSequence(pos));
     }
 
+    IEnumerator playerAnimationTransformationAdjustment(bool left)
+    {
+        yield return new WaitForSeconds(1.0f);
+
+        float anim_time = 1.0f;
+        Vector3 start_pos = transform.localPosition;
+        Vector3 end_pos = Vector3.zero;
+        if (left == true)
+        {
+            end_pos = transform.localPosition - (transform.right * 0.595f);
+        }
+        else
+        {
+            end_pos = transform.localPosition + (transform.right * 0.595f);
+        }
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(anim_time - Time.deltaTime, 0.0f);
+
+            transform.localPosition = Vector3.Lerp(end_pos, start_pos, anim_time / 1.0f);
+
+            yield return null;
+        }
+    }
+
     //Handles sit down sequence
     IEnumerator sitDownSequence(int pos)
     {
         animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
-        GameObject to_orient = seatManager.getSitDownPosition(pos, transform.position);
-        myAnimationController.setAnimatorBool("IsLeft", seatManager.getSitDownDirection(pos, transform.position));
+
+        bool isLeft = seatManager.getSitDownDirection(pos, transform.position);
+        myAnimationController.setAnimatorBool("IsLeft", isLeft);
         myAnimationController.setAnimatorInteger("Seat", pos);
         myAnimationController.setAnimatorFloat("Movement", 0.0f);
         myAnimationController.setAnimatorFloat("Forward", 0.0f);
-        repositionCoroutine = StartCoroutine(repositionPlayer(to_orient.transform.localPosition + to_orient.transform.parent.localPosition, to_orient.transform.localRotation.eulerAngles.y, 0.2f));
 
+        GameObject toOrient = seatManager.getSitDownPosition(pos, transform.position);
+        repositionCoroutine = StartCoroutine(repositionPlayer(toOrient.transform.localPosition + toOrient.transform.parent.localPosition, toOrient.transform.localRotation.eulerAngles.y, 0.2f));
         yield return repositionCoroutine;
         repositionCoroutine = null;
 
-        animator.applyRootMotion = (pos != 3);
         myAnimationController.setAnimatorBool("SittingDown", true);
         myAnimationController.setAnimatorBool("GettingUp", false); //Trigger sit down animation
+
+        //If not captain, move the player DURING the animation because the animation happens in place
+        if (pos != 3)
+        {
+            repositionCoroutine = StartCoroutine(playerAnimationTransformationAdjustment(isLeft));
+            yield return repositionCoroutine;
+            repositionCoroutine = null;
+        }
+
+        seatChangeCoroutine = null;
     }
 
     public void getUp(int pos)
@@ -117,11 +154,12 @@ public class PlayerMove : NetworkBehaviour
         seatChangeCoroutine = StartCoroutine(getUpSequence(pos));
     }
 
-    //Orients camera for get up
+    //Handles get up sequence
     IEnumerator getUpSequence(int pos)
     {
         Transform cameraHolder = transform.GetComponent<CameraMove>().cameraHolder;
 
+        bool isLeft = seatManager.getGetUpDirection(pos);
         myAnimationController.setIKActive(false);
         transform.GetComponent<CameraMove>().LockCamera();
 
@@ -139,8 +177,18 @@ public class PlayerMove : NetworkBehaviour
         }
 
         cameraHolder.parent = transform.GetComponent<CameraMove>().headTransform;
-        myAnimationController.setAnimatorBool("IsLeft", seatManager.getGetUpDirection(pos));
+        myAnimationController.setAnimatorBool("IsLeft", isLeft);
         myAnimationController.setAnimatorBool("GettingUp", true); //Trigger get up animation
+
+        //If not captain, move the player DURING the animation because the animation happens in place
+        if (pos != 3)
+        {
+            repositionCoroutine = StartCoroutine(playerAnimationTransformationAdjustment(!isLeft));
+            yield return repositionCoroutine;
+            repositionCoroutine = null;
+        }
+
+        seatChangeCoroutine = null;
     }
 
     //Orients player and camera for sit down

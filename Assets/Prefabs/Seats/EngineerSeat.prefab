@@ -51,7 +51,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.7, y: 2.5, z: 0.8}
+  m_Size: {x: 0.4, y: 2.5, z: 0.8}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1735905691209373499
 GameObject:
@@ -168,7 +168,7 @@ Transform:
   m_GameObject: {fileID: 2621354347911907791}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.92387956, z: -0, w: 0.38268343}
-  m_LocalPosition: {x: 8.43, y: -0.4, z: -6.48}
+  m_LocalPosition: {x: 8.43, y: -0.35, z: -6.48}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -185,7 +185,6 @@ GameObject:
   - component: {fileID: 3418571252036327181}
   - component: {fileID: 5672250194452717343}
   - component: {fileID: 1984660769971898039}
-  - component: {fileID: 8077685231682210960}
   m_Layer: 0
   m_Name: EngineerSeat
   m_TagString: Untagged
@@ -263,28 +262,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &8077685231682210960
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6322131103097390443}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 551023843217809494, guid: fb50aa7ae10259b45a1a8b2100961214, type: 3}
 --- !u!1 &7243435483136876063
 GameObject:
   m_ObjectHideFlags: 0
@@ -310,7 +287,7 @@ Transform:
   m_GameObject: {fileID: 7243435483136876063}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.92387956, z: -0, w: 0.38268343}
-  m_LocalPosition: {x: 7.55, y: -0.4, z: -7.38}
+  m_LocalPosition: {x: 7.55, y: -0.35, z: -7.38}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
