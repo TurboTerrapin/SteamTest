@@ -5516,6 +5516,8 @@ GameObject:
   - component: {fileID: 27992955}
   - component: {fileID: 27992976}
   - component: {fileID: 27992980}
+  - component: {fileID: 27992982}
+  - component: {fileID: 27992981}
   m_Layer: 0
   m_Name: TacticianModules
   m_TagString: Untagged
@@ -5952,6 +5954,50 @@ MonoBehaviour:
   - {fileID: 1058865353}
   current_ammo_type: 0
   default_angle_delta: 45
+--- !u!114 &27992981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27992949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e7adfbcbcaf6284cbcf5eda81d79e0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shortRangePhaserLeftOrigin: {fileID: 115688614}
+  shortRangePhaserRightOrigin: {fileID: 1491202286}
+--- !u!114 &27992982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27992949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfe833a80977a464d88e8d8089d872e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  longRangePhaserOrigin: {fileID: 1929362403}
+  maxLRBeamWidth: 3.5
+  LRBeamEndDiameterRatio: 0.2
+  baseLRPulseSpeed: 6
+  maxLRPulseSpeed: 12
+  LRpulseSmoothing: 0.01
+  minLRPulsePercentage: 0.1
+  maxLRPulsePercentage: 0.5
+  maxLRIntensity: 8.5
+  LRWaveResolution: 25
+  LRWaveAmplitude: 1.5
+  LRWaveSpeed: 15
+  LRWaveCount: 4
+  LRTrackingRange: 600
+  LRMaxTrackingAngle: 15
+  LRTrackingSpeed: 3
+  LRTargetScanInterval: 1
+  enemyTag: Enemy
 --- !u!1 &28176906
 GameObject:
   m_ObjectHideFlags: 0
@@ -55919,7 +55965,6 @@ GameObject:
   - component: {fileID: 271686960}
   - component: {fileID: 271686964}
   - component: {fileID: 271686959}
-  - component: {fileID: 271686958}
   - component: {fileID: 271686963}
   - component: {fileID: 271686962}
   m_Layer: 0
@@ -56013,34 +56058,6 @@ Transform:
   - {fileID: 1239209312}
   m_Father: {fileID: 645922982}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &271686958
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 271686953}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7d002fe7d2812747977087c841fc62c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  longRangePhaserOrigin: {fileID: 1929362403}
-  shortRangePhaserLeftOrigin: {fileID: 115688614}
-  shortRangePhaserRightOrigin: {fileID: 1491202286}
-  maxLRBeamWidth: 1.5
-  LRBeamEndDiameterRatio: 0.2
-  baseLRPulseSpeed: 6
-  maxLRPulseSpeed: 12
-  LRpulseSmoothing: 0.01
-  minLRPulsePercentage: 0.1
-  maxLRPulsePercentage: 0.5
-  maxLRIntensity: 6.5
-  minSRBeamDiameter: 0.1
-  maxSRBeamDiameter: 0.5
-  SRBeamEndDiameterRatio: 0.4
-  minSRPulseInterval: 1
-  maxSRPulseInterval: 0.4
 --- !u!114 &271686959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -316104,6 +316121,7 @@ MonoBehaviour:
   - {fileID: 238356216}
   - {fileID: 4883427280428700902}
   emission_display: {fileID: 369507206}
+  enabled_reducers: 0000
 --- !u!114 &1468829061
 MonoBehaviour:
   m_ObjectHideFlags: 0

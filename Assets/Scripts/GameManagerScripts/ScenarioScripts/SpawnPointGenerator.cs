@@ -1,18 +1,31 @@
+
 /*
     SpawnPointGenerator.cs
     - Uses the poisson disk sampling algorithm to generate a randomized even distribution of points within the volume of a cylinder
-    - No 2 points generated will be closer than the minDistance from eachother
+    - No 2 points generated will be closer than the minDistance from each other
+    - Supports pre-placed obstacles with their own exclusion radii that random points will avoid
     Contributor(s): Henryk Musial
-    Last Updated: 3/24/2026
+    Last Updated: 4/23/2026
 */
-
 
 using System.Collections.Generic;
 using UnityEngine;
 
 public static class SpawnPointGenerator
 {
-    public static List<Vector3> GenerateSpawnLocations(float radius, float height, float minDistance, int spawnPoints, int maxAttempts = 30)
+    public struct Obstacle
+    {
+        public Vector3 position;
+        public float radius;
+
+        public Obstacle(Vector3 position, float radius)
+        {
+            this.position = position;
+            this.radius = radius;
+        }
+    }
+
+    public static List<Vector3> GenerateSpawnLocations(float radius, float height, float minDistance, int spawnPoints, List<Obstacle> obstacles = null, int maxAttempts = 30)
     {
         List<Vector3> points = new List<Vector3>(spawnPoints);
 
@@ -54,7 +67,6 @@ public static class SpawnPointGenerator
             return new Vector3Int(Mathf.Clamp(xi, 0, gridWidth - 1), Mathf.Clamp(yi, 0, gridHeight - 1), Mathf.Clamp(zi, 0, gridWidth - 1));
         }
 
-        
         bool IsValid(Vector3 pt) // Helper to test if point is too close to any existing point
         {
             Vector3Int coord = GetGridCoordinate(pt);
@@ -85,6 +97,18 @@ public static class SpawnPointGenerator
                 }
             }
 
+            if (obstacles != null)
+            {
+                for (int i = 0; i < obstacles.Count; i++)
+                {
+                    float requiredDistance = obstacles[i].radius + minDistance;
+                    if (Vector3.Distance(pt, obstacles[i].position) < requiredDistance)
+                    {
+                        return false; // Point is invalid
+                    }
+                }
+            }
+
             // No neighbors are within the minDistance
             return true; // Valid point
         }
@@ -104,7 +128,7 @@ public static class SpawnPointGenerator
                 float x = r * Mathf.Cos(angle);
                 float z = r * Mathf.Sin(angle);
 
-                float y = Random.Range( -height / 2.0f, height / 2.0f); // random height 
+                float y = Random.Range(-height / 2.0f, height / 2.0f); // random height 
 
                 Vector3 candidatePoint = new Vector3(x, y, z);
 
@@ -131,7 +155,7 @@ public static class SpawnPointGenerator
                 float r = radius * Mathf.Sqrt(Random.Range(0f, 1.0f));
                 float x = r * Mathf.Cos(angle);
                 float z = r * Mathf.Sin(angle);
-                float y = Random.Range( -height / 2.0f, height / 2.0f);
+                float y = Random.Range(-height / 2.0f, height / 2.0f);
                 points.Add(new Vector3(x, y, z));
             }
         }
