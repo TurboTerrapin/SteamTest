@@ -220,7 +220,7 @@ public class ShortRangePhasers : MonoBehaviour
     }
 }
 
-}
+
     // For Debugging
     /*
 #if UNITY_EDITOR
