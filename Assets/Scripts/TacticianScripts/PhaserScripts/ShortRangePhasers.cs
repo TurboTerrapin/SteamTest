@@ -41,7 +41,7 @@ public class ShortRangePhasers : MonoBehaviour
 
     private float SRTrackingRadius = 50f;
     private float SRTrackingRange = 350f;
-    private float SRMaxTrackingAngle = 20f;
+    private float SRMaxTrackingAngle = 15f;
     private float SRTrackingSpeed = 5f;
     private float SRTargetScanInterval = 1f;
     private string enemyTag = "Enemy";

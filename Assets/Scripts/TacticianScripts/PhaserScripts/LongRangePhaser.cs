@@ -50,8 +50,8 @@ public class LongRangePhaser : MonoBehaviour
     private float LRWaveCount = 4f;
 
     private float LRTrackingRange = 800f;
-    private float LRMaxTrackingAngle = 5f;
-    private float LRTrackingSpeed = 3f;
+    private float LRMaxTrackingAngle = 3.5f;
+    private float LRTrackingSpeed = 5f;
     private float LRTargetScanInterval = 1f;
     private string enemyTag = "Enemy";
 
