@@ -65,7 +65,6 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable, IIKTargeta
     {
         return IK_target.transform;
     }
-
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
@@ -74,7 +73,6 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable, IIKTargeta
     {
         return hand_pose;
     }
-
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
