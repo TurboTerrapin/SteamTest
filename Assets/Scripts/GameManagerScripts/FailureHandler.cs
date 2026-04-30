@@ -36,7 +36,7 @@ public class FailureHandler : NetworkBehaviour
         // reset/freeze camera
         localPlayer.transform.GetComponent<CameraMove>().ResetCamera();
         // reset/freeze player
-        localPlayer.transform.GetComponent<PlayerMove>().resetPlayerMove();
+        localPlayer.transform.GetComponent<PlayerMove>().ResetPlayerMove();
 
         // show UI
         FailureHandlerCanvas.SetActive(true);
