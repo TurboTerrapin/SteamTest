@@ -248,8 +248,8 @@ public class AnimatorHandler : MonoBehaviour
                 Mathf.Clamp(chestlookat, 0f, .4f);
 
 
-                //myAnimator.SetLookAtWeight(totallookat, chestlookat, headlookat);
-                myAnimator.SetLookAtWeight(1);
+                myAnimator.SetLookAtWeight(totallookat, chestlookat, headlookat);
+                //myAnimator.SetLookAtWeight(1);
                 myAnimator.SetLookAtPosition(lookObj.position);
             }
         }

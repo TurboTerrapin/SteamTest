@@ -28,6 +28,7 @@ public class CameraMove : MonoBehaviour
     public bool parentRotationLock = false;
     private Camera myCamera;
     private Rigidbody rb;
+    private AnimatorHandler animatorHandler = null;
 
     private bool cameraLocked = true; //If true, means camera cannot be moved with mouse
     private Vector2 mouseMove = new Vector2();
@@ -63,6 +64,8 @@ public class CameraMove : MonoBehaviour
         {
             myCamera.gameObject.AddComponent<AudioListener>();
         }
+
+        animatorHandler = transform.Find("CharacterModel").GetComponent<AnimatorHandler>();
     }
 
     //Runs after scene is loaded
@@ -286,6 +289,12 @@ public class CameraMove : MonoBehaviour
             prevPos.x = Mathf.Clamp(prevPos.x, sittingHorizontalRange.x, sittingHorizontalRange.y);
 
             cameraHolder.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
+
+            if(captainMode == false)
+            {
+
+            }
+            animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
         }
 
         cameraHolder.position = headTransform.position;
