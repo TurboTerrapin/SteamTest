@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using Steamworks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -13,12 +15,13 @@ public class FailureHandler : NetworkBehaviour
 
     public TMP_Text[] playerNames;
     public TMP_Text[] playerVotes;
-    private int[] playerStates = new int[4] { 0, 0, 0, 0 };
+    private List<ulong> playerSteamIDs = new List<ulong>();
+    private List<int> playerStates = new List<int>();
     private bool quitButtonPressed = false;
     public TMP_Text notEnoughPlayersText;
 
     // lobbyNames is a string table that could have 1-4 entries
-    public void displayDeathScreen(string[] lobbyNames, int scenario, string msg)
+    public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
     {
         GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
 
@@ -33,17 +36,27 @@ public class FailureHandler : NetworkBehaviour
         // reset/freeze camera
         localPlayer.transform.GetComponent<CameraMove>().ResetCamera();
         // reset/freeze player
-        localPlayer.transform.GetComponent<PlayerMove>().resetPlayerMove();
+        localPlayer.transform.GetComponent<PlayerMove>().ResetPlayerMove();
 
         // show UI
         FailureHandlerCanvas.SetActive(true);
 
+        // initialize states to 0
+        for (int i = 0; i < 4; i++)
+        {
+            if (lobbySteamIDs[i] != 0)
+            {
+                playerSteamIDs.Add(lobbySteamIDs[i]);
+                playerStates.Add(0);
+            }
+        }
+
         // print report
-        StartCoroutine(printReport(lobbyNames, scenario, msg));
+        StartCoroutine(printReport(lobbyNames, lobbySteamIDs, scenario, msg));
     }
 
     // print star date and message (2-3 sentences)
-    IEnumerator printReport(string[] lobbyNames, int scenario, string msg)
+    IEnumerator printReport(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
     {
         // clear text before printing new text
         StarDateText.text = "";
@@ -87,13 +100,23 @@ public class FailureHandler : NetworkBehaviour
         // print report message
         yield return StartCoroutine(printTextCharbyChar(Report, msg));
 
-        //set player names and default states
-        for (int i = 0; i < lobbyNames.Length; i++)
+        // display player names and default states
+        for (int i = 0; i < 4; i++)
         {
-            playerNames[i].text = lobbyNames[i];
-            playerVotes[i].text = "Not Ready";
-            playerVotes[i].color = Color.white;
+            if (i < lobbyNames.Count && !string.IsNullOrEmpty(lobbyNames[i]))
+            {
+                playerNames[i].text = lobbyNames[i];
+
+                playerVotes[i].text = "Not Ready";
+                playerVotes[i].color = Color.white;
+            }
+            else
+            {
+                playerNames[i].text = "";
+                playerVotes[i].text = "";
+            }
         }
+
         // fade in restart button, quit button, player names, and their votes
         yield return new WaitForSeconds(0.5f);
         StartCoroutine(fadeGroup(fadeInGroup, 1f, 2f));
@@ -126,11 +149,17 @@ public class FailureHandler : NetworkBehaviour
 
         group.alpha = targetAlpha;
     }
-    
-    public void handlePlayerStateChange(int plrIndex, int state)
+
+    public void handlePlayerStateChange(ulong plrSteamID, int state)
     {
+        int plrIndex = playerSteamIDs.IndexOf(plrSteamID);
+        if (plrIndex == -1)
+        {
+            return;
+        }
+
         // Store new state for player
-        playerStates[plrIndex] = state;
+        playerStates[playerSteamIDs.IndexOf(plrSteamID)] = state;
 
         // Update text for specific player based on their state
         switch (state)
@@ -160,10 +189,10 @@ public class FailureHandler : NetworkBehaviour
         }
 
         // check if enough votes for restart
-        if (NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost == true)
         {
             int restartVotes = 0;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < playerStates.Count; i++)
             {
                 if (playerStates[i] == 1) // if player is ready
                 {
@@ -172,7 +201,7 @@ public class FailureHandler : NetworkBehaviour
             }
 
             // if enough votes, restart game
-            if (restartVotes >= GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getNumStartingPlayers())
+            if (restartVotes >= NetworkManager.Singleton.ConnectedClients.Count)
             {
                 restartGameRPC();
             }
@@ -199,22 +228,22 @@ public class FailureHandler : NetworkBehaviour
 
     public void handleQuitButtonClick()
     {
-        // change player state to 2 - "Left Lobby"
-        int plrIndex = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex();
-        if (plrIndex >= 0 && NetworkManager.Singleton != null) // to avoid error
+        // to avoid error
+        if (GameNetworkManager.Instance.currentLobby != null && NetworkManager.Singleton != null)
         {
-            playerStateChangeRPC(plrIndex, 2);
+            // change player state to 2 - "Left Lobby"
+            playerStateChangeRPC(SteamClient.SteamId, 2);
         }
         PlayerManager.leaveGame();
     }
 
     public void handleRestartButtonClick()
     {
-        // change player state to 1 - "Ready"
-        int plrIndex = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getPlayerIndex();
-        if (plrIndex >= 0 && NetworkManager.Singleton != null) // to avoid error
+        // to avoid error
+        if (GameNetworkManager.Instance.currentLobby != null && NetworkManager.Singleton != null)
         {
-            playerStateChangeRPC(plrIndex, 1);
+            // change player state to 1 - "Ready"
+            playerStateChangeRPC(SteamClient.SteamId, 1);
         }
     }
 
@@ -233,8 +262,8 @@ public class FailureHandler : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void playerStateChangeRPC(int plrIndex, int newState)
+    private void playerStateChangeRPC(ulong plrSteamID, int newState)
     {
-        handlePlayerStateChange(plrIndex, newState);
+        handlePlayerStateChange(plrSteamID, newState);
     }
 }

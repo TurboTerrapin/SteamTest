@@ -2,7 +2,7 @@
     SensorDescriptor.cs
     - Used to give UI indicators for non-controllable screens
     Contributor(s): Jake Schott
-    Last Updated: 3/20/2026
+    Last Updated: 4/25/2026
 */
 
 using UnityEngine;
@@ -16,6 +16,8 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "power_consumption",
         "prefix_code",
         "proximity_map",
+        "cup_holder",
+        "computer_array",
         "scenario_map",
         "boundary_countdown",
         "navigation_heading_display",
@@ -33,6 +35,8 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "STATION POWER CONSUMPTION",
         "PARTIAL PREFIX CODE",
         "PROXIMITY MAP",
+        "CUP HOLDER",
+        "COMPUTER ARRAY",
         "NAVIGATION MAP",
         "BOUNDARY EXPIRATION",
         "NAVIGATION HEADING",
@@ -48,8 +52,10 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
     private static string[] INFO_DESCS = new string[]
     {
         "Describes positional power consumption on a scale of 0 to 10 power units. Power units are allocated in the engineer position.",
+        "Describes periodic two-digit code which can be used for certain ship procedures.",
         "",
         "",
+        "Shows diagnostic information for computer malfunctions.",
         "Shows detection boundary, entrance channel, and destination exit channel. Also shows items of interest.",
         "Shows boundary expiration countdown before mission failure.",
         "",

@@ -17,18 +17,15 @@ public class JoinCampaignMenuController : MonoBehaviour
     public GameObject CampaignLobby;
     public GameObject LobbyListBox;
     public GameObject NoLobbiesFoundLabel;
-    public GameObject Connecting;
     [SerializeField]
     private GameObject LobbyUITemplate = null;
 
     private List<GameObject> LobbyObjects = new List<GameObject>();
     private Coroutine LobbyCheckCoroutine = null;
-    private Coroutine ConnectingCoroutine = null;
 
-    void OnEnable()
+    private void OnEnable()
     {
         JoinableLobbyList.SetActive(true);
-        Connecting.SetActive(false);
 
         ResetCoroutines();
         LobbyCheckCoroutine = StartCoroutine(LobbyCheck());
@@ -40,11 +37,6 @@ public class JoinCampaignMenuController : MonoBehaviour
         {
             StopCoroutine(LobbyCheckCoroutine);
             LobbyCheckCoroutine = null;
-        }
-        if (ConnectingCoroutine != null)
-        {
-            StopCoroutine(ConnectingCoroutine);
-            ConnectingCoroutine = null;
         }
     }
 
@@ -58,47 +50,11 @@ public class JoinCampaignMenuController : MonoBehaviour
         }   
     }
 
-    //Handles the ... animation for connecting
-    IEnumerator ConnectingAnimation()
-    {
-        TMP_Text connectingText = Connecting.transform.GetChild(1).GetComponent<TMP_Text>();
-        while (true)
-        {
-            string elipse = "";
-            for (int i = 0; i < 4; i++)
-            {
-                connectingText.SetText("CONNECTING" + elipse);
-                yield return new WaitForSeconds(0.25f);
-                elipse += ".";
-            }
-            yield return null;
-        }
-    }
-
-    //Fired when connected to the lobby attempting to join
-    public Action<ulong> OnLobbyJoin()
-    {
-        return handleJoin => {
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnLobbyJoin();
-            ResetCoroutines();
-            SwitchTo(CampaignLobby);
-        };
-    }
-
     //Called by FriendJoinWithButton
-    public void ConnectToLobby()
+    public void StopCheckingLobbies()
     {
         //Stop checking lobbies
         ResetCoroutines();
-
-        //Switch to connecting box
-        JoinableLobbyList.SetActive(false);
-        Connecting.SetActive(true);
-
-        ConnectingCoroutine = StartCoroutine(ConnectingAnimation());
-
-        //Listen for connection update
-        NetworkManager.Singleton.OnClientConnectedCallback += OnLobbyJoin();
     }
 
     public void UpdateJoinableLobbiesList()
@@ -134,7 +90,6 @@ public class JoinCampaignMenuController : MonoBehaviour
     private void SwitchTo(GameObject target)
     {
         JoinCampaign.SetActive(false);
-        Connecting.SetActive(false);
         JoinableLobbyList.SetActive(false);
         CampaignOptions.SetActive(false);
 

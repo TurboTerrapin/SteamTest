@@ -6,7 +6,7 @@
     - Handles camera shaking
     - Handles displaying hints if hints enabled (ex. MISSION OBJECTIVE, POWER MONITORING)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 3/22/2026
+    Last Updated: 4/26/2026
 */
 
 using System.Collections;
@@ -21,18 +21,18 @@ public class CameraMove : MonoBehaviour
     private static float MAXIMUM_CAMERA_SHAKE = 0.015f;
     private static float ZOOMED_FOV = 40.0f;
     private static float DEFAULT_FOV = 60.0f;
+    private static Vector2[] SITTING_CAMERA_HORIZONTAL_RANGES = new Vector2[] { new Vector2(-120.0f, 120.0f), new Vector2(-80.0f, 80.0f) }; //Non-captain and captain
 
     public Transform cameraHolder;
     public Transform headTransform;
     public bool parentRotationLock = false;
-    public bool captainMode = false;
     private Camera myCamera;
     private Rigidbody rb;
-    private AnimatorHandler animatorHandler = null;
 
     private bool cameraLocked = true; //If true, means camera cannot be moved with mouse
     private Vector2 mouseMove = new Vector2();
     private Vector2 prevPos = new Vector2(0.0f, 0.0f); //X represents angle of camera, Y represents angle of player capsule
+    private Vector2 sittingHorizontalRange = SITTING_CAMERA_HORIZONTAL_RANGES[0];
     private Vector3 cameraOffset = Vector3.zero; //Offset (for camera shake)
     private float mouseSensitivity = 1.0f;
     private List<Vector2> cameraShakeEffects = new List<Vector2>(); //Any current camera shake effects (X = time remaining, Y = intensity)
@@ -63,9 +63,6 @@ public class CameraMove : MonoBehaviour
         {
             myCamera.gameObject.AddComponent<AudioListener>();
         }
-
-        animatorHandler = transform.Find("CharacterModel").GetComponent<AnimatorHandler>();
-
     }
 
     //Runs after scene is loaded
@@ -108,12 +105,27 @@ public class CameraMove : MonoBehaviour
         cameraLocked = false;
     }
 
-    //Called by FailureHandler on game restart
+    public void SetCaptainMode(bool captain)
+    {
+        if (captain == true)
+        {
+            sittingHorizontalRange = SITTING_CAMERA_HORIZONTAL_RANGES[1];
+        }
+        else
+        {
+            sittingHorizontalRange = SITTING_CAMERA_HORIZONTAL_RANGES[0];
+        }
+    }
+
+    //Called by FailureHandler.cs on game restart
     public void ResetCamera()
     {
+        StopAllCoroutines();
+        parentRotationLock = false;
         cameraLocked = false;
         prevPos = new Vector2(0.0f, 0.0f);
         cameraShakeEffects.Clear();
+        cameraShakeIntensity = 0.0f;
         cameraHolder.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
         rb.angularVelocity = Vector3.zero;
@@ -271,21 +283,7 @@ public class CameraMove : MonoBehaviour
         else //Sitting down
         {
             prevPos.y = Mathf.Clamp(prevPos.y, -10.0f, 50.0f);
-
-            if (captainMode == false)
-            {
-                prevPos.x = Mathf.Clamp(prevPos.x, -120.0f, 120.0f);
-                animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
-            }
-            else
-            {
-                prevPos.x = Mathf.Clamp(prevPos.x, 60.0f, 300.0f);
-                animatorHandler.chestlookat = Mathf.Abs((prevPos.x - 180) / 240);
-            }
-
-            animatorHandler.chestlookat *= (prevPos.y + 10) / 100;
-
-
+            prevPos.x = Mathf.Clamp(prevPos.x, sittingHorizontalRange.x, sittingHorizontalRange.y);
 
             cameraHolder.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
         }

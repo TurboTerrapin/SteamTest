@@ -2,11 +2,11 @@ using Unity.Netcode;
 using UnityEngine;
 
 [RequireComponent(typeof(PilotingSystem))]
-[RequireComponent(typeof(WeaponsSystem))]
+//[RequireComponent(typeof(WeaponsSystem))]
 public class ShipController : NetworkBehaviour
 {
     private PilotingSystem pilotingSystem;
-    private WeaponsSystem weaponsSystem;
+    //private WeaponsSystem weaponsSystem;
 
     private bool shipReady = false;
 
@@ -15,14 +15,14 @@ public class ShipController : NetworkBehaviour
     private void Awake()
     {
         pilotingSystem = GetComponent<PilotingSystem>();
-        weaponsSystem = GetComponent<WeaponsSystem>();
+        //weaponsSystem = GetComponent<WeaponsSystem>();
         //collisionSystem = GetComponent<CollisionSystem>();
     }
 
     void Start()
     {
-        if (pilotingSystem.AssignControlReferences()
-            && weaponsSystem.AssignControlReferences(ReferenceAssistor.Instance.module_handlers[1].gameObject))
+        if (pilotingSystem.AssignControlReferences())
+            //&& weaponsSystem.AssignControlReferences(ReferenceAssistor.Instance.module_handlers[1].gameObject))
         {
             shipReady = true;
         }
@@ -40,9 +40,9 @@ public class ShipController : NetworkBehaviour
         if (!shipReady) return;
 
         pilotingSystem.UpdateInput();
-        weaponsSystem.UpdateInput();
+        //weaponsSystem.UpdateInput();
 
-        weaponsSystem.UpdateWeapons();
+        //weaponsSystem.UpdateWeapons();
 
         if (NetworkManager.Singleton.IsHost == true)
         {

@@ -29,6 +29,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     public GameObject tractor_beam_active_indicator;
     public GameObject tractor_beam_inactive_indicator;
     public AudioSource tractor_beam_sound;
+    public ShipExteriorFeatures ship_exterior_features;
     public GameObject bars_display; //used to display the bars beneath the handle
     public GameObject info_display;
 
@@ -95,6 +96,9 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     }
     private void displayAdjustment()
     {
+        //update cargo door
+        ship_exterior_features.adjustCargoDoorOpen(0, power > 0.0f);
+
         //update audio
         tractor_beam_sound.volume = power * 0.2f;
         if (power == 0.0f)
@@ -111,8 +115,8 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
         for (int i = 0; i <= 9; i++)
         {
             tmp_pwr = power - (0.1f * i);
-            float a = Mathf.Lerp(0.05f, 1.0f, tmp_pwr / 0.1f);
-            bars_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+            float a = Mathf.Lerp(0.1f, 1.0f, tmp_pwr / 0.1f);
+            bars_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.09f, 0.75f, a);
         }
 
         //update handle rotation
@@ -142,9 +146,9 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
                 float a = 0.05f;
                 if (tmp_power > 0.0f)
                 {
-                    a = Mathf.Lerp(0.05f, 1.0f, tmp_power / 0.25f);
+                    a = Mathf.Lerp(0.1f, 1.0f, tmp_power / 0.25f);
                 }
-                range_display.transform.GetChild(1).GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+                range_display.transform.GetChild(1).GetChild(1 + i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.09f, 0.75f, a);
             }
         }
 
@@ -163,7 +167,6 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = tractor_beam_options.getCapturedItemTexture();
             c.a = 1.0f;
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
-            item_captured_display.transform.GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
             setTractorBeamStatusIndicators(false);
         }
         else
@@ -177,19 +180,19 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     {
         if (is_powered == false || tractor_beam.GetCapturedItem() != null)
         {
-            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_dark_blue;
             tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
             return;
         }
 
         if (active == true)
         {
-            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
+            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_dark_blue;
             tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
         }
         else
         {
-            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
+            tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_dark_blue;
             tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
         }
     }

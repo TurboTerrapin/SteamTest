@@ -44,7 +44,6 @@ public class AnimatorHandler : MonoBehaviour
     void Start()
     {
         myAnimator = GetComponent<Animator>();
-        myAnimator.applyRootMotion = true;
     }
 
      
@@ -180,7 +179,6 @@ public class AnimatorHandler : MonoBehaviour
             }
             else
             {
-                myAnimator.applyRootMotion = false;
                 myAnimator.StopPlayback();
 
                 Vector3 char_position = transform.position;

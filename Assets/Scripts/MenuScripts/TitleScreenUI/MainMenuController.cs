@@ -1,10 +1,12 @@
+using Steamworks;
 using UnityEngine;
+using TMPro;
 
 public class MainMenuController : MonoBehaviour
 {
     public GameObject MainMenu;
     public GameObject CampaignMenu;
-    //public GameObject LogsScreen;
+    public GameObject LogsMenu;
     public GameObject CustomizationMenu;
     public GameObject SettingsMenu;
 
@@ -24,7 +26,7 @@ public class MainMenuController : MonoBehaviour
 
     public void HandleLogsButtonClick()
     {
-        //SwitchTo(LogsScreen);
+        SwitchTo(LogsMenu);
     }
 
     public void HandleCustomizeButtonClick()

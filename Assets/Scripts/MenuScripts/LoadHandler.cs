@@ -1,13 +1,16 @@
 /*
     LoadHandler.cs
     - Handles loading into BridgeEnvironment, scenarios, TitleScreen (after quitting)
-    Contributor(s): Jake Schott
-    Last Updated: 3/14/2026
+    - Handles displaying disconnection and connecting (...) screens
+    - Handles initial Steam check
+    Contributor(s): Jake Schott, Beata Musial
+    Last Updated: 4/22/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,10 +20,17 @@ public class LoadHandler : MonoBehaviour
     //LOAD CIRCLE SETTINGS
     private static float[] SPIN_SPEEDS = new float[3] { 50.0f, 200.0f, 70.0f };
 
+    public GameObject title_screen_canvas; //only used/needed on application open
+
     private GameObject load_screen;
     private GameObject load_ring;
+    private GameObject connecting_box;
+    private GameObject connection_lost;
+    private GameObject steam_failure;
     private GameObject dummy_camera;
+    private AsyncOperation load_operation = null;
     private Coroutine fade_black_coroutine = null;
+    private Coroutine connecting_coroutine = null;
     private List<Coroutine> load_coroutines = new List<Coroutine>();
 
     private void Start()
@@ -29,19 +39,37 @@ public class LoadHandler : MonoBehaviour
         transform.name = "TempLoadHandler";
         if (GameObject.Find("LoadHandler") != null)
         {
+            if (GameObject.Find("LoadHandler").GetComponent<LoadHandler>().isLoading() == true) //end the load of the other LoadHandler if loading back into TitleScreen
+            {
+                GameObject.Find("LoadHandler").GetComponent<LoadHandler>().endLoad(false);
+                GameObject.Find("LoadHandler").GetComponent<LoadHandler>().returnToMainMenu();
+            }
             GameObject.Destroy(gameObject);
         }
         transform.name = "LoadHandler";
 
-        DontDestroyOnLoad(gameObject);
-
         load_screen = transform.GetChild(0).gameObject;
         load_ring = load_screen.transform.GetChild(2).gameObject;
-        dummy_camera = transform.GetChild(1).gameObject;
+        connecting_box = transform.GetChild(1).gameObject;
+        connection_lost = transform.GetChild(2).gameObject;
+        steam_failure = transform.GetChild(3).gameObject;
+        dummy_camera = transform.GetChild(4).gameObject;
+
+        //check for Steam at beginning
+        if (SteamClient.IsValid == false || SteamClient.IsLoggedOn == false)
+        {
+            steam_failure.SetActive(true);
+        }
+        else
+        {
+            title_screen_canvas.SetActive(true);
+        }
+
+        DontDestroyOnLoad(gameObject);
     }
 
-    //called by CampaignLobbyController and FriendJoinWithButton to ensure that handleSceneLoad() gets connected to the right NetworkManager
-    public void connectNetworkManager()
+    //called by CampaignLobbyController.cs and FriendJoinWithButton.cs to ensure that handleSceneLoad() gets linked to the right NetworkManager
+    public void linkNetworkManager()
     {
         StartCoroutine(yieldForNetworkSceneManager());
     }
@@ -64,6 +92,11 @@ public class LoadHandler : MonoBehaviour
             StopCoroutine(fade_black_coroutine);
             fade_black_coroutine = null;
         }
+        if (connecting_coroutine != null)
+        {
+            StopCoroutine(connecting_coroutine);
+            connecting_coroutine = null;
+        }
         foreach (Coroutine c in load_coroutines)
         {
             StopCoroutine(c);
@@ -72,16 +105,17 @@ public class LoadHandler : MonoBehaviour
     }
 
     //only called when NetworkManager.Singleton.SceneManager changes the scene
-    private void handleSceneLoad(ulong clientId, string sceneName, LoadSceneMode loadSceneMode, AsyncOperation asyncOperation)
+    private void handleSceneLoad(ulong client_id, string scene_name, LoadSceneMode load_scene_mode, AsyncOperation async_operation)
     {
         resetAllCoroutines();
-        if (sceneName == "BridgeEnvironment") //BridgeEnvironment load-in
+        load_operation = async_operation;
+        if (scene_name == "BridgeEnvironment") //BridgeEnvironment load-in
         {
-            load_coroutines.Add(StartCoroutine(loadBridgeEnvironment(asyncOperation)));
+            load_coroutines.Add(StartCoroutine(loadBridgeEnvironment()));
         }
-        else //scenario transition
+        else //scenario load-in
         {
-            load_coroutines.Add(StartCoroutine(loadScenarioTransition(asyncOperation)));
+            load_coroutines.Add(StartCoroutine(loadScenarioTransition()));
         }
     }
 
@@ -92,6 +126,55 @@ public class LoadHandler : MonoBehaviour
         randomizeColors();
         load_coroutines.Add(StartCoroutine(loadLoop()));
         load_screen.SetActive(true);
+    }
+
+    //returns true if loading at least one scene/scenario
+    public bool isLoading()
+    {
+        return load_coroutines.Count > 0;
+    }
+
+    //if currently on TitleScreen scene, hide all elements
+    private void hideTitleAndMainMenuElements()
+    {
+        if (SceneManager.GetActiveScene().name == "TitleScreen")
+        {
+            GameObject main_menu = GameObject.Find("MainMenuCanvas");
+            for (int i = 0; i < main_menu.transform.childCount; i++)
+            {
+                main_menu.transform.GetChild(i).gameObject.SetActive(false);
+            }
+            GameObject title_screen = GameObject.Find("TitleScreenCanvas").transform.GetChild(0).gameObject;
+            title_screen.SetActive(false);
+        }
+    }
+
+    //will begin the connecting screen (until terminated by endConnecting())
+    public void startConnecting()
+    {
+        //check if already connecting
+        if (connecting_coroutine != null)
+        {
+            return;
+        }
+
+        hideTitleAndMainMenuElements();
+        resetAllCoroutines();
+        connecting_coroutine = StartCoroutine(connectingLoop());
+        connecting_box.SetActive(true);
+    }
+
+    //will end the connecting screen
+    public void endConnecting()
+    {
+        resetAllCoroutines();
+        connecting_box.SetActive(false);
+
+        if (SceneManager.GetActiveScene().name == "TitleScreen")
+        {
+            GameObject main_menu = GameObject.Find("MainMenuCanvas");
+            main_menu.transform.GetChild(2).gameObject.SetActive(true);
+        }
     }
 
     //terminates the loading screen
@@ -111,6 +194,66 @@ public class LoadHandler : MonoBehaviour
         else
         {
             load_screen.SetActive(false);
+        }
+    }
+
+    IEnumerator lostConnectionDisplayer(string message)
+    {
+        while (load_operation != null && load_operation.isDone == false)
+        {
+            yield return null;
+        }
+
+        if (load_coroutines.Count > 0) //if currently loading into BridgeEnvironment, loading a scene, or transitioning between scenes
+        {
+            GameObject.Destroy(NetworkManager.Singleton.gameObject);
+            PlayerManager.clearDontDestroyOnLoads();
+            SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
+            SceneData.targetUI = "MainMenu";
+            startLoad();
+            while (SceneManager.GetActiveScene().name != "TitleScreen") //get back to TitleScreen
+            {
+                yield return null;
+            }
+            endLoad(false);
+        }
+        else if (SceneManager.GetActiveScene().name != "TitleScreen") //currently playing in an active session
+        {
+            PrimaryScript.Instance.unpause(); //forces unpause
+            PrimaryScript.Instance.deactivate(false, true); //stops control interaction
+            GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio(); //mute SFX
+            dummy_camera.SetActive(true);
+        }
+        hideTitleAndMainMenuElements();
+        resetAllCoroutines();
+
+        connection_lost.transform.GetChild(3).GetComponent<TMP_Text>().SetText(message + " Please return to the main menu.");
+        connecting_box.SetActive(false);
+        connection_lost.SetActive(true);
+    }
+
+    public void displayLostConnection(string message)
+    {
+        if (connection_lost.activeSelf == true)
+        {
+            return;
+        }
+
+        StartCoroutine(lostConnectionDisplayer(message));
+    }
+
+    //called when clicking the main menu button on connection lost screen
+    public void returnToMainMenu()
+    {
+        connection_lost.SetActive(false);
+        if (SceneManager.GetActiveScene().name == "TitleScreen")
+        {
+            GameObject main_menu = GameObject.Find("MainMenuCanvas");
+            main_menu.transform.GetChild(0).gameObject.SetActive(true);
+        }
+        else
+        {
+            PlayerManager.leaveGame();
         }
     }
 
@@ -141,6 +284,29 @@ public class LoadHandler : MonoBehaviour
         }
     }
 
+    //links to the quit button in the Steam connection failure
+    public void handleQuitButtonClick()
+    {
+        Application.Quit();
+    }
+
+    //handles the ... animation for connecting
+    IEnumerator connectingLoop()
+    {
+        TMP_Text connecting_text = connecting_box.transform.GetChild(1).GetComponent<TMP_Text>();
+        while (true)
+        {
+            string elipse = "";
+            for (int i = 0; i < 4; i++)
+            {
+                connecting_text.SetText("CONNECTING" + elipse);
+                yield return new WaitForSeconds(0.25f);
+                elipse += ".";
+            }
+            yield return null;
+        }
+    }
+
     //default loading loop
     IEnumerator loadLoop()
     {
@@ -154,7 +320,7 @@ public class LoadHandler : MonoBehaviour
         }
     }
 
-    IEnumerator loadBridgeEnvironment(AsyncOperation load_operation)
+    IEnumerator loadBridgeEnvironment()
     {
         dummy_camera.SetActive(true);
 
@@ -185,6 +351,7 @@ public class LoadHandler : MonoBehaviour
             spinRings();
             yield return null;
         }
+        load_operation = null;
         GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
 
         //wait until PlayerManager interrupts load screen using endLoad()
@@ -196,7 +363,7 @@ public class LoadHandler : MonoBehaviour
     }
 
     //called whenever the client loads into a scenario 
-    IEnumerator loadScenarioTransition(AsyncOperation load_operation)
+    IEnumerator loadScenarioTransition()
     {
         PlayerManager player_manager = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>();
         GameObject transition_canvas = GameObject.Find("ScenarioTransitioner").GetComponent<TransitionHandler>().TransitionCanvas;
@@ -206,11 +373,12 @@ public class LoadHandler : MonoBehaviour
         {
             if (scenario_loaded == false)
             {
-                if (load_operation.isDone == true)
+                if (load_operation != null && load_operation.isDone == true)
                 {
                     //tell PlayerManager that the new scenario is loaded
                     player_manager.signifyScenarioLoaded();
                     scenario_loaded = true;
+                    load_operation = null;
                 }
             }
 

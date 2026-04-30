@@ -1,5 +1,4 @@
 using UnityEngine;
-using Steamworks;
 using Unity.Netcode;
 
 public class CampaignOptionsController : MonoBehaviour
@@ -13,7 +12,7 @@ public class CampaignOptionsController : MonoBehaviour
     public void HandleHostGameButtonClick()
     {
         //only start host if haven't done so already
-        if (GameNetworkManager.Instance.currentLobby.HasValue == false)
+        if (GameNetworkManager.Instance.currentLobby == null)
         {
             //SteamMatchmaking.CreateLobbyAsync(4);
             GameNetworkManager.Instance.StartHost(4);

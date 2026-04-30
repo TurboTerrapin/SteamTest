@@ -27,7 +27,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
 
     public AudioSource torpedo_ready_sound;
     public List<AudioClip> torpedo_launch_sound_options = null;
-    public AudioSource torpedo_launch_sound;
+    public GameObject torpedo_launch_sounds;
     public GameObject trigger_base;
     public GameObject trigger_green_light;
     public GameObject trigger_red_light;
@@ -40,7 +40,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     private float trigger_percentage = 0.0f;
     private Vector3 trigger_base_initial_pos;
     private Coroutine trigger_arm_coroutine = null;
-    private Coroutine torpedo_fire_coroutine = null;
+    private Coroutine after_torpedo_fire_coroutine = null;
     private Coroutine red_button_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -156,11 +156,8 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         red_button_coroutine = null;
     }
 
-    IEnumerator torpedoFire()
+    IEnumerator afterTorpedoFire()
     {
-        torpedo_launch_sound.clip = torpedo_launch_sound_options[Random.Range(0, torpedo_launch_sound_options.Count)];
-        torpedo_launch_sound.Play();
-
         trigger_percentage = 1.0f;
 
         if (red_button_coroutine != null)
@@ -189,7 +186,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         BUTTONS[1].updateInteractable(is_powered);
         trigger_percentage = 0.0f;
 
-        torpedo_fire_coroutine = null;
+        after_torpedo_fire_coroutine = null;
     }
 
     IEnumerator triggerArming()
@@ -232,7 +229,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         }
 
         keys_down = inputs;
-        if (trigger_arm_coroutine == null && torpedo_fire_coroutine == null)
+        if (trigger_arm_coroutine == null && after_torpedo_fire_coroutine == null)
         {
             if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[1], inputs))
             {
@@ -241,7 +238,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         }
         else
         {
-            if (torpedo_loader.getBayOccupant(torpedo_bay_selector.getDirectionIndex()) >= 0 && trigger_percentage >= 1.0f && torpedo_fire_coroutine == null)
+            if (torpedo_loader.getBayOccupant(torpedo_bay_selector.getDirectionIndex()) >= 0 && trigger_percentage >= 1.0f && after_torpedo_fire_coroutine == null)
             {
                 if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], inputs))
                 {
@@ -261,6 +258,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         trigger_green_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
         trigger_red_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
     }
+
     public void powerOff(int position, float time)
     {
         is_powered = false;
@@ -280,22 +278,28 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     [Rpc(SendTo.Everyone)]
     private void transmitTorpedoFireRPC()
     {
+        int current_bay = torpedo_bay_selector.getDirectionIndex();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            int current_bay = torpedo_bay_selector.getDirectionIndex();
             torpedo_launcher.fireTorpedo(current_bay, torpedo_loader.getBayOccupant(current_bay), torpedo_powers.getPowerLevel(current_bay));
         }
-        torpedo_loader.unloadTorpedo(torpedo_bay_selector.getDirectionIndex());
 
-        if (torpedo_fire_coroutine != null)
+        //handle unload
+        torpedo_loader.unloadTorpedo(current_bay);
+
+        //play sound
+        torpedo_launch_sounds.transform.GetChild(current_bay).GetComponent<AudioSource>().clip = torpedo_launch_sound_options[Random.Range(0, torpedo_launch_sound_options.Count)];
+        torpedo_launch_sounds.transform.GetChild(current_bay).GetComponent<AudioSource>().Play();
+
+        if (after_torpedo_fire_coroutine != null)
         {
-            StopCoroutine(torpedo_fire_coroutine);
+            StopCoroutine(after_torpedo_fire_coroutine);
         }
         if (trigger_arm_coroutine != null)
         {
             StopCoroutine(trigger_arm_coroutine);
             trigger_arm_coroutine = null;
         }
-        torpedo_fire_coroutine = StartCoroutine(torpedoFire());
+        after_torpedo_fire_coroutine = StartCoroutine(afterTorpedoFire());
     }
 }

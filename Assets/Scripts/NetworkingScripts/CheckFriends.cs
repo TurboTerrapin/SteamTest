@@ -71,6 +71,51 @@ public class CheckFriends : MonoBehaviour
         return onlineFriendsNotInLobby;
     }
 
+    //Returns a list of all online friends not currently in same Deep Space Five lobby
+    public static List<Friend> GetOnlineFriendsNotInSameLobby()
+    {
+        List<Friend> onlineFriendsNotInSameLobby = new List<Friend>();
+
+        //Make sure there is a lobby to check against in the first place
+        if (GameNetworkManager.Instance.currentLobby.HasValue == false)
+        {
+            return onlineFriendsNotInSameLobby;
+        }
+
+        //Check all your friends
+        foreach (Friend friend in SteamFriends.GetFriends())
+        {
+            if (friend.IsOnline && friend.GameInfo.HasValue)
+            {
+                if (!friend.GameInfo.HasValue || !friend.IsPlayingThisGame)
+                {
+                    //Add to the list
+                    onlineFriendsNotInSameLobby.Add(friend);
+                }
+                else
+                {
+                    //If they're not in a Deep Space Five lobby 
+                    if (!friend.GameInfo.Value.Lobby.HasValue)
+                    {
+                        //Add to the list
+                        onlineFriendsNotInSameLobby.Add(friend);
+                    }
+                    else
+                    {
+                        //If they're in the same lobby
+                        if (friend.GameInfo.Value.Lobby.Value.Id != GameNetworkManager.Instance.currentLobby.Value.Id)
+                        {
+                            //Add to the list
+                            onlineFriendsNotInSameLobby.Add(friend);
+                        }
+                    }
+                }
+
+            }
+        }
+        return onlineFriendsNotInSameLobby;
+    }
+
     //Returns a list of all friends playing Deep Space Five
     public static List<Friend> GetFriendsInGame()
     {

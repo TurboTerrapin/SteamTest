@@ -126,7 +126,7 @@ public class PrimaryScript : MonoBehaviour
 
         //free player movement, start checking to sit down, begin the scenario
         can_pause = true;
-        player_prefab.GetComponent<PlayerMove>().initialize();
+        player_prefab.GetComponent<PlayerMove>().Initialize();
         if (hints_enabled == true)
         {
             GetComponent<SecondaryScript>().displayIntroGraphic(1.0f);
@@ -392,7 +392,7 @@ public class PrimaryScript : MonoBehaviour
 
     public void onShiftChange()
     {
-        GetComponent<SecondaryScript>().updateShiftIndicators(player_prefab.GetComponent<PlayerMove>().isShifting(), curr_pos, seat_manager);
+        GetComponent<SecondaryScript>().updateShiftIndicators(player_prefab.GetComponent<PlayerMove>().IsShifting(), curr_pos, seat_manager);
     }
 
     private void updateInfoOverlayOffset()
@@ -452,7 +452,7 @@ public class PrimaryScript : MonoBehaviour
                         primary_info.SetActive(false);
                         player_prefab.GetComponent<CameraMove>().LockCamera();
                         player_prefab.GetComponent<CameraMove>().cameraHolder.parent = player_prefab.GetComponent<CameraMove>().headTransform;
-                        player_prefab.GetComponent<PlayerMove>().sitDown(curr_pos);
+                        player_prefab.GetComponent<PlayerMove>().TriggerSitDownAnimation(curr_pos);
                     }
                 }
             }
@@ -469,16 +469,16 @@ public class PrimaryScript : MonoBehaviour
     //called by AnimatorHandler when sit down animation is completed
     public void assumePosition()
     {
+        //if captain, trigger the seat enclosure animaiton
+        if (curr_pos == 3)
+        {
+            seat_manager.encloseCaptainSeat();
+        }
+
         player_prefab.GetComponent<CameraMove>().parentRotationLock = true;
-        player_prefab.GetComponent<CameraMove>().captainMode = (curr_pos == 3);
-        if (curr_pos != 3)
-        {
-            player_prefab.GetComponent<CameraMove>().UnlockCamera(new Vector2(0.0f, 30.0f));
-        }
-        else
-        {
-            player_prefab.GetComponent<CameraMove>().UnlockCamera(new Vector2(180.0f, 30.0f)); //captain is flipped for some reason
-        }
+        player_prefab.GetComponent<CameraMove>().SetCaptainMode(curr_pos == 3);
+        player_prefab.GetComponent<CameraMove>().UnlockCamera(new Vector2(0.0f, 30.0f));
+
         my_animation_controller.setIKActive(true);
         my_animation_controller.setIKHead(true);
 
@@ -492,22 +492,21 @@ public class PrimaryScript : MonoBehaviour
 
         ray_target_check_coroutine = StartCoroutine(rayCheck());
         control_check_coroutine = StartCoroutine(controlCheck());
+        player_prefab.GetComponent<PlayerMove>().SeatPush(curr_pos, true);
     }
 
-    //called by AnimatorHandler on end of get up
+    //called by AnimatorHandler.cs on end of get up
     public void relinquishPosition()
     {
         player_prefab.GetComponent<CameraMove>().parentRotationLock = false;
         float[] rotations = new float[] { 0.0f, 0.0f, 135.0f, 0.0f };
         player_prefab.GetComponent<CameraMove>().UnlockCamera(new Vector2(rotations[curr_pos], 30.0f));
-        player_prefab.GetComponent<CameraMove>().captainMode = false;
         my_animation_controller.setIKActive(true);
         my_animation_controller.setIKHead(true);
         my_animation_controller.setIKLeftArm(false);
         my_animation_controller.setIKRightArm(false);
 
-        //player_prefab.transform.position = player_prefab.transform.Find("CharacterModel").position - new Vector3(0.0f, 0.0f, 0.0f);
-        player_prefab.GetComponent<PlayerMove>().initialize();
+        player_prefab.GetComponent<PlayerMove>().Initialize();
 
         seat_manager.getUp(curr_pos);
 
@@ -520,6 +519,12 @@ public class PrimaryScript : MonoBehaviour
     private void getUp()
     {
         is_sitting = false;
+
+        //if captain, trigger the seat free animation
+        if (curr_pos == 3)
+        {
+            seat_manager.releaseCaptainSeat();
+        }
 
         my_animation_controller.setIKActive(false);
 
@@ -536,7 +541,7 @@ public class PrimaryScript : MonoBehaviour
         minimized_list_frame.transform.GetChild(0).gameObject.SetActive(true);
         clearButtons();
 
-        player_prefab.GetComponent<PlayerMove>().getUp(curr_pos);
+        player_prefab.GetComponent<PlayerMove>().TriggerGetUpAnimation(curr_pos);
     }
 
     //runs on FixedUpdate() time (this code is meant to improve raycast consistency/avoid flickering)
@@ -599,7 +604,7 @@ public class PrimaryScript : MonoBehaviour
             if (!paused && is_active)
             {
                 //-----------------------------------------------CHECK FOR UNSEATING/SHIFTING--------------------------------------------------
-                if (player_prefab.GetComponent<PlayerMove>().isShifting() == false)
+                if (player_prefab.GetComponent<PlayerMove>().IsShifting() == false)
                 {
                     //check if trying to unseat
                     if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to stand up
@@ -612,7 +617,7 @@ public class PrimaryScript : MonoBehaviour
                     //check if trying to shift
                     if (UnityEngine.Input.GetKeyDown(KeyCode.LeftShift) || UnityEngine.Input.GetKeyDown(KeyCode.RightShift)) //trying to shift
                     {
-                        player_prefab.GetComponent<PlayerMove>().seatShift(curr_pos);
+                        player_prefab.GetComponent<PlayerMove>().SeatShift(curr_pos);
                     }
                 }
 

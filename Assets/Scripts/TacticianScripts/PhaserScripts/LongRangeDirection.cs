@@ -22,6 +22,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
     private List<Button> BUTTONS = new List<Button>();
 
     public GameObject long_range_dial;
+    public GameObject ship_long_range_phaser;
     public GameObject long_range_direction_display;
     public GameObject long_range_degree_display;
 
@@ -85,6 +86,9 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
 
     private void displayAdjustment()
     {
+        //update physical turret
+        ship_long_range_phaser.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, long_range_angle);
+
         //update the circular screen
         long_range_direction_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, long_range_angle);
 

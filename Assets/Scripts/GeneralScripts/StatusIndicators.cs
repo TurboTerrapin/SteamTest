@@ -4,7 +4,7 @@
     - Handles enabling/disabling the overconsumption circles in pilot and tactician position
     - Handles coloring blue/yellow/red alert circles across the ship
     Contributor(s): Jake Schott
-    Last Updated: 3/18/2026
+    Last Updated: 4/26/2026
 */
 
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using UnityEngine;
 public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
 {
     //CLASS CONSTANTS
-    private static float[] DOT_SIZES = new float[] { 0.005f, 0.005f, 0.0f, 0.008f }; //used for animating power consumption
+    private static float[] DOT_SIZES = new float[] { 0.005f, 0.005f, 0.0f, 0.0105f }; //used for animating power consumption
 
     //list of all ray target names
     private List<string> RAY_TARGETS = new List<string>()

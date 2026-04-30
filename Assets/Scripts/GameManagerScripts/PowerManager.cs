@@ -701,7 +701,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("TorpedoLoader")); //12
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EngineCoolantSupply")); //13
         engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipInventory")); //14
-        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("CargoEjectLoader")); //15
+        engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("CargoEject")); //15
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ComputerRegulator")); //16
         engineer_modules.Add(this); //17
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //18
@@ -711,17 +711,17 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private void addCaptainModules()
     {
         List<Component> captain_modules = new List<Component>();
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipStatus")); //1
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("SelfDestruct")); //2
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ProcedureManual")); //3
-        captain_modules.Add(this); //4
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //5
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperationsManual")); //6
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ProcedureManual")); //1
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //2
+        captain_modules.Add(this); //3
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("SelfDestruct")); //4
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipStatus")); //5
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerArray")); //6
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerOverride")); //7
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //8
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //9
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("CargoEject")); //10
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //11
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //8
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //9
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //10
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperationsManual")); //11
         positional_modules[3] = captain_modules;
     }
 }

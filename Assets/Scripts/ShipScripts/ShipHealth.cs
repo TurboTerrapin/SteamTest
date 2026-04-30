@@ -34,7 +34,7 @@ public class ShipHealth : NetworkBehaviour, IPowerable
 
     public List<GameObject> ship_health_indicators = null;
     public GameObject hull_integrity_visual;
-    public GameObject hull_integrity_percent_text;
+    public GameObject hull_integrity_percentages;
 
     private float[] health_areas = new float[4] { 100.0f, 100.0f, 100.0f, 100.0f }; //corresponds to forward, port, starboard, aft
     private float hull_integrity = 100.0f;
@@ -94,6 +94,7 @@ public class ShipHealth : NetworkBehaviour, IPowerable
         {
             start_colors[i] = ship_health_indicators[i].GetComponent<UnityEngine.UI.RawImage>().color;
             desired_colors[i] = getDesiredColor(health_areas[i]);
+            hull_integrity_percentages.transform.GetChild(i).GetChild(0).GetComponent<TMP_Text>().SetText(Mathf.FloorToInt(health_areas[i]).ToString() + "%");
         }
         start_colors[4] = hull_integrity_visual.GetComponent<UnityEngine.UI.RawImage>().color;
         desired_colors[4] = getDesiredColor(hull_integrity);
@@ -119,7 +120,7 @@ public class ShipHealth : NetworkBehaviour, IPowerable
                 hull_integrity_text += ".0";
             }
             hull_integrity_text += "%";
-            hull_integrity_percent_text.GetComponent<TMP_Text>().SetText(hull_integrity_text);
+            hull_integrity_percentages.transform.GetChild(4).GetChild(0).GetComponent<TMP_Text>().SetText(hull_integrity_text);
 
             yield return null;
         }

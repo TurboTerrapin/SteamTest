@@ -133,10 +133,10 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         Color c = item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
         c.a = a;
         item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
-        item_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        item_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.09f, 0.75f, a);
         foreach (Transform line in serial_display.transform.GetChild(1))
         {
-            line.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+            line.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.09f, 0.75f, a);
         }
         foreach (GameObject display in option_displays)
         {
@@ -179,6 +179,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         {
             rot_z += (Time.deltaTime * RETICLE_SPIN_TIME) % 360.0f;
             item_display.transform.GetChild(1).localRotation = Quaternion.Euler(0.0f, 0.0f, rot_z);
+            GetComponent<TractorBeamPower>().info_display.transform.GetChild(1).GetChild(0).GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, rot_z);
 
             yield return null;
         }
@@ -253,7 +254,6 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
         item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = getCapturedItemTexture();
         item_display.transform.GetChild(0).gameObject.SetActive(true);
-        item_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
         displayTransparencyUpdate(1.0f);
         if (reticle_spin_coroutine == null)
         {
@@ -275,7 +275,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
             StopCoroutine(reticle_spin_coroutine);
             reticle_spin_coroutine = null;
         }
-        item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f);
+        item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.09f, 0.75f);
         item_display.transform.GetChild(0).gameObject.SetActive(false);
         serial_display.transform.GetChild(0).GetComponent<TMP_Text>().text = "";
         displayTransparencyUpdate(0.2f);

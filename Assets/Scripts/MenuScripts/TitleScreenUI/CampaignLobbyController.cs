@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
@@ -22,23 +20,21 @@ public class CampaignLobbyController : MonoBehaviour
     private List<GameObject> FriendObjects = new List<GameObject>();
     
     public List<TextMeshProUGUI> JoinedPlayersList = new List<TextMeshProUGUI>();
-    private Coroutine YieldForLobbyCoroutine = null;
+    public List<TextMeshProUGUI> JoinedNumbersList = new List<TextMeshProUGUI>();
+
+    private LobbyHandler LobbyHandler;
 
     private void OnEnable()
     {
+        LobbyHandler = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().updateDifficulty(LobbyHandler.DEFAULT_DIFFICULTY);
+            LobbyHandler.updateDifficulty(LobbyHandler.DEFAULT_DIFFICULTY);
         }
         DeactivateEngageButton();
         DeactivateDifficultyGroup();
         CheckForLobbyUpdates();
-        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().connectNetworkManager();
-        if (YieldForLobbyCoroutine != null)
-        {
-            StopCoroutine(YieldForLobbyCoroutine);
-        }
-        StartCoroutine(YieldForLobby());
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().linkNetworkManager();
     }
 
     //Used by ActivateEngageButton() and DeactivateEngageButton()
@@ -63,7 +59,7 @@ public class CampaignLobbyController : MonoBehaviour
             entry.GetComponent<UnityEngine.UI.Toggle>().interactable = active;
 
             //Recolor border
-            Color c = entry.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
+            UnityEngine.Color c = entry.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
             c.a = a;
             entry.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
 
@@ -119,10 +115,19 @@ public class CampaignLobbyController : MonoBehaviour
     //Updates list of names in lobby
     private void UpdateLobbyList()
     {
-        //Used for temporary period where screen is displayed but lobby is not yet created
-        if (NetworkManager.Singleton.IsHost == true)
+        //Add however many friends are in the lobby
+        List<string> lobbyMembers = LobbyHandler.getPlayerNamesInLobby();
+        bool[] lobbyConnections = LobbyHandler.getPlayersConnectedInLobby();
+        for (int i = 0; i < 4; i++)
         {
-            JoinedPlayersList[0].text = SteamClient.Name;
+            float a = 0.2f;
+            if (lobbyConnections[i] == true)
+            {
+                a = 1.0f;
+            }
+            JoinedPlayersList[i].text = lobbyMembers[i];
+            JoinedPlayersList[i].color = new UnityEngine.Color(1.0f, 1.0f, 1.0f, a);
+            JoinedNumbersList[i].color = new UnityEngine.Color(1.0f, 1.0f, 1.0f, a);
         }
 
         //Only update list if a lobby exists
@@ -131,28 +136,8 @@ public class CampaignLobbyController : MonoBehaviour
             return;
         }
 
-        //Clear names
-        for (int i = 0; i < 4; i++)
-        {
-            JoinedPlayersList[i].text = "";
-        }
-
-        //Add however many friends are in the lobby
-        IEnumerable<Friend> lobbyMembers = GameNetworkManager.Instance.currentLobby.Value.Members;
-        for (int i = 0; i < lobbyMembers.Count<Friend>(); i++)
-        {
-            if (i != (int)NetworkManager.Singleton.LocalClientId)
-            {
-                JoinedPlayersList[i].text = lobbyMembers.ElementAt<Friend>(i).Name;
-            }
-            else
-            {
-                JoinedPlayersList[i].text = SteamClient.Name;
-            }
-        }
-
         //Activate/deactive engage button
-        if (NetworkManager.Singleton.IsHost == true)
+        if (NetworkManager.Singleton.IsHost == true && GameNetworkManager.Instance.currentLobby.Value.MemberCount == NetworkManager.Singleton.ConnectedClientsIds.Count)
         {
             ActivateEngageButton();
             ActivateDifficultyGroup();
@@ -162,20 +147,6 @@ public class CampaignLobbyController : MonoBehaviour
             DeactivateEngageButton();
             DeactivateDifficultyGroup();
         }
-    }
-
-    //waits for lobby to exist and then updates lobby/friends list
-    IEnumerator YieldForLobby()
-    {
-        while (GameNetworkManager.Instance.currentLobby == null)
-        {
-            yield return null;
-        }
-        UpdateLobbyList();
-        UpdateFriendsList();
-        HandleDifficultyChange();
-
-        YieldForLobbyCoroutine = null;
     }
 
     //Clears friend invite entries and repopulates with friends not in a DSF lobby already
@@ -189,7 +160,7 @@ public class CampaignLobbyController : MonoBehaviour
         FriendObjects.Clear();
 
         //Get invitable friends
-        List<Friend> invitableFriends = CheckFriends.GetOnlineFriendsNotInAnyLobby();
+        List<Friend> invitableFriends = CheckFriends.GetOnlineFriendsNotInSameLobby();
 
         //Display invitable friends
         foreach (Friend friend in invitableFriends)
@@ -201,15 +172,15 @@ public class CampaignLobbyController : MonoBehaviour
 
         //If no friends, make it known
         NoFriendsOnlineLabel.SetActive(invitableFriends.Count == 0);
-        FriendsLabel.GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        FriendsLabel.GetComponent<TMP_Text>().color = new UnityEngine.Color(1.0f, 1.0f, 1.0f, 1.0f);
         if (invitableFriends.Count == 0)
         {
-            FriendsLabel.GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.2f);
+            FriendsLabel.GetComponent<TMP_Text>().color = new UnityEngine.Color(1.0f, 1.0f, 1.0f, 0.2f);
         }
     }
 
     //Runs on changes to the lobby
-    private void OnLobbyChange(NetworkManager manager, ConnectionEventData eventData)
+    public void OnLobbyChange()
     {
         UpdateFriendsList();
         UpdateLobbyList();
@@ -218,7 +189,7 @@ public class CampaignLobbyController : MonoBehaviour
             HandleDifficultyChange();
         }
     }
-
+    
     //Fires whenever SteamFriends detects a change in any friend's state (maybe?)
     private Action<Friend> OnFriendChange()
     {
@@ -228,12 +199,11 @@ public class CampaignLobbyController : MonoBehaviour
         };
     }
 
-    //Links to several events
+    //Links to friend change event
     public void CheckForLobbyUpdates()
     {
         UpdateLobbyList();
         //Listen for future updates to the lobby
-        NetworkManager.Singleton.OnConnectionEvent += OnLobbyChange;
         SteamFriends.OnPersonaStateChange += OnFriendChange();
     }
 
@@ -241,9 +211,18 @@ public class CampaignLobbyController : MonoBehaviour
     public void HandleXButtonClick()
     {
         //Do not listen for future updates to the lobby
-        NetworkManager.Singleton.OnConnectionEvent -= OnLobbyChange;
         SteamFriends.OnPersonaStateChange -= OnFriendChange();
-        GameNetworkManager.Instance.currentLobby.Value.Leave();
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            GameNetworkManager.Instance.Disconnect();
+        }
+        else
+        {
+            if (NetworkManager.Singleton.ConnectedClientsIds.Count > 1 || (GameNetworkManager.Instance.currentLobby.HasValue == true && GameNetworkManager.Instance.currentLobby.Value.MemberCount > 1))
+            {
+                GameNetworkManager.Instance.Disconnect();
+            }
+        }
         SwitchTo(CampaignOptions);
     }
 
@@ -269,18 +248,17 @@ public class CampaignLobbyController : MonoBehaviour
             }
         }
 
-        GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().updateDifficulty(difficultyIndex);
+        LobbyHandler.updateDifficulty(difficultyIndex);
     }
 
     public void HandleEngageButtonClick()
     {
         //Do not listen for future updates to the lobby
-        NetworkManager.Singleton.OnConnectionEvent -= OnLobbyChange;
         SteamFriends.OnPersonaStateChange -= OnFriendChange();
         //Lock the lobby once game starts
         GameNetworkManager.Instance.currentLobby.Value.SetInvisible();
         GameNetworkManager.Instance.currentLobby.Value.SetJoinable(false);
-        GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().startLoadForAllPlayers();
+        LobbyHandler.startLoadForAllPlayers();
         CharacterCustomization[] players = GameObject.FindObjectsByType<CharacterCustomization>(FindObjectsSortMode.InstanceID);
         foreach (CharacterCustomization c in players)
         {

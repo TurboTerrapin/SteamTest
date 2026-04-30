@@ -65,6 +65,8 @@ public class ScenarioManager : NetworkBehaviour
     public GameObject scenario_transitioner;
     public GameObject failure_handler;
 
+    private GameObject scenario_handler;
+    private LobbyHandler lobby_handler;
     private ShipInventory ship_inventory;
     private ScenarioCountdown scenario_countdown;
     private ScenarioMap scenario_map;
@@ -72,14 +74,13 @@ public class ScenarioManager : NetworkBehaviour
     private PowerControl power_control;
     private LightsManager lights_manager;
     private BackgroundAnimator background_animator;
-    private Coroutine countdown_coroutine;
-    private GameObject scenario_handler;
+    private Coroutine countdown_coroutine = null;
 
     private List<OccupiedSpawnLocation> occupied_spawn_locations = new List<OccupiedSpawnLocation>();
     private bool endpoint_reached = false;
     private bool game_over = false;
     private int scenario_number = 0;
-    private int game_difficulty = -1; //assigned by LoadHandler, goes easy, medium, hard, expert (0-3)
+    private int game_difficulty = -1; //assigned by LobbyHandler, goes easy, medium, hard, expert (0-3)
 
     //entrance/exit channel info
     private Vector2 entrance_position;
@@ -89,6 +90,7 @@ public class ScenarioManager : NetworkBehaviour
 
     private void Awake()
     {
+        lobby_handler = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>();
         ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
         scenario_countdown = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioCountdown>();
         scenario_map = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
@@ -96,7 +98,7 @@ public class ScenarioManager : NetworkBehaviour
         power_control = ReferenceAssistor.Instance.module_handlers[4].GetComponent<PowerControl>();
         lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
         background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
-        game_difficulty = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().getDifficulty();
+        game_difficulty = lobby_handler.getDifficulty();
     }
 
     public int getDifficulty()
@@ -246,13 +248,15 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
-    public void prepScenario(bool enable_stations)
+    public void prepScenario(bool first_scenario)
     {
-        //power on all stations (unless it's the first scenario)
-        //if (enable_stations == true)
-        //{
-            powerAllStationsRPC();
-        //}
+        //initialize inventory if first scenario
+        if (first_scenario == true)
+        {
+            ship_inventory.GetComponent<ShipInventory>().initializeInventory();
+        }
+
+        powerAllStationsRPC();
 
         //clear spawn locations
         occupied_spawn_locations.Clear();
@@ -397,6 +401,9 @@ public class ScenarioManager : NetworkBehaviour
             plr.transform.parent = GameObject.Find("NetworkManager").transform.parent;
         }
 
+        //destroy seats
+        GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().destroySeats();
+
         handleFailureRPC(scenario_number, failure_report_message);
     }
 
@@ -451,7 +458,7 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>().resetToDefault();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEjectLoader>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<CargoEject>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().resetToDefault();
 
         //destroy probe (if exists)
@@ -462,7 +469,7 @@ public class ScenarioManager : NetworkBehaviour
     private void handleTransitionRPC(int sn)
     {
         //prepare to load next scenario
-        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().resetPlayersReady();
+        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().resetReadyPlayers();
 
         //power down all stations and reset certain controls (power will be restored later)
         controlResetHelper();
@@ -503,7 +510,7 @@ public class ScenarioManager : NetworkBehaviour
         PrimaryScript.Instance.deactivate(false, true);
 
         //display death screen using scenario number sn and death message frm
-        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(player_manager.GetComponent<PlayerManager>().getPlayerNames(), sn, frm);
+        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), sn, frm);
     }
 
     //used to update the boundary expiration timer in engineer position

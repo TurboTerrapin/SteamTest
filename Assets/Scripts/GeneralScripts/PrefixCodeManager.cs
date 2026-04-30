@@ -2,7 +2,7 @@
     PrefixCodeManager.cs
     - Used to update the prefix codes on all four positions after a certain amount of time
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 4/24/2026
 */
 
 using System.Collections;
@@ -17,11 +17,11 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
     private static int LOOP_TIME = 30;
 
     public List<GameObject> code_labels = null;
-    public List<GameObject> progress_bars = null;
+    public GameObject progress_bar;
 
     private bool[] is_powered = new bool[4] { false, true, true, true };
     private int[] prefix_codes = new int[] { 0, 0, 0, 0 };
-    private Coroutine progress_bars_coroutine;
+    private Coroutine progress_bar_coroutine;
 
     private void displayCodes()
     {
@@ -48,25 +48,18 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
         transmitNewCodesRPC(prefix_codes[0], prefix_codes[1], prefix_codes[2], prefix_codes[3]);
     }
 
-    IEnumerator progressBarsUpdater()
+    IEnumerator progressBarUpdater()
     {
-        //reset all bars
-        for (int i = 0; i < 4; i++)
-        {
-            progress_bars[i].GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f;
-        }
+        //reset bar
+        progress_bar.GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f;
 
-        //loop through each bar
-        for (int i = 0; i < 4; i++)
+        //decrease bar
+        float fill_time = LOOP_TIME;
+        while (fill_time > 0.0f)
         {
-            float fill_time = LOOP_TIME * 0.25f;
-            while (fill_time > 0.0f)
-            {
-                float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
-                fill_time = Mathf.Max(0.0f, fill_time - dt);
-                progress_bars[i].GetComponent<UnityEngine.UI.Image>().fillAmount = fill_time / (LOOP_TIME * 0.25f);
-                yield return null;
-            }
+            fill_time = Mathf.Max(0.0f, fill_time - Time.deltaTime);
+            progress_bar.GetComponent<UnityEngine.UI.Image>().fillAmount = fill_time / LOOP_TIME;
+            yield return null;
         }
 
         //if host, start the loop again
@@ -90,10 +83,7 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
         code_labels[position].SetActive(true);
         if (position == 3)
         {
-            for (int i = 0; i < 4; i++)
-            {
-                progress_bars[i].SetActive(true);
-            }
+            progress_bar.SetActive(true);
         }
     }
 
@@ -103,10 +93,7 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
         code_labels[position].SetActive(false);
         if (position == 3)
         {
-            for (int i = 0; i < 4; i++)
-            {
-                progress_bars[i].SetActive(false);
-            }
+            progress_bar.SetActive(false);
         }
     }
 
@@ -121,11 +108,11 @@ public class PrefixCodeManager : NetworkBehaviour, IPowerable
         displayCodes();
 
         //start bar loop
-        if (progress_bars_coroutine != null)
+        if (progress_bar_coroutine != null)
         {
-            StopCoroutine(progress_bars_coroutine);
+            StopCoroutine(progress_bar_coroutine);
         }
-        progress_bars_coroutine = StartCoroutine(progressBarsUpdater());
+        progress_bar_coroutine = StartCoroutine(progressBarUpdater());
 
         //update self destruct code
         int[] destruct_code = new int[4];
