@@ -290,11 +290,16 @@ public class CameraMove : MonoBehaviour
 
             cameraHolder.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
 
-            if(captainMode == false)
+            if(PrimaryScript.Instance.currentSeat() == 3)
             {
-
+                animatorHandler.chestlookat = 0;
             }
-            animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
+            else
+            {
+                animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
+            }
+
+                animatorHandler.chestlookat *= (prevPos.y + 10) / 100;
         }
 
         cameraHolder.position = headTransform.position;

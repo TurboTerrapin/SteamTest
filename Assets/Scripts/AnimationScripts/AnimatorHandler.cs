@@ -245,7 +245,7 @@ public class AnimatorHandler : MonoBehaviour
             if (lookObj != null)
             {
 
-                Mathf.Clamp(chestlookat, 0f, .4f);
+                Mathf.Clamp(chestlookat, 0f, .5f);
 
 
                 myAnimator.SetLookAtWeight(totallookat, chestlookat, headlookat);
