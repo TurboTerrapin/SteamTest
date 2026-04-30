@@ -262,6 +262,7 @@ public class PlayerMove : NetworkBehaviour
 
     IEnumerator Push(int pos, bool forward)
     {
+        seatManager.beginShift(pos);
         GameObject physicalSeat = seatManager.physical_seats[pos];
         if (physicalSeat == null)
         {
