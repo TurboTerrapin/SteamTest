@@ -75,7 +75,7 @@ public class PlayerMove : NetworkBehaviour
         myAnimationController.setCharacterPosition(Vector3.zero);
     }
 
-    //Called by resetPlayerMove()
+    //Called by ResetPlayerMove()
     private void ResetCoroutines()
     {
         StopAllCoroutines();
@@ -228,6 +228,7 @@ public class PlayerMove : NetworkBehaviour
         return (shiftCoroutine != null || seatChangeCoroutine != null);
     }
 
+    //Called when shifting seat positions laterally (captain doesn't shift)
     public void SeatShift(int pos)
     {
         if (pos == 3) //Captain doesn't shift
@@ -244,6 +245,7 @@ public class PlayerMove : NetworkBehaviour
         PrimaryScript.Instance.onShiftChange();
     }
 
+    //Called when sitting down or getting up
     public void SeatPush(int pos, bool forward)
     {
         if (pos == 3) //Captain doesn't push
@@ -260,6 +262,7 @@ public class PlayerMove : NetworkBehaviour
         PrimaryScript.Instance.onShiftChange();
     }
 
+    //Pushes the player in or out during sit down or get up animations
     IEnumerator Push(int pos, bool forward)
     {
         seatManager.beginShift(pos);
@@ -342,6 +345,7 @@ public class PlayerMove : NetworkBehaviour
         }
     }
 
+    //Checks inputs and triggers move
     private void UpdateMovement()
     {
         if (!gameObject.GetComponent<PlayerMove>().IsOwner) return;
@@ -363,7 +367,7 @@ public class PlayerMove : NetworkBehaviour
         }
         Move();
 
-        //teleport back if you fall
+        //Teleport back if you fall
         if (transform.localPosition.y < -10)
         {
             transform.localPosition = Vector3.zero;

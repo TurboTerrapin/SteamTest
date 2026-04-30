@@ -13,6 +13,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
+using Steamworks.Data;
 using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
 using Unity.Netcode;
 using UnityEngine;
@@ -79,27 +80,30 @@ public class SeatManager : NetworkBehaviour
                 }
                 else
                 {
-                    bool left_check = Vector3.Distance(player_pos, physical_seats[i].transform.GetChild(0).position) < SIT_RANGE;
-                    bool right_check = Vector3.Distance(player_pos, physical_seats[i].transform.GetChild(1).position) < SIT_RANGE;
-                    if (seat_indexes[i] == 0) //seat is shifted all the way to the left
+                    if (physical_seats[i] != null)
                     {
-                        if (right_check == true)
+                        bool left_check = Vector3.Distance(player_pos, physical_seats[i].transform.GetChild(0).position) < SIT_RANGE;
+                        bool right_check = Vector3.Distance(player_pos, physical_seats[i].transform.GetChild(1).position) < SIT_RANGE;
+                        if (seat_indexes[i] == 0) //seat is shifted all the way to the left
                         {
-                            closest_pos = i;
+                            if (right_check == true)
+                            {
+                                closest_pos = i;
+                            }
                         }
-                    }
-                    else if (seat_indexes[i] == SEAT_COORDINATES[i].Length - 1) //seat is shifted all the way to the right
-                    {
-                        if (left_check == true)
+                        else if (seat_indexes[i] == SEAT_COORDINATES[i].Length - 1) //seat is shifted all the way to the right
                         {
-                            closest_pos = i;
+                            if (left_check == true)
+                            {
+                                closest_pos = i;
+                            }
                         }
-                    }
-                    else //seat is somewhere between left and right
-                    {
-                        if (left_check == true || right_check == true)
+                        else //seat is somewhere between left and right
                         {
-                            closest_pos = i;
+                            if (left_check == true || right_check == true)
+                            {
+                                closest_pos = i;
+                            }
                         }
                     }
                 }
@@ -107,6 +111,36 @@ public class SeatManager : NetworkBehaviour
         }
 
         return closest_pos;
+    }
+
+    //called by LobbyHandler.cs on lobby change to replace seats deleted on network despawn when a client quits while sitting
+    public void checkForMissingSeats()
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        LobbyHandler lobby_handler = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>();
+        List<ulong> steam_ids = lobby_handler.getPlayerSteamIDsInLobby();
+        for (int i = 0; i < 4; i++)
+        {
+            if (occupied_seats[i] != 0)
+            {
+                if (steam_ids.Contains(occupied_seats[i]) == false)
+                {
+                    if (i != 3) //captain seat is permanent
+                    {
+                        spawnSeat(i, NetworkManager.Singleton.LocalClientId, true);
+                    }
+                    else
+                    {
+                        transmitCaptainAnimationRPC(false);
+                    }
+                    transmitSeatOccupantChangeRPC(i, 0, 0, false);
+                }
+            }
+        }
     }
 
     public GameObject getSitDownPosition(int pos, Vector3 player_pos)
@@ -224,25 +258,26 @@ public class SeatManager : NetworkBehaviour
             return;
         }
 
-        if (physical_seats[seat].GetComponent<NetworkObject>() != null)
+        if (physical_seats[seat] != null) 
         {
-            if (physical_seats[seat].GetComponent<NetworkObject>().NetworkObjectId == seat_ids[seat])
+            if (physical_seats[seat].GetComponent<NetworkObject>() != null && physical_seats[seat].GetComponent<NetworkObject>().NetworkObjectId == seat_ids[seat])
             {
-                return;
+                return; //seat already replaced and good to go
+            }
+
+            if (physical_seats[seat].GetComponent<NetworkObject>() == null)
+            {
+                GameObject.Destroy(physical_seats[seat]);
+            }
+            else
+            {
+                if (NetworkManager.Singleton.IsHost == true)
+                {
+                    physical_seats[seat].GetComponent<NetworkObject>().Despawn(true);
+                }
             }
         }
 
-        if (physical_seats[seat].GetComponent<NetworkObject>() == null)
-        {
-            GameObject.Destroy(physical_seats[seat]);
-        }
-        else
-        {
-            if (NetworkManager.Singleton.IsHost == true)
-            {
-                physical_seats[seat].GetComponent<NetworkObject>().Despawn(true);
-            }
-        }
         physical_seats[seat] = GetNetworkObject(seat_ids[seat]).gameObject;
         physical_seats[seat].GetComponent<ClientNetworkTransform>().Interpolate = true;
         physical_seats[seat].transform.GetChild(3).gameObject.SetActive(true);
@@ -345,6 +380,20 @@ public class SeatManager : NetworkBehaviour
         transmitCaptainAnimationRPC(false);
     }
 
+    private void spawnSeat(int seat, ulong client_id, bool visible_on_spawn)
+    {
+        if (seat == 3) //captain seat is permanent
+        {
+            return;
+        }
+
+        GameObject new_seat = GameObject.Instantiate(seat_prefabs[seat], physical_seats[3].transform.parent);
+        new_seat.transform.localPosition = new Vector3(SEAT_COORDINATES[seat][seat_indexes[seat]].x, 0.0f, SEAT_COORDINATES[seat][seat_indexes[seat]].y);
+        new_seat.GetComponent<NetworkObject>().SpawnWithOwnership(client_id, false);
+        new_seat.GetComponent<NetworkObject>().TrySetParent(physical_seats[3].transform.parent.gameObject, true);
+        transmitSeatPrefabSpawnRPC(seat, new_seat.GetComponent<NetworkObject>().NetworkObjectId, visible_on_spawn);
+    }
+
     [Rpc(SendTo.Everyone)]
     private void transmitCaptainAnimationRPC(bool enclose)
     {
@@ -373,19 +422,18 @@ public class SeatManager : NetworkBehaviour
             {
                 if (NetworkManager.Singleton.IsHost == true)
                 {
-                    GameObject new_seat = GameObject.Instantiate(seat_prefabs[seat], physical_seats[3].transform.parent);
-                    new_seat.transform.localPosition = new Vector3(SEAT_COORDINATES[seat][seat_indexes[seat]].x, 0.0f, SEAT_COORDINATES[seat][seat_indexes[seat]].y);
-                    new_seat.GetComponent<NetworkObject>().SpawnWithOwnership(client_id, false);
-                    new_seat.GetComponent<NetworkObject>().TrySetParent(physical_seats[3].transform.parent.gameObject, true);
-                    transmitSeatPrefabSpawnRPC(seat, new_seat.GetComponent<NetworkObject>().NetworkObjectId);
+                    spawnSeat(seat, client_id, false);
                 }
             }
         }
         else
         {
             occupied_seats[seat] = 0;
-            player_manager.unfreezePlayer(occupant_steam_id);
-            replaceSeatPrefab(seat);
+            if (occupant_steam_id != 0)
+            {
+                player_manager.unfreezePlayer(occupant_steam_id);
+                replaceSeatPrefab(seat);
+            }
         }
         bool[] curr_seats = new bool[4];
         for (int i = 0; i < 4; i++)
@@ -402,9 +450,13 @@ public class SeatManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitSeatPrefabSpawnRPC(int seat, ulong seat_id)
+    private void transmitSeatPrefabSpawnRPC(int seat, ulong seat_id, bool visible_on_spawn)
     {
         seat_ids[seat] = seat_id;
+        if (visible_on_spawn == true)
+        {
+            replaceSeatPrefab(seat);
+        }
     }
 
     [Rpc(SendTo.Everyone)]

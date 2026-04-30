@@ -3,7 +3,7 @@
     - Handles RPCs that pertain to lobby functions, ex. load initiation, difficulty handling
     - Keeps track of who is actually in and connected in the lobby
     Contributor(s): Jake Schott
-    Last Updated: 4/20/2026
+    Last Updated: 4/29/2026
 */
 
 using UnityEngine;
@@ -308,6 +308,12 @@ public class LobbyHandler : NetworkBehaviour
         if (campaign_lobby != null)
         {
             campaign_lobby.GetComponent<CampaignLobbyController>().OnLobbyChange();
+        }
+
+        //if host, check for seat occupants
+        if (NetworkManager.Singleton.IsHost == true && SceneManager.GetActiveScene().name != "TitleScreen")
+        {
+            GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().checkForMissingSeats();
         }
     }
 
