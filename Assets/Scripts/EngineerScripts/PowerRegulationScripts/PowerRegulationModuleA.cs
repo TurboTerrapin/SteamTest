@@ -50,8 +50,6 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
     [Tooltip("Set to -1 for no lerp")]
     public float lerp_speed = 5f;
 
-    public int finger_position = 0;
-
     private void Start()
     {
         for (int i = 0; i < 3; i++)

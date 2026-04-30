@@ -293,6 +293,7 @@ public class CameraMove : MonoBehaviour
             if(PrimaryScript.Instance.currentSeat() == 3)
             {
                 animatorHandler.chestlookat = 0;
+                //animatorHandler.chestlookat = -Mathf.Abs(prevPos.x / 180) + 1;
             }
             else
             {
