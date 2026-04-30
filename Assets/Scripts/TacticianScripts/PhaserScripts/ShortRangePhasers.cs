@@ -205,7 +205,7 @@ public class ShortRangePhasers : MonoBehaviour
     private void considerCandidate(Transform candidate, Vector3 originPos, Vector3 forwardDir,
                                    ref Transform nearestEnemy, ref float minDistance)
     {
-        if (!candidate.CompareTag(enemyTag)) return;
+        if (candidate.GetComponent<IDamageable>() == null) return;
 
         Vector3 dirToTarget = (candidate.position - originPos).normalized;
         float angle = Vector3.Angle(forwardDir, dirToTarget);

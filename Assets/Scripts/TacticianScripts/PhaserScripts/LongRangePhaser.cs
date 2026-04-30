@@ -203,7 +203,7 @@ public class LongRangePhaser : MonoBehaviour
         longRangePhaser.startWidth = finalWidth;
         longRangePhaser.endWidth = finalWidth * LRBeamEndDiameterRatio;
 
-        longRangePhaserOrigin.transform.localRotation = Quaternion.Euler(0f, longRangePhaserAngle + currentTrackingOffset, 0f);
+        longRangePhaserOrigin.transform.localRotation = Quaternion.Euler(90.0f, currentTrackingOffset, 0.0f);
 
         Vector3 startPos = longRangePhaserOrigin.transform.position;
         Vector3 forwardDir = longRangePhaserOrigin.transform.forward;
@@ -279,7 +279,7 @@ public class LongRangePhaser : MonoBehaviour
     private void considerCandidate(Transform candidate, Vector3 originPos, Vector3 forwardDir,
                                    ref Transform nearestEnemy, ref float minDistance)
     {
-        if (!candidate.CompareTag(enemyTag)) return;
+        if (candidate.GetComponent<IDamageable>() == null) return;
 
         Vector3 dirToTarget = candidate.position - originPos;
         dirToTarget.y = 0f;
