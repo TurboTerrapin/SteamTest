@@ -65,7 +65,6 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
     public Vector3 right_hand_offset = Vector3.zero;
     public float lerp_speed = 5f;
     
-    public int finger_position = 0;
     private int button_index = 0;
 
     private void Start()
