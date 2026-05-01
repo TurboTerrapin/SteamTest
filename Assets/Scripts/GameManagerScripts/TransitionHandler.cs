@@ -10,6 +10,7 @@ public class TransitionHandler : MonoBehaviour
     public Transform CameraPositions;
     public Transform TransitionText;
     public GameObject TransitionCanvas;
+    public GameObject FakeShip;
 
     public void ShowTransition(int scenario)
     {
@@ -20,6 +21,9 @@ public class TransitionHandler : MonoBehaviour
         // switch cameras
         localPlayer.GetComponent<CameraMove>().DeactivateCamera();
         transitionCamera.SetActive(true);
+
+        // show fake ship
+        FakeShip.SetActive(true);
 
         // show UI
         TransitionCanvas.SetActive(true);
@@ -46,6 +50,9 @@ public class TransitionHandler : MonoBehaviour
         // switch cameras
         playerCamera.SetActive(true);
         transitionCamera.SetActive(false);
+
+        // hide fake ship
+        FakeShip.SetActive(false);
     }
 
     IEnumerator StartTransition(int scenario)
