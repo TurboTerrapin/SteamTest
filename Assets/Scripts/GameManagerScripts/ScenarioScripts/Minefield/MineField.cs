@@ -11,7 +11,7 @@ using UnityEngine;
 public class MineField : NetworkBehaviour, IScenario
 {
     //CLASS CONSTANTS
-    private static int MINE_QUANTITY = 30;
+    private static int MINE_QUANTITY = 100;
     //private static int SEEKER_MINE_QUANTITY = 20;
     private static string DEATH_MESSAGE = "You died buddy get better at this game";
 
@@ -25,7 +25,7 @@ public class MineField : NetworkBehaviour, IScenario
 
         float radius = ScenarioManager.BOUNDARY_SIZE * 0.5f;
         float height = ScenarioManager.BOUNDARY_ALTITUDE * 2f;
-        float minDistance = 50.0f;
+        float minDistance = 75.0f;
 
         int totalMines = MINE_QUANTITY;
 
