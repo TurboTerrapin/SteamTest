@@ -3,107 +3,10 @@
     Contributor(s): Henryk Musial
 */
 
-
-/*
 using Unity.Netcode;
 using UnityEngine;
 
-public class Mine : NetworkBehaviour
-{
-    private float ROTATION_SPEED = 1.5f;
-    private float DETONATION_RANGE = 100.0f;
-    private float DETECTION_RANGE = 1000.0f;
-
-    private Transform target_ship;
-
-
-    void Start()
-    {
-        // If not the host, strip the collider so clients don't calculate local physics
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            Component.Destroy(transform.GetComponent<Collider>());
-        }
-
-        // Find & ref the spaceship in scene
-        GameObject spaceship_obj = GameObject.FindGameObjectWithTag("Spaceship");
-        if (spaceship_obj != null)
-        {
-            target_ship = spaceship_obj.transform;
-        }
-    }
-
-    void Update()
-    {
-        // Movement and rotation logic should only run on the Host
-        if (!IsHost || target_ship == null)
-        {
-            return;
-        }
-
-        float distance_to_ship = Vector3.Distance(transform.position, target_ship.position);
-
-        if (distance_to_ship <= DETECTION_RANGE)
-        {
-            float dynamic_detection_range = CalculateDetectionRange();
-
-            if(distance_to_ship < dynamic_detection_range)
-            {
-                LookAtShip();
-            }
-        }
-    }
-
-    private float CalculateDetectionRange()
-    {
-        EmissionReducers reducers = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EmissionReducers>();
-        if (reducers == null)
-        {
-            return DETECTION_RANGE;
-        }
-        int active_count = 0;
-
-        // Check port and starboard reducers
-        if (reducers.enabled_reducers[0]) active_count++;
-        if (reducers.enabled_reducers[1]) active_count++;
-
-        if(active_count == 0)
-        {
-            return DETECTION_RANGE;
-        }
-        else
-        {
-            return DETECTION_RANGE - (active_count * 200.0f);
-        }
-    }
-
-    private void LookAtShip()
-    {
-        // Determine direction to ship
-        Vector3 target_direction = (target_ship.position - transform.position).normalized;
-
-        Quaternion target_rotation = Quaternion.LookRotation(target_direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.deltaTime * ROTATION_SPEED);
-
-    }
-
-    private void Detonate()
-    {
-
-    }
-}
-
-*/
-
-/*
-    Mine.cs
-    Contributor(s): Henryk Musial
-*/
-
-using Unity.Netcode;
-using UnityEngine;
-
-public class Mine : NetworkBehaviour
+public class Mine : NetworkBehaviour, IDamageable
 {
     private float ROTATION_SPEED = 1.5f;
     private float DETONATION_RANGE = 100.0f;
@@ -114,6 +17,8 @@ public class Mine : NetworkBehaviour
     public LineRenderer line_renderer;
 
     private Transform target_ship;
+
+    [SerializeField] private float health = 50f;
 
     void Start()
     {
@@ -136,6 +41,20 @@ public class Mine : NetworkBehaviour
             line_renderer.positionCount = 2;
             line_renderer.enabled = false;
         }
+    }
+
+    public void damage(float dam)
+    {
+        health -= dam;
+        if (health <= 0f)
+        {
+            Explode();
+        }
+    }
+
+    private void Explode()
+    {
+        Destroy(gameObject);
     }
 
     void Update()
@@ -203,7 +122,6 @@ public class Mine : NetworkBehaviour
 
         Quaternion target_rotation = Quaternion.LookRotation(target_direction);
         transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.deltaTime * ROTATION_SPEED);
-
     }
 
     private void FireLaser()
