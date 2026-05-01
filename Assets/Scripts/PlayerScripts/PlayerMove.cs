@@ -6,7 +6,7 @@
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 4/29/2026
+    Last Updated: 4/30/2026
 */
 
 using System.Collections;
@@ -19,7 +19,7 @@ public class PlayerMove : NetworkBehaviour
     //CLASS CONSTANTS
     private static float SHIFT_SPEED = 1.5f;
     private static float MOVE_SPEED = 5.0f;
-    private static float SEAT_PUSH_IN_ADJUSTMENT = 0.33f; //How far the seats get pushed in/out after sit down (except for captain)
+    private static Vector2[] SEAT_PUSH_IN_ADJUSTMENTS = new Vector2[] { new Vector2(0.0f, 0.33f), new Vector2(0.0f, 0.33f), new Vector2(0.23f, -0.23f), Vector2.zero }; //pilot, tactician, engineer, captain 
 
     private Vector2 moveDir = new Vector2();
     [SerializeField]
@@ -273,13 +273,13 @@ public class PlayerMove : NetworkBehaviour
         }
 
         Vector3 personStartPos = transform.localPosition;
-        Vector3 personEndPos = personStartPos + (transform.forward * SEAT_PUSH_IN_ADJUSTMENT);
+        Vector3 personEndPos = new Vector3(personStartPos.x + SEAT_PUSH_IN_ADJUSTMENTS[pos].x, personStartPos.y, personStartPos.z + SEAT_PUSH_IN_ADJUSTMENTS[pos].y);
         Vector3 seatStartPos = physicalSeat.transform.localPosition;
-        Vector3 seatEndPos = seatEndPos = seatStartPos + (transform.forward * SEAT_PUSH_IN_ADJUSTMENT);
+        Vector3 seatEndPos = new Vector3(seatStartPos.x + SEAT_PUSH_IN_ADJUSTMENTS[pos].x, seatStartPos.y, seatStartPos.z + SEAT_PUSH_IN_ADJUSTMENTS[pos].y);
         if (forward == false)
         {
-            personEndPos = personStartPos - (transform.forward * SEAT_PUSH_IN_ADJUSTMENT);
-            seatEndPos = seatStartPos - (transform.forward * SEAT_PUSH_IN_ADJUSTMENT);
+            personEndPos = new Vector3(personStartPos.x - SEAT_PUSH_IN_ADJUSTMENTS[pos].x, personStartPos.y, personStartPos.z - SEAT_PUSH_IN_ADJUSTMENTS[pos].y);
+            seatEndPos = new Vector3(seatStartPos.x - SEAT_PUSH_IN_ADJUSTMENTS[pos].x, seatStartPos.y, seatStartPos.z - SEAT_PUSH_IN_ADJUSTMENTS[pos].y);
         }
 
         float animTime = 0.5f;
@@ -305,7 +305,7 @@ public class PlayerMove : NetworkBehaviour
     {
         bool lookDirection = transform.GetComponent<CameraMove>().cameraHolder.localRotation.eulerAngles.y < 120;
         int newSeatIndex = seatManager.getShiftLocation(pos, lookDirection);
-        Vector3 pushDir = transform.forward * SEAT_PUSH_IN_ADJUSTMENT;
+        Vector3 pushDir = new Vector3(SEAT_PUSH_IN_ADJUSTMENTS[pos].x, 0.0f, SEAT_PUSH_IN_ADJUSTMENTS[pos].y);
         Vector3 startPos = seatManager.physical_seats[pos].transform.localPosition;
         Vector3 endPos = new Vector3(SeatManager.SEAT_COORDINATES[pos][newSeatIndex].x, startPos.y, SeatManager.SEAT_COORDINATES[pos][newSeatIndex].y) + pushDir;
 

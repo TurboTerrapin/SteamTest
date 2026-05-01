@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 3/26/2026
+    Last Updated: 5/1/2026
 */
 
 using System.Collections;
@@ -91,7 +91,7 @@ public class LightsManager : MonoBehaviour
             emergency_lights.Add(emergency_light_group.transform.GetChild(i).GetComponent<Light>());
             emergency_renderers.Add(emergency_light_group.transform.GetChild(i).GetChild(0).GetComponent<Renderer>());
         }
-        emergency_material = ReferenceAssistor.Instance.unlit_neon;
+        emergency_material = ReferenceAssistor.Instance.pure_black;
 
         ship_status = ReferenceAssistor.Instance.module_handlers[3].GetComponent<ShipStatus>();
 
@@ -134,7 +134,7 @@ public class LightsManager : MonoBehaviour
                     }
                     else
                     {
-                        default_renderers[i][k].material = ReferenceAssistor.Instance.unlit_neon;
+                        default_renderers[i][k].material = ReferenceAssistor.Instance.pure_black;
                     }
                 }
                 for (int k = 0; k < lit_renderers[i].Count; k++)
@@ -160,7 +160,7 @@ public class LightsManager : MonoBehaviour
                 }
                 else
                 {
-                    emergency_renderers[i].material = ReferenceAssistor.Instance.unlit_neon;
+                    emergency_renderers[i].material = ReferenceAssistor.Instance.pure_black;
                 }
             }
         }
@@ -245,7 +245,7 @@ public class LightsManager : MonoBehaviour
 
         //disable emergency lights
         emergency_color = DEFAULT_LIGHT_COLORS[1];
-        emergency_material = ReferenceAssistor.Instance.unlit_neon;
+        emergency_material = ReferenceAssistor.Instance.pure_black;
 
         //push updates
         for (int i = 0; i < 2; i++)
@@ -330,12 +330,12 @@ public class LightsManager : MonoBehaviour
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    current_default_materials[i] = ReferenceAssistor.Instance.unlit_neon;
+                    current_default_materials[i] = ReferenceAssistor.Instance.pure_black;
                 }
             }
             else //emergency
             {
-                emergency_material = ReferenceAssistor.Instance.unlit_neon;
+                emergency_material = ReferenceAssistor.Instance.pure_black;
             }
         }
         displayLightMaterials(index);
