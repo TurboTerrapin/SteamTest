@@ -15,7 +15,7 @@ public class ShortRangePhasers : MonoBehaviour
     private float SRBurstGapMax = 1.5f;
     private float SRBurstGapMin = 0.5f;
 
-    private float SRTrackingRange = 150f;
+    private float SRTrackingRange = 250f;
     private float SRMaxTrackingAngle = 10f;
     private float SRTrackingSpeed = 5f;
     private float SRTargetScanInterval = 2f;
@@ -30,7 +30,7 @@ public class ShortRangePhasers : MonoBehaviour
     private Color shortRangeEmissionColorLeft;
     private Color shortRangeEmissionColorRight;
 
-    private const float SHORT_RANGE_BEAM_LENGTH = 150f;
+    private const float SHORT_RANGE_BEAM_LENGTH = 250f;
     private const string EMISSION_COLOR = "_EmissionColor";
 
     private float burstCycleTime;
@@ -121,11 +121,7 @@ public class ShortRangePhasers : MonoBehaviour
 
     private void Update()
     {
-        updateShortRangePhasers(Time.deltaTime);
-    }
 
-    private void updateShortRangePhasers(float dt)
-    {
         if (!beamActive[0] && !beamActive[1])
         {
             burstCycleTime = 0f;
@@ -142,7 +138,15 @@ public class ShortRangePhasers : MonoBehaviour
             enabled = false;
             return;
         }
+        else
+        {
+            float dt = Time.deltaTime;
+            updateShortRangePhasers(dt);
+        }
+    }
 
+    private void updateShortRangePhasers(float dt)
+    {
         // Advance burst cycle
         burstCycleTime += dt;
         float cycleLength = currentBurstCycleLength();
