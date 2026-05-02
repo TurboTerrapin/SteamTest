@@ -300,11 +300,17 @@ public class PilotingSystem : NetworkBehaviour
         forwardSpeed = currentVelocity.magnitude;
         float speedFactor = Mathf.Clamp01(forwardSpeed / maxImpulseForwardSpeed);
 
+
+        /*
         smoothedSteeringInput = Mathf.Lerp(
             smoothedSteeringInput,
             steeringInput,
             steeringResponsiveness * dt
         );
+        */
+
+        float t = 1f - Mathf.Exp(-steeringResponsiveness * dt); // Frame rate independant
+        smoothedSteeringInput = Mathf.Lerp(smoothedSteeringInput, steeringInput, t);
 
         float targetRotationSpeed = smoothedSteeringInput * maxRotationSpeed * speedFactor;
 
