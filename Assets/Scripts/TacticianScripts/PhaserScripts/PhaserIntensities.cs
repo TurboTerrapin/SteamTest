@@ -30,8 +30,11 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
+
     private PhaserActivators phaser_activators;
     private ShortRangePhasers short_range_phasers;
+    private LongRangePhaser long_range_phaser;
+
     private float[] phaser_intensities = new float[2] { 0.0f, 0.0f };
     private Vector3[] phaser_slider_initial_positions = new Vector3[2];
     private Vector3[] phaser_slider_final_positions = new Vector3[2];
@@ -53,6 +56,8 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     {
         phaser_activators = GetComponent<PhaserActivators>();
         short_range_phasers = GetComponent<ShortRangePhasers>();
+        long_range_phaser = GetComponent<LongRangePhaser>();
+
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -275,7 +280,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
 
         if (index == 0)
         {
-            // if (long_range_phasers != null) long_range_phasers.setIntensity(phsr_percent);
+            if (long_range_phaser != null) long_range_phaser.setIntensity(phsr_percent);
         }
         else
         {

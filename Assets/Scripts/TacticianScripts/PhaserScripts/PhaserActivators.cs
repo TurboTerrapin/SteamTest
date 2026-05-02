@@ -26,8 +26,10 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     public List<GameObject> phaser_switches = null;
     public List<GameObject> phaser_coverups = null;
     public GameObject phaser_activator_display;
+
     private PhaserIntensities phaser_intensities;
     private ShortRangePhasers short_range_phasers;
+    private LongRangePhaser long_range_phaser;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine;
@@ -53,6 +55,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     {
         phaser_intensities = GetComponent<PhaserIntensities>();
         short_range_phasers = GetComponent<ShortRangePhasers>();
+        long_range_phaser = GetComponent<LongRangePhaser>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -136,7 +139,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             // Notify visuals immediately on disable - beams should stop right away
             if (index == 0)
             {
-                // if (long_range_phasers != null) long_range_phasers.setActive(false);
+                if (long_range_phaser != null) long_range_phaser.setActive(false);
             }
             else
             {
@@ -201,7 +204,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             // Notify visuals - beam comes on after the charge animation completes
             if (index == 0)
             {
-                // if (long_range_phasers != null) long_range_phasers.setActive(true);
+                if (long_range_phaser != null) long_range_phaser.setActive(true);
             }
             else
             {
@@ -239,7 +242,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
 
         if (i == 0)
         {
-            // if (long_range_phasers != null) long_range_phasers.setActive(is_enabled);
+            if (long_range_phaser != null) long_range_phaser.setActive(false);
         }
         else
         {

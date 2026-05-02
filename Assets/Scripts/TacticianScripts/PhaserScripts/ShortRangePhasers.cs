@@ -15,8 +15,8 @@ public class ShortRangePhasers : MonoBehaviour
     private float SRBurstGapMax = 1.5f;
     private float SRBurstGapMin = 0.5f;
 
-    private float SRTrackingRange = 350f;
-    private float SRMaxTrackingAngle = 15f;
+    private float SRTrackingRange = 150f;
+    private float SRMaxTrackingAngle = 10f;
     private float SRTrackingSpeed = 5f;
     private float SRTargetScanInterval = 2f;
 
@@ -30,7 +30,7 @@ public class ShortRangePhasers : MonoBehaviour
     private Color shortRangeEmissionColorLeft;
     private Color shortRangeEmissionColorRight;
 
-    private const float SHORT_RANGE_BEAM_LENGTH = 350f;
+    private const float SHORT_RANGE_BEAM_LENGTH = 150f;
     private const string EMISSION_COLOR = "_EmissionColor";
 
     private float burstCycleTime;
