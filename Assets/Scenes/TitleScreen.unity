@@ -7680,7 +7680,7 @@ GameObject:
   - component: {fileID: 257169244}
   - component: {fileID: 257169243}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Overlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7693,7 +7693,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 257169241}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -8519,7 +8519,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278910753
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -10757,6 +10757,81 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1 &336461978
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 336461979}
+  - component: {fileID: 336461981}
+  - component: {fileID: 336461980}
+  m_Layer: 5
+  m_Name: Overlay
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &336461979
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336461978}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1154862869}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1300, y: 275}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &336461980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336461978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0.14901961, b: 0.16078432, a: 0.6862745}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 2d02012bf7fb364429d9c5a897409184, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &336461981
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 336461978}
+  m_CullTransparentMesh: 1
 --- !u!1 &337198016
 GameObject:
   m_ObjectHideFlags: 0
@@ -11317,7 +11392,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d5f8fb7a0d2866d48ba7bf0fd3174d65, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 7f209885d28074f43b49e2a63b65f22d, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -13619,6 +13694,7 @@ GameObject:
   - component: {fileID: 464796500}
   - component: {fileID: 464796502}
   - component: {fileID: 464796501}
+  - component: {fileID: 464796503}
   m_Layer: 5
   m_Name: Scenario4
   m_TagString: Untagged
@@ -13688,6 +13764,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 464796499}
   m_CullTransparentMesh: 1
+--- !u!114 &464796503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 464796499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54e345f7cafd1c44089f9ab639ae2124, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AnomalyIDText: {fileID: 1533365126}
+  TierText: {fileID: 498417708}
+  TimesBeatenText: {fileID: 55737482}
+  Sprite: {fileID: 2129208718}
+  DarkOverlay: {fileID: 1466056342}
 --- !u!1 &469065889
 GameObject:
   m_ObjectHideFlags: 0
@@ -17856,7 +17949,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278910753
-  m_fontColor: {r: 0.12941177, g: 1, b: 0.039215688, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -20458,7 +20551,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: TIER 1
+  m_text: TIER ?
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d24b90a6427c83b4096d2d5ed236fac7, type: 2}
   m_sharedMaterial: {fileID: -8488295769908592752, guid: d24b90a6427c83b4096d2d5ed236fac7, type: 2}
@@ -20468,7 +20561,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278910753
-  m_fontColor: {r: 0.12941177, g: 1, b: 0.039215688, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -27112,7 +27205,7 @@ GameObject:
   - component: {fileID: 947342122}
   - component: {fileID: 947342121}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Overlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31690,6 +31783,7 @@ GameObject:
   - component: {fileID: 1098359698}
   - component: {fileID: 1098359700}
   - component: {fileID: 1098359699}
+  - component: {fileID: 1098359701}
   m_Layer: 5
   m_Name: Scenario2
   m_TagString: Untagged
@@ -31759,6 +31853,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1098359697}
   m_CullTransparentMesh: 1
+--- !u!114 &1098359701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1098359697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54e345f7cafd1c44089f9ab639ae2124, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AnomalyIDText: {fileID: 1313185396}
+  TierText: {fileID: 1290390205}
+  TimesBeatenText: {fileID: 1218706168}
+  Sprite: {fileID: 1367323480}
+  DarkOverlay: {fileID: 947342119}
 --- !u!1 &1098928179
 GameObject:
   m_ObjectHideFlags: 0
@@ -34427,6 +34538,7 @@ GameObject:
   - component: {fileID: 1154862869}
   - component: {fileID: 1154862871}
   - component: {fileID: 1154862870}
+  - component: {fileID: 1154862872}
   m_Layer: 5
   m_Name: Scenario1
   m_TagString: Untagged
@@ -34450,6 +34562,7 @@ RectTransform:
   - {fileID: 2025481672}
   - {fileID: 744612341}
   - {fileID: 1233768744}
+  - {fileID: 336461979}
   m_Father: {fileID: 83867714}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -34495,6 +34608,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1154862868}
   m_CullTransparentMesh: 1
+--- !u!114 &1154862872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1154862868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54e345f7cafd1c44089f9ab639ae2124, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AnomalyIDText: {fileID: 2025481673}
+  TierText: {fileID: 744612342}
+  TimesBeatenText: {fileID: 612987653}
+  Sprite: {fileID: 353558388}
+  DarkOverlay: {fileID: 336461978}
 --- !u!1 &1157737909
 GameObject:
   m_ObjectHideFlags: 0
@@ -36589,8 +36719,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278910753
+  m_fontColor: {r: 0.12941177, g: 1, b: 0.039215688, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -38280,8 +38410,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278910753
+  m_fontColor: {r: 0.12941177, g: 1, b: 0.039215688, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -42313,7 +42443,7 @@ GameObject:
   - component: {fileID: 1466056345}
   - component: {fileID: 1466056344}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Overlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46993,7 +47123,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278910753
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -55653,7 +55783,7 @@ GameObject:
   - component: {fileID: 1962055970}
   - component: {fileID: 1962055972}
   m_Layer: 5
-  m_Name: LogsMenu
+  m_Name: LogMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55730,6 +55860,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d0ee5767a233e34997eedbdcfc097a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IdentifiedAnomalyInfo:
+  - AnomalyID: ANOMALY ID#1A
+    Tier: TIER 1
+    TierColor: {r: 0.12941177, g: 1, b: 0.039215688, a: 1}
+    Sprite: {fileID: 21300000, guid: d5f8fb7a0d2866d48ba7bf0fd3174d65, type: 3}
+  - AnomalyID: ANOMALY ID#1B
+    Tier: TIER 1
+    TierColor: {r: 0.12941177, g: 1, b: 0.039215688, a: 1}
+    Sprite: {fileID: 21300000, guid: d5f8fb7a0d2866d48ba7bf0fd3174d65, type: 3}
+  PlayerLogDataList: []
+  TotalAnomalies: 16
   LogsMenu: {fileID: 1962055968}
   MainMenu: {fileID: 668168435}
   Page1: {fileID: 83867713}
@@ -55737,6 +55878,10 @@ MonoBehaviour:
   NextPageButton: {fileID: 281513745}
   PreviousPageButton: {fileID: 317253454}
   PageNumberText: {fileID: 1518892658}
+  LogSlots:
+  - {fileID: 1154862872}
+  - {fileID: 1098359701}
+  QuestionMark: {fileID: 21300000, guid: 7f209885d28074f43b49e2a63b65f22d, type: 3}
 --- !u!1 &1963762016
 GameObject:
   m_ObjectHideFlags: 0
@@ -57402,8 +57547,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 100, y: 60}
-  m_SizeDelta: {x: 800, y: 50}
+  m_AnchoredPosition: {x: 200, y: 60}
+  m_SizeDelta: {x: 1000, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2025481673
 MonoBehaviour:
@@ -57425,7 +57570,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ANOMALY ID#1A
+  m_text: UNIDENTIFIED ANOMALY
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d24b90a6427c83b4096d2d5ed236fac7, type: 2}
   m_sharedMaterial: {fileID: -8488295769908592752, guid: d24b90a6427c83b4096d2d5ed236fac7, type: 2}
