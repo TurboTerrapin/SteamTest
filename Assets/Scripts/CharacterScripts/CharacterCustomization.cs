@@ -20,6 +20,21 @@ public class CharacterCustomization : NetworkBehaviour
     private GameObject hairObject = null;
     [SerializeField]
     private int hair = 0;
+
+    [SerializeField]
+    private GameObject shirtObject = null;
+    [SerializeField]
+    private List<SkinnedMeshRenderer> shirtModels = new List<SkinnedMeshRenderer>();
+    [SerializeField]
+    private List<Material> shirtMaterials = new List<Material>();
+
+    [SerializeField]
+    private GameObject pantsObject = null;
+    [SerializeField]
+    private List<SkinnedMeshRenderer> pantsModels = new List<SkinnedMeshRenderer>();
+    [SerializeField]
+    private List<Material> pantsMaterials = new List<Material>();
+
     [SerializeField]
     private int clothing = 0;
 
@@ -93,6 +108,7 @@ public class CharacterCustomization : NetworkBehaviour
             hair = data.SelectedHairOption;
             ChangeHairType(hair);
             clothing = data.SelectedClothingOption;
+            ChangeClothingType(clothing);
         }
     }
 
@@ -109,6 +125,15 @@ public class CharacterCustomization : NetworkBehaviour
         }
 
         hairObject.GetComponent<MeshFilter>().mesh = hairModels[hair - 1].GetComponent<MeshFilter>().sharedMesh;
+    }
+    public void ChangeClothingType(int newClothing)
+    {
+        clothing = newClothing;
+
+        shirtObject.GetComponent<SkinnedMeshRenderer>().sharedMesh = shirtModels[clothing].GetComponent<SkinnedMeshRenderer>().sharedMesh;
+        shirtObject.GetComponent<SkinnedMeshRenderer>().material = shirtMaterials[clothing];
+        pantsObject.GetComponent<SkinnedMeshRenderer>().sharedMesh = pantsModels[clothing].GetComponent<SkinnedMeshRenderer>().sharedMesh;
+        pantsObject.GetComponent<SkinnedMeshRenderer>().material = pantsMaterials[clothing];
     }
 
     /*

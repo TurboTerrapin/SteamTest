@@ -48,7 +48,15 @@ public class CustomizeCharacterMenu : MonoBehaviour
     public UIButton LeftClothingButton;
     public UIButton RightClothingButton;
     private int CurrentClothingOptionIndex = 0;
-    private string[] ClothingOptions = { "Option 1", "Option 2", "Option 3" };
+    private string[] ClothingOptions = { "Option 1", "Option 2"};
+    [SerializeField]
+    private List<GameObject> shirtOptions = new List<GameObject>();
+    [SerializeField]
+    private List<Material> shirtMaterials = new List<Material>();
+    [SerializeField]
+    private List<GameObject> pantsOptions = new List<GameObject>();
+    [SerializeField]
+    private List<Material> pantsMaterials = new List<Material>();
 
     public TMP_Text HairOptionText;
     public UIButton LeftHairButton;
@@ -62,6 +70,8 @@ public class CustomizeCharacterMenu : MonoBehaviour
     public MeshRenderer LeftEyeRenderer;
     public MeshRenderer RightEyeRenderer;
     public SkinnedMeshRenderer DummyRenderer;
+    public SkinnedMeshRenderer ShirtRenderer;
+    public SkinnedMeshRenderer PantsRenderer;
 
 
     void Start()
@@ -272,6 +282,16 @@ public class CustomizeCharacterMenu : MonoBehaviour
     private void UpdateClothingOptionText()
     {
         ClothingOptionText.text = ClothingOptions[CurrentClothingOptionIndex];
+
+
+        //Destroy(ShirtRenderer.transform.GetChild(0).gameObject);
+        //Destroy(PantsRenderer.transform.GetChild(0).gameObject);
+        //ShirtRenderer = Instantiate(shirtOptions[CurrentClothingOptionIndex], ShirtRenderer.transform);
+        //PantsRenderer = Instantiate(pantsOptions[CurrentClothingOptionIndex], PantsRenderer.transform);
+        ShirtRenderer.sharedMesh = shirtOptions[CurrentClothingOptionIndex].GetComponent<SkinnedMeshRenderer>().sharedMesh;
+        ShirtRenderer.material = shirtMaterials[CurrentClothingOptionIndex];
+        PantsRenderer.sharedMesh = pantsOptions[CurrentClothingOptionIndex].GetComponent<SkinnedMeshRenderer>().sharedMesh;
+        PantsRenderer.material = pantsMaterials[CurrentClothingOptionIndex];
     }
 
 

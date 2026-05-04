@@ -10121,7 +10121,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1030.5
+      value: -1030.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
       propertyPath: m_LocalPosition.z
@@ -10129,7 +10129,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.00000004371139
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
       propertyPath: m_LocalRotation.x
@@ -10542,6 +10542,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetMeshRenderer: {fileID: 860485567}
+--- !u!137 &321932168 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -5291407736170811975, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
+  m_PrefabInstance: {fileID: 321932164}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &326020578
 GameObject:
   m_ObjectHideFlags: 0
@@ -28483,6 +28488,18 @@ MonoBehaviour:
   ClothingOptionText: {fileID: 1596814963}
   LeftClothingButton: {fileID: 255366563}
   RightClothingButton: {fileID: 1963762017}
+  shirtOptions:
+  - {fileID: -8021555830810559811, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
+  - {fileID: 3942876848423782620, guid: 42b8e8b4d7ac39549b40c7bb4e8509dd, type: 3}
+  shirtMaterials:
+  - {fileID: -876546973899608171, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
+  - {fileID: -2571066135233467577, guid: 42b8e8b4d7ac39549b40c7bb4e8509dd, type: 3}
+  pantsOptions:
+  - {fileID: -5536740108886989625, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
+  - {fileID: -5536740108886989625, guid: fdbcf3a59e1c8254cb2fb237a331a2ed, type: 3}
+  pantsMaterials:
+  - {fileID: -6478536213147159724, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
+  - {fileID: 8766343988393363296, guid: fdbcf3a59e1c8254cb2fb237a331a2ed, type: 3}
   HairOptionText: {fileID: 177405351}
   LeftHairButton: {fileID: 1018244150}
   RightHairButton: {fileID: 1225782102}
@@ -28494,6 +28511,8 @@ MonoBehaviour:
   LeftEyeRenderer: {fileID: 1539642796}
   RightEyeRenderer: {fileID: 1888286141}
   DummyRenderer: {fileID: 860485567}
+  ShirtRenderer: {fileID: 1791902371}
+  PantsRenderer: {fileID: 321932168}
 --- !u!114 &975266032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50727,7 +50746,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1030.5
+      value: -1030.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
       propertyPath: m_LocalPosition.z
@@ -50735,7 +50754,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.00000004371139
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
       propertyPath: m_LocalRotation.x
@@ -51148,6 +51167,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetMeshRenderer: {fileID: 860485567}
+--- !u!137 &1791902371 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5919100220734724927, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
+  m_PrefabInstance: {fileID: 1791902367}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1797556803
 GameObject:
   m_ObjectHideFlags: 0
