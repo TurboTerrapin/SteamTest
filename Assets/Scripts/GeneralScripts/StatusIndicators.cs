@@ -64,7 +64,7 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
         {
             if (ship_status_displays[i].transform.childCount == 1) //pilot, tactician
             {
-                ship_status_displays[i].transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = to_display;
+                ship_status_displays[i].transform.GetChild(0).GetComponent<SpriteRenderer>().color = to_display;
             }
             else //walls
             {

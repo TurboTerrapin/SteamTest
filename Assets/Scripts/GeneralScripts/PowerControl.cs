@@ -4,7 +4,7 @@
     - Handles indicator flashing in all four positions if a player is seated, power is available, but they are not activating the power dial
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 2/7/2026
+    Last Updated: 5/1/2026
 */
 
 using System.Collections;
@@ -66,28 +66,34 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         hud_info.setButtons(BUTTON_LISTS[index]);
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         my_control_index = index;
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_types[my_control_index]; 
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -97,11 +103,11 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     private void changeIndicator(int index, bool active)
     {
         dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(active);
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[index];
+        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         for (int i = 0; i < light_indicator_groups.Count; i++)
         {
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).gameObject.SetActive(active);
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[index];
+            light_indicator_groups[i].transform.GetChild(index).GetChild(0).gameObject.SetActive(active);
+            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         }
     }
 
@@ -269,19 +275,19 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         for (int i = 0; i < 4; i++)
         {
             dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
+            light_indicator_groups[i].transform.GetChild(index).GetChild(0).gameObject.SetActive(current_seats[index]);
         }
 
         Color c = ReferenceAssistor.COLOR_OPTIONS[index];
         c.a = a;
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = c;
 
         //update the position color for every power control module
         if (current_seats[index] == true)
         {
             for (int i = 0; i < 4; i++)
             {
-                light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+                light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetComponent<SpriteRenderer>().color = c;
             }
         }
     }

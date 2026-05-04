@@ -104,8 +104,7 @@ public class EngineMonitoring : MonoBehaviour, IPowerable, IDescribable
 
         //update colors
         Color status_color = COLOR_OPTIONS[current_state];
-        engine_speed_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        engine_speed_display.transform.GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        engine_speed_display.transform.GetChild(1).GetComponent<SpriteRenderer>().color = status_color;
         engine_capacity_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = status_color;
         engine_capacity_display.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().color = status_color;
         engine_capacity_display.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().color = status_color;
@@ -113,15 +112,10 @@ public class EngineMonitoring : MonoBehaviour, IPowerable, IDescribable
 
         status_color.a = 0.2f;
 
-        engine_speed_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        engine_speed_display.transform.GetChild(0).GetComponent<SpriteRenderer>().color = status_color;
         engine_capacity_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
         engine_capacity_display.transform.GetChild(2).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
         engine_capacity_display.transform.GetChild(3).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        for (int i = 0; i < engine_capacity_display.transform.GetChild(0).childCount; i++)
-        {
-            engine_capacity_display.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-            engine_capacity_display.transform.GetChild(0).GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        }
     }
 
     public void temperatureAdjustment()

@@ -2,7 +2,7 @@
     BackgroundAnimator.cs
     - Handles screen animations in the background of the ship
     Contributor(s): Jake Schott
-    Last Updated: 3/16/2026
+    Last Updated: 5/1/2026
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class BackgroundAnimator : MonoBehaviour
 {
-    public GameObject background_screens;
+    public GameObject background_glasses;
     public List<GameObject> alternate_screens = null;
     public List<GameObject> energy_circles = null;
 
@@ -23,29 +23,35 @@ public class BackgroundAnimator : MonoBehaviour
 
     private Coroutine screen_enable_coroutine = null;
 
+    private void checkTransform(Transform obj)
+    {
+        foreach (Component c in obj.GetComponents<Component>())
+        {
+            IAnimable anim_component = c as IAnimable;
+            if (anim_component != null)
+            {
+                animable_components.Add(anim_component);
+            }
+        }
+    }
+
     private void checkScreen(Transform screen)
     {
-        foreach (Transform group in screen.transform.GetChild(0))
+        checkTransform(screen);
+        foreach (Transform obj in screen)
         {
-            foreach (Component c in group.GetComponents<Component>())
-            {
-                IAnimable anim_component = c as IAnimable;
-                if (anim_component != null)
-                {
-                    animable_components.Add(anim_component);
-                }
-            }
+            checkTransform(obj);
         }
     }
 
     //collect all animable components
     private void Start()
     {
-        foreach (Transform screen in background_screens.transform)
+        foreach (Transform screen in background_glasses.transform)
         {
-            if (screen.transform.GetChild(0).childCount > 1)
+            if (screen.transform.childCount > 1)
             {
-                screen_displays.Add(screen.transform.GetChild(0).GetChild(1).gameObject);
+                screen_displays.Add(screen.transform.GetChild(1).gameObject);
                 checkScreen(screen);
             }
         }

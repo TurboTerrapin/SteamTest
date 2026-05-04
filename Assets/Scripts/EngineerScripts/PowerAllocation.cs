@@ -3,7 +3,7 @@
     - Handles inputs for power allocation
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/3/2026
 */
 
 using System.Collections;
@@ -26,7 +26,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
     private List<Button>[] BUTTON_LISTS = new List<Button>[] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
 
     public List<GameObject> allocation_dials;
-    public List<GameObject> position_icon_displays;
+    public List<GameObject> position_icons;
     public List<GameObject> power_screen_displays; //the screen that shows the power allocation AND consumption
     public List<GameObject> allocation_circle_displays; //the circular screens around each dial
     public GameObject info_display;
@@ -272,7 +272,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
         info_display.SetActive(true);
         for (int i = 0; i < 4; i++)
         {
-            position_icon_displays[i].SetActive(true);
+            position_icons[i].SetActive(true);
             allocation_circle_displays[i].SetActive(true);
             BUTTON_LISTS[i][0].updateInteractable(allocated_units[i] > 0);
             BUTTON_LISTS[i][1].updateInteractable(allocated_units[i] < 10 && available_units > 0);
@@ -286,7 +286,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
         info_display.SetActive(false);
         for (int i = 0; i < 4; i++)
         {
-            position_icon_displays[i].SetActive(false);
+            position_icons[i].SetActive(false);
             allocation_circle_displays[i].SetActive(false);
             BUTTON_LISTS[i][0].updateInteractable(false);
             BUTTON_LISTS[i][1].updateInteractable(false);

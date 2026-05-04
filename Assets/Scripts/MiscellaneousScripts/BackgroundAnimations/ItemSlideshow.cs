@@ -39,7 +39,8 @@ public class ItemSlideshow : MonoBehaviour, IAnimable
         foreach (Transform t in to_adjust)
         {
             Color c = t.GetComponent<UnityEngine.UI.RawImage>().color;
-            t.GetComponent<UnityEngine.UI.RawImage>().color = new Color(c.r, c.g, c.b, a);
+            c.a = a;
+            t.GetComponent<UnityEngine.UI.RawImage>().color = c;
         }
     }
 

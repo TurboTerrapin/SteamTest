@@ -3,7 +3,7 @@
     - Updates SCA reset bar
     - Updates SCA circular screen
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 5/2/2026
 */
 
 using System.Collections;
@@ -97,22 +97,23 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
         }
     }
 
-    private void displaySCA(float canvas_rotation, int[] mol_i, int[] mol_l, int[] mol_r)
+    private void displaySCA(float renderer_rotation, int[] mol_i, int[] mol_l, int[] mol_r)
     {
-        //clear existing molecules
-        for (int m = SCA_display.transform.GetChild(0).childCount - 1; m >= 0; m--)
+        //hide existing molecules
+        foreach (Transform molecule in SCA_display.transform.GetChild(0))
         {
-            Object.Destroy(SCA_display.transform.GetChild(0).GetChild(m).gameObject);
+            molecule.gameObject.SetActive(false);
         }
 
-        //rotate canvas
-        SCA_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, canvas_rotation);
+        //rotate renderer
+        SCA_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, renderer_rotation);
 
         //instantiate new molecules
         for (int m = 0; m < mol_i.Length; m++)
         {
-            GameObject molecule = GameObject.Instantiate(SCA_display.transform.GetChild(1).GetChild(mol_i[m]).gameObject, SCA_display.transform.GetChild(0));
-            molecule.transform.localPosition = SCA_display.transform.GetChild(2).GetChild(mol_l[m]).localPosition;
+            GameObject molecule = SCA_display.transform.GetChild(0).GetChild(mol_l[m]).gameObject;
+            molecule.GetComponent<SpriteRenderer>().sprite = SCA_display.transform.GetChild(1).GetChild(mol_i[m]).GetComponent<SpriteRenderer>().sprite;
+            molecule.GetComponent<SpriteRenderer>().color = SCA_display.transform.GetChild(1).GetChild(mol_i[m]).GetComponent<SpriteRenderer>().color;
             molecule.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, mol_r[m] * 2.0f);
             molecule.SetActive(true);
         }
@@ -120,7 +121,7 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
 
     private void generateNewMolecules()
     {
-        float canvas_rotation = Random.Range(0.0f, 359.9f);
+        float renderer_rotation = Random.Range(0.0f, 359.9f);
 
         int number_of_molecules = 0;
         for (int m = 0; m < molecule_quantities.Count; m++)
@@ -129,7 +130,7 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
         }
 
         //ensure there are less molecules than possible locations
-        if (number_of_molecules > SCA_display.transform.GetChild(2).childCount)
+        if (number_of_molecules > SCA_display.transform.GetChild(0).childCount)
         {
             Debug.Log("ERROR: Too many molecules in Spatial Composition Analyzer.");
             transmitNewLoopRPC();
@@ -137,7 +138,7 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
         }
 
         List<int> possible_locs = new List<int>();
-        for (int i = 0; i < SCA_display.transform.GetChild(2).childCount; i++)
+        for (int i = 0; i < SCA_display.transform.GetChild(0).childCount; i++)
         {
             possible_locs.Add(i);
         }
@@ -170,7 +171,7 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
             current_rots[m] = Random.Range(0, 180);
         }
 
-        transmitNewMoleculesRPC(canvas_rotation, DataConverter.arrayToString(current_indices), DataConverter.arrayToString(current_locs), DataConverter.arrayToString(current_rots));
+        transmitNewMoleculesRPC(renderer_rotation, DataConverter.arrayToString(current_indices), DataConverter.arrayToString(current_locs), DataConverter.arrayToString(current_rots));
         transmitNewLoopRPC();
     }
 
@@ -186,10 +187,10 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
 
             //rotate existing particles
-            for (int m = SCA_display.transform.GetChild(0).childCount - 1; m > 0; m--)
+            float rotate_factor = PARTICLE_ROTATION_SPEED * dt;
+            foreach (Transform m in SCA_display.transform.GetChild(0))
             {
-                SCA_display.transform.GetChild(0).GetChild(m).transform.localRotation =
-                    Quaternion.Euler(0.0f, 0.0f, SCA_display.transform.GetChild(0).GetChild(m).transform.localRotation.eulerAngles.z + PARTICLE_ROTATION_SPEED * dt);
+                m.transform.Rotate(0.0f, 0.0f, rotate_factor);
             }
 
             fill_time = Mathf.Max(0.0f, fill_time - dt);
