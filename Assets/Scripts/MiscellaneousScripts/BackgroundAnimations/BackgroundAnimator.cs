@@ -2,7 +2,7 @@
     BackgroundAnimator.cs
     - Handles screen animations in the background of the ship
     Contributor(s): Jake Schott
-    Last Updated: 5/1/2026
+    Last Updated: 5/5/2026
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class BackgroundAnimator : MonoBehaviour
 {
-    public GameObject background_glasses;
+    public GameObject background_displays;
     public List<GameObject> alternate_screens = null;
     public List<GameObject> energy_circles = null;
 
@@ -47,13 +47,10 @@ public class BackgroundAnimator : MonoBehaviour
     //collect all animable components
     private void Start()
     {
-        foreach (Transform screen in background_glasses.transform)
+        foreach (Transform screen in background_displays.transform)
         {
-            if (screen.transform.childCount > 1)
-            {
-                screen_displays.Add(screen.transform.GetChild(1).gameObject);
-                checkScreen(screen);
-            }
+            screen_displays.Add(screen.transform.gameObject);
+            checkScreen(screen);
         }
 
         foreach (GameObject screen in alternate_screens)

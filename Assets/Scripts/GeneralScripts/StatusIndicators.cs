@@ -68,20 +68,11 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
             }
             else //walls
             {
-                to_display.a = 0.2f;
-                foreach (Transform t in ship_status_displays[i].transform.GetChild(0))
+                foreach (Transform t in ship_status_displays[i].transform)
                 {
-                    t.GetComponent<UnityEngine.UI.RawImage>().color = to_display;
+                    to_display.a = t.GetComponent<SpriteRenderer>().color.a;
+                    t.GetComponent<SpriteRenderer>().color = to_display;
                 }
-                to_display.a = 1.0f;
-                for (int k = 1; k < 6; k++)
-                {
-                    foreach (Transform t in ship_status_displays[i].transform.GetChild(k))
-                    {
-                        t.GetComponent<UnityEngine.UI.RawImage>().color = to_display;
-                    }
-                }
-                ship_status_displays[i].transform.GetChild(6).GetComponent<UnityEngine.UI.RawImage>().color = to_display;
             }
         }
     }

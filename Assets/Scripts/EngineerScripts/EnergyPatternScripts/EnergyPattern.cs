@@ -252,7 +252,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         {
             elapsed_time += Time.deltaTime * ENABLED_BLINKER_REFRESH;
             float a = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
-            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.47f, 0.0f, a);
+            enabled_indicator.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.47f, 0.0f, a);
 
             yield return null;
         }
@@ -268,7 +268,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
                 StopCoroutine(alert_flasher_coroutine);
                 alert_flasher_coroutine = null;
             }
-            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            enabled_indicator.GetComponent<SpriteRenderer>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         }
         else if (is_powered == true && display_enabled == false && corresponding_pattern_data != null)
         {
@@ -284,7 +284,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
                 StopCoroutine(alert_flasher_coroutine);
                 alert_flasher_coroutine = null;
             }
-            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.0f);
+            enabled_indicator.GetComponent<SpriteRenderer>().color = new Color(0.0f, 0.84f, 1.0f, 0.0f);
         }
     }
 

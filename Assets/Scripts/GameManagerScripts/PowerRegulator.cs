@@ -27,11 +27,9 @@ public class PowerRegulator : NetworkBehaviour
 
     //power status screen UI components
     private GameObject power_bars;
-    private UnityEngine.UI.RawImage power_status_divider_bar;
     private GameObject power_restoration_message;
     private TMP_Text power_status_label;
     private TMP_Text power_status_message;
-    private UnityEngine.UI.RawImage power_status_box_outline;
 
     //power regulation module UI components
     private List<UnityEngine.UI.Image> time_bars = new List<UnityEngine.UI.Image>();
@@ -50,12 +48,10 @@ public class PowerRegulator : NetworkBehaviour
 
     private void Start()
     {
-        power_status_divider_bar = power_status.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
-        power_status_label = power_status.transform.GetChild(1).GetComponent<TMP_Text>();
-        power_status_message = power_status.transform.GetChild(2).GetComponent<TMP_Text>();
-        power_restoration_message = power_status.transform.GetChild(3).gameObject;
-        power_status_box_outline = power_status.transform.GetChild(4).GetComponent<UnityEngine.UI.RawImage>();
-        power_bars = power_status.transform.GetChild(5).gameObject;
+        power_status_label = power_status.transform.GetChild(0).GetComponent<TMP_Text>();
+        power_status_message = power_status.transform.GetChild(1).GetComponent<TMP_Text>();
+        power_restoration_message = power_status.transform.GetChild(2).gameObject;
+        power_bars = power_status.transform.GetChild(3).gameObject;
 
         auxiliary_power = ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>();
 
@@ -433,21 +429,16 @@ public class PowerRegulator : NetworkBehaviour
         //change color of divider bar, POWER STATUS label
         if (state == 2)
         {
-            power_status_divider_bar.color = POWER_STATUS_COLORS[2]; 
             power_status_label.color = POWER_STATUS_COLORS[2];
         }
         else
         {
-            power_status_divider_bar.color = POWER_STATUS_COLORS[0];
             power_status_label.color = POWER_STATUS_COLORS[0];
         }
 
         //update status text
         power_status_message.color = POWER_STATUS_COLORS[state];
         power_status_message.text = "STATUS: " + POWER_STATUS_MESSAGES[state];
-
-        //change color of power bars box outline
-        power_status_box_outline.color = POWER_STATUS_COLORS[state];
 
         //update power bars color
         for (int i = 0; i < 6; i++)

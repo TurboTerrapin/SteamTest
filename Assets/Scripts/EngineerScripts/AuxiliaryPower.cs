@@ -3,7 +3,7 @@
     - Can only be used once per scenario
     - Restores power to any disabled power regulation modules (can restart power on the ship)
     Contributor(s): Jake Schott
-    Last Updated: 2/12/2026
+    Last Updated: 5/5/2026
 */
 
 using System.Collections;
@@ -120,7 +120,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     {
         for (int i = 0; i < 2; i++)
         {
-            auxiliary_power_arrows[i].GetComponent<UnityEngine.UI.RawImage>().color = c;
+            auxiliary_power_arrows[i].GetComponent<SpriteRenderer>().color = c;
         }
     }
 

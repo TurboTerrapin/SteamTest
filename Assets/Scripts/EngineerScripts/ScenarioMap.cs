@@ -166,8 +166,8 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     public void updateAltitudeWarning(bool active, string msg)
     {
         //! INCREASE ALTITUDE ! or ! DECREASE ALTITUDE !
-        navigation_display.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().SetText("! " + msg + " ALTITUDE !");
-        navigation_display.transform.GetChild(2).GetChild(0).gameObject.SetActive(active);
+        navigation_display.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText("! " + msg + " ALTITUDE !");
+        navigation_display.transform.GetChild(1).GetChild(0).gameObject.SetActive(active);
 
         //ALTITUDE: 0m
         if (active == true)
@@ -215,15 +215,13 @@ public class ScenarioMap : MonoBehaviour, IPowerable
             ship_icon.transform.GetChild(0).localScale = new Vector3(0.02f, 0.02f, 1.0f);
             //color navigation label
             navigation_display.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
-            //color navigation bar
-            navigation_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
             //altitude/impulse bars
-            navigation_display.transform.GetChild(4).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
-            navigation_display.transform.GetChild(4).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
+            navigation_display.transform.GetChild(3).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
+            navigation_display.transform.GetChild(3).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
             //show countdown
             countdown.SetActive(true);
             //detection warnings
-            navigation_display.transform.GetChild(2).gameObject.SetActive(true);
+            navigation_display.transform.GetChild(1).gameObject.SetActive(true);
         }
     }
 
@@ -254,10 +252,10 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         ship_icon.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, ship_rotation);
 
         ship_rotation += 90.0f;
-        heading_display.transform.GetChild(2).GetChild(0).transform.localRotation = Quaternion.Euler(0.0f, 180.0f, ship_rotation);
+        heading_display.transform.GetChild(1).GetChild(0).transform.localRotation = Quaternion.Euler(0.0f, 180.0f, ship_rotation);
 
-        heading_display.transform.GetChild(3).GetChild(0).GetComponent<TMP_Text>().SetText(current_heading);
-        heading_display.transform.GetChild(4).GetChild(0).GetComponent<TMP_Text>().SetText(target_heading);
+        heading_display.transform.GetChild(2).GetChild(2).GetComponent<TMP_Text>().SetText(current_heading);
+        heading_display.transform.GetChild(3).GetChild(2).GetComponent<TMP_Text>().SetText(target_heading);
     }
 
     public void updateShipLocation()
