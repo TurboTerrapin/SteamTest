@@ -183,7 +183,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
             }
 
             keys_down.Clear();
-            yield return new WaitForFixedUpdate();
+            yield return null;
         }
 
         vertical_adjustment_coroutine = null;
