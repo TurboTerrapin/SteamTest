@@ -8,6 +8,7 @@
     Last Updated: 2/1/2026
 */
 
+
 using System.Collections;
 using System.Net.Sockets;
 using Unity.Netcode;
@@ -21,14 +22,9 @@ public class PilotingSystem : NetworkBehaviour
     private float maxImpulseReverseSpeed = 20f;
 
     [Header("Rotation Settings")]
-    /*
-    private float rotationPower = 3f;
-    private float steeringResponsiveness = 2.5f;
-    private float maxRotationSpeed = 5f;
-    */
-    private float rotationPower = 15.0f;
+    private float rotationPower = 10.0f;
     private float steeringResponsiveness = 10.0f;
-    private float maxRotationSpeed = 25.0f;
+    private float maxRotationSpeed = 17.5f;
 
     // Component references
     private ImpulseThrottle impulseThrottle;
@@ -232,6 +228,7 @@ public class PilotingSystem : NetworkBehaviour
     {
         float fdt = Time.fixedDeltaTime;
 
+
         Vector3 forward = transform.forward;
         Vector3 horizontal = -transform.right;
         Vector3 vertical = transform.up;
@@ -268,7 +265,6 @@ public class PilotingSystem : NetworkBehaviour
 
         forwardSpeed = currentVelocity.magnitude;
 
-        HandleRotation(fdt);
 
         //vertical movement
         if (currentVerticalSpeed != 0.0f)
@@ -282,6 +278,9 @@ public class PilotingSystem : NetworkBehaviour
         {
             LateralMovementRPC();
         }
+
+        HandleRotation(fdt);
+
 
         //any movement at all
         if (currentImpulseSpeed != 0.0f || currentVerticalSpeed != 0.0f || currentHorizontalSpeed != 0.0f)

@@ -30,6 +30,7 @@ public class ShipController : NetworkBehaviour
         transform.position = Vector3.zero;
     }
 
+
     public void assignWorldRoot(GameObject wr)
     {
         worldRoot = wr;
