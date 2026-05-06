@@ -300,32 +300,24 @@ public class PilotingSystem : NetworkBehaviour
         forwardSpeed = currentVelocity.magnitude;
         float speedFactor = Mathf.Clamp01(forwardSpeed / maxImpulseForwardSpeed);
 
-
-        /*
-        smoothedSteeringInput = Mathf.Lerp(
-            smoothedSteeringInput,
-            steeringInput,
-            steeringResponsiveness * dt
-        );
-        */
-
-        float t = 1f - Mathf.Exp(-steeringResponsiveness * dt); // Frame rate independant
-        smoothedSteeringInput = Mathf.Lerp(smoothedSteeringInput, steeringInput, t);
+        // Steering input smoothing
+        float steeringT = 1f - Mathf.Exp(-steeringResponsiveness * dt);
+        smoothedSteeringInput = Mathf.Lerp(smoothedSteeringInput, steeringInput, steeringT);
 
         float targetRotationSpeed = smoothedSteeringInput * maxRotationSpeed * speedFactor;
 
         if (Mathf.Abs(forwardSpeed) < 0.01f)
+        {
             return;
+        }
 
-        currentRotationSpeed = Mathf.Lerp(
-            currentRotationSpeed,
-            targetRotationSpeed,
-            rotationPower * dt
-        );
+        // Rotation speed smoothing 
+        float rotationT = 1f - Mathf.Exp(-rotationPower * dt);
+        currentRotationSpeed = Mathf.Lerp(currentRotationSpeed, targetRotationSpeed, rotationT);
 
         if (Mathf.Abs(steeringInput) < 0.1f && Mathf.Abs(smoothedSteeringInput) < 0.1f)
         {
-            currentRotationSpeed = Mathf.Lerp(currentRotationSpeed, 0f, rotationPower * dt);
+            currentRotationSpeed = Mathf.Lerp(currentRotationSpeed, 0f, rotationT);
         }
 
         if (inReverse == false)
@@ -340,6 +332,7 @@ public class PilotingSystem : NetworkBehaviour
         //update maps/rotation slider
         RotationChangeRPC();
     }
+
 
     [Rpc(SendTo.Everyone)]
     private void ProbeDistanceChangeRPC()
