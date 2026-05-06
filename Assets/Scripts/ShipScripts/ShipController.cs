@@ -35,7 +35,7 @@ public class ShipController : NetworkBehaviour
         worldRoot = wr;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (!shipReady) return;
 

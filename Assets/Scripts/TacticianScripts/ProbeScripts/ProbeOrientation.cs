@@ -188,7 +188,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
             }
 
             keys_down.Clear();
-            yield return null;
+            yield return new WaitForFixedUpdate();
         }
 
         orientation_adjustment_coroutine = null;

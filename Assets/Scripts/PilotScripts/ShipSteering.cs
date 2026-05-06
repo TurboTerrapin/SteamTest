@@ -178,10 +178,13 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
                     angularVelocity += springAccel * dt;
                 }
             }
+
+            /*
             else
             {
                 angularVelocity *= wheelFriction;
             }
+            */
 
             float previousAngle = wheel_angle;
             angularVelocity *= Mathf.Pow(wheelFriction, dt * 60f);
@@ -226,7 +229,7 @@ public class ShipSteering : NetworkBehaviour, IControllable, IPowerable, IIKTarg
             // Reset the wheel to the neutral position
             if (Mathf.Abs(wheel_angle) < 0.001f && Mathf.Abs(angularVelocity) < 0.01f)
             {
-                wheel_angle = Mathf.MoveTowards(wheel_angle, 0.0f, Time.deltaTime * 0.001f);
+                wheel_angle = Mathf.MoveTowards(wheel_angle, 0.0f, dt * 0.001f);
                 angularVelocity = 0f;
                 steering_input = 0f;
                 hasCrossedZeroSinceLastInput = false;

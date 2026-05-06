@@ -59,6 +59,7 @@ public class PlayerMove : NetworkBehaviour
         if (moveCoroutine == null)
         {
             moveCoroutine = StartCoroutine(CheckForMovement());
+            StartCoroutine(ApplyMovement()); // Start the new physics coroutine
         }
     }
 
@@ -336,42 +337,58 @@ public class PlayerMove : NetworkBehaviour
     }
 
     //Runs on Update() time
-    IEnumerator CheckForMovement()
+    // Runs on frame time to gather inputs perfectly
+    private IEnumerator CheckForMovement()
     {
         while (true)
         {
+            if (!IsOwner) // Removed the GetComponent call here
+            {
+                yield return null;
+                continue;
+            }
+
+            if (!PrimaryScript.Instance.isPaused())
+            {
+                moveDir.x = Input.GetAxis("Horizontal");
+                moveDir.y = Input.GetAxis("Vertical");
+            }
+            else
+            {
+                moveDir.x = 0.0f;
+                moveDir.y = 0.0f;
+            }
+
+            if (moveDir.magnitude > 1)
+            {
+                moveDir.Normalize();
+            }
+
             yield return null;
-            UpdateMovement();
         }
     }
 
-    //Checks inputs and triggers move
-    private void UpdateMovement()
+    // Runs on physics time to apply the physical movement
+    private IEnumerator ApplyMovement()
     {
-        if (!gameObject.GetComponent<PlayerMove>().IsOwner) return;
+        while (true)
+        {
+            if (!IsOwner)
+            {
+                yield return new WaitForFixedUpdate();
+                continue;
+            }
 
-        if (!PrimaryScript.Instance.isPaused())
-        {
-            moveDir.x = Input.GetAxis("Horizontal");
-            moveDir.y = Input.GetAxis("Vertical");
-        }
-        else
-        {
-            moveDir.x = 0.0f;
-            moveDir.y = 0.0f;
-        }
+            Move();
 
-        if (moveDir.magnitude > 1)
-        {
-            moveDir.Normalize();
-        }
-        Move();
+            //Teleport back if you fall
+            if (transform.localPosition.y < -10)
+            {
+                transform.localPosition = Vector3.zero;
+                playerRB.linearVelocity = Vector3.zero;
+            }
 
-        //Teleport back if you fall
-        if (transform.localPosition.y < -10)
-        {
-            transform.localPosition = Vector3.zero;
-            playerRB.linearVelocity = Vector3.zero;
+            yield return new WaitForFixedUpdate();
         }
     }
 
@@ -385,14 +402,16 @@ public class PlayerMove : NetworkBehaviour
         if (transform.parent != null) //Local movement
         {
             Quaternion combinedRotation = transform.parent.rotation * transform.localRotation;
-            Vector3 localMovement = new Vector3(moveDir.x, 0, moveDir.y) * MOVE_SPEED * Time.deltaTime;
+            Vector3 localMovement = new Vector3(moveDir.x, 0, moveDir.y) * MOVE_SPEED * Time.fixedDeltaTime;
             movement = combinedRotation * localMovement;
-            transform.position += movement;
+
+            playerRB.MovePosition(playerRB.position + movement);
         }
         else //World movement
         {
-            movement = transform.TransformDirection(new Vector3(moveDir.x, 0, moveDir.y)) * MOVE_SPEED * Time.deltaTime;
-            transform.position += movement;
+            movement = transform.TransformDirection(new Vector3(moveDir.x, 0, moveDir.y)) * MOVE_SPEED * Time.fixedDeltaTime;
+
+            playerRB.MovePosition(playerRB.position + movement);
         }
     }
 }

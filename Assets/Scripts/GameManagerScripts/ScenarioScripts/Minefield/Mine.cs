@@ -57,7 +57,7 @@ public class Mine : NetworkBehaviour, IDamageable
         Destroy(gameObject);
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (target_ship == null)
         {
@@ -121,7 +121,7 @@ public class Mine : NetworkBehaviour, IDamageable
         Vector3 target_direction = (target_ship.position - transform.position).normalized;
 
         Quaternion target_rotation = Quaternion.LookRotation(target_direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.deltaTime * ROTATION_SPEED);
+        transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.fixedDeltaTime * ROTATION_SPEED);
     }
 
     private void FireLaser()

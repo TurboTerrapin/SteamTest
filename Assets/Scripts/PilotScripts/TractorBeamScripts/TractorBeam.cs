@@ -62,11 +62,11 @@ public class TractorBeam : NetworkBehaviour
     // Runs every frame while tractor beam power is greater than 0
     private IEnumerator TractorBeamLoop()
     {
-        float elapsed_time = 0.0f;
+        float elapsed_fixed_time = 0.0f;
         while (tractorBeamPower.getTractorBeamPower() > 0.0f)
         {
-            elapsed_time += Time.fixedDeltaTime;
-            tractorBeamMaterial.SetColor("_EmissionColor", new Color(0.0f, 0.09f, Mathf.Lerp(0.3f, 0.75f, Mathf.PingPong(elapsed_time, 0.4f) / 0.4f)));
+            elapsed_fixed_time += Time.fixedDeltaTime;
+            tractorBeamMaterial.SetColor("_EmissionColor", new Color(0.0f, 0.09f, Mathf.Lerp(0.3f, 0.75f, Mathf.PingPong(elapsed_fixed_time, 0.4f) / 0.4f)));
 
             FindTargets();
             if (!itemCurrentlyCaptured)
@@ -130,7 +130,7 @@ public class TractorBeam : NetworkBehaviour
         }
     }
 
-    private void AttractTargets(float dt)
+    private void AttractTargets(float fdt)
     {
         for (int i = activeTargetXforms.Count - 1; i >= 0; i--)
         {
@@ -157,7 +157,7 @@ public class TractorBeam : NetworkBehaviour
                     float attractionStrength = baseAttractionSpeed * tractorBeamPower.getTractorBeamPower() * curveMultiplier;
 
                     Vector3 direction = (beamOriginPoint.transform.position - targetXform.position).normalized; // Normalized direction vector
-                    Vector3 movement = direction * attractionStrength * dt; 
+                    Vector3 movement = direction * attractionStrength * fdt; 
 
                     targetXform.position += movement;
                 }

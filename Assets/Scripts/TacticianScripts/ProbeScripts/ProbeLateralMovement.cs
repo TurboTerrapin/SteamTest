@@ -195,7 +195,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
             }
 
             keys_down.Clear();
-            yield return null;
+            yield return new WaitForFixedUpdate();
         }
 
         lateral_adjustment_coroutine = null;

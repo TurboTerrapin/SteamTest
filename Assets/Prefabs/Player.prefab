@@ -258,8 +258,8 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
-  m_CollisionDetection: 0
+  m_Constraints: 112
+  m_CollisionDetection: 1
 --- !u!114 &4318529968537306650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -272,7 +272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 4033476747
+  GlobalObjectIdHash: 2290305919
   InScenePlacedSourceGlobalObjectIdHash: 2049436854
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -1008,6 +1008,9 @@ MonoBehaviour:
   rightHandObj: {fileID: 6880954645618528392}
   leftHandObj: {fileID: 4865660404503577723}
   lookObj: {fileID: 8037169524787375048}
+  totallookat: 1
+  headlookat: 1
+  chestlookat: 0.4
 --- !u!114 &5456103388693820518
 MonoBehaviour:
   m_ObjectHideFlags: 0

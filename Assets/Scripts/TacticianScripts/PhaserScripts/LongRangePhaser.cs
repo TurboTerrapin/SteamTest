@@ -107,7 +107,7 @@ public class LongRangePhaser : MonoBehaviour
     {
         beamTemp = intensity;
     }
-
+    // 1. VISUALS: Handles phase timing, smooth tracking, and LineRenderer drawing
     private void Update()
     {
         if (phase == Phase.Inactive)
@@ -124,7 +124,91 @@ public class LongRangePhaser : MonoBehaviour
 
         float dt = Time.deltaTime;
         advancePhase(dt);
-        updateLongRangePhaser(dt);
+        updateLongRangePhaserVisuals(dt);
+    }
+
+    private void updateLongRangePhaserVisuals(float dt)
+    {
+        longRangePhaserAngle = longRangeDirection.getPhaserDirectionAngle();
+
+        updateTracking(dt);
+
+        longRangePhaserOrigin.transform.localRotation =
+            Quaternion.Euler(90.0f, longRangePhaserAngle + currentTrackingOffset, 0.0f);
+
+        longRangePhaser.enabled = true;
+
+        Vector3 beamStart = longRangePhaserOrigin.transform.position;
+        Vector3 beamDirection = longRangePhaserOrigin.transform.forward;
+
+        float reachFactor = computeReachFactor();
+        float animatedLength = LONG_RANGE_BEAM_LENGTH * reachFactor;
+
+        float effectiveLength = animatedLength;
+        bool atFullReach = (phase == Phase.Active);
+
+        // Visual raycast to snap the beam strictly to the hull surface
+        if (atFullReach && cachedTarget != null)
+        {
+            Collider targetCol = cachedTarget.GetComponent<Collider>();
+            if (targetCol != null &&
+                targetCol.Raycast(new Ray(beamStart, beamDirection), out RaycastHit hit, LONG_RANGE_BEAM_LENGTH))
+            {
+                if (hit.distance <= animatedLength)
+                {
+                    effectiveLength = hit.distance;
+                }
+            }
+        }
+
+        Vector3 beamEnd = beamStart + beamDirection * effectiveLength;
+
+        longRangePhaser.SetPosition(0, beamStart);
+        longRangePhaser.SetPosition(1, beamEnd);
+
+        float clampedTemp = Mathf.Clamp01(Mathf.Max(0.1f, beamTemp));
+
+        float currentWidth = Mathf.Lerp(minLRBeamDiameter, maxLRBeamDiameter, clampedTemp);
+        longRangePhaser.startWidth = currentWidth;
+        longRangePhaser.endWidth = currentWidth;
+
+        updateBeamIntensity(clampedTemp);
+    }
+
+    // 2. PHYSICS & LOGIC: Handles target scanning and damage application
+    private void FixedUpdate()
+    {
+        if (phase == Phase.Inactive)
+        {
+            return;
+        }
+
+        float fdt = Time.fixedDeltaTime;
+        bool atFullReach = (phase == Phase.Active);
+
+        // Scan for new targets in the physics loop
+        if (atFullReach && Time.time >= nextScanTime)
+        {
+            performScan();
+            nextScanTime = Time.time + LRTargetScanInterval;
+        }
+
+        // Apply damage over time using the physics clock
+        if (atFullReach && cachedTarget != null && cachedDamageable != null)
+        {
+            Vector3 beamStart = longRangePhaserOrigin.transform.position;
+            Vector3 beamDirection = longRangePhaserOrigin.transform.forward;
+
+            Collider targetCol = cachedTarget.GetComponent<Collider>();
+
+            // Physics raycast to verify the beam is currently intersecting the target
+            if (targetCol != null &&
+                targetCol.Raycast(new Ray(beamStart, beamDirection), out RaycastHit hit, LONG_RANGE_BEAM_LENGTH))
+            {
+                float clampedTemp = Mathf.Clamp01(Mathf.Max(0.1f, beamTemp));
+                cachedDamageable.damage(LRDamagePerSecond * clampedTemp * fdt);
+            }
+        }
     }
 
     private void advancePhase(float dt)
@@ -187,68 +271,8 @@ public class LongRangePhaser : MonoBehaviour
         return 1f - Mathf.Pow(1f - t, exponent);
     }
 
-    private void updateLongRangePhaser(float dt)
-    {
-        longRangePhaserAngle = longRangeDirection.getPhaserDirectionAngle();
 
-        bool atFullReach = (phase == Phase.Active);
-
-        if (atFullReach && Time.time >= nextScanTime)
-        {
-            performScan();
-            nextScanTime = Time.time + LRTargetScanInterval;
-        }
-
-        updateTracking(dt);
-
-        longRangePhaserOrigin.transform.localRotation =
-            Quaternion.Euler(90.0f, longRangePhaserAngle + currentTrackingOffset, 0.0f);
-
-        longRangePhaser.enabled = true;
-
-        Vector3 beamStart = longRangePhaserOrigin.transform.position;
-        Vector3 beamDirection = longRangePhaserOrigin.transform.forward;
-
-        float reachFactor = computeReachFactor();
-        float animatedLength = LONG_RANGE_BEAM_LENGTH * reachFactor;
-
-        float effectiveLength = animatedLength;
-        bool hitTarget = false;
-
-        if (atFullReach && cachedTarget != null)
-        {
-            Collider targetCol = cachedTarget.GetComponent<Collider>();
-            if (targetCol != null &&
-                targetCol.Raycast(new Ray(beamStart, beamDirection), out RaycastHit hit, LONG_RANGE_BEAM_LENGTH))
-            {
-                if (hit.distance <= animatedLength)
-                {
-                    effectiveLength = hit.distance;
-                    hitTarget = true;
-                }
-            }
-        }
-
-        Vector3 beamEnd = beamStart + beamDirection * effectiveLength;
-
-        longRangePhaser.SetPosition(0, beamStart);
-        longRangePhaser.SetPosition(1, beamEnd);
-
-        float clampedTemp = Mathf.Clamp01(Mathf.Max(0.1f, beamTemp));
-
-        float currentWidth = Mathf.Lerp(minLRBeamDiameter, maxLRBeamDiameter, clampedTemp);
-        longRangePhaser.startWidth = currentWidth;
-        longRangePhaser.endWidth = currentWidth;
-
-        updateBeamIntensity(clampedTemp);
-
-        if (hitTarget && cachedDamageable != null)
-        {
-            cachedDamageable.damage(LRDamagePerSecond * clampedTemp * dt);
-        }
-    }
-
-    private void updateTracking(float dt)
+    private void updateTracking(float fdt)
     {
         float desiredOffset = 0f;
 
@@ -274,7 +298,7 @@ public class LongRangePhaser : MonoBehaviour
             }
         }
 
-        float t = 1f - Mathf.Exp(-LRTrackingSpeed * dt);
+        float t = 1f - Mathf.Exp(-LRTrackingSpeed * fdt);
         currentTrackingOffset = Mathf.Lerp(currentTrackingOffset, desiredOffset, t);
     }
 
@@ -436,12 +460,12 @@ public class LongRangePhaser : MonoBehaviour
         }
         else
         {
-            float dt = Time.deltaTime;
-            updateLongRangePhaser(dt);
+            float fdt = Time.deltaTime;
+            updateLongRangePhaser(fdt);
         }
     }
 
-    private void updateLongRangePhaser(float dt)
+    private void updateLongRangePhaser(float fdt)
     {
         longRangePhaserAngle = longRangeDirection.getPhaserDirectionAngle();
 
@@ -451,7 +475,7 @@ public class LongRangePhaser : MonoBehaviour
             nextScanTime = Time.time + LRTargetScanInterval;
         }
 
-        updateTracking(dt);
+        updateTracking(fdt);
 
         longRangePhaserOrigin.transform.localRotation =
             Quaternion.Euler(90.0f, longRangePhaserAngle + currentTrackingOffset, 0.0f);
@@ -486,11 +510,11 @@ public class LongRangePhaser : MonoBehaviour
 
         if (cachedDamageable != null && cachedTarget != null)
         {
-            cachedDamageable.damage(LRDamagePerSecond * clampedTemp * dt);
+            cachedDamageable.damage(LRDamagePerSecond * clampedTemp * fdt);
         }
     }
 
-    private void updateTracking(float dt)
+    private void updateTracking(float fdt)
     {
         float desiredOffset = 0f;
 
@@ -516,7 +540,7 @@ public class LongRangePhaser : MonoBehaviour
             }
         }
 
-        float t = 1f - Mathf.Exp(-LRTrackingSpeed * dt);
+        float t = 1f - Mathf.Exp(-LRTrackingSpeed * fdt);
         currentTrackingOffset = Mathf.Lerp(currentTrackingOffset, desiredOffset, t);
     }
 

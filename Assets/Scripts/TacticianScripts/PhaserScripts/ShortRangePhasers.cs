@@ -119,9 +119,10 @@ public class ShortRangePhasers : MonoBehaviour
         return burstCycleTime < SRBurstDuration;
     }
 
+
+    // visuals Runs every frame to ensure smooth beam drawing
     private void Update()
     {
-
         if (!beamActive[0] && !beamActive[1])
         {
             burstCycleTime = 0f;
@@ -138,17 +139,32 @@ public class ShortRangePhasers : MonoBehaviour
             enabled = false;
             return;
         }
-        else
-        {
-            float dt = Time.deltaTime;
-            updateShortRangePhasers(dt);
-        }
+
+        // We still need deltaTime here for smooth visual interpolation
+        float dt = Time.deltaTime;
+        bool firing = isFiring();
+
+        // Smoothly interpolate the beam direction toward the target
+        updateBeamAim(0, shortRangePhaserLeftOrigin, dt, firing);
+        updateBeamAim(1, shortRangePhaserRightOrigin, dt, firing);
+
+        // Draw the line renderers to the screen
+        updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, 0, beamActive[0] && firing);
+        updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, 1, beamActive[1] && firing);
     }
 
-    private void updateShortRangePhasers(float dt)
+
+    private void FixedUpdate()
     {
+        if (!beamActive[0] && !beamActive[1])
+        {
+            return; 
+        }
+
+        float fdt = Time.fixedDeltaTime;
+
         // Advance burst cycle
-        burstCycleTime += dt;
+        burstCycleTime += fdt;
         float cycleLength = currentBurstCycleLength();
         if (burstCycleTime >= cycleLength)
         {
@@ -158,13 +174,14 @@ public class ShortRangePhasers : MonoBehaviour
         bool firing = isFiring();
         bool burstJustStarted = firing && !wasFiringLastFrame;
 
-        // Shared scan
+        // Shared scan (Physics overlap)
         if (Time.time >= nextScanTime)
         {
             performSharedScan();
             nextScanTime = Time.time + SRTargetScanInterval;
         }
 
+        // Lock onto targets at the start of a burst
         if (burstJustStarted)
         {
             for (int i = 0; i < 2; i++)
@@ -194,21 +211,14 @@ public class ShortRangePhasers : MonoBehaviour
             }
         }
 
-        // Aim updates
-        updateBeamAim(0, shortRangePhaserLeftOrigin, dt, firing);
-        updateBeamAim(1, shortRangePhaserRightOrigin, dt, firing);
-
-        updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, 0, beamActive[0] && firing);
-        updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, 1, beamActive[1] && firing);
-
-        // Damage during firing 
+        // Damage application during firing 
         if (firing)
         {
             for (int i = 0; i < 2; i++)
             {
                 if (beamActive[i] && burstDamageables[i] != null && burstTargets[i] != null)
                 {
-                    burstDamageables[i].damage(SRDamagePerSecond * dt);
+                    burstDamageables[i].damage(SRDamagePerSecond * fdt);
                 }
             }
         }

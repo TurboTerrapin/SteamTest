@@ -230,7 +230,7 @@ public class PilotingSystem : NetworkBehaviour
 
     public void UpdateMovement(Transform worldRoot)
     {
-        float dt = Time.deltaTime;
+        float fdt = Time.fixedDeltaTime;
 
         Vector3 forward = transform.forward;
         Vector3 horizontal = -transform.right;
@@ -263,12 +263,12 @@ public class PilotingSystem : NetworkBehaviour
 
         if (worldRoot != null)
         {
-            worldRoot.position -= currentVelocity * dt;
+            worldRoot.position -= currentVelocity * fdt;
         }
 
         forwardSpeed = currentVelocity.magnitude;
 
-        HandleRotation(dt);
+        HandleRotation(fdt);
 
         //vertical movement
         if (currentVerticalSpeed != 0.0f)
@@ -295,13 +295,13 @@ public class PilotingSystem : NetworkBehaviour
         }
     }
 
-    private void HandleRotation(float dt)
+    private void HandleRotation(float fdt)
     {
         forwardSpeed = currentVelocity.magnitude;
         float speedFactor = Mathf.Clamp01(forwardSpeed / maxImpulseForwardSpeed);
 
         // Steering input smoothing
-        float steeringT = 1f - Mathf.Exp(-steeringResponsiveness * dt);
+        float steeringT = 1f - Mathf.Exp(-steeringResponsiveness * fdt);
         smoothedSteeringInput = Mathf.Lerp(smoothedSteeringInput, steeringInput, steeringT);
 
         float targetRotationSpeed = smoothedSteeringInput * maxRotationSpeed * speedFactor;
@@ -312,7 +312,7 @@ public class PilotingSystem : NetworkBehaviour
         }
 
         // Rotation speed smoothing 
-        float rotationT = 1f - Mathf.Exp(-rotationPower * dt);
+        float rotationT = 1f - Mathf.Exp(-rotationPower * fdt);
         currentRotationSpeed = Mathf.Lerp(currentRotationSpeed, targetRotationSpeed, rotationT);
 
         if (Mathf.Abs(steeringInput) < 0.1f && Mathf.Abs(smoothedSteeringInput) < 0.1f)
@@ -322,11 +322,11 @@ public class PilotingSystem : NetworkBehaviour
 
         if (inReverse == false)
         {
-            transform.Rotate(0f, currentRotationSpeed * dt, 0f);
+            transform.Rotate(0f, currentRotationSpeed * fdt, 0f);
         }
         else
         {
-            transform.Rotate(0f, -1.0f * currentRotationSpeed * dt, 0f);
+            transform.Rotate(0f, -1.0f * currentRotationSpeed * fdt, 0f);
         }
 
         //update maps/rotation slider
