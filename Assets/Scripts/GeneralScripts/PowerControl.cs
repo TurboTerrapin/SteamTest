@@ -4,7 +4,7 @@
     - Handles indicator flashing in all four positions if a player is seated, power is available, but they are not activating the power dial
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 5/1/2026
+    Last Updated: 5/7/2026
 */
 
 using System.Collections;
@@ -106,8 +106,8 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         for (int i = 0; i < light_indicator_groups.Count; i++)
         {
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).gameObject.SetActive(active);
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
+            light_indicator_groups[i].transform.GetChild(index).gameObject.SetActive(active);
+            light_indicator_groups[i].transform.GetChild(index).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         }
     }
 
@@ -275,7 +275,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         for (int i = 0; i < 4; i++)
         {
             dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).gameObject.SetActive(current_seats[index]);
+            light_indicator_groups[i].transform.GetChild(index).gameObject.SetActive(current_seats[index]);
         }
 
         Color c = ReferenceAssistor.COLOR_OPTIONS[index];
@@ -287,7 +287,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         {
             for (int i = 0; i < 4; i++)
             {
-                light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetComponent<SpriteRenderer>().color = c;
+                light_indicator_groups[i].transform.GetChild(index).GetComponent<SpriteRenderer>().color = c;
             }
         }
     }
