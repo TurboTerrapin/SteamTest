@@ -31,6 +31,8 @@ public class CameraMove : MonoBehaviour
     private AnimatorHandler animatorHandler = null;
 
     private bool cameraLocked = true; //If true, means camera cannot be moved with mouse
+    private bool cameraInitialized = false;
+
     private Vector2 mouseMove = new Vector2();
     private Vector2 prevPos = new Vector2(0.0f, 0.0f); //X represents angle of camera, Y represents angle of player capsule
     private Vector2 sittingHorizontalRange = SITTING_CAMERA_HORIZONTAL_RANGES[0];
@@ -74,6 +76,7 @@ public class CameraMove : MonoBehaviour
         rb = transform.gameObject.GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
         cameraLocked = false;
+        cameraInitialized = true;
 
         StartCoroutine(CameraUpdater());
     }
@@ -303,7 +306,7 @@ public class CameraMove : MonoBehaviour
                 animatorHandler.chestlookat *= (prevPos.y + 10) / 100;
         }
 
-        cameraHolder.position = headTransform.position;
+        //cameraHolder.position = headTransform.position;
     }
 
     //Shakes camera based on time and intensity (can have multiple shakes at once)
@@ -317,5 +320,13 @@ public class CameraMove : MonoBehaviour
     public void SetMouseSensitvity(float newSensitivity)
     {
         mouseSensitivity = newSensitivity;
+    }
+
+    private void LateUpdate() 
+    {
+        if (!cameraInitialized) return;
+        if (cameraHolder == null || headTransform == null) return;
+
+        cameraHolder.position = headTransform.position;
     }
 }

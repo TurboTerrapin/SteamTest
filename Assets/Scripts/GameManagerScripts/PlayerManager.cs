@@ -268,7 +268,7 @@ public class PlayerManager : NetworkBehaviour
     {
         float ship_rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation.eulerAngles.y;
         string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
-        string target_heading = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().GetTargetHeading();
+        string target_heading = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipMovement>().GetTargetHeading();
 
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateAltimeterScreen();
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateCourseHeadingScreen(ship_rotation, current_heading);

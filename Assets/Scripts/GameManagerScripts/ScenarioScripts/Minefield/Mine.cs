@@ -6,6 +6,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class Mine : NetworkBehaviour, IDamageable
 {
     private float ROTATION_SPEED = 1.5f;
@@ -17,17 +18,46 @@ public class Mine : NetworkBehaviour, IDamageable
     public LineRenderer line_renderer;
 
     private Transform target_ship;
+    private Rigidbody body;
+    private bool registeredWithWorldRoot = false;
 
     [SerializeField] private float health = 50f;
 
+    void Awake()
+    {
+        body = GetComponent<Rigidbody>();
+        // Non-kinematic so the physics engine produces real collision response when
+        // the ship rams us. Driven by linearVelocity from WorldRoot.
+        body.isKinematic = false;
+        body.useGravity = false;
+        body.interpolation = RigidbodyInterpolation.Interpolate;
+        body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        // Register with the world root so it drives our velocity every FixedUpdate.
+        // Both host and clients register their local copy so each peer simulates the
+        // same motion locally (physics integrates velocity, network var keeps the
+        // velocity itself in sync).
+        if (WorldRoot.Instance != null)
+        {
+            WorldRoot.Instance.RegisterBody(body);
+            registeredWithWorldRoot = true;
+        }
+        else
+        {
+            Debug.LogWarning("Mine: WorldRoot.Instance not found at spawn time; mine will not move with the world.");
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        DetachFromWorldRoot();
+    }
+
     void Start()
     {
-        // If not the host, strip the collider so clients don't calculate local physics
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            Component.Destroy(transform.GetComponent<Collider>());
-        }
-
         // Find & ref the spaceship in scene
         GameObject spaceship_obj = GameObject.FindGameObjectWithTag("Spaceship");
         if (spaceship_obj != null)
@@ -54,7 +84,29 @@ public class Mine : NetworkBehaviour, IDamageable
 
     private void Explode()
     {
+        DetachFromWorldRoot();
         Destroy(gameObject);
+    }
+
+    private void DetachFromWorldRoot()
+    {
+        if (registeredWithWorldRoot && WorldRoot.Instance != null)
+        {
+            WorldRoot.Instance.UnregisterBody(body);
+            registeredWithWorldRoot = false;
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        // On collision, detach from the world root so the impact response isn't
+        // immediately overwritten by the next FixedUpdate's velocity assignment.
+        // The mine then tumbles freely from the impulse — which is what you'd
+        // intuitively expect when the ship plows into one.
+        // Host-authoritative: only the host detaches its mine and the network sync
+        // (or the subsequent Explode call from damage) propagates the result.
+        if (!IsHost) return;
+        DetachFromWorldRoot();
     }
 
     void FixedUpdate()
@@ -121,7 +173,13 @@ public class Mine : NetworkBehaviour, IDamageable
         Vector3 target_direction = (target_ship.position - transform.position).normalized;
 
         Quaternion target_rotation = Quaternion.LookRotation(target_direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.fixedDeltaTime * ROTATION_SPEED);
+        // MoveRotation works on non-kinematic bodies — it routes the rotation through
+        // the physics engine for proper interpolation, just like MovePosition would
+        // for translation. Using this instead of transform.rotation = ... keeps motion
+        // physics-driven so visuals interpolate cleanly between FixedUpdates.
+        Quaternion newRotation = Quaternion.Slerp(transform.rotation, target_rotation,
+                                                  Time.fixedDeltaTime * ROTATION_SPEED);
+        body.MoveRotation(newRotation);
     }
 
     private void FireLaser()

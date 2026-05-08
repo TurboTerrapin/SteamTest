@@ -211,7 +211,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
     {
         shift_percentage = sp;
         in_reverse = reverse;
-        spaceship.GetComponent<PilotingSystem>().ShiftDirection(in_reverse);
+        spaceship.GetComponent<ShipMovement>().ShiftDirection(in_reverse);
         displayAdjustment();
     }
 

@@ -435,8 +435,8 @@ public class ScenarioManager : NetworkBehaviour
         //if host, position the ship to entrance position and let the network sync the transform
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
+            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipMovement>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
+            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipMovement>().PlaceShip(entrance_position, ent_rot);
         }
     }
 
