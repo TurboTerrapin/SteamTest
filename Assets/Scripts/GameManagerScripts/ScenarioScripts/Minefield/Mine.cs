@@ -4,16 +4,14 @@
 
     NETWORKING NOTES:
     - This object intentionally has no NetworkTransform / NetworkRigidbody.
-    - Motion is driven by WorldRoot, which is now networked: every peer reads the
-      same CumulativeOffset / VirtualHeading and integrates the same physics.
+    - Motion is driven by WorldRoot, which is networked: every peer reads the
+      same CumulativeOffset / VirtualHeading and integrates the same physics
+      locally so registered Rigidbodies move identically without per-object sync.
     - The ONLY thing that needs to be replicated explicitly is the initial spawn
-      position (where the host placed the mine in world space). Without that,
-      a freshly-spawned mine on the client appears at the prefab's default
-      position ? typically the origin / right next to the ship ? and from then on
-      the WorldRoot integration moves a "ghost" mine that doesn't match the host.
-    - We sync the spawn position through a NetworkVariable. On the host it's
-      written once during spawn; on clients the OnValueChanged callback warps
-      the mine to the correct spot the first time it arrives.
+      pose. We do that with two NetworkVariables (position + rotation). Both the
+      host AND the client warp their local rigidbody to that pose so the physics
+      engine's internal state agrees with the transform ? otherwise WorldRoot's
+      first FixedUpdate could read a stale body.position and never recover.
 */
 
 using Unity.Netcode;
@@ -36,16 +34,16 @@ public class Mine : NetworkBehaviour, IDamageable
 
     [SerializeField] private float health = 50f;
 
-    // Replicated spawn position. Host writes this in OnNetworkSpawn; clients read
-    // it (either immediately if the value arrived before OnNetworkSpawn, or via
-    // the OnValueChanged callback if it arrives later).
+    // Replicated spawn pose. Host writes these in OnNetworkSpawn; clients read them
+    // (either immediately if the value arrived in the spawn payload, or via
+    // OnValueChanged if it arrives a frame later).
     private NetworkVariable<Vector3> netSpawnPosition = new NetworkVariable<Vector3>(
         Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private NetworkVariable<Quaternion> netSpawnRotation = new NetworkVariable<Quaternion>(
         Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    private bool initialPositionApplied = false;
+    private bool initialPoseApplied = false;
 
     void Awake()
     {
@@ -62,27 +60,28 @@ public class Mine : NetworkBehaviour, IDamageable
     {
         if (IsServer)
         {
-            // Host: capture wherever the spawning code placed us so clients can mirror it.
+            // Host: capture wherever the spawning code placed us (MineField.cs sets
+            // the transform pose BEFORE calling Spawn() so this is correct), publish
+            // it to clients via NetworkVariables, AND warp our own rigidbody to it
+            // so the physics engine's internal body.position matches transform.position
+            // before WorldRoot's first FixedUpdate reads it.
             netSpawnPosition.Value = transform.position;
             netSpawnRotation.Value = transform.rotation;
-            initialPositionApplied = true;
+            ApplyInitialPose(transform.position, transform.rotation);
         }
         else
         {
-            // Client: if the value already arrived in the spawn payload, apply it now.
-            // Otherwise wait for the OnValueChanged callback below.
-            if (netSpawnPosition.Value != Vector3.zero || netSpawnRotation.Value != Quaternion.identity)
-            {
-                ApplyInitialPose(netSpawnPosition.Value, netSpawnRotation.Value);
-            }
+            // Client: apply whatever pose has been replicated. If the value already
+            // arrived in the spawn payload this works immediately; otherwise the
+            // OnValueChanged callback will re-apply it when the value arrives.
+            ApplyInitialPose(netSpawnPosition.Value, netSpawnRotation.Value);
             netSpawnPosition.OnValueChanged += OnSpawnPositionReceived;
             netSpawnRotation.OnValueChanged += OnSpawnRotationReceived;
         }
 
         // Register with the world root so it drives our velocity every FixedUpdate.
         // Both host and clients register their local copy so each peer simulates the
-        // same motion locally (physics integrates velocity, the networked world state
-        // keeps the inputs in sync).
+        // same motion locally.
         if (WorldRoot.Instance != null)
         {
             WorldRoot.Instance.RegisterRigidbody(body);
@@ -103,26 +102,27 @@ public class Mine : NetworkBehaviour, IDamageable
 
     private void OnSpawnPositionReceived(Vector3 oldVal, Vector3 newVal)
     {
-        if (initialPositionApplied) return;
         ApplyInitialPose(newVal, netSpawnRotation.Value);
     }
 
     private void OnSpawnRotationReceived(Quaternion oldVal, Quaternion newVal)
     {
-        if (initialPositionApplied) return;
         ApplyInitialPose(netSpawnPosition.Value, newVal);
     }
 
     private void ApplyInitialPose(Vector3 pos, Quaternion rot)
     {
-        // Warp the rigidbody (not just the transform) so physics state agrees.
+        // Warp BOTH the rigidbody and the transform so physics state and
+        // scene-graph state agree. Setting body.position on a non-kinematic
+        // rigidbody is a teleport in PhysX; combined with zeroing velocities
+        // it gives WorldRoot a clean starting point for the next FixedUpdate.
         body.position = pos;
         body.rotation = rot;
         transform.position = pos;
         transform.rotation = rot;
         body.linearVelocity = Vector3.zero;
         body.angularVelocity = Vector3.zero;
-        initialPositionApplied = true;
+        initialPoseApplied = true;
     }
 
     void Start()
@@ -144,7 +144,7 @@ public class Mine : NetworkBehaviour, IDamageable
 
     public void damage(float dam)
     {
-        if (!IsServer) return; // Only host mutates health; result propagates via destroy/RPC
+        if (!IsServer) return; // Only host mutates health; despawn propagates the result
 
         health -= dam;
         if (health <= 0f)
@@ -156,8 +156,6 @@ public class Mine : NetworkBehaviour, IDamageable
     private void Explode()
     {
         DetachFromWorldRoot();
-        // NetworkObject.Despawn (called implicitly by Destroy on a NetworkBehaviour
-        // that's the root of a NetworkObject) will tear it down on clients too.
         Destroy(gameObject);
     }
 
@@ -175,10 +173,9 @@ public class Mine : NetworkBehaviour, IDamageable
         // On collision, detach from the world root so the impact response isn't
         // immediately overwritten by the next FixedUpdate's velocity assignment.
         // Host-authoritative: only the host detaches its mine. Without a
-        // NetworkTransform the client copies will keep tracking world motion,
-        // which is acceptable for the brief window before the host destroys
-        // the mine via damage(). If you want clients to see the physical
-        // tumble too, add a NetworkRigidbody / NetworkTransform.
+        // NetworkTransform/NetworkRigidbody, client copies will keep tracking
+        // world motion until the host destroys the mine via damage(). If the
+        // visual tumble on clients matters, add a NetworkTransform to the prefab.
         if (!IsHost) return;
         DetachFromWorldRoot();
     }

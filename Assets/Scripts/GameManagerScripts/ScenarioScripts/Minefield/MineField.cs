@@ -2,6 +2,15 @@
     MineField.cs
     Contributor(s): Henryk Musial
     Last Updated: 4/1/2026
+
+    NETWORKING NOTES:
+    - Mines are spawned as ROOT (unparented) NetworkObjects. Netcode for GameObjects
+      replicates root NetworkObjects cleanly; parented spawns require both peers to
+      have a matching parent NetworkObject and add complexity that we don't need
+      since WorldRoot already drives motion via networked offset/heading.
+    - World-space position and rotation are set on the transform BEFORE calling
+      Spawn(), so when Mine.OnNetworkSpawn runs on the host it captures the
+      correct pose into the replicated NetworkVariables for clients to mirror.
 */
 
 using System.Collections.Generic;
@@ -31,31 +40,36 @@ public class MineField : NetworkBehaviour, IScenario
 
         Vector3 world_root_center = new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f);
 
-        // Build obstacle list(positions are in the same local space as the generated points, so subtract world_root_center from any world-space placements)
+        // Build obstacle list (positions are in the same local space as the generated
+        // points, so subtract world_root_center from any world-space placements)
         var obstacles = new List<SpawnPointGenerator.Obstacle>
-    {
-        // Testing
-        // object at world origin with 300m clearance
-        new SpawnPointGenerator.Obstacle(Vector3.zero - world_root_center, 300f),
-    };
+        {
+            // object at world origin with 300m clearance
+            new SpawnPointGenerator.Obstacle(Vector3.zero - world_root_center, 300f),
+        };
 
         List<Vector3> positions = SpawnPointGenerator.GenerateSpawnLocations(
             radius, height, minDistance, totalMines, obstacles);
 
-        Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
-
         for (int i = 0; i < MINE_QUANTITY; i++)
         {
-            GameObject curr_mine = GameObject.Instantiate(mine, world_root);
-            curr_mine.name = "Mine_" + i;
-            curr_mine.GetComponent<NetworkObject>().SynchronizeTransform = true;
-
+            // Compute the world-space spawn pose first.
             Vector3 spawn_location = positions[i] + world_root_center;
-            curr_mine.transform.localPosition = spawn_location;
-            curr_mine.transform.localRotation = Random.rotation;
+            Quaternion spawn_rotation = Random.rotation;
 
+            // Instantiate UNPARENTED at the desired world-space pose so the
+            // Rigidbody's internal physics position is set correctly from the start.
+            // Setting position via Instantiate's overload is the most reliable way
+            // to get both transform.position and body.position in sync before the
+            // first FixedUpdate.
+            GameObject curr_mine = GameObject.Instantiate(mine, spawn_location, spawn_rotation);
+            curr_mine.name = "Mine_" + i;
+
+            // Spawn AFTER position is set. Mine.OnNetworkSpawn will read
+            // transform.position into the replicated NetworkVariable so clients
+            // can mirror it. No reparenting needed ? motion is driven by WorldRoot
+            // via networked offset/heading on every peer.
             curr_mine.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
-            curr_mine.GetComponent<NetworkObject>().TrySetParent(world_root);
         }
     }
 
