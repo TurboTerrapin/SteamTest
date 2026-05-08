@@ -3,15 +3,13 @@
     Contributor(s): Henryk Musial
 
     NETWORKING NOTES:
-    - This object intentionally has no NetworkTransform / NetworkRigidbody.
-    - Motion is driven by WorldRoot, which is networked: every peer reads the
-      same CumulativeOffset / VirtualHeading and integrates the same physics
-      locally so registered Rigidbodies move identically without per-object sync.
-    - The ONLY thing that needs to be replicated explicitly is the initial spawn
-      pose. We do that with two NetworkVariables (position + rotation). Both the
-      host AND the client warp their local rigidbody to that pose so the physics
-      engine's internal state agrees with the transform ? otherwise WorldRoot's
-      first FixedUpdate could read a stale body.position and never recover.
+    - This prefab is expected to have a NetworkTransform (and optionally a
+      NetworkRigidbody) component. Authority is the server.
+    - Only the host registers the mine with WorldRoot and runs simulation.
+      Clients receive position/rotation updates via NetworkTransform with
+      smooth interpolation.
+    - On the client, the Rigidbody is set kinematic so the local physics
+      engine doesn't fight the NetworkTransform's authoritative writes.
 */
 
 using Unity.Netcode;
@@ -34,107 +32,55 @@ public class Mine : NetworkBehaviour, IDamageable
 
     [SerializeField] private float health = 50f;
 
-    // Replicated spawn pose. Host writes these in OnNetworkSpawn; clients read them
-    // (either immediately if the value arrived in the spawn payload, or via
-    // OnValueChanged if it arrives a frame later).
-    private NetworkVariable<Vector3> netSpawnPosition = new NetworkVariable<Vector3>(
-        Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
-    private NetworkVariable<Quaternion> netSpawnRotation = new NetworkVariable<Quaternion>(
-        Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
-    private bool initialPoseApplied = false;
-
     void Awake()
     {
         body = GetComponent<Rigidbody>();
-        // Non-kinematic so the physics engine produces real collision response when
-        // the ship rams us. Driven by linearVelocity from WorldRoot.
-        body.isKinematic = false;
         body.useGravity = false;
         body.interpolation = RigidbodyInterpolation.Interpolate;
         body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        // Kinematic state is set in OnNetworkSpawn based on whether we're host or client.
     }
 
     public override void OnNetworkSpawn()
     {
         if (IsServer)
         {
-            // Host: capture wherever the spawning code placed us (MineField.cs sets
-            // the transform pose BEFORE calling Spawn() so this is correct), publish
-            // it to clients via NetworkVariables, AND warp our own rigidbody to it
-            // so the physics engine's internal body.position matches transform.position
-            // before WorldRoot's first FixedUpdate reads it.
-            netSpawnPosition.Value = transform.position;
-            netSpawnRotation.Value = transform.rotation;
-            ApplyInitialPose(transform.position, transform.rotation);
-        }
-        else
-        {
-            // Client: apply whatever pose has been replicated. If the value already
-            // arrived in the spawn payload this works immediately; otherwise the
-            // OnValueChanged callback will re-apply it when the value arrives.
-            ApplyInitialPose(netSpawnPosition.Value, netSpawnRotation.Value);
-            netSpawnPosition.OnValueChanged += OnSpawnPositionReceived;
-            netSpawnRotation.OnValueChanged += OnSpawnRotationReceived;
-        }
+            // Host: this is the authoritative simulation. Non-kinematic so
+            // collisions produce real impulse responses.
+            body.isKinematic = false;
 
-        // Register with the world root so it drives our velocity every FixedUpdate.
-        // Both host and clients register their local copy so each peer simulates the
-        // same motion locally.
-        if (WorldRoot.Instance != null)
-        {
-            WorldRoot.Instance.RegisterRigidbody(body);
-            registeredWithWorldRoot = true;
+            if (WorldRoot.Instance != null)
+            {
+                WorldRoot.Instance.RegisterRigidbody(body);
+                registeredWithWorldRoot = true;
+            }
+            else
+            {
+                Debug.LogWarning("Mine: WorldRoot.Instance not found at spawn time.");
+            }
         }
         else
         {
-            Debug.LogWarning("Mine: WorldRoot.Instance not found at spawn time; mine will not move with the world.");
+            // Client: NetworkTransform writes the position every tick. Make the
+            // Rigidbody kinematic so local physics doesn't fight those writes
+            // (gravity, residual velocity, etc. would all conflict otherwise).
+            body.isKinematic = true;
         }
     }
 
     public override void OnNetworkDespawn()
     {
-        netSpawnPosition.OnValueChanged -= OnSpawnPositionReceived;
-        netSpawnRotation.OnValueChanged -= OnSpawnRotationReceived;
         DetachFromWorldRoot();
-    }
-
-    private void OnSpawnPositionReceived(Vector3 oldVal, Vector3 newVal)
-    {
-        ApplyInitialPose(newVal, netSpawnRotation.Value);
-    }
-
-    private void OnSpawnRotationReceived(Quaternion oldVal, Quaternion newVal)
-    {
-        ApplyInitialPose(netSpawnPosition.Value, newVal);
-    }
-
-    private void ApplyInitialPose(Vector3 pos, Quaternion rot)
-    {
-        // Warp BOTH the rigidbody and the transform so physics state and
-        // scene-graph state agree. Setting body.position on a non-kinematic
-        // rigidbody is a teleport in PhysX; combined with zeroing velocities
-        // it gives WorldRoot a clean starting point for the next FixedUpdate.
-        body.position = pos;
-        body.rotation = rot;
-        transform.position = pos;
-        transform.rotation = rot;
-        body.linearVelocity = Vector3.zero;
-        body.angularVelocity = Vector3.zero;
-        initialPoseApplied = true;
     }
 
     void Start()
     {
-        // Find & ref the spaceship in scene
         GameObject spaceship_obj = GameObject.FindGameObjectWithTag("Spaceship");
         if (spaceship_obj != null)
         {
             target_ship = spaceship_obj.transform;
         }
 
-        // Initialize the laser to off
         if (line_renderer != null)
         {
             line_renderer.positionCount = 2;
@@ -144,7 +90,7 @@ public class Mine : NetworkBehaviour, IDamageable
 
     public void damage(float dam)
     {
-        if (!IsServer) return; // Only host mutates health; despawn propagates the result
+        if (!IsServer) return;
 
         health -= dam;
         if (health <= 0f)
@@ -156,7 +102,7 @@ public class Mine : NetworkBehaviour, IDamageable
     private void Explode()
     {
         DetachFromWorldRoot();
-        Destroy(gameObject);
+        Destroy(gameObject); // NetworkObject teardown will despawn on clients too.
     }
 
     private void DetachFromWorldRoot()
@@ -170,13 +116,11 @@ public class Mine : NetworkBehaviour, IDamageable
 
     void OnCollisionEnter(Collision collision)
     {
-        // On collision, detach from the world root so the impact response isn't
-        // immediately overwritten by the next FixedUpdate's velocity assignment.
-        // Host-authoritative: only the host detaches its mine. Without a
-        // NetworkTransform/NetworkRigidbody, client copies will keep tracking
-        // world motion until the host destroys the mine via damage(). If the
-        // visual tumble on clients matters, add a NetworkTransform to the prefab.
-        if (!IsHost) return;
+        // Host-only: detach from WorldRoot so the impact impulse isn't immediately
+        // overwritten by the next FixedUpdate's velocity assignment. The mine
+        // tumbles freely until destroyed. NetworkTransform replicates the tumble
+        // to clients automatically.
+        if (!IsServer) return;
         DetachFromWorldRoot();
     }
 
@@ -189,7 +133,8 @@ public class Mine : NetworkBehaviour, IDamageable
 
         float distance_to_ship = Vector3.Distance(transform.position, target_ship.position);
 
-        // Visual logic (Laser) runs on Host AND Clients so everyone sees it
+        // Laser visuals can run on host and clients (each peer reads the local
+        // transform position which is kept in sync by NetworkTransform).
         if (distance_to_ship <= LASER_RANGE)
         {
             //FireLaser();
@@ -199,7 +144,7 @@ public class Mine : NetworkBehaviour, IDamageable
             //StopLaser();
         }
 
-        if (!IsHost)
+        if (!IsServer)
         {
             return;
         }
@@ -224,7 +169,6 @@ public class Mine : NetworkBehaviour, IDamageable
         }
         int active_count = 0;
 
-        // Check port and starboard reducers
         if (reducers.enabled_reducers[0]) active_count++;
         if (reducers.enabled_reducers[1]) active_count++;
 
@@ -240,14 +184,9 @@ public class Mine : NetworkBehaviour, IDamageable
 
     private void LookAtShip()
     {
-        // Determine direction to ship
         Vector3 target_direction = (target_ship.position - transform.position).normalized;
 
         Quaternion target_rotation = Quaternion.LookRotation(target_direction);
-        // MoveRotation works on non-kinematic bodies ? it routes the rotation through
-        // the physics engine for proper interpolation, just like MovePosition would
-        // for translation. Using this instead of transform.rotation = ... keeps motion
-        // physics-driven so visuals interpolate cleanly between FixedUpdates.
         Quaternion newRotation = Quaternion.Slerp(transform.rotation, target_rotation,
                                                   Time.fixedDeltaTime * ROTATION_SPEED);
         body.MoveRotation(newRotation);
@@ -259,7 +198,6 @@ public class Mine : NetworkBehaviour, IDamageable
 
         if (!line_renderer.enabled) line_renderer.enabled = true;
 
-        // Update beam positions
         line_renderer.SetPosition(0, laser_aperture.position);
         line_renderer.SetPosition(1, target_ship.position);
     }
