@@ -1,6 +1,19 @@
 /*
     Mine.cs
     Contributor(s): Henryk Musial
+
+    NETWORKING NOTES:
+    - This object intentionally has no NetworkTransform / NetworkRigidbody.
+    - Motion is driven by WorldRoot, which is now networked: every peer reads the
+      same CumulativeOffset / VirtualHeading and integrates the same physics.
+    - The ONLY thing that needs to be replicated explicitly is the initial spawn
+      position (where the host placed the mine in world space). Without that,
+      a freshly-spawned mine on the client appears at the prefab's default
+      position ? typically the origin / right next to the ship ? and from then on
+      the WorldRoot integration moves a "ghost" mine that doesn't match the host.
+    - We sync the spawn position through a NetworkVariable. On the host it's
+      written once during spawn; on clients the OnValueChanged callback warps
+      the mine to the correct spot the first time it arrives.
 */
 
 using Unity.Netcode;
@@ -23,6 +36,17 @@ public class Mine : NetworkBehaviour, IDamageable
 
     [SerializeField] private float health = 50f;
 
+    // Replicated spawn position. Host writes this in OnNetworkSpawn; clients read
+    // it (either immediately if the value arrived before OnNetworkSpawn, or via
+    // the OnValueChanged callback if it arrives later).
+    private NetworkVariable<Vector3> netSpawnPosition = new NetworkVariable<Vector3>(
+        Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    private NetworkVariable<Quaternion> netSpawnRotation = new NetworkVariable<Quaternion>(
+        Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    private bool initialPositionApplied = false;
+
     void Awake()
     {
         body = GetComponent<Rigidbody>();
@@ -36,10 +60,29 @@ public class Mine : NetworkBehaviour, IDamageable
 
     public override void OnNetworkSpawn()
     {
+        if (IsServer)
+        {
+            // Host: capture wherever the spawning code placed us so clients can mirror it.
+            netSpawnPosition.Value = transform.position;
+            netSpawnRotation.Value = transform.rotation;
+            initialPositionApplied = true;
+        }
+        else
+        {
+            // Client: if the value already arrived in the spawn payload, apply it now.
+            // Otherwise wait for the OnValueChanged callback below.
+            if (netSpawnPosition.Value != Vector3.zero || netSpawnRotation.Value != Quaternion.identity)
+            {
+                ApplyInitialPose(netSpawnPosition.Value, netSpawnRotation.Value);
+            }
+            netSpawnPosition.OnValueChanged += OnSpawnPositionReceived;
+            netSpawnRotation.OnValueChanged += OnSpawnRotationReceived;
+        }
+
         // Register with the world root so it drives our velocity every FixedUpdate.
         // Both host and clients register their local copy so each peer simulates the
-        // same motion locally (physics integrates velocity, network var keeps the
-        // velocity itself in sync).
+        // same motion locally (physics integrates velocity, the networked world state
+        // keeps the inputs in sync).
         if (WorldRoot.Instance != null)
         {
             WorldRoot.Instance.RegisterRigidbody(body);
@@ -53,7 +96,33 @@ public class Mine : NetworkBehaviour, IDamageable
 
     public override void OnNetworkDespawn()
     {
+        netSpawnPosition.OnValueChanged -= OnSpawnPositionReceived;
+        netSpawnRotation.OnValueChanged -= OnSpawnRotationReceived;
         DetachFromWorldRoot();
+    }
+
+    private void OnSpawnPositionReceived(Vector3 oldVal, Vector3 newVal)
+    {
+        if (initialPositionApplied) return;
+        ApplyInitialPose(newVal, netSpawnRotation.Value);
+    }
+
+    private void OnSpawnRotationReceived(Quaternion oldVal, Quaternion newVal)
+    {
+        if (initialPositionApplied) return;
+        ApplyInitialPose(netSpawnPosition.Value, newVal);
+    }
+
+    private void ApplyInitialPose(Vector3 pos, Quaternion rot)
+    {
+        // Warp the rigidbody (not just the transform) so physics state agrees.
+        body.position = pos;
+        body.rotation = rot;
+        transform.position = pos;
+        transform.rotation = rot;
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
+        initialPositionApplied = true;
     }
 
     void Start()
@@ -75,6 +144,8 @@ public class Mine : NetworkBehaviour, IDamageable
 
     public void damage(float dam)
     {
+        if (!IsServer) return; // Only host mutates health; result propagates via destroy/RPC
+
         health -= dam;
         if (health <= 0f)
         {
@@ -85,6 +156,8 @@ public class Mine : NetworkBehaviour, IDamageable
     private void Explode()
     {
         DetachFromWorldRoot();
+        // NetworkObject.Despawn (called implicitly by Destroy on a NetworkBehaviour
+        // that's the root of a NetworkObject) will tear it down on clients too.
         Destroy(gameObject);
     }
 
@@ -101,10 +174,11 @@ public class Mine : NetworkBehaviour, IDamageable
     {
         // On collision, detach from the world root so the impact response isn't
         // immediately overwritten by the next FixedUpdate's velocity assignment.
-        // The mine then tumbles freely from the impulse — which is what you'd
-        // intuitively expect when the ship plows into one.
-        // Host-authoritative: only the host detaches its mine and the network sync
-        // (or the subsequent Explode call from damage) propagates the result.
+        // Host-authoritative: only the host detaches its mine. Without a
+        // NetworkTransform the client copies will keep tracking world motion,
+        // which is acceptable for the brief window before the host destroys
+        // the mine via damage(). If you want clients to see the physical
+        // tumble too, add a NetworkRigidbody / NetworkTransform.
         if (!IsHost) return;
         DetachFromWorldRoot();
     }
@@ -173,7 +247,7 @@ public class Mine : NetworkBehaviour, IDamageable
         Vector3 target_direction = (target_ship.position - transform.position).normalized;
 
         Quaternion target_rotation = Quaternion.LookRotation(target_direction);
-        // MoveRotation works on non-kinematic bodies — it routes the rotation through
+        // MoveRotation works on non-kinematic bodies ? it routes the rotation through
         // the physics engine for proper interpolation, just like MovePosition would
         // for translation. Using this instead of transform.rotation = ... keeps motion
         // physics-driven so visuals interpolate cleanly between FixedUpdates.
