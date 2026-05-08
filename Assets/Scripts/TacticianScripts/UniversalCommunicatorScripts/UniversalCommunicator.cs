@@ -3,7 +3,7 @@
     - Handles inputs for communicator keyboard
     - Displays to code screen
     Contributor(s): Jake Schott
-    Last Updated: 1/2/2026
+    Last Updated: 5/7/2026
 */
 
 using UnityEngine;
@@ -18,7 +18,7 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
     //CLASS CONSTANTS
     private static float POINTER_SPEED = 0.2f;
 
-    public GameObject character_input_glasses;
+    public GameObject character_displays;
     public GameObject message_preview_display;
     public GameObject code_display;
     public GameObject symbol_toggle_display;
@@ -104,7 +104,7 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
 
     public GameObject getCharacterDisplay(int index)
     {
-        return character_input_glasses.transform.GetChild(index).GetChild(0).GetChild(1).gameObject;
+        return character_displays.transform.GetChild(index).gameObject;
     }
 
     //only updates the characters in the input mode

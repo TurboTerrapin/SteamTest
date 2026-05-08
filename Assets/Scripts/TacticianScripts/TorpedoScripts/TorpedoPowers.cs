@@ -127,14 +127,14 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
             tmp_pwr = power_levels[index] - (0.05f * i);
             float a = tmp_pwr / 0.05f;
             //do both sides
-            for (int x = 1; x <= 2; x++)
+            for (int x = 0; x < 2; x++)
             {
-                torpedo_power_glasses.transform.GetChild(index).GetChild(x).GetChild(1).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Max(0.04f, a));
+                torpedo_power_glasses.transform.GetChild((index * 2) + 1).GetChild(x + 2).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Max(0.04f, a));
             }
         }
 
         //update text
-        torpedo_power_glasses.transform.GetChild(index).GetChild(0).GetChild(1).GetChild(1).GetComponent<TMP_Text>().SetText(Mathf.RoundToInt(power_levels[index] * 100.0f).ToString());
+        torpedo_power_glasses.transform.GetChild(index * 2).GetChild(1).GetChild(1).GetComponent<TMP_Text>().SetText(Mathf.RoundToInt(power_levels[index] * 100.0f).ToString());
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -159,11 +159,11 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
         {
             if (power_direction > 0)
             {
-                power_levels[index] = Mathf.Max(0.0f, power_levels[index] + dt * MOVE_SPEED);
+                power_levels[index] = Mathf.Min(1.0f, power_levels[index] + dt * MOVE_SPEED);
             }
             else
             {
-                power_levels[index] = Mathf.Min(1.0f, power_levels[index] - dt * MOVE_SPEED);
+                power_levels[index] = Mathf.Max(0.0f, power_levels[index] - dt * MOVE_SPEED);
             }
 
             BUTTON_LISTS[index][0].updateInteractable(power_levels[index] > 0.0f);
@@ -206,10 +206,10 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
             BUTTON_LISTS[i][0].updateInteractable(power_levels[i] > 0.0f);
             BUTTON_LISTS[i][1].updateInteractable(power_levels[i] < 1.0f);
             //enable icons
-            torpedo_power_glasses.transform.GetChild(i).GetChild(0).GetChild(1).gameObject.SetActive(true);
+            torpedo_power_glasses.transform.GetChild(i * 2).GetChild(1).gameObject.SetActive(true);
             //enable bar displays
-            torpedo_power_glasses.transform.GetChild(i).GetChild(1).GetChild(1).gameObject.SetActive(true);
-            torpedo_power_glasses.transform.GetChild(i).GetChild(2).GetChild(1).gameObject.SetActive(true);
+            torpedo_power_glasses.transform.GetChild((i * 2) + 1).GetChild(2).gameObject.SetActive(true);
+            torpedo_power_glasses.transform.GetChild((i * 2) + 1).GetChild(3).gameObject.SetActive(true);
         }
     }
 
@@ -222,10 +222,10 @@ public class TorpedoPowers : NetworkBehaviour, IControllable, IPowerable, IIKTar
             BUTTON_LISTS[i][0].updateInteractable(false);
             BUTTON_LISTS[i][1].updateInteractable(false);
             //disable icons
-            torpedo_power_glasses.transform.GetChild(i).GetChild(0).GetChild(1).gameObject.SetActive(false);
+            torpedo_power_glasses.transform.GetChild(i * 2).GetChild(1).gameObject.SetActive(false);
             //disable bar displays
-            torpedo_power_glasses.transform.GetChild(i).GetChild(1).GetChild(1).gameObject.SetActive(false);
-            torpedo_power_glasses.transform.GetChild(i).GetChild(2).GetChild(1).gameObject.SetActive(false);
+            torpedo_power_glasses.transform.GetChild((i * 2) + 1).GetChild(2).gameObject.SetActive(false);
+            torpedo_power_glasses.transform.GetChild((i * 2) + 1).GetChild(3).gameObject.SetActive(false);
         }
         hud_info.setPowerConsumption(0.0f);
 

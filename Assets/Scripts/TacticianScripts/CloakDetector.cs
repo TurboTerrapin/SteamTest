@@ -3,7 +3,7 @@
     - Handles tactician cloak detector
     - Has no interaction with the player
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 5/7/2026
 */
 
 using UnityEngine;
