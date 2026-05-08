@@ -42,7 +42,7 @@ public class Mine : NetworkBehaviour, IDamageable
         // velocity itself in sync).
         if (WorldRoot.Instance != null)
         {
-            WorldRoot.Instance.RegisterBody(body);
+            WorldRoot.Instance.RegisterRigidbody(body);
             registeredWithWorldRoot = true;
         }
         else
@@ -92,7 +92,7 @@ public class Mine : NetworkBehaviour, IDamageable
     {
         if (registeredWithWorldRoot && WorldRoot.Instance != null)
         {
-            WorldRoot.Instance.UnregisterBody(body);
+            WorldRoot.Instance.UnregisterRigidbody(body);
             registeredWithWorldRoot = false;
         }
     }
