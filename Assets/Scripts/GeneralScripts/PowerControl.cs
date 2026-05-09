@@ -102,8 +102,8 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     //updates knob light, adjacent circle lights (for all positions)
     private void changeIndicator(int index, bool active)
     {
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(active);
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
+        dials[index].transform.GetChild(0).GetChild(0).GetChild(1).gameObject.SetActive(active);
+        dials[index].transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         for (int i = 0; i < light_indicator_groups.Count; i++)
         {
             light_indicator_groups[i].transform.GetChild(index).gameObject.SetActive(active);
@@ -274,13 +274,13 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         //show/hide the indicator
         for (int i = 0; i < 4; i++)
         {
-            dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
+            dials[index].transform.GetChild(0).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
             light_indicator_groups[i].transform.GetChild(index).gameObject.SetActive(current_seats[index]);
         }
 
         Color c = ReferenceAssistor.COLOR_OPTIONS[index];
         c.a = a;
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = c;
+        dials[index].transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = c;
 
         //update the position color for every power control module
         if (current_seats[index] == true)

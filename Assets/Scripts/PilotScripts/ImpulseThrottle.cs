@@ -3,7 +3,7 @@
     - Handles inputs for impulse throttle
     - Moves throttle lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/8/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 35.0f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
+    private Vector3 THROTTLE_FINAL_POS = new Vector3(0.0f, 0.051f, 0.122f);
 
     private string CONTROL_NAME = "IMPULSE THROTTLE";
     private static string INFO_MESSAGE = "Controls the speed at which the ship moves in either the forward or reverse direction.";
@@ -34,8 +35,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private float impulse = 0.0f;
     private float inertial_dampener_modifier = 0.0f;
-    private Vector3 initial_pos; //handle starting position (0% impulse)
-    private Vector3 final_pos = new Vector3(0.0f, 0.111f, 0.264f);
+
     private Coroutine impulse_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -60,8 +60,6 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);
-
-        initial_pos = handle.transform.localPosition; //sets the initial position
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
@@ -73,26 +71,32 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public void adjustInertialDampenerModifier(float new_modifier)
     {
         inertial_dampener_modifier = new_modifier;
@@ -107,15 +111,20 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         //update bars on screen
         float tmp_imp = impulse;
-        for (int i = 0; i <= 19; i++)
+        for (int i = 0; i < 20; i++)
         {
             tmp_imp = impulse - (0.05f * i);
             float a = tmp_imp / 0.05f;
-            impulse_bars_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+            impulse_bars_display.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
         }
 
+        //update diamonds on screen
+        float y_pos = Mathf.Lerp(0.02f, 0.145f, impulse);
+        impulse_bars_display.transform.GetChild(1).GetChild(0).transform.localPosition = new Vector3(0.059f, y_pos, 0.0f);
+        impulse_bars_display.transform.GetChild(1).GetChild(1).transform.localPosition = new Vector3(-0.059f, y_pos, 0.0f);
+
         //update lever position
-        handle.transform.localPosition = Vector3.Lerp(initial_pos, final_pos, impulse);
+        handle.transform.localPosition = Vector3.Lerp(Vector3.zero, THROTTLE_FINAL_POS, impulse);
 
         //update pilot position engine info
         engine_monitoring.impulseAdjustment();
