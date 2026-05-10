@@ -2,7 +2,7 @@
     PowerRegulationModuleF.cs
     - Handles the timing mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 2/13/2026
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -18,7 +18,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
     private static float TIMING_BAR_MOVE_SPEED = 0.15f;
     private static float FURTHEST_TIMING_BAR_POINT = 0.1f;
     private static Vector3 BUTTON_PUSH_DIRECTION = new Vector3(0.002f, -0.004f, -0.002f);
-    private static float[] STAGE_WIDTHS = new float[3] { 0.04f, 0.03f, 0.02f };
+    private static float[] STAGE_WIDTHS = new float[3] { 0.05f, 0.04f, 0.03f };
     private static float[] ARROW_LOCATIONS = new float[3] { -0.079f, 0.0f, 0.079f };
 
     private string CONTROL_NAME = "SEQUENCE COORDINATOR";
@@ -30,6 +30,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
     public GameObject prsf_display;
     public List<GameObject> prsf_buttons = null;
 
+    private PowerRegulator power_regulator;
     private GameObject pointer_arrow;
     private GameObject timing_bar;
 
@@ -56,6 +57,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
 
     private void Start()
     {
+        power_regulator = GameObject.Find("PowerHandler").GetComponent<PowerRegulator>();
         pointer_arrow = prsf_display.transform.GetChild(0).gameObject;
         timing_bar = prsf_display.transform.GetChild(1).gameObject;
 
@@ -77,30 +79,44 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
+    }
+
+    private void changeColor(Color to_change_to)
+    {
+        timing_bar.GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
+        timing_bar.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
+        timing_bar.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
+        pointer_arrow.GetComponent<UnityEngine.UI.RawImage>().color = to_change_to;
     }
 
     private void checkTiming(int button_index)
@@ -111,19 +127,9 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
         float new_offset = Random.Range(-0.05f, 0.05f);
         int new_dir = Random.Range(0, 2);
 
-        List<int> possible_locations = new List<int>();
-        for (int i = 0; i < 3; i++)
-        {
-            if (active_button != i)
-            {
-                possible_locations.Add(i);
-            }
-        }
-        int new_arrow_position = possible_locations[Random.Range(0, 2)];
-
         if (button_index != active_button)
         {
-            stageChangeRPC(0, new_arrow_position, new_offset, new_dir);
+            stageChangeRPC(0, new_offset, new_dir, 2);
             return;
         }
 
@@ -135,12 +141,12 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
             }
             else
             {
-                stageChangeRPC(stage + 1, new_arrow_position, new_offset, new_dir);
+                stageChangeRPC(stage + 1, new_offset, new_dir, 1);
             }
         }
         else
         {
-            stageChangeRPC(0, new_arrow_position, new_offset, new_dir);
+            stageChangeRPC(0, new_offset, new_dir, 2);
         }
     }
 
@@ -246,7 +252,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
         timing_bar.transform.GetComponent<RectTransform>().sizeDelta = new Vector2(0.005f, STAGE_WIDTHS[0]);
         if (NetworkManager.Singleton.IsHost == true)
         {
-            stageChangeRPC(0, Random.Range(0, 3), Random.Range(-0.05f, 0.05f), Random.Range(0, 2));
+            stageChangeRPC(0, Random.Range(-0.05f, 0.05f), Random.Range(0, 2), 0);
         }
     }
 
@@ -281,17 +287,27 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
     }
 
     [Rpc(SendTo.Everyone)]
-    private void stageChangeRPC(int new_stage, int arrow_location, float starting_offset, int starting_dir)
+    private void stageChangeRPC(int new_stage, float starting_offset, int starting_dir, int sound_to_play)
     {
         if (timing_bar_coroutine != null)
         {
             StopCoroutine(timing_bar_coroutine);
         }
 
-        stage = new_stage;
-        active_button = arrow_location;
+        if (sound_to_play == 1)
+        {
+            power_regulator.playCorrectSound();
+        }
+        else if (sound_to_play == 2)
+        {
+            power_regulator.playIncorrectSound();
+        }
 
-        pointer_arrow.transform.localPosition = new Vector3(ARROW_LOCATIONS[arrow_location], -0.0035f, 0.0f);
+        stage = new_stage;
+        active_button = new_stage;
+
+        changeColor(ReferenceAssistor.COLOR_OPTIONS[new_stage]);
+        pointer_arrow.transform.localPosition = new Vector3(ARROW_LOCATIONS[active_button], -0.0035f, 0.0f);
         timing_bar.GetComponent<RectTransform>().sizeDelta = new Vector2(0.005f, STAGE_WIDTHS[new_stage]);
         timing_bar.transform.GetChild(0).transform.localPosition = new Vector3(0.0f, STAGE_WIDTHS[new_stage] * -0.5f, 0.0f);
         timing_bar.transform.GetChild(1).transform.localPosition = new Vector3(0.0f, STAGE_WIDTHS[new_stage] * 0.5f, 0.0f);
@@ -311,6 +327,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
     [Rpc(SendTo.Everyone)]
     private void transmitModuleCompletionRPC()
     {
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().moduleCompleted(this.GetType().Name);
+        power_regulator.playCorrectSound();
+        power_regulator.moduleCompleted(this.GetType().Name);
     }
 }

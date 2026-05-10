@@ -374,6 +374,7 @@ public class LightsManager : MonoBehaviour
         if (active == false)
         {
             intensity_to_change_to = 0.0f;
+            light_flicker_sound.Stop();
         }
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, intensity_to_change_to));
     }

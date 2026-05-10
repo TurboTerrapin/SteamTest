@@ -2,7 +2,7 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 3/8/2026
+    Last Updated: 5/10/2026
 */
 
 using System.Collections;
@@ -33,6 +33,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public GameObject torpedo_selection_dial;
     public GameObject torpedo_direction_buttons;
     public GameObject torpedo_confirm_button;
+    public AudioSource torpedo_loader_boop_sound;
 
     private ShipInventory ship_inventory;
 
@@ -108,26 +109,32 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
         my_control_index = index;
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_types[my_control_index];
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public void onInventoryChange()
     {
         displayTorpedoSelectionAdjustment();
@@ -354,6 +361,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
             yield return null;
         }
 
+        torpedo_loader_boop_sound.Play();
         displayTorpedoDirectionAdjustment();
 
         torpedo_direction_adjustment_coroutine = null;
@@ -368,6 +376,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     {
         deactivateButtons();
         displayTorpedoSelectionAdjustment();
+        torpedo_loader_boop_sound.Play();
 
         float anim_time = LOAD_CONFIRMATION_TIME;
         for (int i = 0; i <= 1; i++)
@@ -538,6 +547,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
         if (current_torpedo_selection != curr_selection)
         {
             current_torpedo_selection = curr_selection;
+            torpedo_loader_boop_sound.Play();
             displayTorpedoSelectionAdjustment();
             updateCurrentlyLoadableIndicators();
             BUTTON_LISTS[2][0].updateInteractable(getCurrentlyLoadable());

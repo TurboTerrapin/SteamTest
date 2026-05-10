@@ -118,11 +118,6 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
             impulse_bars_display.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
         }
 
-        //update diamonds on screen
-        float y_pos = Mathf.Lerp(0.02f, 0.145f, impulse);
-        impulse_bars_display.transform.GetChild(1).GetChild(0).transform.localPosition = new Vector3(0.059f, y_pos, 0.0f);
-        impulse_bars_display.transform.GetChild(1).GetChild(1).transform.localPosition = new Vector3(-0.059f, y_pos, 0.0f);
-
         //update lever position
         handle.transform.localPosition = Vector3.Lerp(Vector3.zero, THROTTLE_FINAL_POS, impulse);
 

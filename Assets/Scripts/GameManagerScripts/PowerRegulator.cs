@@ -3,7 +3,7 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 2/23/2026
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -24,6 +24,8 @@ public class PowerRegulator : NetworkBehaviour
 
     public GameObject power_status;
     public List<GameObject> power_regulation_modules = null;
+    public AudioSource power_regulation_correct_sound;
+    public AudioSource power_regulation_incorrect_sound;
 
     //power status screen UI components
     private GameObject power_bars;
@@ -399,6 +401,26 @@ public class PowerRegulator : NetworkBehaviour
         {
             terminateDepletionRPC(source_index, false);
         }
+    }
+
+    //plays correct sound for power regulation modules
+    public void playCorrectSound()
+    {
+        if (power_regulation_correct_sound.isPlaying == true)
+        {
+            return;
+        }
+        power_regulation_correct_sound.Play();
+    }
+
+    //plays incorrect sound for power regulation modules
+    public void playIncorrectSound()
+    {
+        if (power_regulation_incorrect_sound.isPlaying == true)
+        {
+            return;
+        }
+        power_regulation_incorrect_sound.Play();
     }
 
     private int getPowerStatusState()

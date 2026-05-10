@@ -26,7 +26,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 
     public PowerManager power_manager;
     public List<GameObject> dials = null;
-    public GameObject dial_sounds;
+    public List<AudioSource> dial_sounds = null;
     public List<GameObject> light_indicator_groups = null;
 
     private bool[] active_dials = new bool[4] { true, true, true, true };
@@ -204,13 +204,13 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         //handle starting/stopping beep sound
         if (power_manager.getPowerEnabled(updated_position) == true || occupied_seats[updated_position] == false || power_manager.getShipHasPower() == false)
         {
-            dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().Stop();
+            dial_sounds[updated_position].Stop();
         }
         else if (occupied_seats[updated_position] == true && power_manager.getShipHasPower() == true)
         {
-            if (dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().isPlaying == false)
+            if (dial_sounds[updated_position].isPlaying == false)
             {
-                dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().Play();
+                dial_sounds[updated_position].Play();
             }
         }
 

@@ -2,7 +2,7 @@
     CargoEject.cs
     - Handles selecting and ejecting of items to be ejected
     Contributor(s): Jake Schott
-    Last Updated: 4/27/2026
+    Last Updated: 5/10/2026
 */
 
 using System.Collections;
@@ -32,6 +32,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     public GameObject cargo_eject_item_variation_switch;
     public GameObject cargo_eject_dial;
     public ShipExteriorFeatures ship_exterior_features;
+    public AudioSource cargo_eject_boop_sound;
     public List<AudioSource> cargo_eject_sounds = null;
     private TMP_Text cargo_eject_description_text;
     private UnityEngine.UI.Image cargo_eject_fill_bar;
@@ -159,7 +160,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
     public void onInventoryChange()
     {
-        displayAdjustment(item_eject_coroutine != null);
+        displayAdjustment(item_eject_coroutine != null || ship_inventory.getItemQuantity(item_type_category, item_variation_index) == 0);
         if (is_powered == true)
         {
             if (item_eject_coroutine == null && item_type_adjustment_coroutine == null && item_variation_adjustment_coroutine == null)
@@ -261,6 +262,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             yield return null;
         }
 
+        cargo_eject_boop_sound.Play();
         displayAdjustment(getCurrentlyEjectable() == false);
 
         BUTTON_LISTS[0][0].untoggle();
@@ -304,6 +306,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
             if (i == 0)
             {
+                cargo_eject_boop_sound.Play();
                 displayAdjustment(getCurrentlyEjectable() == false);
             }
         }

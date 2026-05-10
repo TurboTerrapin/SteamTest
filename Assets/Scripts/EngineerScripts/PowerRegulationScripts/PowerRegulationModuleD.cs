@@ -2,7 +2,7 @@
     PowerRegulationModuleD.cs
     - Handles the horizontal slider mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 2/13/2026
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -28,6 +28,8 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
     public GameObject prsd_display;
     public List<GameObject> prsd_color_identifiers = null;
     public List<GameObject> prsd_sliders = null;
+
+    private PowerRegulator power_regulator;
 
     private float FILL_BAR_REAL_SIZE = 0.0f;
     private float FILL_BAR_X_POS = 0.0f;
@@ -56,6 +58,7 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
 
     private void Start()
     {
+        power_regulator = GameObject.Find("PowerHandler").GetComponent<PowerRegulator>();
         FILL_BAR_REAL_SIZE = prsd_display.transform.GetChild(0).GetChild(1).GetComponent<RectTransform>().sizeDelta.y;
         FILL_BAR_X_POS = prsd_display.transform.GetChild(0).GetChild(1).transform.localPosition.x;
         TARGET_INDICATOR_SIZE = prsd_display.transform.GetChild(0).GetChild(2).GetComponent<RectTransform>().sizeDelta.y;
@@ -85,31 +88,38 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     private bool checkIfBarIsCorrect(int bar)
     {
         float fill_point = FILL_BAR_REAL_SIZE * prsd_fill_bars[bar].fillAmount + (FILL_BAR_X_POS - (FILL_BAR_REAL_SIZE * 0.5f));
@@ -279,6 +289,11 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
         slider_percentages[bar] = new_position;
         displayAdjustment(bar);
 
+        if (checkIfBarIsCorrect(bar) == true)
+        {
+            power_regulator.playCorrectSound();
+        }
+
         if (NetworkManager.Singleton.IsHost == true)
         {
             bool minigame_completed = true;
@@ -302,6 +317,6 @@ public class PowerRegulationModuleD : NetworkBehaviour, IControllable, IPowerReg
     [Rpc(SendTo.Everyone)]
     private void transmitModuleCompletionRPC()
     {
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().moduleCompleted(this.GetType().Name);
+        power_regulator.moduleCompleted(this.GetType().Name);
     }
 }

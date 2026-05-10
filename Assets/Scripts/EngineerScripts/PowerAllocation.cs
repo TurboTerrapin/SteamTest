@@ -3,7 +3,7 @@
     - Handles inputs for power allocation
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 5/3/2026
+    Last Updated: 5/10/2026
 */
 
 using System.Collections;
@@ -30,6 +30,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
     public List<GameObject> power_screen_displays; //the screen that shows the power allocation AND consumption
     public List<GameObject> allocation_circle_displays; //the circular screens around each dial
     public GameObject info_display;
+    public AudioSource power_allocation_boop_sound;
 
     private PowerManager power_manager;
     private GameObject units_counter;
@@ -78,19 +79,23 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
@@ -100,10 +105,12 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public float getPowerAllocation(int position)
     {
         return (allocated_units[position] * 0.1f);
@@ -220,6 +227,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
             power_manager.allocationChange(index, new_allocation * 0.1f);
         }
 
+        power_allocation_boop_sound.Play();
         BUTTON_LISTS[index][0].untoggle();
         BUTTON_LISTS[index][1].untoggle();
         for (int i = 0; i < 4; i++)
