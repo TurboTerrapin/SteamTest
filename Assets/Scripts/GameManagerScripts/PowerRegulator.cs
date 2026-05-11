@@ -466,7 +466,8 @@ public class PowerRegulator : NetworkBehaviour
         for (int i = 0; i < 6; i++)
         {
             power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().color = POWER_STATUS_COLORS[state];
-            power_bars.transform.GetChild(i).GetChild(0).GetComponent<TMP_Text>().color = POWER_STATUS_COLORS[state];
+            power_bars.transform.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(POWER_STATUS_COLORS[state].r, POWER_STATUS_COLORS[state].g, POWER_STATUS_COLORS[state].b, 0.2f);
+            power_bars.transform.GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = POWER_STATUS_COLORS[state];
         }
 
         //show/hide power restoration message

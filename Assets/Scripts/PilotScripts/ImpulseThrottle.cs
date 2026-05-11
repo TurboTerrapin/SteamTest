@@ -111,11 +111,13 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         //update bars on screen
         float tmp_imp = impulse;
+        Color c = new Color(0.0f, 0.84f, 1.0f);
         for (int i = 0; i < 20; i++)
         {
             tmp_imp = impulse - (0.05f * i);
-            float a = tmp_imp / 0.05f;
-            impulse_bars_display.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
+            float a = Mathf.Lerp(0.04f, 1.0f, tmp_imp / 0.05f);
+            c.a = a;
+            impulse_bars_display.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = c;
         }
 
         //update lever position

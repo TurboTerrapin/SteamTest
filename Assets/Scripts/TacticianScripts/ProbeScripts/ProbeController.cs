@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 3/26/2026
+    Last Updated: 5/11/2026
 */
 
 using System.Collections;
@@ -31,8 +31,8 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     public List<GameObject> probe_dial_displays = null;
     public GameObject probe_controller_display;
     public GameObject probe_actual_prefab;
+    public GameObject physical_ship; //ship is only active when probe is launched
     public AudioSource probe_launch_sound;
-    public EffectsHandler effects_handler;
 
     private Transform ship = null;
     private GameObject current_probe = null;
@@ -261,6 +261,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         BUTTON_LISTS[1][0].updateInteractable(true);
         activateProbeControlSwitches();
+        physical_ship.SetActive(true);
         probe_info.onProbeLinked();
         onProbeDistanceChange();
         probe_info.displayProbeAltitude(current_probe.transform.position.y);
@@ -279,6 +280,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         BUTTON_LISTS[1][0].updateInteractable(false);
         deactivateProbeControlSwitches();
+        physical_ship.SetActive(false);
         probe_info.onProbeUnlinked();
 
         if (current_probe == null && is_powered == true)
@@ -389,7 +391,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             //handle destruction
             if (probe_health <= 0.0f) 
             {
-                effects_handler.createExplosion(current_probe.transform.position, 3.0f);
+                ReferenceAssistor.Instance.effects_handler.createExplosion(current_probe.transform.position, 3.0f);
                 current_probe.GetComponent<NetworkObject>().Despawn(true);
                 transmitProbeConnectionChangeRPC(false, false);
             }
