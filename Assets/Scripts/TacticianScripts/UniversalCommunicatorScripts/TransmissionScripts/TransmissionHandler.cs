@@ -5,7 +5,7 @@
     - Updates frequency text
     - Handles the actual receiving/broadcasting of UniversalCommunicator messages
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/12/2026
 */
 
 using System.Collections;
@@ -28,6 +28,9 @@ public class TransmissionHandler : NetworkBehaviour
     public GameObject success_indicator;
     public GameObject failure_indicator;
     public GameObject progress_indicators;
+    public AudioSource transmission_processing_sound;
+    public AudioSource transmission_success_sound;
+    public AudioSource transmission_failure_sound;
 
     private GameObject waves;
     private UnityEngine.UI.RawImage alert_indicator;
@@ -43,8 +46,8 @@ public class TransmissionHandler : NetworkBehaviour
     private float shift = 0.0f; //used for scan wave moving
     private int frequency_index = 0;
     private List<int> transmission_code_indexes = null;
-    private List<int> transmission_colors = null;
     private List<int> transmission_is_numeric = null;
+    private int transmission_color = -1;
     private Coroutine alert_indicator_coroutine = null;
     private Coroutine signal_transmission_coroutine = null;
 
@@ -296,6 +299,9 @@ public class TransmissionHandler : NetworkBehaviour
     //the process of either broadcasting or receiving a transmission
     IEnumerator signalTransmission(int index)
     {
+        //play processing sound
+        transmission_processing_sound.Play();
+
         //start by flashing progress lights for a little while
         for (int k = 0; k < 8; k++)
         {
@@ -327,10 +333,10 @@ public class TransmissionHandler : NetworkBehaviour
             IUniversalCommunicable transmission_receiver = findReceiver();
             if (transmission_receiver != null)
             {
-                successful_transmission = transmission_receiver.checkTransmission(frequency_index, transmission_code_indexes, transmission_colors, transmission_is_numeric);
+                successful_transmission = transmission_receiver.checkTransmission(frequency_index, transmission_code_indexes, transmission_is_numeric, transmission_color);
                 if (NetworkManager.Singleton.IsHost == true)
                 {
-                    transmission_receiver.handleTransmission(frequency_index, transmission_code_indexes, transmission_colors, transmission_is_numeric); //SHOULD ONLY BE HANDLED BY THE HOST
+                    transmission_receiver.handleTransmission(frequency_index, transmission_code_indexes, transmission_is_numeric, transmission_color); //SHOULD ONLY BE HANDLED BY THE HOST
                 }
             }
         }
@@ -344,13 +350,18 @@ public class TransmissionHandler : NetworkBehaviour
             }
         }
 
+        //stop sound
+        transmission_processing_sound.Stop();
+
         if (successful_transmission == true)
         {
             success_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_green;
+            transmission_success_sound.Play();
         }
         else
         {
             failure_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
+            transmission_failure_sound.Play();
         }
 
         yield return new WaitForSeconds(0.5f);
@@ -404,6 +415,7 @@ public class TransmissionHandler : NetworkBehaviour
         {
             StopCoroutine(signal_transmission_coroutine);
             signal_transmission_coroutine = null;
+            transmission_processing_sound.Stop();
             signal_options.getHUDinfo().setPowerConsumption(0.0f);
             ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
             resetProgressIndicators();
@@ -417,20 +429,21 @@ public class TransmissionHandler : NetworkBehaviour
     {
         if (index == 0) //receive
         {
-            transmitSignalTransmissionRPC(index, frequency_index, "", "", "");
+            transmitSignalTransmissionRPC(index, frequency_index, "", "", -1);
         }
         else //broadcast
         {
             transmitSignalTransmissionRPC(index,
                                           frequency_index,
                                           DataConverter.listToString(universal_communicator.getCodeIndexes()),
-                                          DataConverter.listToString(universal_communicator.getCodeColors()),
-                                          DataConverter.listToString(universal_communicator.getCodeIsSymbol()));
+                                          DataConverter.listToString(universal_communicator.getCodeIsSymbol()),
+                                          universal_communicator.getCodeColor()
+                                          );
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitSignalTransmissionRPC(int index, int freq, string s_code_indexes, string s_colors, string s_is_numeric)
+    private void transmitSignalTransmissionRPC(int index, int freq, string s_code_indexes, string s_is_numeric, int color)
     {
         //prevent manipulation during signal transmission
         frequency_adjuster.deactivate();
@@ -441,8 +454,8 @@ public class TransmissionHandler : NetworkBehaviour
         if (index == 1) //broadcast
         {
             transmission_code_indexes = DataConverter.stringToList(s_code_indexes);
-            transmission_colors = DataConverter.stringToList(s_colors);
             transmission_is_numeric = DataConverter.stringToList(s_is_numeric);
+            transmission_color = color;
         }
 
         if (index == 0) //receive

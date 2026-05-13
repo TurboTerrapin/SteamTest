@@ -196,16 +196,16 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         }
     }
 
-    public bool checkTransmission(int frequency, List<int> code_indexes, List<int> code_colors, List<int> code_is_numeric)
+    public bool checkTransmission(int frequency, List<int> code_indexes, List<int> code_is_numeric, int code_color)
     {
-        return isFriendlyMessage(code_indexes, code_colors, code_is_numeric);
+        return isFriendlyMessage(code_indexes, code_is_numeric, code_color);
     }
 
-    public void handleTransmission(int frequency, List<int> codeIndexes, List<int> codeColors, List<int> codeIsNumeric)
+    public void handleTransmission(int frequency, List<int> codeIndexes, List<int> codeIsNumeric, int codeColor)
     {
         if (NetworkManager.Singleton.IsHost == true && greenLightCoroutine == null)
         {
-            bool successfulTransmission = isFriendlyMessage(codeIndexes, codeColors, codeIsNumeric);
+            bool successfulTransmission = isFriendlyMessage(codeIndexes, codeIsNumeric, codeColor);
             if (successfulTransmission == true)
             {
                 randomizeColors();
@@ -218,8 +218,13 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             }
         }
     }
-    private bool isFriendlyMessage(List<int> ci, List<int> cc, List<int> cin)
+    private bool isFriendlyMessage(List<int> ci, List<int> cin, int cc)
     {
+        if (greenLightCoroutine != null)
+        {
+            return false;
+        }
+
         if (ci.Count != 8)
         {
             return false;
@@ -252,18 +257,26 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             }
         }
 
+        //if 2+ orange rings, make sure is orange
+        if (numOrange >= 2)
+        {
+            if (cc != 2)
+            {
+                return false;
+            }
+        }
+        else //else, make sure is blue
+        {
+            if (cc != 0)
+            {
+                return false;
+            }
+        }
+
         bool toReturn = true;
 
         for (int i = 0; i < 8; i++)
         {
-            //if 2+ orange rings, make sure is orange
-            if (numOrange >= 2)
-            {
-                if (cc[i] != 2)
-                {
-                    toReturn = false;
-                }
-            }
             //make sure is symbol
             if (cin[i] != 0)
             {

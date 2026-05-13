@@ -2,7 +2,7 @@
     CharacterDelete.cs
     - Acts as a backspace for the UniversalCommunicator
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/11/2026
 */
 
 using System.Collections;
@@ -59,26 +59,32 @@ public class CharacterDelete : NetworkBehaviour, IControllable, IIKTargetable
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
-        return does_right_hand_flip;
+       return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -121,6 +127,7 @@ public class CharacterDelete : NetworkBehaviour, IControllable, IIKTargetable
 
             if (i == 0)
             {
+                universal_communicator.universal_communicator_character_boop_sound.Play();
                 universal_communicator.onInputChange();
             }
         }

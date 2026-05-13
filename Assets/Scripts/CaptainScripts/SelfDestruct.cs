@@ -2,7 +2,7 @@
     SelfDestruct.cs
     - Used to handle code input and initation/abort
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/11/2026
 */
 
 using Unity.Netcode;
@@ -28,6 +28,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     public GameObject destruct_display;
     public GameObject digit_switches;
     public GameObject self_destruct_dial;
+    public AudioSource self_destruct_boop_sound;
 
     private bool is_powered = false;
     private int[] input_code = new int[] { 0, 0, 0, 0 };
@@ -251,6 +252,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
 
             if (i == 0)
             {
+                self_destruct_boop_sound.Play();
                 displayCodeAdjustment();
             }
         }

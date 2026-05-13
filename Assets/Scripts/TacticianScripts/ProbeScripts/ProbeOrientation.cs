@@ -3,7 +3,7 @@
     - Turns lever
     - Affects probe if host
     Contributor(s): Jake Schott
-    Last Updated: 12/23/2025
+    Last Updated: 5/12/2026
 */
 
 using System.Collections;
@@ -58,26 +58,32 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -92,6 +98,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
     public void linkProbe(GameObject new_probe)
     {
         probe = new_probe;
+        orientation_angle = new_probe.transform.rotation.eulerAngles.y;
         for (int i = 0; i <= 1; i++)
         {
             BUTTONS[i].updateInteractable(true);
@@ -162,7 +169,6 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
 
             if (Mathf.Abs(orientation_lever_angle) > 0.0f)
             {
-                orientation_angle = (Mathf.Round(probe.transform.rotation.eulerAngles.y * 10.0f) / 10.0f);
                 if (orientation_lever_angle > 0.0f)
                 {
                     orientation_angle -= (orientation_lever_angle / 35.0f) * TURN_SPEED * dt;
@@ -232,6 +238,9 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
     [Rpc(SendTo.Everyone)]
     private void transmitProbeOrientationAdjustmentRPC(float or_angle, float lev_angle)
     {
+        orientation_angle = or_angle;
+        orientation_lever_angle = lev_angle;
+        displayAdjustment();
         //update probe if host
         if (NetworkManager.Singleton.IsHost == true)
         {
@@ -240,8 +249,5 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
                 probe.transform.rotation = Quaternion.Euler(0.0f, orientation_angle, 0.0f);
             }
         }
-        orientation_angle = or_angle;
-        orientation_lever_angle = lev_angle;
-        displayAdjustment();
     }
 }

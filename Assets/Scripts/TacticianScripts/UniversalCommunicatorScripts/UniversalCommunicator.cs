@@ -3,7 +3,7 @@
     - Handles inputs for communicator keyboard
     - Displays to code screen
     Contributor(s): Jake Schott
-    Last Updated: 5/7/2026
+    Last Updated: 5/12/2026
 */
 
 using UnityEngine;
@@ -25,6 +25,7 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
     public GameObject color_selector_display;
     public GameObject input_output_toggle_display;
     public GameObject character_delete_display;
+    public AudioSource universal_communicator_character_boop_sound;
 
     private GameObject input_view;
     private GameObject output_view;
@@ -41,7 +42,7 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
     private bool input_mode = true; //true means keyboard, false means read-only
     private List<int> code_index = new List<int>(); //0-11, corresponds to A0-A5, B0-B5 where B5 is 11 and A0 is 0
     private List<int> code_is_symbol = new List<int>(); //0 is symbol (ex. square), 1 means number (ex. 5) 
-    private List<int> code_color = new List<int>(); //0 is blue, 1 is green, 2 is pink, 3 is orange
+    private int code_color = 0; //0 is blue, 1 is green, 2 is purple, 3 is orange
     private Coroutine pointer_shift_coroutine = null;
 
     private void Start()
@@ -93,12 +94,10 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         if (code_index.Count < 8)
         {
             code_index.Add(index);
-            code_color.Add(transform.gameObject.GetComponent<ColorSelector>().getCurrColor());
             code_is_symbol.Add(transform.gameObject.GetComponent<SymbolToggle>().getSymbolMode());
             string index_as_code = DataConverter.listToString(code_index);
-            string code_color_as_code = DataConverter.listToString(code_color);
             string code_is_numeric_as_code = DataConverter.listToString(code_is_symbol);
-            transmitCharacterUpdateRPC(index, index_as_code, code_color_as_code, code_is_numeric_as_code);
+            transmitCharacterUpdateRPC(index, index_as_code, code_is_numeric_as_code, code_color);
         }
     }
 
@@ -123,13 +122,13 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
             if (code_is_symbol[i] == 0) //symbol
             {
                 input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().texture = getCharacterDisplay(code_index[i]).transform.GetChild(1).gameObject.GetComponent<RawImage>().texture;
-                input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
+                input_view.transform.GetChild(i + 8).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color];
                 input_view.transform.GetChild(i + 8).gameObject.SetActive(true);
             }
             else //numeric
             {
                 input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().SetText(getCharacterDisplay(code_index[i]).transform.GetChild(0).gameObject.GetComponent<TMP_Text>().text);
-                input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
+                input_view.transform.GetChild(i).gameObject.GetComponent<TMP_Text>().color = ReferenceAssistor.COLOR_OPTIONS[code_color];
                 input_view.transform.GetChild(i).gameObject.SetActive(true);
             }
         }
@@ -141,21 +140,27 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         //TODO
     }
 
+    private void rebuildMessagePreview()
+    {
+        //hide transmission preview message icons
+        clearMessagePreview();
+
+        //update message preview
+        for (int i = 0; i < code_index.Count; i++)
+        {
+            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color];
+            message_preview_display.transform.GetChild(i).gameObject.SetActive(true);
+        }
+    }
+
     //called by CharacterInput.cs when a character button has been pushed in or 
     public void onInputChange()
     {
         //handle input characters
         displayInputAdjustment();
 
-        //hide transmission preview message icons
-        clearMessagePreview();
-
-        //show transmission handler
-        for (int i = 0; i < code_index.Count; i++)
-        {
-            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[code_color[i]];
-            message_preview_display.transform.GetChild(i).gameObject.SetActive(true);
-        }
+        //clears and rebuilds
+        rebuildMessagePreview();
 
         //handle pointer
         if (code_index.Count < 8)
@@ -177,6 +182,14 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         }
     }
 
+    //called by ColorSelector.cs
+    public void changeColor(int new_color)
+    {
+        code_color = new_color;
+        displayInputAdjustment();
+        rebuildMessagePreview();
+    }
+
     public bool getInputMode()
     {
         return input_mode;
@@ -187,9 +200,9 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         return new List<int>(code_index);
     }
 
-    public List<int> getCodeColors()
+    public int getCodeColor()
     {
-        return new List<int>(code_color);
+        return code_color;
     }
 
     public List<int> getCodeIsSymbol()
@@ -237,7 +250,6 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
     {
         //wipe code data
         code_index.Clear();
-        code_color.Clear();
         code_is_symbol.Clear();
 
         //show changes
@@ -312,7 +324,6 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         if (code_index.Count > 0)
         {
             code_index.RemoveAt(code_index.Count - 1);
-            code_color.RemoveAt(code_color.Count - 1);
             code_is_symbol.RemoveAt(code_is_symbol.Count - 1);
         }
 
@@ -320,22 +331,20 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitCharacterUpdateRPC(int button_index, string indexes, string colors, string is_numeric)
+    private void transmitCharacterUpdateRPC(int button_index, string indexes, string is_numeric, int color)
     {
         int[] temp_code_index = DataConverter.stringToArray(indexes);
-        int[] temp_code_color = DataConverter.stringToArray(colors);
         int[] temp_is_numeric = DataConverter.stringToArray(is_numeric);
 
         code_index.Clear();
-        code_color.Clear();
         code_is_symbol.Clear();
 
         for (int i = 0; i < indexes.Length; i++)
         {
             code_index.Add(temp_code_index[i]);
-            code_color.Add(temp_code_color[i]);
             code_is_symbol.Add(temp_is_numeric[i]);
         }
+        code_color = color;
 
         character_input.pushButton(button_index);
     }

@@ -2,7 +2,7 @@
     CharacterInput.cs
     - Inputs a new numeric/symbol
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/11/2026
 */
 
 using Unity.Netcode;
@@ -63,27 +63,33 @@ public class CharacterInput : NetworkBehaviour, IControllable, IIKTargetable
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -115,6 +121,7 @@ public class CharacterInput : NetworkBehaviour, IControllable, IIKTargetable
 
             if (i == 0)
             {
+                universal_communicator.universal_communicator_character_boop_sound.Play();
                 universal_communicator.onInputChange();
             }
         }

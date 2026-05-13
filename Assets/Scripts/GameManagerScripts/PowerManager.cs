@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/11/2026
 */
 
 using System.Collections;
@@ -30,7 +30,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public BackgroundAnimator background_animator;
 
     //sounds
-    public AudioSource overconsumption_warning_sound;
+    public List<AudioSource> overconsumption_warning_sounds = null;
     public AudioSource ship_beeps_sound;
     public AudioSource power_off_sound;
     public AudioSource power_on_sound;
@@ -97,7 +97,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
 
         //stop power loss/restart sounds
-        overconsumption_warning_sound.Stop();
+        foreach (AudioSource overconsumption_warning_sound in overconsumption_warning_sounds)
+        {
+            overconsumption_warning_sound.Stop();
+        }
         power_on_sound.Stop();
         power_off_sound.Stop();
 
@@ -376,10 +379,16 @@ public class PowerManager : NetworkBehaviour, IPowerable
     //used when a position's power consumption exceeds their allocation
     IEnumerator imminentPowerLoss(int index)
     {
-        //play warning sound if not playing already
-        if (overconsumption_warning_sound.isPlaying == false)
+        //play engineer warning sound if not playing already
+        if (overconsumption_warning_sounds[2].isPlaying == false)
         {
-            overconsumption_warning_sound.Play();
+            overconsumption_warning_sounds[2].Play();
+        }
+
+        //play corresponding warning sound
+        if (overconsumption_warning_sounds[index].isPlaying == false)
+        {
+            overconsumption_warning_sounds[index].Play();
         }
 
         //show red warning bar
@@ -427,7 +436,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         lights_manager.setEmergencyLights(false);
         power_off_sound.Play();
         ship_beeps_sound.Stop();
-        overconsumption_warning_sound.Stop();
+        foreach (AudioSource overconsumption_warning_sound in overconsumption_warning_sounds)
+        {
+            overconsumption_warning_sound.Stop();
+        }
         background_animator.disableAllScreens();
         background_animator.disableEnergyCircles();
 
@@ -610,10 +622,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
             StopCoroutine(overconsumption_coroutines[index]);
         }
         overconsumption_coroutines[index] = null;
-        
-        if (overconsumption_warning_sound.isPlaying == true && checkIfOverconsuming() == false)
+
+        overconsumption_warning_sounds[index].Stop();
+        if (overconsumption_warning_sounds[2].isPlaying == true && checkIfOverconsuming() == false)
         {
-            overconsumption_warning_sound.Stop();
+            overconsumption_warning_sounds[2].Stop();
         }
 
         if (index != 2)
