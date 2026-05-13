@@ -3,13 +3,13 @@
     - Handles moving WorldRoot to traverse through space
     - Handles rotating Spaceship
     - Handles boundary checking/handling
+    - Handles getting "stunned" when running into immovable objects
     - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
     Contributor(s): Henryk Musial
-    Last Updated: 2/1/2026
+    Last Updated: 5/13/2026
 */
 
 using System.Collections;
-using System.Net.Sockets;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -57,6 +57,10 @@ public class PilotingSystem : NetworkBehaviour
     public float currentImpulseSpeed = 0f;
     public float currentHorizontalSpeed = 0f;
     public float currentVerticalSpeed = 0f;
+
+    // Stun values
+    private float stunFactor = 0.0f; //ranges from 0 to 1
+    private Coroutine stunPushbackCoroutine = null;
 
     // Boundary values
     private Vector2[] entrancePoints = new Vector2[2];
@@ -249,6 +253,11 @@ public class PilotingSystem : NetworkBehaviour
 
         currentHorizontalSpeed = maxThrusterSpeed * horizontalThrust;
         currentVerticalSpeed = maxThrusterSpeed * verticalThrust;
+
+        if (stunPushbackCoroutine != null)
+        {
+            currentImpulseSpeed = stunFactor * (-maxImpulseForwardSpeed * 2.0f);
+        }
 
         Vector3 impulseVelocity = forward * currentImpulseSpeed;
         Vector3 horizontalVelocity = horizontal * currentHorizontalSpeed;
@@ -447,6 +456,31 @@ public class PilotingSystem : NetworkBehaviour
         }
 
         boundaryCountdownCoroutine = null;
+    }
+
+    IEnumerator StunPushback()
+    {
+        stunFactor = 1.0f;
+        yield return new WaitForSeconds(3.0f);
+        float animTime = 3.0f;
+        while (animTime > 0.0f)
+        {
+            animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
+            stunFactor = animTime / 3.0f;
+
+            yield return null;
+        }
+        stunPushbackCoroutine = null;
+    }
+
+    //pushes the ship back and disables power
+    public void StunShip()
+    {
+        if (stunPushbackCoroutine == null)
+        {
+            ReferenceAssistor.Instance.power_manager.totalShutdown();
+            stunPushbackCoroutine = StartCoroutine(StunPushback());
+        }
     }
 
     [Rpc(SendTo.Everyone)]

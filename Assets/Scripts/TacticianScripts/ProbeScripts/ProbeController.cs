@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 5/11/2026
+    Last Updated: 5/12/2026
 */
 
 using System.Collections;
@@ -32,6 +32,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     public GameObject probe_controller_display;
     public GameObject probe_actual_prefab;
     public GameObject physical_ship; //ship is only active when probe is launched
+    public AudioSource probe_charge_sound;
     public AudioSource probe_launch_sound;
 
     private Transform ship = null;
@@ -87,27 +88,33 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         hud_info.setButtons(BUTTON_LISTS[index]);
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -304,6 +311,8 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             serial_num = ship_inventory.removeItem("Probe");
         }
 
+        probe_charge_sound.Play();
+
         float anim_time = FUNCTION_TIME;
         while (anim_time > 0.0f)
         {
@@ -315,6 +324,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             yield return null;
         }
 
+        probe_charge_sound.Stop();
         probe_launch_sound.Play();
         spawnProbe(serial_num);
         updateDialDisplays();

@@ -25,16 +25,15 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private static float CENTER_SPEED = 50.0f;
     private static float[] RING_SPEEDS = new float[] { 25.0f, 60.0f, 40.0f, 75.0f };
 
-    private GameObject playerPrefab;
-    private bool scenarioEndpointReached = false;
     private ScenarioManager scenarioManager;
     private ImpulseThrottle impulse;
     private EnergyPattern energyPattern;
     private ShipHealth shipHealth;
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
-    public VisualSpectacleLighting visualSpectacleLighting;
-    public AudioSource RLGLsound;
+    public RLGLVisualSpectacle visualSpectacle;
+    public AudioSource rlglSound;
+    public AudioSource stunSound;
 
     private GameObject spaceship;
     private Transform scenarioDatabaseRLGL;
@@ -94,13 +93,21 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         spaceship = GameObject.FindWithTag("Spaceship");
         shipHealth = spaceship.GetComponent<ShipHealth>();
-
-        playerPrefab = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
     }
 
     private void Update()
     {
-        RLGLsound.volume = impulse.getCurrentImpulse() * 0.5f;
+        rlglSound.volume = impulse.getCurrentImpulse() * 0.5f;
+    }
+
+    //called when ship runs into the visual spectacle
+    public void shipEnteredSpectacle()
+    {
+        if (stunSound.isPlaying == false)
+        {
+            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().StunShip();
+            playStunSoundRPC();
+        }
     }
 
     //only run by host
@@ -161,7 +168,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         //expand energy pattern
         energyPattern.resizePattern(false, end_time);
         yield return new WaitForSeconds(end_time);
-        if (NetworkManager.Singleton.IsHost == true && scenarioEndpointReached == false)
+        if (NetworkManager.Singleton.IsHost == true)
         {
             enterRedLightStateRPC();
         }
@@ -335,7 +342,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         resetCoroutines();
 
-        visualSpectacleLighting.SetRedLight();
+        visualSpectacle.SetRedLight();
 
         redLightCoroutine = StartCoroutine(RedLightState());
     }
@@ -351,7 +358,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         resetCoroutines();
 
-        visualSpectacleLighting.SetGreenLight();
+        visualSpectacle.SetGreenLight();
 
         greenLightCoroutine = StartCoroutine(GreenLightState());
     }
@@ -361,5 +368,11 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         resetCoroutines();
         greenLightCoroutine = StartCoroutine(EndGreenLight(contractionTime));
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void playStunSoundRPC()
+    {
+        stunSound.Play();
     }
 }
