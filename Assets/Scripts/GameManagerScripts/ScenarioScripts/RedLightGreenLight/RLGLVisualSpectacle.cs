@@ -9,6 +9,8 @@ public class RLGLVisualSpectacle : MonoBehaviour
     public GameObject LowerCenterRing;
     public RedLightGreenLight RedLightGreenLight;
 
+    private bool Active = false;
+
     private void Start()
     {
         SetRedLight();
@@ -16,6 +18,11 @@ public class RLGLVisualSpectacle : MonoBehaviour
         {
             Component.Destroy(GetComponent<Collider>());
         }
+    }
+
+    public void Activate()
+    {
+        Active = true;
     }
 
     public void SetRedLight()
@@ -36,6 +43,18 @@ public class RLGLVisualSpectacle : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        RedLightGreenLight.shipEnteredSpectacle();
+        if (Active == false)
+        {
+            return;
+        }
+
+        if (other.gameObject.layer == 9) //Stun ship
+        {
+            RedLightGreenLight.shipEnteredSpectacle();
+        }
+        else if (other.GetComponent<Probe>() != null) //Destroy probes
+        {
+            other.GetComponent<Probe>().damage(99999.9f);
+        }
     }
 }

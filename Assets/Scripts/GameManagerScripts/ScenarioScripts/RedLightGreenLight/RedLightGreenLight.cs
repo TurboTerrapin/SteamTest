@@ -150,6 +150,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         patternInitializationRPC(centerIndex, cc, rt, rid);
         enterRedLightStateRPC();
+        visualSpectacle.Activate();
     }
     IEnumerator GreenLightState()
     {

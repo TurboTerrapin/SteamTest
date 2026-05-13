@@ -111,7 +111,7 @@ public class ProximityMap : MonoBehaviour, IPowerable
             float item_size = (corresponding_sizes[i] / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY)) * (MAP_CUTOFF * 2.0f);
             item_size = item_size + (item_size * zoom_percentage);
             corresponding_icons[i].GetComponent<RectTransform>().sizeDelta = new Vector2(item_size, item_size);
-            corresponding_icons[i].SetActive(Mathf.Abs(corresponding_icons[i].transform.localPosition.x) < (MAP_CUTOFF + 0.02f) && Mathf.Abs(corresponding_icons[i].transform.localPosition.y) < (MAP_CUTOFF + 0.02f));
+            corresponding_icons[i].SetActive(Mathf.Abs(corresponding_icons[i].transform.localPosition.x) < (MAP_CUTOFF + (item_size * 0.5f)) && Mathf.Abs(corresponding_icons[i].transform.localPosition.y) < (MAP_CUTOFF + (item_size * 0.5f)));
         }
     }
 
