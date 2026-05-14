@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Serialization;
+using NUnit.Framework.Constraints;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
@@ -20,10 +22,27 @@ public class FailureHandler : NetworkBehaviour
     private bool quitButtonPressed = false;
     public TMP_Text notEnoughPlayersText;
 
+    public TMP_Text DifficultyText;
+    public GameObject LeftArrowButton;
+    public GameObject RightArrowButton;
+    private int CurrentDifficultyIndex = 0;
+    private string[] Difficulty = { "EASY", "MEDIUM", "HARD", "EXPERT" };
+
     // lobbyNames is a string table that could have 1-4 entries
     public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
     {
-        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            LeftArrowButton.GetComponent<UnityEngine.UI.Button>().interactable = true;
+            RightArrowButton.GetComponent<UnityEngine.UI.Button>().interactable = true;
+        }
+        else
+        {
+            LeftArrowButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
+            RightArrowButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
+        }
+
+            GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
 
         GameObject failureCamera = transform.GetChild(0).gameObject;
 
@@ -170,7 +189,7 @@ public class FailureHandler : NetworkBehaviour
                 break;
             case 1:
                 playerVotes[plrIndex].text = "Ready";
-                playerVotes[plrIndex].color = Color.cyan;
+                playerVotes[plrIndex].color = new Color(0.329f, 0.788f, 0.8f, 1f);
                 break;
             case 2:
                 playerVotes[plrIndex].text = "Left Lobby";
@@ -224,6 +243,45 @@ public class FailureHandler : NetworkBehaviour
         }
 
         text.color = new Color(color.r, color.g, color.b, targetAlpha);
+    }
+
+    public void HandleRightArrowClick()
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            CurrentDifficultyIndex++;
+            if (CurrentDifficultyIndex >= Difficulty.Length)
+            {
+                // wrap around
+                CurrentDifficultyIndex = 0;
+            }
+            UpdateDifficultyText();
+        }
+    }
+
+    public void HandleLeftArrowClick()
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            CurrentDifficultyIndex--;
+            if (CurrentDifficultyIndex < 0)
+            {
+                // wrap around
+                CurrentDifficultyIndex = Difficulty.Length - 1;
+            }
+            UpdateDifficultyText();
+        }
+    }
+
+    private void UpdateDifficultyText()
+    {
+            DifficultyText.text = Difficulty[CurrentDifficultyIndex];
+            GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().updateDifficulty(CurrentDifficultyIndex);
+    }
+
+    public void DisplayDifficultyChange(int new_difficulty)
+    {
+        DifficultyText.text = Difficulty[new_difficulty];
     }
 
     public void handleQuitButtonClick()
