@@ -84,6 +84,7 @@ public class LobbyHandler : NetworkBehaviour
     //returns game difficulty (0-3, easy, medium, hard, or expert)
     public int getDifficulty()
     {
+        Debug.Log(difficulty);
         return difficulty;
     }
 

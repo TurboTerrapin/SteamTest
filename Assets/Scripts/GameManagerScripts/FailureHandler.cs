@@ -282,6 +282,8 @@ public class FailureHandler : NetworkBehaviour
     public void DisplayDifficultyChange(int new_difficulty)
     {
         DifficultyText.text = Difficulty[new_difficulty];
+        GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().getDifficulty();   
+
     }
 
     public void handleQuitButtonClick()
