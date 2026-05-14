@@ -31,6 +31,10 @@ public class FailureHandler : NetworkBehaviour
     // lobbyNames is a string table that could have 1-4 entries
     public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
     {
+        int StartingDifficulty = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().getDifficulty();
+
+        DifficultyText.text = Difficulty[StartingDifficulty];
+
         if (NetworkManager.Singleton.IsHost == true)
         {
             LeftArrowButton.GetComponent<UnityEngine.UI.Button>().interactable = true;
@@ -275,17 +279,14 @@ public class FailureHandler : NetworkBehaviour
 
     private void UpdateDifficultyText()
     {
-            DifficultyText.text = Difficulty[CurrentDifficultyIndex];
-            GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().updateDifficulty(CurrentDifficultyIndex);
+        DifficultyText.text = Difficulty[CurrentDifficultyIndex];
+        GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().updateDifficulty(CurrentDifficultyIndex);
     }
 
-    public void DisplayDifficultyChange(int new_difficulty)
+    public void DisplayDifficulty(int new_difficulty)
     {
         DifficultyText.text = Difficulty[new_difficulty];
-        GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().getDifficulty();   
-
     }
-
     public void handleQuitButtonClick()
     {
         // to avoid error
