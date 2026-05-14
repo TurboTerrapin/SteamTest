@@ -118,10 +118,11 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             return;
         }
 
-        //visual spectacle
-        scenarioManager.forceSpawnLocation(new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f), 650.0f, true);
         //asteroid field
-        GetComponent<AsteroidField>().spawnField(100);
+        List<OffLimitsSpawnLocation> offLimitsLocations = new List<OffLimitsSpawnLocation>();
+        offLimitsLocations.Add(new OffLimitsSpawnLocation(Vector3.zero, 650.0f));
+        List<Vector3> spawnLocations = scenarioManager.generateSpawnLocations(50.0f, 100, offLimitsLocations);
+        GetComponent<AsteroidField>().spawnField(spawnLocations);
 
         //initialize pattern, randomize initial colors and textures
         randomizeColors();

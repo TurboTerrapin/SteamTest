@@ -2,9 +2,10 @@
     AsteroidField.cs
     - Spawns a field of asteroids for scenario purposes
     Contributor(s): Jake Schott
-    Last Updated: 3/20/2026
+    Last Updated: 5/14/2026
 */
 
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ public class AsteroidField : NetworkBehaviour
     }
 
     //only run by the host
-    public void spawnField(int asteroid_quantity)
+    public void spawnField(List<Vector3> asteroid_spawn_locations)
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
@@ -27,7 +28,7 @@ public class AsteroidField : NetworkBehaviour
         }
 
         Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
-        for (int i = 0; i < asteroid_quantity; i++)
+        for (int i = 0; i < asteroid_spawn_locations.Count; i++)
         {
             GameObject curr_asteroid = GameObject.Instantiate(asteroid, world_root);
 
@@ -36,8 +37,7 @@ public class AsteroidField : NetworkBehaviour
             curr_asteroid.transform.localRotation = Random.rotation;
 
             curr_asteroid.GetComponent<NetworkObject>().SynchronizeTransform = true;
-            Vector3 spawn_location = scenario_manager.getSpawnLocation(scale, false);
-            curr_asteroid.transform.localPosition = spawn_location;
+            curr_asteroid.transform.localPosition = asteroid_spawn_locations[i];
             curr_asteroid.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             curr_asteroid.GetComponent<NetworkObject>().TrySetParent(world_root);
         }

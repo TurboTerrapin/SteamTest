@@ -1,8 +1,8 @@
 /*
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
-    Contributor(s): John Aylward, Jake Schott
-    Last Updated: 3/22/2026
+    Contributor(s): John Aylward, Jake Schott, Henryk Musial
+    Last Updated: 5/14/2026
 */
 
 using System.Collections;
@@ -11,15 +11,30 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//contains info for an off-limits spawn location (ex. RLGL spectacle) at the start of a scenario
+public struct OffLimitsSpawnLocation
+{
+    public Vector3 position;
+    public float radius;
+
+    public OffLimitsSpawnLocation(Vector3 position, float radius)
+    {
+        this.position = position;
+        this.radius = radius;
+    }
+}
+
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure
+    private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure based on difficulty
+    private static int[] OBTAINBLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
     public const float PATH_SIZE = 10.0f; //for entrance/exit paths, degrees of the boundary, does not reflect on NavigationMap so be careful!
+    private static int MAX_SPAWN_LOCATION_SEARCH_ATTEMPTS = 30;
 
     //different reasons for why a scenario ended
     public enum EndCondition
@@ -29,36 +44,6 @@ public class ScenarioManager : NetworkBehaviour
         ShipDestroyed = 2,
         TimeRanOut = 3,
         SelfDestructed = 4
-    }
-
-    //contains info for a spawn location at the start of a scenario
-    private struct OccupiedSpawnLocation
-    {
-        private Vector3 spawn_position;
-        private float spawn_radius;
-        private bool infinitely_tall;
-
-        public OccupiedSpawnLocation(Vector3 p, float r, bool it)
-        {
-            spawn_position = p;
-            spawn_radius = r;
-            infinitely_tall = it;
-        }
-
-        public Vector3 getSpawnPosition()
-        {
-            return spawn_position;
-        }
-
-        public float getSpawnRadius()
-        {
-            return spawn_radius;
-        }
-
-        public bool getInfinitelyTall()
-        {
-            return infinitely_tall;
-        }
     }
 
     public GameObject player_manager; 
@@ -76,7 +61,7 @@ public class ScenarioManager : NetworkBehaviour
     private BackgroundAnimator background_animator;
     private Coroutine countdown_coroutine = null;
 
-    private List<OccupiedSpawnLocation> occupied_spawn_locations = new List<OccupiedSpawnLocation>();
+    private List<Vector3> spawn_locations = new List<Vector3>();
     private bool endpoint_reached = false;
     private bool game_over = false;
     private int scenario_number = 0;
@@ -106,53 +91,145 @@ public class ScenarioManager : NetworkBehaviour
         return game_difficulty;
     }
 
-    public void forceSpawnLocation(Vector3 location, float radius, bool infinitely_tall)
+    //returns a list of coordinates of length num_points that is of at least min_distance from each other and not intersecting with off-limits locations
+    public List<Vector3> generateSpawnLocations(float min_distance, int num_points, List<OffLimitsSpawnLocation> off_limits_locations)
     {
-        occupied_spawn_locations.Add(new OccupiedSpawnLocation(location, radius, infinitely_tall));
-    }
+        float spawn_area_radius = BOUNDARY_SIZE * 0.5f;
+        float spawn_area_height = BOUNDARY_ALTITUDE * 2.0f;
 
-    public Vector3 getSpawnLocation(float radius, bool infinitely_tall)
-    {
-        Vector3 location_to_insert = Vector3.zero;
-        bool successful_insertion = false;
+        //reset spawn_locations to new list that includes the number of collectible items to be spawned as well
+        num_points += OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty];
+        spawn_locations = new List<Vector3>(num_points);
 
-        while (successful_insertion == false)
+        float cell_size = min_distance / Mathf.Sqrt(3.0f); //grid cell size = minDistance / sqrt(3)
+
+        //any two points in adjacent cells are within minDistance
+        int grid_width = Mathf.CeilToInt((2.0f * spawn_area_radius) / cell_size);
+        int grid_height = Mathf.CeilToInt(spawn_area_height / cell_size);
+
+        //initialize 3D grid array to store indices of points and populate (-1 for empty cell)
+        int[,,] grid = new int[grid_width, grid_height, grid_width];
+        for (int i = 0; i < grid_width; i++)
         {
-            Vector2 x_and_z = Random.insideUnitCircle * ((ScenarioManager.BOUNDARY_SIZE - 200.0f) * 0.5f);
-
-            float x_coordinate = x_and_z.x;
-            float y_coordinate = Random.Range(-(ScenarioManager.BOUNDARY_ALTITUDE + 20.0f), ScenarioManager.BOUNDARY_ALTITUDE + 20.0f);
-            float z_coordinate = x_and_z.y + ScenarioManager.BOUNDARY_SIZE * 0.5f;
-
-            location_to_insert =
-                new Vector3(x_coordinate, y_coordinate, z_coordinate);
-
-            successful_insertion = true;
-
-            foreach (OccupiedSpawnLocation existing_location in occupied_spawn_locations)
+            for (int j = 0; j < grid_height; j++)
             {
-                float necessary_buffer = existing_location.getSpawnRadius() + radius;
-                if (existing_location.getInfinitelyTall() == true || infinitely_tall == true)
+                for (int k = 0; k < grid_width; k++)
                 {
-                    if (Vector2.Distance(new Vector2(existing_location.getSpawnPosition().x, existing_location.getSpawnPosition().z), new Vector2(location_to_insert.x, location_to_insert.z)) < necessary_buffer)
-                    {
-                        successful_insertion = false;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (Vector3.Distance(existing_location.getSpawnPosition(), location_to_insert) < necessary_buffer)
-                    {
-                        successful_insertion = false;
-                        break;
-                    }
+                    grid[i, j, k] = -1;
                 }
             }
         }
 
-        occupied_spawn_locations.Add(new OccupiedSpawnLocation(location_to_insert, radius, infinitely_tall));
-        return location_to_insert;
+        //helper to get grid cell coordinates for a point
+        Vector3Int getGridCoordinate(Vector3 point) 
+        {
+            //convert from world coordinates (centered at 0) to grid indices
+            float x = point.x + spawn_area_radius; //shift so min is 0
+            float y = point.y + spawn_area_height / 2.0f;
+            float z = point.z + spawn_area_radius;
+
+            int xi = Mathf.FloorToInt(x / cell_size);
+            int yi = Mathf.FloorToInt(y / cell_size);
+            int zi = Mathf.FloorToInt(z / cell_size);
+            return new Vector3Int(Mathf.Clamp(xi, 0, grid_width - 1), Mathf.Clamp(yi, 0, grid_height - 1), Mathf.Clamp(zi, 0, grid_width - 1));
+        }
+
+        //helper to test if point is too close to any existing point
+        bool isValid(Vector3 point) 
+        {
+            Vector3Int coordinate = getGridCoordinate(point);
+
+            //check cells in a 3 x 3 x 3 neighborhood
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    for (int dz = -1; dz <= 1; dz++)
+                    {
+                        int nx = coordinate.x + dx;
+                        int ny = coordinate.y + dy;
+                        int nz = coordinate.z + dz;
+
+                        if (nx < 0 || nx >= grid_width || ny < 0 || ny >= grid_height || nz < 0 || nz >= grid_width) //neighbor index is outside of grid bounds
+                        {
+                            continue; //skip
+                        }
+
+                        int idx = grid[nx, ny, nz];
+
+                        if (idx != -1 && Vector3.Distance(point, spawn_locations[idx]) < min_distance) //cell is occupied and fails euclidean distance check
+                        {
+                            return false; //point is invalid
+                        }
+                    }
+                }
+            }
+
+            if (off_limits_locations != null)
+            {
+                for (int i = 0; i < off_limits_locations.Count; i++)
+                {
+                    float required_distance = off_limits_locations[i].radius + min_distance;
+                    if (Vector3.Distance(point, off_limits_locations[i].position) < required_distance)
+                    {
+                        return false; //point is invalid
+                    }
+                }
+            }
+
+            return true; //valid point
+        }
+
+        //generate spawn points
+        Vector3 world_root_center = new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f);
+        for (int i = 0; i < num_points; i++)
+        {
+            bool found = false;
+
+            for (int attempt = 0; attempt < MAX_SPAWN_LOCATION_SEARCH_ATTEMPTS; attempt++)
+            {
+                //calculate a random point within the volume of a cylinder 
+                float angle = Random.Range(0f, 2.0f * Mathf.PI); //random angle between 0 & 360 deg
+                float r = spawn_area_radius * Mathf.Sqrt(Random.Range(0f, 1.0f)); //random radius sqrt for uniform distribution on circle 
+
+                //convert polar xz coords to cartesian
+                float x = r * Mathf.Cos(angle);
+                float z = r * Mathf.Sin(angle);
+
+                float y = Random.Range(-spawn_area_height / 2.0f, spawn_area_height / 2.0f); //random height 
+
+                Vector3 candidate_point = new Vector3(x, y, z);
+
+                if (isValid(candidate_point))
+                {
+                    spawn_locations.Add(candidate_point + world_root_center);
+                    Vector3Int coord = getGridCoordinate(candidate_point);
+                    grid[coord.x, coord.y, coord.z] = spawn_locations.Count - 1; //store point index
+                    found = true;
+                    break;
+                }
+            }
+
+            //fallback just in case
+            if (!found)
+            {
+                //generate a point without a min distance check
+                float angle = Random.Range(0f, 2.0f * Mathf.PI);
+                float r = spawn_area_radius * Mathf.Sqrt(Random.Range(0f, 1.0f));
+                float x = r * Mathf.Cos(angle);
+                float z = r * Mathf.Sin(angle);
+                float y = Random.Range(-spawn_area_height / 2.0f, spawn_area_height / 2.0f);
+                spawn_locations.Add(new Vector3(x, y, z) + world_root_center);
+            }
+        }
+
+        //return the locations that are not occupied by the collectibles (0-OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty]) to be spawned
+        List<Vector3> free_locations = new List<Vector3>(num_points);
+        for (int i = OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty]; i < num_points; i++)
+        {
+            free_locations.Add(spawn_locations[i]);
+        }
+        return free_locations;
     }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
@@ -180,7 +257,7 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     //called by prepScenario()
-    private void spawnCollectibleItem(bool utility)
+    private void spawnCollectibleItem(int location_index, bool utility)
     {
         Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
 
@@ -195,8 +272,8 @@ public class ScenarioManager : NetworkBehaviour
         }
 
         GameObject collectible_item = GameObject.Instantiate(ReferenceAssistor.Instance.collectible_items[item_index], world_root);
-        collectible_item.transform.localRotation = Random.rotation; 
-        Vector3 spawn_location = getSpawnLocation(5.0f, false);
+        collectible_item.transform.localRotation = Random.rotation;
+        Vector3 spawn_location = spawn_locations[location_index];
         collectible_item.transform.localPosition = spawn_location;
         collectible_item.GetComponent<CollectibleItem>().setSerialNumber(ship_inventory.generateSerialNumber());
         collectible_item.GetComponent<Collider>().excludeLayers = LayerMask.GetMask("None");
@@ -259,7 +336,7 @@ public class ScenarioManager : NetworkBehaviour
         powerAllStationsRPC();
 
         //clear spawn locations
-        occupied_spawn_locations.Clear();
+        spawn_locations.Clear();
 
         //assign the piloting system the new WorldRoot
         GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
@@ -278,9 +355,17 @@ public class ScenarioManager : NetworkBehaviour
             scenario_script.initiateScenario();
         }
 
+        //ensure spawn locations created for obtainable collectibles
+        if (spawn_locations.Count == 0)
+        {
+            generateSpawnLocations(25.0f, 0, null);
+        }
+
         //spawn collectibles
-        spawnCollectibleItem(true);
-        spawnCollectibleItem(false);
+        for (int i = 0; i < OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty]; i++) 
+        {
+            spawnCollectibleItem(i, i >= OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty] / 2);
+        }
     }
 
     //only run by host, called by PlayerManager.startScenarioRPC()
