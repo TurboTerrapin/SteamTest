@@ -116,6 +116,11 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
         currently_available = false;
     }
 
+    public bool canUseAuxiliaryPower()
+    {
+        return auxiliary_power_available;
+    }
+
     private void displayArrowAdjustment(Color c)
     {
         for (int i = 0; i < 2; i++)

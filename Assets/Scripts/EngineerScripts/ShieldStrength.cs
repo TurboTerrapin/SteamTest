@@ -3,7 +3,7 @@
     - Handles allocating shield battery to each of the four ship sections
     - Flips the switches
     Contributor(s): Jake Schott
-    Last Updated: 5/10/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -31,6 +31,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
     public GameObject shield_protections; //on the ship overview screen
     public List<GameObject> shield_strength_switches;
     public AudioSource shield_strength_boop_sound;
+    public List<AudioClip> shield_strength_notifications;
     private ShipInventory ship_inventory;
     private ScenarioManager scenario_manager;
 
@@ -296,7 +297,14 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         {
             for (int i = 0; i < 4; i++)
             {
-                shield_effect_times[i] = Mathf.Max(0.0f, shield_effect_times[i] - Time.deltaTime);
+                if (shield_effect_times[i] > 0.0f)
+                {
+                    shield_effect_times[i] = Mathf.Max(0.0f, shield_effect_times[i] - Time.deltaTime);
+                    if (shield_effect_times[i] == 0.0f && shield_strengths[i] == 0)
+                    {
+                        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(shield_strength_notifications[i]);
+                    }
+                }
             }
             displayShieldProtectionsAdjustment();
 

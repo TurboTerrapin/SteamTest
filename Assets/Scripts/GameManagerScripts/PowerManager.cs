@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 5/11/2026
+    Last Updated: 5/14/2026
 */
 
 using System.Collections;
@@ -34,6 +34,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public AudioSource ship_beeps_sound;
     public AudioSource power_off_sound;
     public AudioSource power_on_sound;
+    public List<AudioClip> power_notifications = null;
 
     private PowerAllocation power_allocation;
     private PowerControl power_control;
@@ -425,12 +426,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //if time runs out, then power shutdown (if host)
         if (NetworkManager.Singleton.IsHost == true)
         {
-            totalShutdownRPC();
+            totalShutdownRPC(index);
         }
     }
 
-    IEnumerator shutdownProcess()
+    IEnumerator shutdownProcess(int reason)
     {
+        //cache auxiliary power availability
+        bool auxiliary_power_available = ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>().canUseAuxiliaryPower();
+
         //handle shutdown effects (lights, sounds)
         lights_manager.setDefaultLights(false);
         lights_manager.setEmergencyLights(false);
@@ -475,18 +479,32 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         yield return new WaitForSeconds(2.0f);
 
+        //play notification sounds
+        ReferenceAssistor.Instance.audio_manager.AddHighPriorityNotification(power_notifications[reason]);
+        if (auxiliary_power_available == true)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddHighPriorityNotification(power_notifications[6]);
+        }
+
         lights_manager.disableRedAlert();
         lights_manager.setEmergencyLights(true);
 
         shutdown_coroutine = null;
     }
 
-    //called by PowerRegulator.terminateDepletionRPC()
-    public void totalShutdown()
+    //called by PowerRegulator.terminateDepletionRPC() and PilotingSystem.cs
+    public void totalShutdown(bool energy_surge)
     {
         if (ship_has_power == true)
         {
-            totalShutdownRPC();
+            if (energy_surge == true)
+            {
+                totalShutdownRPC(5);
+            }
+            else
+            {
+                totalShutdownRPC(4);
+            }
         }
     }
 
@@ -538,7 +556,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void totalShutdownRPC()
+    private void totalShutdownRPC(int reason)
     {
         //kill power
         ship_has_power = false;
@@ -551,7 +569,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         if (shutdown_coroutine == null)
         {
-            shutdown_coroutine = StartCoroutine(shutdownProcess());
+            shutdown_coroutine = StartCoroutine(shutdownProcess(reason));
         }
     }
 
@@ -564,6 +582,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         GetComponent<PowerRegulator>().displayPowerRestoration();
 
         yield return new WaitForSeconds(3.0f);
+
+        //play power restoration notification
+        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(power_notifications[7]);
 
         //bring back power
         ship_has_power = true;

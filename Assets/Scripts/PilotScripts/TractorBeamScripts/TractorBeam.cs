@@ -4,7 +4,7 @@
     - Communicates with TractorBeamOptions once item collected
     - Driven by TractorBeamPower.cs by power
     Contributor(s): Henryk Musial
-    Last Updated: 4/11/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class TractorBeam : NetworkBehaviour
     // REFERENCES
     public Transform beamOriginPoint;
     public Material tractorBeamMaterial;
+    public AudioClip tractor_beam_capture_notification;
     private EffectsHandler effectsHandler;
     private TractorBeamPower tractorBeamPower;
     private TractorBeamOptions tractorBeamOptions;
@@ -228,6 +229,8 @@ public class TractorBeam : NetworkBehaviour
         
         tractorBeamOptions.activate(capturedItem, capturedItemSerialNumber);
         tractorBeamPower.onItemCapturedChange();
+
+        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(tractor_beam_capture_notification);
 
         if (NetworkManager.Singleton.IsHost == true)
         {

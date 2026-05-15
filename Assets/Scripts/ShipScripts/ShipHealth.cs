@@ -4,7 +4,7 @@
     - Handles hull integrity (health of the most damaged section)
     - Updates screens in engineer position
     Contributor(s): Jake Schott
-    Last Updated: 3/20/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -21,12 +21,13 @@ public class ShipHealth : NetworkBehaviour, IPowerable
     private static Color MAX_HEALTH = new Color(0.34f, 1.0f, 0.0f, 0.21f);
     private static Color HALF_HEALTH = new Color(1.0f, 1.0f, 0.0f, 0.21f);
     private static Color ZERO_HEALTH = new Color(1.0f, 0.0f, 0.0f, 0.21f);
-    private static bool INVINCIBLE_SHIP = true; //used for testing
+    private static bool INVINCIBLE_SHIP = false; //used for testing
 
     public GameObject hull_integrity_display;
     public GameObject ship_overview_display;
     public LightsManager lights_manager;
-    public List<AudioClip> hull_creak_sounds = new List<AudioClip>();
+    public List<AudioClip> hull_creak_sounds = null;
+    public List<AudioClip> hull_integrity_notifications = null;
     public AudioSource hull_creak_source;
     private PlayerManager player_manager;
     private ScenarioManager scenario_manager;
@@ -98,6 +99,17 @@ public class ShipHealth : NetworkBehaviour, IPowerable
         }
         start_colors[4] = hull_integrity_visual.GetComponent<UnityEngine.UI.RawImage>().color;
         desired_colors[4] = getDesiredColor(hull_integrity);
+
+        //play notification if threshold crossed
+        float[] thresholds = new float[4] { 75.0f, 50.0f, 25.0f, 10.0f };
+        for (int i = 0; i < 4; i++)
+        {
+            if (prev_hull_integrity > thresholds[i] && hull_integrity <= thresholds[i])
+            {
+                ReferenceAssistor.Instance.audio_manager.AddHighPriorityNotification((hull_integrity_notifications[i]));
+                break;
+            }
+        }
 
         float animation_time = UPDATE_TIME;
 

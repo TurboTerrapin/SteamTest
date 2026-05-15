@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott, Henryk Musial
-    Last Updated: 5/14/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -372,7 +372,7 @@ public class ScenarioManager : NetworkBehaviour
     public void startScenario()
     {
         enableScenarioTimer();
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().initializePowerRegulator();
+        ReferenceAssistor.Instance.power_manager.GetComponent<PowerRegulator>().initializePowerRegulator();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
         ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
@@ -559,8 +559,9 @@ public class ScenarioManager : NetworkBehaviour
         //power down all stations and reset certain controls (power will be restored later)
         controlResetHelper();
 
-        //mute audio during scene transition
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+        //reset and mute audio
+        ReferenceAssistor.Instance.audio_manager.DeactivateComputerVoice();
+        ReferenceAssistor.Instance.audio_manager.MuteAudio();
 
         //stop checking for controls/seats
         PrimaryScript.Instance.deactivate(true, false);

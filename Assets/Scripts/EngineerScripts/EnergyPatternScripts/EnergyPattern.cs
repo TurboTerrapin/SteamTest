@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 3/2/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -30,6 +30,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public GameObject energy_pattern_display;
     public GameObject energy_pattern_signal_display;
     public GameObject enabled_indicator;
+    public AudioClip energy_pattern_notification;
 
     public List<Texture> center_options;
     public List<Texture> ring_options;
@@ -131,6 +132,9 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         energy_pattern_display.GetComponent<PatternVisualizer>().displayPattern(corresponding_pattern_data);
         updateSignalIndicator();
         energy_pattern_display.transform.GetChild(0).gameObject.SetActive(display_enabled);
+
+        //play notification
+        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(energy_pattern_notification);
 
         //handle orange blinker
         if (display_enabled == false && alert_flasher_coroutine == null)

@@ -478,7 +478,7 @@ public class PilotingSystem : NetworkBehaviour
     {
         if (stunPushbackCoroutine == null)
         {
-            ReferenceAssistor.Instance.power_manager.totalShutdown();
+            ReferenceAssistor.Instance.power_manager.totalShutdown(true);
             stunPushbackCoroutine = StartCoroutine(StunPushback());
         }
     }

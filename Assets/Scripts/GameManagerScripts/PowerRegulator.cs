@@ -539,7 +539,7 @@ public class PowerRegulator : NetworkBehaviour
             {
                 if (transform.GetComponent<PowerManager>().getShipHasPower() == true)
                 {
-                    transform.GetComponent<PowerManager>().totalShutdown();
+                    transform.GetComponent<PowerManager>().totalShutdown(false);
                 }
             }
             else

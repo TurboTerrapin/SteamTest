@@ -301,8 +301,9 @@ public class PlayerManager : NetworkBehaviour
         //update screens to account for ship's new location/rotation in newly-generated entrance path
         handleShipRepositioning();
 
-        //unmute audio that was muted during scenario transition
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().UnmuteAudio();
+        //unmute audio and activate computer voice that was muted/deactivated during scenario transition
+        ReferenceAssistor.Instance.audio_manager.ActivateComputerVoice();
+        ReferenceAssistor.Instance.audio_manager.UnmuteAudio();
     }
 
     //fired when a client's AsyncOperation for loading a scenario (not BridgeEnvironment) is complete
