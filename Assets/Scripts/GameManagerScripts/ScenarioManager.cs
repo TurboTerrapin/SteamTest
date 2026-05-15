@@ -361,6 +361,8 @@ public class ScenarioManager : NetworkBehaviour
             return;
         }
 
+        endpoint_reached = true;
+
         if (reason == EndCondition.ReachedEndpoint) //only success condition is to reach endpoint
         {
             endpoint_reached = true;

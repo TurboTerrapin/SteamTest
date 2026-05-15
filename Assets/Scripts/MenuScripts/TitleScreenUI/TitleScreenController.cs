@@ -9,6 +9,10 @@ public class TitleScreenController : MonoBehaviour
     public float FadeDuration = 1.5f; // Time for a full fade in/out
     public GameObject TitleScreen;
 
+    //Audio
+    [SerializeField] AudioSource MusicSource;
+    public AudioClip TitleScreenAudio;
+
     // Rings
     public GameObject SpinCircle;
     public GameObject SpriteMask;
@@ -23,6 +27,8 @@ public class TitleScreenController : MonoBehaviour
         SpriteMask.SetActive(true);
         SpinCircle.SetActive(true);
         MainMenu.SetActive(false);
+
+        PlayTitleAudio();
 
         StartCoroutine(FadeText());
 
@@ -43,7 +49,12 @@ public class TitleScreenController : MonoBehaviour
             SwitchToMainMenu();
         }
     }
-
+    
+    public void PlayTitleAudio()
+    {
+        MusicSource.clip = TitleScreenAudio;
+        MusicSource.Play();
+    }
     IEnumerator FadeText()
     {
         while (true)

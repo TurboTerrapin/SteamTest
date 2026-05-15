@@ -4,8 +4,10 @@ using System.Xml.Serialization;
 using NUnit.Framework.Constraints;
 using Steamworks;
 using TMPro;
+using TMPro.EditorUtilities;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class FailureHandler : NetworkBehaviour
 {
@@ -28,9 +30,12 @@ public class FailureHandler : NetworkBehaviour
     private int CurrentDifficultyIndex = 0;
     private string[] Difficulty = { "EASY", "MEDIUM", "HARD", "EXPERT" };
 
+
     // lobbyNames is a string table that could have 1-4 entries
     public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
     {
+        fadeInGroup.gameObject.SetActive(true);
+        
         int StartingDifficulty = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>().getDifficulty();
 
         DifficultyText.text = Difficulty[StartingDifficulty];
@@ -44,6 +49,7 @@ public class FailureHandler : NetworkBehaviour
         {
             LeftArrowButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
             RightArrowButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
+            DifficultyText.color = new Color(1f, 1f, 1f, 0.60f); 
         }
 
             GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
