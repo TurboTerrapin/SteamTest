@@ -31,6 +31,7 @@ public class TransmissionHandler : NetworkBehaviour
     public AudioSource transmission_processing_sound;
     public AudioSource transmission_success_sound;
     public AudioSource transmission_failure_sound;
+    public AudioClip transmission_detected_notification;
 
     private GameObject waves;
     private UnityEngine.UI.RawImage alert_indicator;
@@ -497,6 +498,7 @@ public class TransmissionHandler : NetworkBehaviour
         //check if need to alert
         if (cw != 0 && alert_indicator_coroutine == null)
         {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(0, transmission_detected_notification);
             alert_indicator.color = new Color(1.0f, 0.47f, 0.0f);
             alert_indicator_coroutine = StartCoroutine(alertIndicatorFlasher());
         }

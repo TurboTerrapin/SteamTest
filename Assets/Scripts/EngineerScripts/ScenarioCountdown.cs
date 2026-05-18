@@ -2,18 +2,37 @@
     ScenarioCountdown.cs
     - Handles scenario countdown timer visual in engineer position (boundary expiration)
     Contributor(s): Jake Schott
-    Last Updated: 5/4/2026
+    Last Updated: 5/17/2026
 */
 
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class ScenarioCountdown : MonoBehaviour, IPowerable
 {
     public GameObject countdown_display;
+    public List<AudioClip> countdown_notifications;
 
     public void displayCountdownAdjustment(int total_seconds)
     {
+        if (total_seconds == 180)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(1, countdown_notifications[0]);
+        }
+        else if (total_seconds == 60)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(1, countdown_notifications[1]);
+        }
+        else if (total_seconds == 12)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(3, countdown_notifications[2]);
+        }
+        else if (total_seconds < 11 && total_seconds > 0)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(3, countdown_notifications[2 + total_seconds]);
+        }
+
         //set text
         string to_display = "";
         int minutes = total_seconds / 60;

@@ -7,13 +7,19 @@ public class AudioManager : MonoBehaviour
 {
     public AudioMixer masterMixer;
     public List<GameObject> audioSources;
-    public List <AudioSource> computerVoiceSpeakers;
+    public AudioSource computerVoiceSpeaker;
 
-    private List<AudioClip> high_priority_notifications = new List<AudioClip>();
-    private List<AudioClip> low_priority_notifications = new List<AudioClip>();
+    private List<AudioClip>[] notificationQueues = new List<AudioClip>[] { 
+        new List<AudioClip>(), //0: low-priority notifications
+        new List<AudioClip>(), //1: high-priority notifications only
+        new List<AudioClip>(), //2: boundary departure only
+        new List<AudioClip>(), //3: boundary countdown only
+        new List<AudioClip>(), //4: self-destruct only
+    };
 
-    private bool computer_voice_active = false;
-    private Coroutine computer_voice_player_coroutine = null;
+    private bool computerVoiceActive = false;
+    private int currentClipPriority = -1;
+    private Coroutine computerVoicePlayerCoroutine = null;
 
     public void InitializeAudio()
     {
@@ -25,20 +31,23 @@ public class AudioManager : MonoBehaviour
 
     public void ActivateComputerVoice()
     {
-        computer_voice_active = true;
+        computerVoiceActive = true;
         StartComputerVoicePlayer();
     }
 
     public void DeactivateComputerVoice()
     {
-        high_priority_notifications.Clear();
-        low_priority_notifications.Clear();
-        if (computer_voice_player_coroutine != null)
+        foreach (List<AudioClip> notificationQueue in notificationQueues)
         {
-            StopCoroutine(computer_voice_player_coroutine);
-            computer_voice_player_coroutine = null;
+            notificationQueue.Clear();
         }
-        computer_voice_active = false;
+        if (computerVoicePlayerCoroutine != null)
+        {
+            StopCoroutine(computerVoicePlayerCoroutine);
+            computerVoiceSpeaker.Stop();
+            computerVoicePlayerCoroutine = null;
+        }
+        computerVoiceActive = false;
     }
 
     public void SetMasterVolume(float volume)
@@ -57,79 +66,111 @@ public class AudioManager : MonoBehaviour
         masterMixer.SetFloat("SFXVolume", 0.0f);
     }
 
-    IEnumerator ComputerVoicePlayer()
+    private void ClearNotificationQueuesBelowPriority(int priority)
     {
-        while (high_priority_notifications.Count > 0 || low_priority_notifications.Count > 0)
+        for (int i = 0; i < priority; i++)
         {
-            AudioClip notificationToPlay; 
-            if (high_priority_notifications.Count > 0)
-            {
-                notificationToPlay = high_priority_notifications[0];
-                high_priority_notifications.RemoveAt(0);
-            }
-            else
-            {
-                notificationToPlay = low_priority_notifications[0];
-                low_priority_notifications.RemoveAt(0);
-            }
+            notificationQueues[i].Clear();
+        }
+    }
 
-            foreach (AudioSource speaker in computerVoiceSpeakers)
+    private AudioClip GetClipToPlay()
+    {
+        AudioClip selectedClip = null;
+        for (int i = 4; i >= 2; i--)
+        {
+            if (notificationQueues[i].Count > 0)
             {
-                speaker.clip = notificationToPlay;
-                speaker.Play();
+                selectedClip = notificationQueues[i][0];
+                notificationQueues[i].RemoveAt(0);
+                ClearNotificationQueuesBelowPriority(i);
+                currentClipPriority = i;
+                return selectedClip;
             }
-
-            while (computerVoiceSpeakers[0].isPlaying == true)
+        }
+        for (int i = 1; i >= 0; i--)
+        {
+            if (notificationQueues[i].Count > 0)
             {
-                yield return null;
+                selectedClip = notificationQueues[i][0];
+                notificationQueues[i].RemoveAt(0);
+                currentClipPriority = i;
+                return selectedClip;
             }
         }
 
-        computer_voice_player_coroutine = null;
+        return selectedClip;
+    }
+
+    IEnumerator ComputerVoicePlayer()
+    {
+        AudioClip notificationToPlay = GetClipToPlay();
+        while (notificationToPlay != null)
+        {
+            computerVoiceSpeaker.clip = notificationToPlay;
+            computerVoiceSpeaker.Play();
+
+            while (computerVoiceSpeaker.isPlaying == true)
+            {
+                yield return null;
+            }
+            notificationToPlay = GetClipToPlay();
+        }
+
+        computerVoicePlayerCoroutine = null;
     }
 
     private void StartComputerVoicePlayer()
     {
-        if (computer_voice_player_coroutine != null || computer_voice_active == false)
+        if (computerVoicePlayerCoroutine != null || computerVoiceActive == false)
         {
             return;
         }
 
-        computer_voice_player_coroutine = StartCoroutine(ComputerVoicePlayer());
+        computerVoicePlayerCoroutine = StartCoroutine(ComputerVoicePlayer());
     }
 
-    public void AddHighPriorityNotification(AudioClip notification)
+    public void AddNotification(int priority, AudioClip notification)
     {
-        high_priority_notifications.Add(notification);
-        StartComputerVoicePlayer();
-    }
+        if (priority < 0 || priority > 5)
+        {
+            return;
+        }
 
-    public void AddLowPriorityNotification(AudioClip notification)
-    {
-        low_priority_notifications.Add(notification);
+        if (NotificationInQueue(notification) == true)
+        {
+            return;
+        }
+
+        if (computerVoicePlayerCoroutine != null)
+        {
+            if (priority >= 2 && priority > currentClipPriority)
+            {
+                StopCoroutine(computerVoicePlayerCoroutine);
+                computerVoicePlayerCoroutine = null;
+                computerVoiceSpeaker.Stop();
+            }
+        }
+
+        notificationQueues[priority].Add(notification);
         StartComputerVoicePlayer();
     }
 
     public bool NotificationInQueue(AudioClip to_test)
     {
-        if (computerVoiceSpeakers[0].isPlaying == true && computerVoiceSpeakers[0].clip.name.Equals(to_test.name) == true)
+        if (computerVoiceSpeaker.isPlaying == true && computerVoiceSpeaker.clip.name.Equals(to_test.name) == true)
         {
             return true;
         }
 
-        for (int i = 0; i < high_priority_notifications.Count; i++)
+        foreach (List<AudioClip> notificationQueue in notificationQueues)
         {
-            if (high_priority_notifications[i].name.Equals(to_test.name) == true)
+            foreach (AudioClip notification in notificationQueue)
             {
-                return true;
-            }
-        }
-
-        for (int i = 0; i < low_priority_notifications.Count; i++)
-        {
-            if (low_priority_notifications[i].name.Equals(to_test.name) == true)
-            {
-                return true;
+                if (notification.name.Equals(to_test.name) == true)
+                {
+                    return true;
+                }
             }
         }
 

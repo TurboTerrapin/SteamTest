@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2026
+    Last Updated: 5/17/2026
 */
 
 using System.Collections;
@@ -480,11 +480,13 @@ public class PowerManager : NetworkBehaviour, IPowerable
         yield return new WaitForSeconds(2.0f);
 
         //play notification sounds
-        ReferenceAssistor.Instance.audio_manager.AddHighPriorityNotification(power_notifications[reason]);
+        ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[6]);
+        ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[reason]);
+        /*
         if (auxiliary_power_available == true)
         {
             ReferenceAssistor.Instance.audio_manager.AddHighPriorityNotification(power_notifications[6]);
-        }
+        }*/
 
         lights_manager.disableRedAlert();
         lights_manager.setEmergencyLights(true);
@@ -584,7 +586,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         yield return new WaitForSeconds(3.0f);
 
         //play power restoration notification
-        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(power_notifications[7]);
+        ReferenceAssistor.Instance.audio_manager.AddNotification(0, power_notifications[7]);
 
         //bring back power
         ship_has_power = true;

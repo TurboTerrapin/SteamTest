@@ -302,7 +302,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
                     shield_effect_times[i] = Mathf.Max(0.0f, shield_effect_times[i] - Time.deltaTime);
                     if (shield_effect_times[i] == 0.0f && shield_strengths[i] == 0)
                     {
-                        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(shield_strength_notifications[i]);
+                        ReferenceAssistor.Instance.audio_manager.AddNotification(0, shield_strength_notifications[i]);
                     }
                 }
             }

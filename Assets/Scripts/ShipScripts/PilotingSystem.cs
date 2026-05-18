@@ -21,14 +21,12 @@ public class PilotingSystem : NetworkBehaviour
     private float maxImpulseReverseSpeed = 20f;
 
     [Header("Rotation Settings")]
-    /*
-    private float rotationPower = 3f;
-    private float steeringResponsiveness = 2.5f;
-    private float maxRotationSpeed = 5f;
-    */
     private float rotationPower = 15.0f;
     private float steeringResponsiveness = 10.0f;
     private float maxRotationSpeed = 25.0f;
+
+    [Header("Miscellaneous Settings")]
+    private int outOfBoundsCountdown = 15;
 
     // Component references
     private ImpulseThrottle impulseThrottle;
@@ -359,27 +357,8 @@ public class PilotingSystem : NetworkBehaviour
 
         if (Mathf.Abs(worldRoot.transform.position.y) > ScenarioManager.BOUNDARY_ALTITUDE)
         {
-            if (insideAltitudeBoundary == true)
-            {
-                insideAltitudeBoundary = false;
-                string msg = "INCREASE";
-                if (worldRoot.transform.position.y < 0)
-                {
-                    msg = "DECREASE";
-                }
-                ShipBoundaryAltitudeWarningChangeRPC(true, msg);
-            }
-            if (insideBoundary == true)
-            {
-                ShipBoundaryChangeRPC(false);
-            }
+            ShipBoundaryChangeRPC(false, false); //ship is outside of altitude boundary
             return;
-        }
-
-        if (insideAltitudeBoundary == false)
-        {
-            insideAltitudeBoundary = true;
-            ShipBoundaryAltitudeWarningChangeRPC(false, "");
         }
 
         float distanceFromCenter = Vector2.Distance(shipPosition, circleCenter);
@@ -393,7 +372,7 @@ public class PilotingSystem : NetworkBehaviour
                     {
                         if (insideBoundary == false)
                         {
-                            ShipBoundaryChangeRPC(true); //ship is inside entrance path but too far back
+                            ShipBoundaryChangeRPC(true, true); //ship is inside entrance path and not far back enough to say out of bounds
                         }
                         return;
                     }
@@ -412,14 +391,14 @@ public class PilotingSystem : NetworkBehaviour
             }
             if (insideBoundary == true)
             {
-                ShipBoundaryChangeRPC(false); //ship is outside boundary
+                ShipBoundaryChangeRPC(false, true); //ship is outside boundary but inside altitude boundary
             }
         }
-        else //is inside the circle
+        else //is inside the circle and altitude boundary
         {
             if (insideBoundary == false)
             {
-                ShipBoundaryChangeRPC(true);
+                ShipBoundaryChangeRPC(true, true);
             }
         }
     }
@@ -441,7 +420,7 @@ public class PilotingSystem : NetworkBehaviour
 
     IEnumerator BoundaryCountdown()
     {
-        int countdown = 10;
+        int countdown = outOfBoundsCountdown;
         ShipBoundaryCountdownChangeRPC(countdown);
         while (countdown > 0)
         {
@@ -484,35 +463,36 @@ public class PilotingSystem : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void ShipBoundaryChangeRPC(bool withinBoundary)
+    private void ShipBoundaryChangeRPC(bool withinBoundary, bool withinAltitudeBoundary)
     {
-        if (withinBoundary == false && withinBoundary != insideBoundary)
+        if (NetworkManager.Singleton.IsHost == true)
         {
-            if (boundaryCountdownCoroutine != null)
+            if (withinBoundary == false && withinBoundary != insideBoundary)
+            {
+                if (boundaryCountdownCoroutine != null)
+                {
+                    StopCoroutine(boundaryCountdownCoroutine);
+                }
+                boundaryCountdownCoroutine = StartCoroutine(BoundaryCountdown());
+            }
+            else if (withinBoundary == true && boundaryCountdownCoroutine != null)
             {
                 StopCoroutine(boundaryCountdownCoroutine);
+                boundaryCountdownCoroutine = null;
             }
-            boundaryCountdownCoroutine = StartCoroutine(BoundaryCountdown());
         }
-        else if (withinBoundary == true && boundaryCountdownCoroutine != null)
+        if (insideBoundary != withinBoundary || insideAltitudeBoundary != withinAltitudeBoundary)
         {
-            StopCoroutine(boundaryCountdownCoroutine);
-            boundaryCountdownCoroutine = null;
+            insideBoundary = withinBoundary;
+            insideAltitudeBoundary = withinAltitudeBoundary;
+            scenarioMap.updateShipBoundaryStatus(insideBoundary, insideAltitudeBoundary);
         }
-        insideBoundary = withinBoundary;
-        scenarioMap.updateShipBoundaryStatus(withinBoundary);
     }
 
     [Rpc(SendTo.Everyone)]
     private void ShipBoundaryCountdownChangeRPC(int countdownValue)
     {
         scenarioMap.updateShipBoundaryCountdownStatus(countdownValue);
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void ShipBoundaryAltitudeWarningChangeRPC(bool active, string msg)
-    {
-        scenarioMap.updateAltitudeWarning(active, msg);
     }
 
     [Rpc(SendTo.Everyone)]

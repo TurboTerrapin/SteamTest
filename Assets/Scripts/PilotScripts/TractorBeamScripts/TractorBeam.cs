@@ -230,7 +230,7 @@ public class TractorBeam : NetworkBehaviour
         tractorBeamOptions.activate(capturedItem, capturedItemSerialNumber);
         tractorBeamPower.onItemCapturedChange();
 
-        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(tractor_beam_capture_notification);
+        ReferenceAssistor.Instance.audio_manager.AddNotification(0, tractor_beam_capture_notification);
 
         if (NetworkManager.Singleton.IsHost == true)
         {

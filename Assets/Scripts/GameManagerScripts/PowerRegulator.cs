@@ -3,7 +3,7 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 5/9/2026
+    Last Updated: 5/17/2026
 */
 
 using System.Collections;
@@ -26,6 +26,7 @@ public class PowerRegulator : NetworkBehaviour
     public List<GameObject> power_regulation_modules = null;
     public AudioSource power_regulation_correct_sound;
     public AudioSource power_regulation_incorrect_sound;
+    public AudioClip power_status_critical_notification;
 
     //power status screen UI components
     private GameObject power_bars;
@@ -518,7 +519,14 @@ public class PowerRegulator : NetworkBehaviour
             power_source_depletion_coroutines[to_terminate] = null;
         }
 
+        int before_power_sources_enabled = getPowerSourcesEnabled();
+
         enabled_power_sources[to_terminate] = enabled;
+
+        if (getPowerSourcesEnabled() == 3 && before_power_sources_enabled > 3)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(0, power_status_critical_notification);
+        }
 
         if (getPowerSourcesEnabled() < 6)
         {

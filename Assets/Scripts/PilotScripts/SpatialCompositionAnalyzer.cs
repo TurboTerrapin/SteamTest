@@ -46,6 +46,7 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
     public GameObject reset_bar;
     public GameObject notifier;
     public GameObject SCA_display;
+    public AudioClip SCA_notification;
 
     private bool is_powered = false;
     private List<int> current_molecules = new List<int>(); //indices of the molecules in the SCA
@@ -70,6 +71,20 @@ public class SpatialCompositionAnalyzer : NetworkBehaviour, IPowerable, IDescrib
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return corresponding_infos[RAY_TARGETS.IndexOf(current_target.name)];
+    }
+
+    //sets information for new SCA profile
+    public void setSCAProfile(List<int> textures, List<int> quantities)
+    {
+        ReferenceAssistor.Instance.audio_manager.AddNotification(0, SCA_notification);
+        current_molecules.Clear();
+        molecule_quantities.Clear();
+
+        for (int i = 0; i < DEFAULT_MOLECULES.Count; i++)
+        {
+            current_molecules.Add(textures[i]);
+            molecule_quantities.Add(quantities[i]);
+        }
     }
 
     //sets SCA to whatever is in DEFAULT_MOLECULES and DEFAULT_MOLECULE_QUANTITIES

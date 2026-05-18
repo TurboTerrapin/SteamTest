@@ -2,7 +2,7 @@
     SelfDestruct.cs
     - Used to handle code input and initation/abort
     Contributor(s): Jake Schott
-    Last Updated: 5/11/2026
+    Last Updated: 5/18/2026
 */
 
 using Unity.Netcode;
@@ -17,7 +17,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     private static float DIGIT_CHANGE_TIME = 0.2f;
     private static float CORRECT_CODE_FLASH_TIME = 0.15f;
     private static float SEQUENCE_TURN_TIME = 0.5f;
-    private static int DESTRUCT_COUNTDOWN_TIME = 10;
+    private static int DESTRUCT_COUNTDOWN_TIME = 15;
 
     private string[] CONTROL_NAMES = new string[] { "SELF-DESTRUCT CODE", "SELF-DESTRUCT SEQUENCE" };
     private static string INFO_MESSAGE = "Enables the self-destruct sequence which destroys the ship afer a 10-second countdown unless aborted.";
@@ -29,6 +29,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     public GameObject digit_switches;
     public GameObject self_destruct_dial;
     public AudioSource self_destruct_boop_sound;
+    public List<AudioClip> self_destruct_notifications;
 
     private bool is_powered = false;
     private int[] input_code = new int[] { 0, 0, 0, 0 };
@@ -81,19 +82,23 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
@@ -103,10 +108,12 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     private void showDestructCountdown(bool to_show)
     {
         destruct_display.transform.GetChild(0).gameObject.SetActive(!to_show);
@@ -122,6 +129,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
 
         float elapsed_time = 0.0f;
         float anim_time = DESTRUCT_COUNTDOWN_TIME;
+        int countdown_digit = DESTRUCT_COUNTDOWN_TIME;
         while (anim_time > 0.0f)
         {
             float dt = Time.deltaTime;
@@ -144,7 +152,16 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
             destructSymbolColorAdjustment(c);
 
             destruct_display.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - (anim_time / DESTRUCT_COUNTDOWN_TIME);
-            destruct_display.transform.GetChild(3).GetComponent<TMP_Text>().SetText(Mathf.CeilToInt(anim_time).ToString());
+            int prev_countdown_digit = countdown_digit;
+            countdown_digit = Mathf.CeilToInt(anim_time);
+            if (prev_countdown_digit != countdown_digit)
+            {
+                if (countdown_digit <= 10 && countdown_digit >= 1)
+                {
+                    ReferenceAssistor.Instance.audio_manager.AddNotification(4, self_destruct_notifications[1 + countdown_digit]);
+                }
+            }
+            destruct_display.transform.GetChild(3).GetComponent<TMP_Text>().SetText(countdown_digit.ToString());
 
             yield return null;
         }
@@ -190,6 +207,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
         }
         if (destructing == true)
         {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(4, self_destruct_notifications[0]);
             BUTTON_LISTS[1][0].updateDesc(CONTROL_DESCS[3]);
             if (correct_code_flasher_coroutine != null)
             {
@@ -201,6 +219,7 @@ public class SelfDestruct : NetworkBehaviour, IControllable, IPowerable, IIKTarg
         }
         else
         {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(4, self_destruct_notifications[1]);
             BUTTON_LISTS[1][0].updateDesc(CONTROL_DESCS[2]);
             showDestructCountdown(false);
             infoColorAdjustment(new Color(0.0f, 0.84f, 1.0f));

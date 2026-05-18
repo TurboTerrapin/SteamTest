@@ -106,7 +106,7 @@ public class ShipHealth : NetworkBehaviour, IPowerable
         {
             if (prev_hull_integrity > thresholds[i] && hull_integrity <= thresholds[i])
             {
-                ReferenceAssistor.Instance.audio_manager.AddHighPriorityNotification((hull_integrity_notifications[i]));
+                ReferenceAssistor.Instance.audio_manager.AddNotification(1, hull_integrity_notifications[i]);
                 break;
             }
         }

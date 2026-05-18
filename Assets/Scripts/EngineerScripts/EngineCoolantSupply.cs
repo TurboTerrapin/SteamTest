@@ -313,11 +313,11 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
         {
             if (engine_temperature < 0.5f && et >= 0.5f)
             {
-                ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(engine_capacity_notifications[0]);
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[0]);
             }
             else if (engine_temperature < 1.0f && et >= 1.0f)
             {
-                ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(engine_capacity_notifications[1]);
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[1]);
             }
         }
 

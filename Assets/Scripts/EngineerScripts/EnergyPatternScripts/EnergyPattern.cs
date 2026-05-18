@@ -134,7 +134,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         energy_pattern_display.transform.GetChild(0).gameObject.SetActive(display_enabled);
 
         //play notification
-        ReferenceAssistor.Instance.audio_manager.AddLowPriorityNotification(energy_pattern_notification);
+        ReferenceAssistor.Instance.audio_manager.AddNotification(0, energy_pattern_notification);
 
         //handle orange blinker
         if (display_enabled == false && alert_flasher_coroutine == null)
