@@ -489,6 +489,9 @@ public class ScenarioManager : NetworkBehaviour
         //destroy seats
         GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().destroySeats();
 
+        //turn off power
+        ReferenceAssistor.Instance.power_manager.totalShutdown(false);
+
         handleFailureRPC(scenario_number, failure_report_message);
     }
 

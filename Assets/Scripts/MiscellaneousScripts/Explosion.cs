@@ -111,7 +111,7 @@ public class Explosion : NetworkBehaviour
     private void beginAnimation()
     {
         //damage nearby items (including ship)
-        if (NetworkManager.Singleton.IsHost == true)
+        if (NetworkManager.Singleton.IsHost == true && GetComponent<NetworkObject>() != null)
         {
             Collider[] explosion_targets = Physics.OverlapSphere(transform.position, size * EXPLOSION_SPHERE_FACTOR);
             foreach (Collider et in explosion_targets)
@@ -184,7 +184,10 @@ public class Explosion : NetworkBehaviour
         if (NetworkManager.Singleton.IsHost == true)
         {
             yield return new WaitForSeconds(5.0f);
-            GetComponent<NetworkObject>().Despawn(true);
+            if (GetComponent<NetworkObject>() != null)
+            {
+                GetComponent<NetworkObject>().Despawn(true);
+            }
         }
     }
 
@@ -211,9 +214,12 @@ public class Explosion : NetworkBehaviour
         explosion_sections[2].transform.localRotation = Quaternion.Euler(0.0f, 0.0f, Random.Range(0.0f, 360.0f));
 
         //rotate perpetually
-        while (Camera.main != null)
+        while (true)
         {
-            transform.LookAt(Camera.main.transform);
+            if (Camera.main != null)
+            {
+                transform.LookAt(Camera.main.transform);
+            }
             explosion_sections[2].transform.Rotate(0.0f, 0.0f, 240.0f * Time.deltaTime);
             yield return null;
         }

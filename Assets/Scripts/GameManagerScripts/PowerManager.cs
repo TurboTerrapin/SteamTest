@@ -482,11 +482,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //play notification sounds
         ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[6]);
         ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[reason]);
-        /*
         if (auxiliary_power_available == true)
         {
-            ReferenceAssistor.Instance.audio_manager.AddHighPriorityNotification(power_notifications[6]);
-        }*/
+            ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[8]);
+        }
 
         lights_manager.disableRedAlert();
         lights_manager.setEmergencyLights(true);

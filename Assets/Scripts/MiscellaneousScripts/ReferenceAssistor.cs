@@ -2,7 +2,7 @@
     ReferenceAssistor.cs
     - Used to streamline referencing for certain commonly-used things
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2026
+    Last Updated: 5/19/2026
 */
 
 using System.Collections.Generic;
@@ -29,6 +29,8 @@ public class ReferenceAssistor : MonoBehaviour
     public Material lit_dark_blue;
     public Material unlit_dark_blue;
     public Material lit_off_white;
+    public Material lit_white;
+    public Material unlit_white;
     public Material pure_black;
 
     public List<GameObject> module_handlers;
