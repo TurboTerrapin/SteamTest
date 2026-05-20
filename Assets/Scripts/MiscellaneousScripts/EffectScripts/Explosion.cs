@@ -2,7 +2,7 @@
     Explosion.cs
     - Utilizes sprite renderers to create an explosion effect that can be spawned
     Contributor(s): Jake Schott
-    Last Updated: 3/20/2026
+    Last Updated: 5/19/2026
 */
 
 using System.Collections;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class Explosion : NetworkBehaviour
+public class Explosion : MonoBehaviour
 {
     //CLASS CONSTANTS
     private static float MAX_EXPLOSION_DAMAGE = 10.0f;
@@ -275,29 +275,5 @@ public class Explosion : NetworkBehaviour
 
             yield return null;
         }
-    }
-
-    [Rpc(SendTo.Everyone)]
-    public void transmitExplosionRPC()
-    {
-        explode();
-    }
-
-    [Rpc(SendTo.Everyone)]
-    public void transmitExplosionRPC(float s)
-    {
-        explode(s);
-    }
-
-    [Rpc(SendTo.Everyone)]
-    public void transmitExplosionRPC(float s, Color c)
-    {
-        explode(s, c);
-    }
-
-    [Rpc(SendTo.Everyone)]
-    public void transmitExplosionRPC(float s, Color b, Color a)
-    {
-        explode(s, b, a);
     }
 }

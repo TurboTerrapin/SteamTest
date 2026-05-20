@@ -2,7 +2,7 @@
     EffectsHandler.cs
     - Handles various game effects
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 3/21/2026
+    Last Updated: 5/19/2026
 */
 
 using Unity.Netcode;
@@ -151,7 +151,7 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC();
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC();
         }
     }
 
@@ -165,7 +165,7 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC(size);
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC(size);
         }
     }
 
@@ -179,7 +179,7 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC(size, explosion_color);
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC(size, explosion_color);
         }
     }
 
@@ -193,7 +193,7 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC(size, base_color, accent_color);
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC(size, base_color, accent_color);
         }
     }
 }

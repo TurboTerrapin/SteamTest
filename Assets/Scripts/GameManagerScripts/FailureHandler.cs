@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Steamworks;
 using TMPro;
 using Unity.Netcode;
-using UnityEditor.SpeedTree.Importer;
 using UnityEngine;
 
 public class FailureHandler : NetworkBehaviour
@@ -23,9 +22,9 @@ public class FailureHandler : NetworkBehaviour
     public List<Light> selfLights;
     public GameObject blueLight;
     public GameObject normalShip;
-    public GameObject destroyedShip;
-    private Material[][] enabledShipMaterials = new Material[3][];
-    private Material[][] disabledShipMaterials = new Material[3][];
+    public GameObject failureShip;
+    private Material[][] enabledShipMaterials = new Material[4][];
+    private Material[][] disabledShipMaterials = new Material[4][];
 
     public TMP_Text[] playerNames;
     public TMP_Text[] playerVotes;
@@ -34,16 +33,16 @@ public class FailureHandler : NetworkBehaviour
     private bool quitButtonPressed = false;
     public TMP_Text notEnoughPlayersText;
 
-    // lobbyNames is a string table that could have 1-4 entries
+    // lobbyNames is a string list that could have 1-4 entries
     public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
     {
         GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
 
-        // display destroyed ship
+        // display fail ship
         bridge.SetActive(false);
         exteriorPoints.SetActive(false);
         normalShip.SetActive(false);
-        destroyedShip.SetActive(true);
+        failureShip.SetActive(true);
 
         // switch cameras
         localPlayer.GetComponent<CameraMove>().DeactivateCamera();
@@ -73,141 +72,23 @@ public class FailureHandler : NetworkBehaviour
         StartCoroutine(printReport(lobbyNames, lobbySteamIDs, scenario, msg));
     }
 
-    private void enableDestroyedShipLitElements(GameObject shipWhiteLights)
+    private void enablefailureShipLitElements(GameObject shipWhiteLights, GameObject shipRadar)
     {
         shipWhiteLights.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.lit_white;
+        shipRadar.GetComponent<MeshRenderer>().materials = enabledShipMaterials[3];
         for (int i = 0; i < 3; i++)
         {
-            destroyedShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = enabledShipMaterials[i];
+            failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = enabledShipMaterials[i];
         }
     }
 
-    private void disableDestroyedShipLitElements(GameObject shipWhiteLights)
+    private void disablefailureShipLitElements(GameObject shipWhiteLights, GameObject shipRadar)
     {
         shipWhiteLights.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.pure_black;
+        shipRadar.GetComponent<MeshRenderer>().materials = disabledShipMaterials[3];
         for (int i = 0; i < 3; i++)
         {
-            destroyedShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = disabledShipMaterials[i];
-        }
-    }
-
-    IEnumerator explosionAnimation()
-    {
-        StartCoroutine(chunkSeperation());
-        StartCoroutine(disableLights());
-        List<Transform> explosionsToTrigger = new List<Transform>();
-        foreach (Transform explosion in destroyedShip.transform.GetChild(3))
-        {
-            explosionsToTrigger.Add(explosion);
-        }
-        for (int i = 0; i < explosionsToTrigger.Count; i++)
-        {
-            int nextExplosion = UnityEngine.Random.Range(0, explosionsToTrigger.Count);
-            explosionsToTrigger[nextExplosion].GetComponent<Explosion>().explode(UnityEngine.Random.Range(20.0f, 25.0f));
-            explosionsToTrigger.RemoveAt(nextExplosion);
-            yield return new WaitForSeconds(0.15f);
-        }
-
-        yield return new WaitForSeconds(1.0f);
-    }
-
-    IEnumerator disableLights()
-    {
-        // disable ship features
-        destroyedShip.GetComponent<ShipExteriorFeatures>().ship_engine_circles.gameObject.SetActive(false);
-        GameObject shipWhiteLights = destroyedShip.GetComponent<ShipExteriorFeatures>().ship_white_lights;
-        Component.Destroy(destroyedShip.GetComponent<ShipExteriorFeatures>());
-
-        // cache materials for light changes
-        int[][] litElementIndices = new int[3][] { new int[] { 0, 6, 8, 9, 10, 13 }, new int[] { 0, 5, 8 }, new int[] { 2, 4, 7, 9 } };
-        for (int i = 0; i < 3; i++)
-        {
-            enabledShipMaterials[i] = destroyedShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials;
-            disabledShipMaterials[i] = destroyedShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials;
-            for (int x = 0; x < litElementIndices[i].Length; x++)
-            {
-                disabledShipMaterials[i][litElementIndices[i][x]] = ReferenceAssistor.Instance.pure_black;
-            }
-        }
-
-        for (int i = 0; i < 5; i++)
-        {
-            enableDestroyedShipLitElements(shipWhiteLights);
-            float animTime = 0.1f;
-            while (animTime > 0.0f)
-            {
-                animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
-                float whitePercentage = 1.0f - (animTime / 0.1f);
-                Color c = new Color(whitePercentage, whitePercentage, whitePercentage);
-                foreach (Light l in selfLights)
-                {
-                    l.color = c;
-                }
-                yield return null;
-            }
-            disableDestroyedShipLitElements(shipWhiteLights);
-            animTime = 0.1f;
-            while (animTime > 0.0f)
-            {
-                animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
-                float whitePercentage = animTime / 0.1f;
-                Color c = new Color(whitePercentage, whitePercentage, whitePercentage);
-                foreach (Light l in selfLights)
-                {
-                    l.color = c;
-                }
-                yield return null;
-            }
-        }
-
-        float anim_time = 2.0f;
-        while (anim_time > 0.0f)
-        {
-            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-
-            foreach (Transform light in blueLight.transform)
-            {
-                light.GetComponent<Light>().intensity = Mathf.Lerp(0.0f, 0.2f, anim_time / 2.0f);
-            }
-
-            Color c = new Color(0.0f, Mathf.Lerp(0.0f, 0.84f, anim_time / 2.0f), anim_time / 2.0f);
-            foreach (Light light in engineLights)
-            {
-                light.color = c;
-            }
-
-            yield return null;
-        }
-    }
-
-    IEnumerator chunkSeperation()
-    {
-        float anim_time = 5.0f;
-        AnimationCurve ac = AnimationCurve.EaseInOut(0.0f, 0.0f, 5.0f, 1.0f);
-        while (anim_time > 0.0f)
-        {
-            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-
-            float animation_percentage = ac.Evaluate(anim_time);
-            for (int i = 0; i < 3; i++)
-            {
-                destroyedShip.transform.GetChild(i).transform.localPosition = Vector3.Lerp(FINAL_SHIP_CHUNK_POSITIONS[i], Vector3.zero, animation_percentage);
-                destroyedShip.transform.GetChild(i).transform.localRotation = Quaternion.Lerp(FINAL_SHIP_CHUNK_ROTATIONS[i], new Quaternion(0.0f, 0.0f, 0.0f, 1.0f), animation_percentage);
-            }
-
-            yield return null;
-        }
-
-        float[] rotate_speeds = new float[] { -0.2f, -0.3f, -0.35f };
-        Vector3[] transform_adjustments = new Vector3[] { new Vector3(0.1f, 0.1f, 0.05f), new Vector3(-0.8f, -0.1f, -0.3f), new Vector3(0.8f, -0.1f, -0.3f) };
-        while (true)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                destroyedShip.transform.GetChild(i).Rotate(rotate_speeds[i] * 0.5f * Time.deltaTime, rotate_speeds[i] * Time.deltaTime, 0.0f);
-                destroyedShip.transform.GetChild(i).localPosition += (transform_adjustments[i] * Time.deltaTime);
-            }
-            yield return null;
+            failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = disabledShipMaterials[i];
         }
     }
 
@@ -423,5 +304,134 @@ public class FailureHandler : NetworkBehaviour
     private void playerStateChangeRPC(ulong plrSteamID, int newState)
     {
         handlePlayerStateChange(plrSteamID, newState);
+    }
+
+    // handles animation for when ship explodes on failure
+    IEnumerator explosionAnimation()
+    {
+        StartCoroutine(disableLights());
+        StartCoroutine(chunkSeperation());
+        List<Transform> explosionsToTrigger = new List<Transform>();
+        foreach (Transform explosion in failureShip.transform.GetChild(3))
+        {
+            explosionsToTrigger.Add(explosion);
+        }
+        for (int i = 0; i < explosionsToTrigger.Count; i++)
+        {
+            int nextExplosion = UnityEngine.Random.Range(0, explosionsToTrigger.Count);
+            explosionsToTrigger[nextExplosion].GetComponent<Explosion>().explode(UnityEngine.Random.Range(4.0f, 8.0f));
+            explosionsToTrigger.RemoveAt(nextExplosion);
+            yield return new WaitForSeconds(0.15f);
+        }
+        yield return new WaitForSeconds(1.0f);
+    }
+
+    // flickers lights then turns them off for good on failure ship model
+    IEnumerator disableLights()
+    {
+        // disable ship features
+        failureShip.GetComponent<ShipExteriorFeatures>().ship_engine_circles.gameObject.SetActive(false);
+        GameObject shipWhiteLights = failureShip.GetComponent<ShipExteriorFeatures>().ship_white_lights;
+        GameObject shipRadar = failureShip.GetComponent<ShipExteriorFeatures>().ship_radar_dish;
+        Component.Destroy(failureShip.GetComponent<ShipExteriorFeatures>());
+
+        // cache materials for light changes
+        int[][] litElementIndices = new int[3][] { new int[] { 0, 6, 8, 9, 10, 13 }, new int[] { 0, 5, 8 }, new int[] { 2, 4, 7, 9 } };
+        for (int i = 0; i < 3; i++)
+        {
+            enabledShipMaterials[i] = failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials;
+            disabledShipMaterials[i] = failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials;
+            for (int x = 0; x < litElementIndices[i].Length; x++)
+            {
+                disabledShipMaterials[i][litElementIndices[i][x]] = ReferenceAssistor.Instance.pure_black;
+            }
+        }
+        enabledShipMaterials[3] = shipRadar.GetComponent<MeshRenderer>().materials;
+        disabledShipMaterials[3] = shipRadar.GetComponent<MeshRenderer>().materials;
+        disabledShipMaterials[3][2] = ReferenceAssistor.Instance.pure_black;
+        disabledShipMaterials[3][3] = ReferenceAssistor.Instance.pure_black;
+
+        // flicker lights
+        for (int i = 0; i < 5; i++)
+        {
+            enablefailureShipLitElements(shipWhiteLights, shipRadar);
+            float animTime = 0.1f;
+            while (animTime > 0.0f)
+            {
+                animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
+                float whitePercentage = 1.0f - (animTime / 0.1f);
+                Color c = new Color(whitePercentage, whitePercentage, whitePercentage);
+                foreach (Light l in selfLights)
+                {
+                    l.color = c;
+                }
+                yield return null;
+            }
+            disablefailureShipLitElements(shipWhiteLights, shipRadar);
+            animTime = 0.1f;
+            while (animTime > 0.0f)
+            {
+                animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
+                float whitePercentage = animTime / 0.1f;
+                Color c = new Color(whitePercentage, whitePercentage, whitePercentage);
+                foreach (Light l in selfLights)
+                {
+                    l.color = c;
+                }
+                yield return null;
+            }
+        }
+
+        // dim engine lights and overall lighting
+        float dimTime = 2.0f;
+        while (dimTime > 0.0f)
+        {
+            dimTime = Mathf.Max(0.0f, dimTime - Time.deltaTime);
+
+            foreach (Transform light in blueLight.transform)
+            {
+                light.GetComponent<Light>().intensity = Mathf.Lerp(0.0f, 0.2f, dimTime / 2.0f);
+            }
+
+            Color c = new Color(0.0f, Mathf.Lerp(0.0f, 0.84f, dimTime / 2.0f), dimTime / 2.0f);
+            foreach (Light light in engineLights)
+            {
+                light.color = c;
+            }
+
+            yield return null;
+        }
+    }
+
+    // separates chip shunks of failure ship model as part of explosion animation
+    IEnumerator chunkSeperation()
+    {
+        float animTime = 8.0f;
+        AnimationCurve ac = AnimationCurve.EaseInOut(0.0f, 0.0f, 8.0f, 1.0f);
+        while (animTime > 0.0f)
+        {
+            animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
+
+            float animationPercentage = ac.Evaluate(animTime);
+            for (int i = 0; i < 3; i++)
+            {
+                failureShip.transform.GetChild(i).transform.localPosition = Vector3.Lerp(FINAL_SHIP_CHUNK_POSITIONS[i], Vector3.zero, animationPercentage);
+                failureShip.transform.GetChild(i).transform.localRotation = Quaternion.Lerp(FINAL_SHIP_CHUNK_ROTATIONS[i], new Quaternion(0.0f, 0.0f, 0.0f, 1.0f), animationPercentage);
+            }
+
+            yield return null;
+        }
+
+        float[] rotationSpeeds = new float[] { -0.2f, -0.3f, -0.35f };
+        Vector3[] transformAdjustments = new Vector3[] { new Vector3(0.1f, 0.1f, 0.05f), new Vector3(-0.8f, -0.1f, -0.3f), new Vector3(0.8f, -0.1f, -0.3f) };
+        while (true)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                failureShip.transform.GetChild(i).Rotate(rotationSpeeds[i] * 0.5f * Time.deltaTime, rotationSpeeds[i] * Time.deltaTime, 0.0f);
+                failureShip.transform.GetChild(i).localPosition += (transformAdjustments[i] * Time.deltaTime);
+            }
+            yield return null;
+        }
     }
 }
