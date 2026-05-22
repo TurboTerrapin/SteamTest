@@ -4,6 +4,7 @@ using Steamworks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class FailureHandler : NetworkBehaviour
 {
@@ -34,7 +35,7 @@ public class FailureHandler : NetworkBehaviour
     public TMP_Text notEnoughPlayersText;
 
     // lobbyNames is a string list that could have 1-4 entries
-    public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
+    public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg, bool caught)
     {
         GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
 
@@ -69,7 +70,7 @@ public class FailureHandler : NetworkBehaviour
         }
 
         // print report
-        StartCoroutine(printReport(lobbyNames, lobbySteamIDs, scenario, msg));
+        StartCoroutine(printReport(lobbyNames, lobbySteamIDs, scenario, msg, caught));
     }
 
     private void enablefailureShipLitElements(GameObject shipWhiteLights, GameObject shipRadar)
@@ -93,10 +94,21 @@ public class FailureHandler : NetworkBehaviour
     }
 
     // print star date and message (2-3 sentences)
-    IEnumerator printReport(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg)
+    IEnumerator printReport(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg, bool caught)
     {
+        // give a one-second delay
         yield return new WaitForSeconds(1.0f);
-        yield return StartCoroutine(explosionAnimation());
+
+        // play explosion animation if not caught, otherwise play caught animation
+        if (caught == false)
+        {
+            yield return StartCoroutine(explosionAnimation());
+        }
+        else
+        {
+            yield return StartCoroutine(caughtAnimation());
+        }
+
         // clear text before printing new text
         StarDateText.text = "";
         Report.text = "";
@@ -306,6 +318,22 @@ public class FailureHandler : NetworkBehaviour
         handlePlayerStateChange(plrSteamID, newState);
     }
 
+    // handles animation for when ship gets caught
+    IEnumerator caughtAnimation()
+    {
+        yield return StartCoroutine(disableLights());
+        for (int i = 0; i < 3; i++)
+        {
+            failureShip.transform.GetChild(i).GetComponent<Renderer>().renderingLayerMask = (uint)LayerMask.GetMask("Default");
+        }
+        failureShip.transform.GetChild(0).GetChild(1).GetComponent<Renderer>().renderingLayerMask = (uint)LayerMask.GetMask("Default");
+        foreach (Transform light in blueLight.transform)
+        {
+            light.GetComponent<Light>().intensity = 0.2f;
+        }
+        StartCoroutine(shuttleSwarm());
+    }
+
     // handles animation for when ship explodes on failure
     IEnumerator explosionAnimation()
     {
@@ -407,7 +435,8 @@ public class FailureHandler : NetworkBehaviour
     IEnumerator chunkSeperation()
     {
         float animTime = 8.0f;
-        AnimationCurve ac = AnimationCurve.EaseInOut(0.0f, 0.0f, 8.0f, 1.0f);
+        AnimationCurve ac = AnimationCurve.Linear(0.0f, 0.0f, 8.0f, 1.0f);
+
         while (animTime > 0.0f)
         {
             animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
@@ -431,6 +460,39 @@ public class FailureHandler : NetworkBehaviour
                 failureShip.transform.GetChild(i).Rotate(rotationSpeeds[i] * 0.5f * Time.deltaTime, rotationSpeeds[i] * Time.deltaTime, 0.0f);
                 failureShip.transform.GetChild(i).localPosition += (transformAdjustments[i] * Time.deltaTime);
             }
+            yield return null;
+        }
+    }
+
+    // flies in the three shuttles after capture
+    IEnumerator shuttleSwarm()
+    {
+        Vector3[] startingShuttlePositions = new Vector3[3];
+        Quaternion[] startingShuttleRotations = new Quaternion[3];
+        Vector3[] finalShuttlePositions = new Vector3[3] { new Vector3(5.8f, -88.9f, 26.7f), new Vector3(76.1f, -87.4f, -7.3f), new Vector3(58.5f, 38.8f, 36.8f) };
+        Quaternion[] finalShuttleRotations = new Quaternion[3] { new Quaternion(0.08159f, 0.071f, 0.9215f, 0.3728f), new Quaternion(-0.0308f, 0.12f, 0.9009f, -0.4158f), new Quaternion(0.1093f, 0.1159f, -0.0321f, 0.9866f) };
+
+        failureShip.transform.GetChild(4).gameObject.SetActive(true);
+        for (int i = 0; i < 3; i++)
+        {
+            startingShuttlePositions[i] = failureShip.transform.GetChild(4).GetChild(i).localPosition;
+            startingShuttleRotations[i] = failureShip.transform.GetChild(4).GetChild(i).localRotation;
+        }
+
+        float animTime = 3.0f;
+        AnimationCurve ac = AnimationCurve.EaseInOut(0.0f, 0.0f, 3.0f, 1.0f);
+        
+        while (animTime > 0.0f)
+        {
+            animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
+
+            float animationPercentage = ac.Evaluate(animTime);
+            for (int i = 0; i < 3; i++)
+            {
+                failureShip.transform.GetChild(4).GetChild(i).localPosition = Vector3.Lerp(finalShuttlePositions[i], startingShuttlePositions[i], animationPercentage);
+                failureShip.transform.GetChild(4).GetChild(i).localRotation = Quaternion.Lerp(finalShuttleRotations[i], startingShuttleRotations[i], animationPercentage);
+            }
+
             yield return null;
         }
     }

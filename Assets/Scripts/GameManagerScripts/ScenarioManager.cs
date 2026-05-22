@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott, Henryk Musial
-    Last Updated: 5/15/2026
+    Last Updated: 5/22/2026
 */
 
 using System.Collections;
@@ -492,7 +492,7 @@ public class ScenarioManager : NetworkBehaviour
         //turn off power
         ReferenceAssistor.Instance.power_manager.totalShutdown(false);
 
-        handleFailureRPC(scenario_number, failure_report_message);
+        handleFailureRPC(scenario_number, failure_report_message, (reason == EndCondition.TimeRanOut || reason == EndCondition.LeftBoundary));
     }
 
     //ensures every player has the same entrance/exit path locations and rotations
@@ -590,7 +590,7 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void handleFailureRPC(int sn, string frm)
+    private void handleFailureRPC(int scenario_number, string failure_message, bool caught)
     {
         //mute audio
         GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
@@ -599,7 +599,7 @@ public class ScenarioManager : NetworkBehaviour
         PrimaryScript.Instance.deactivate(false, true);
 
         //display death screen using scenario number sn and death message frm
-        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), sn, frm);
+        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), scenario_number, failure_message, caught);
     }
 
     //used to update the boundary expiration timer in engineer position
