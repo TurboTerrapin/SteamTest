@@ -13,6 +13,7 @@ public class ShuttleExteriorFeatures : MonoBehaviour
     //CLASS CONSTANTS
     private static float FEATURE_ROTATION_SPEED = 45.0f;
     private static float LIGHT_BLINK_DELAY = 0.2f;
+    private static float SPOTLIGHT_INTENSITY = 10000.0f;
 
     [SerializeField]
     private bool enable_cosmetic_features = true;
@@ -20,6 +21,7 @@ public class ShuttleExteriorFeatures : MonoBehaviour
     public GameObject shuttle_engine_circles;
     public GameObject shuttle_radar_dish;
     public GameObject shuttle_white_lights;
+    public Light spotlight;
     public Material lit_white;
     public Material black;
 
@@ -37,6 +39,11 @@ public class ShuttleExteriorFeatures : MonoBehaviour
             StartCoroutine(lightBlinker());
             StartCoroutine(rotator());
         }
+    }
+
+    public void activateSpotlight(float time_to_activate)
+    {
+        StartCoroutine(spotlightActivator(time_to_activate));
     }
 
     IEnumerator rotator()
@@ -64,6 +71,19 @@ public class ShuttleExteriorFeatures : MonoBehaviour
             yield return new WaitForSeconds(LIGHT_BLINK_DELAY);
             shuttle_radar_dish.GetComponent<Renderer>().materials = emergency_light_blue_materials;
             yield return new WaitForSeconds(LIGHT_BLINK_DELAY);
+        }
+    }
+
+    IEnumerator spotlightActivator(float activation_time)
+    {
+        float anim_time = activation_time;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            spotlight.intensity = Mathf.Lerp(SPOTLIGHT_INTENSITY, 0.0f, anim_time / activation_time);
+
+            yield return null;
         }
     }
 }

@@ -467,27 +467,28 @@ public class FailureHandler : NetworkBehaviour
     // flies in the three shuttles after capture
     IEnumerator shuttleSwarm()
     {
-        Vector3[] startingShuttlePositions = new Vector3[3];
-        Quaternion[] startingShuttleRotations = new Quaternion[3];
-        Vector3[] finalShuttlePositions = new Vector3[3] { new Vector3(5.8f, -88.9f, 26.7f), new Vector3(76.1f, -87.4f, -7.3f), new Vector3(58.5f, 38.8f, 36.8f) };
-        Quaternion[] finalShuttleRotations = new Quaternion[3] { new Quaternion(0.08159f, 0.071f, 0.9215f, 0.3728f), new Quaternion(-0.0308f, 0.12f, 0.9009f, -0.4158f), new Quaternion(0.1093f, 0.1159f, -0.0321f, 0.9866f) };
+        Vector3[] startingShuttlePositions = new Vector3[4];
+        Quaternion[] startingShuttleRotations = new Quaternion[4];
+        Vector3[] finalShuttlePositions = new Vector3[4] { new Vector3(5.8f, -88.9f, 26.7f), new Vector3(76.1f, -87.4f, -7.3f), new Vector3(58.5f, 38.8f, 36.8f), new Vector3(91.4f, 3.4f, -20.3f) };
+        Quaternion[] finalShuttleRotations = new Quaternion[4] { new Quaternion(0.08159f, 0.071f, 0.9215f, 0.3728f), new Quaternion(-0.0308f, 0.12f, 0.9009f, -0.4158f), new Quaternion(0.1093f, 0.1159f, -0.0321f, 0.9866f), new Quaternion(-0.1001f, -0.0365f, -0.3044f, 0.9465f) };
 
         failureShip.transform.GetChild(4).gameObject.SetActive(true);
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             startingShuttlePositions[i] = failureShip.transform.GetChild(4).GetChild(i).localPosition;
             startingShuttleRotations[i] = failureShip.transform.GetChild(4).GetChild(i).localRotation;
+            failureShip.transform.GetChild(4).GetChild(i).GetComponent<ShuttleExteriorFeatures>().activateSpotlight(2.0f);
         }
 
-        float animTime = 3.0f;
-        AnimationCurve ac = AnimationCurve.EaseInOut(0.0f, 0.0f, 3.0f, 1.0f);
+        float animTime = 10.0f;
+        AnimationCurve ac = AnimationCurve.EaseInOut(0.0f, 0.0f, 10.0f, 1.0f);
         
         while (animTime > 0.0f)
         {
             animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
 
             float animationPercentage = ac.Evaluate(animTime);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 failureShip.transform.GetChild(4).GetChild(i).localPosition = Vector3.Lerp(finalShuttlePositions[i], startingShuttlePositions[i], animationPercentage);
                 failureShip.transform.GetChild(4).GetChild(i).localRotation = Quaternion.Lerp(finalShuttleRotations[i], startingShuttleRotations[i], animationPercentage);
