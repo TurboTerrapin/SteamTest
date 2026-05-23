@@ -1,7 +1,7 @@
 /*
     Torpedo.cs
     - Handles torpedo movement and heatseeking
-    - Manages collision and stats based on type
+    - Manages stats based on type
     Contributor(s): Henryk Musial, Jake Schott
     Last Updated: 3/25/2026
 */
@@ -30,6 +30,7 @@ public class Torpedo : NetworkBehaviour
     private static float BASE_LIFETIME = 100.0f;
     private static float NAVIGATION_CONSTANT = 4.0f;
     private static float TRACKING_DELAY = 0.25f; // Time in seconds before tracking begins
+    private static float MIN_HIT_DISTANCE = 5.0f; // Distance threshold to trigger damage
 
     [Header("TorpedoSettings")]
     [SerializeField]
@@ -152,6 +153,33 @@ public class Torpedo : NetworkBehaviour
 
         alive_time += Time.deltaTime;
 
+        // Check if we've hit the target via distance check
+        if (current_target != null)
+        {
+            float distance_to_target = Vector3.Distance(transform.position, current_target.position);
+            if (distance_to_target < MIN_HIT_DISTANCE)
+            {
+                // Hit detected - apply damage and destroy
+                applyDamageEffect(current_target.gameObject);
+
+                // Create the explosion
+                EffectsHandler effects_handler = ReferenceAssistor.Instance.effects_handler;
+                effects_handler.createExplosion(transform.position, 4.0f, GetComponent<MapItem>().getColor());
+
+                // Safely despawn and destroy across the network
+                NetworkObject net_obj = GetComponent<NetworkObject>();
+                if (net_obj != null && net_obj.IsSpawned)
+                {
+                    net_obj.Despawn(true); // 'true' tells the server to also Destroy the GameObject
+                }
+                else
+                {
+                    Destroy(gameObject); // Fallback just in case
+                }
+                return;
+            }
+        }
+
         // Default desire is to keep drifting in our current direction
         Vector3 desired_velocity = current_velocity;
 
@@ -202,39 +230,6 @@ public class Torpedo : NetworkBehaviour
         transform.position += current_velocity * Time.deltaTime;
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            return;
-        }
-
-        // Basic hit logic - would integrate with a Health/Shield script here
-        if (((1 << other.gameObject.layer) & target_layer) != 0)
-        {
-            if (target_tag == "" || other.CompareTag(target_tag))
-            {
-                // Damage the target
-                applyDamageEffect(other.gameObject);
-
-                // Create the explosion
-                EffectsHandler effects_handler = ReferenceAssistor.Instance.effects_handler;
-                effects_handler.createExplosion(transform.position, 4.0f, GetComponent<MapItem>().getColor());
-
-                // Safely despawn and destroy across the network
-                NetworkObject net_obj = GetComponent<NetworkObject>();
-                if (net_obj != null && net_obj.IsSpawned)
-                {
-                    net_obj.Despawn(true); // 'true' tells the server to also Destroy the GameObject
-                }
-                else
-                {
-                    Destroy(gameObject); // Fallback just in case
-                }
-            }
-        }
-    }
-
     private void applyDamageEffect(GameObject hit_obj)
     {
         // Placeholder for damage application based on Type
@@ -264,7 +259,7 @@ public class Torpedo : NetworkBehaviour
         IDamageable[] damage_targets = hit_obj.GetComponents<IDamageable>();
         foreach (IDamageable damage_target in damage_targets)
         {
-            damage_target.damage(BASE_DAMAGE);
+            damage_target.damage(damage);
         }
     }
 }

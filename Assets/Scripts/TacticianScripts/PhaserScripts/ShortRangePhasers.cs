@@ -33,7 +33,8 @@ public class ShortRangePhasers : MonoBehaviour
     private const float SHORT_RANGE_BEAM_LENGTH = 250f;
     private const string EMISSION_COLOR = "_EmissionColor";
 
-    private float burstCycleTime;
+    private float burstCycleTime = 0f; // Shared cycle time - all phasers sync to this
+    private bool[] readyToFire = new bool[2]; // Track if beam has completed at least one full cycle
     private bool wasFiringLastFrame;
 
     // beam states (index 0 = left, 1 = right)
@@ -75,6 +76,9 @@ public class ShortRangePhasers : MonoBehaviour
         currentDirs[0] = shortRangePhaserLeftOrigin.transform.forward;
         currentDirs[1] = shortRangePhaserRightOrigin.transform.forward;
 
+        readyToFire[0] = false;
+        readyToFire[1] = false;
+
         enabled = false;
     }
 
@@ -87,6 +91,8 @@ public class ShortRangePhasers : MonoBehaviour
 
         if (active && !wasActive)
         {
+            // Beam is being turned on - it's NOT ready to fire yet
+            readyToFire[beamIndex] = false;
             nextScanTime = 0f;
         }
         else if (!active)
@@ -95,6 +101,7 @@ public class ShortRangePhasers : MonoBehaviour
             cachedDamageables[beamIndex] = null;
             burstTargets[beamIndex] = null;
             burstDamageables[beamIndex] = null;
+            readyToFire[beamIndex] = false;
         }
 
         if (beamActive[0] || beamActive[1])
@@ -131,6 +138,8 @@ public class ShortRangePhasers : MonoBehaviour
             burstTargets[0] = burstTargets[1] = null;
             burstDamageables[0] = burstDamageables[1] = null;
             nextScanTime = 0f;
+            readyToFire[0] = false;
+            readyToFire[1] = false;
 
             updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, 0, false);
             updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, 1, false);
@@ -147,12 +156,18 @@ public class ShortRangePhasers : MonoBehaviour
 
     private void updateShortRangePhasers(float dt)
     {
-        // Advance burst cycle
-        burstCycleTime += dt;
         float cycleLength = currentBurstCycleLength();
+
+        // Advance shared burst cycle
+        burstCycleTime += dt;
         if (burstCycleTime >= cycleLength)
         {
             burstCycleTime -= cycleLength;
+            // A new cycle has just started - mark all active beams as ready to fire
+            if (beamActive[0])
+                readyToFire[0] = true;
+            if (beamActive[1])
+                readyToFire[1] = true;
         }
 
         bool firing = isFiring();
@@ -165,11 +180,12 @@ public class ShortRangePhasers : MonoBehaviour
             nextScanTime = Time.time + SRTargetScanInterval;
         }
 
+        // Handle burst starts - only fire if beam is active, ready to fire, AND we're in the firing phase
         if (burstJustStarted)
         {
             for (int i = 0; i < 2; i++)
             {
-                if (!beamActive[i])
+                if (!beamActive[i] || !readyToFire[i])
                 {
                     burstTargets[i] = null;
                     burstDamageables[i] = null;
@@ -198,15 +214,16 @@ public class ShortRangePhasers : MonoBehaviour
         updateBeamAim(0, shortRangePhaserLeftOrigin, dt, firing);
         updateBeamAim(1, shortRangePhaserRightOrigin, dt, firing);
 
-        updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, 0, beamActive[0] && firing);
-        updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, 1, beamActive[1] && firing);
+        // Only show beam if active, ready to fire, and we're in firing phase
+        updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, 0, beamActive[0] && readyToFire[0] && firing);
+        updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, 1, beamActive[1] && readyToFire[1] && firing);
 
         // Damage during firing 
         if (firing)
         {
             for (int i = 0; i < 2; i++)
             {
-                if (beamActive[i] && burstDamageables[i] != null && burstTargets[i] != null)
+                if (beamActive[i] && readyToFire[i] && burstDamageables[i] != null && burstTargets[i] != null)
                 {
                     burstDamageables[i].damage(SRDamagePerSecond * dt);
                 }
@@ -218,7 +235,7 @@ public class ShortRangePhasers : MonoBehaviour
 
     private void updateBeamAim(int index, GameObject origin, float dt, bool firing)
     {
-        if (!beamActive[index])
+        if (!beamActive[index] || !readyToFire[index])
         {
             currentDirs[index] = origin.transform.forward;
             return;
