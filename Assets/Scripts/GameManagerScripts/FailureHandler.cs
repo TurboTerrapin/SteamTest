@@ -321,7 +321,7 @@ public class FailureHandler : NetworkBehaviour
     // handles animation for when ship gets caught
     IEnumerator caughtAnimation()
     {
-        yield return StartCoroutine(disableLights());
+        yield return StartCoroutine(disableLights(2));
         for (int i = 0; i < 3; i++)
         {
             failureShip.transform.GetChild(i).GetComponent<Renderer>().renderingLayerMask = (uint)LayerMask.GetMask("Default");
@@ -337,7 +337,7 @@ public class FailureHandler : NetworkBehaviour
     // handles animation for when ship explodes on failure
     IEnumerator explosionAnimation()
     {
-        StartCoroutine(disableLights());
+        StartCoroutine(disableLights(5));
         StartCoroutine(chunkSeperation());
         List<Transform> explosionsToTrigger = new List<Transform>();
         foreach (Transform explosion in failureShip.transform.GetChild(3))
@@ -355,7 +355,7 @@ public class FailureHandler : NetworkBehaviour
     }
 
     // flickers lights then turns them off for good on failure ship model
-    IEnumerator disableLights()
+    IEnumerator disableLights(int flickers)
     {
         // disable ship features
         failureShip.GetComponent<ShipExteriorFeatures>().ship_engine_circles.gameObject.SetActive(false);
@@ -380,7 +380,7 @@ public class FailureHandler : NetworkBehaviour
         disabledShipMaterials[3][3] = ReferenceAssistor.Instance.pure_black;
 
         // flicker lights
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < flickers; i++)
         {
             enablefailureShipLitElements(shipWhiteLights, shipRadar);
             float animTime = 0.1f;
@@ -437,6 +437,7 @@ public class FailureHandler : NetworkBehaviour
         float animTime = 8.0f;
         AnimationCurve ac = AnimationCurve.Linear(0.0f, 0.0f, 8.0f, 1.0f);
 
+        // animation the ship initially separating
         while (animTime > 0.0f)
         {
             animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
@@ -451,6 +452,7 @@ public class FailureHandler : NetworkBehaviour
             yield return null;
         }
 
+        // push the ship parts away in perpetuity
         float[] rotationSpeeds = new float[] { -0.2f, -0.3f, -0.35f };
         Vector3[] transformAdjustments = new Vector3[] { new Vector3(0.1f, 0.1f, 0.05f), new Vector3(-0.8f, -0.1f, -0.3f), new Vector3(0.8f, -0.1f, -0.3f) };
         while (true)
@@ -467,6 +469,7 @@ public class FailureHandler : NetworkBehaviour
     // flies in the three shuttles after capture
     IEnumerator shuttleSwarm()
     {
+        // initialize shuttle transform adjustment information
         Vector3[] startingShuttlePositions = new Vector3[4];
         Quaternion[] startingShuttleRotations = new Quaternion[4];
         Vector3[] finalShuttlePositions = new Vector3[4] { new Vector3(5.8f, -88.9f, 26.7f), new Vector3(76.1f, -87.4f, -7.3f), new Vector3(58.5f, 38.8f, 36.8f), new Vector3(91.4f, 3.4f, -20.3f) };
@@ -480,18 +483,29 @@ public class FailureHandler : NetworkBehaviour
             failureShip.transform.GetChild(4).GetChild(i).GetComponent<ShuttleExteriorFeatures>().activateSpotlight(2.0f);
         }
 
-        float animTime = 10.0f;
-        AnimationCurve ac = AnimationCurve.EaseInOut(0.0f, 0.0f, 10.0f, 1.0f);
-        
-        while (animTime > 0.0f)
+        // randomize the shuttle arrival times
+        List<float> possibleLengths = new List<float>() { 10.0f, 8.0f, 6.0f, 5.0f };
+        float maxTime = possibleLengths[0];
+        float[] animationLengths = new float[4];
+        AnimationCurve[] animationCurves = new AnimationCurve[4];
+        for (int i = 0; i < 4; i++)
         {
-            animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
+            animationLengths[i] = possibleLengths[Random.Range(0, possibleLengths.Count)];
+            possibleLengths.Remove(animationLengths[i]);
+            animationCurves[i] = AnimationCurve.EaseInOut(0.0f, 0.0f, animationLengths[i], 1.0f);
+        }
 
-            float animationPercentage = ac.Evaluate(animTime);
+        // animate the shuttles
+        float animTime = 0.0f;
+        while (animTime < maxTime)
+        {
+            animTime = Mathf.Min(maxTime, animTime + Time.deltaTime);
+
             for (int i = 0; i < 4; i++)
             {
-                failureShip.transform.GetChild(4).GetChild(i).localPosition = Vector3.Lerp(finalShuttlePositions[i], startingShuttlePositions[i], animationPercentage);
-                failureShip.transform.GetChild(4).GetChild(i).localRotation = Quaternion.Lerp(finalShuttleRotations[i], startingShuttleRotations[i], animationPercentage);
+                float animationPercentage = animationCurves[i].Evaluate(Mathf.Min(animationLengths[i], animTime));
+                failureShip.transform.GetChild(4).GetChild(i).localPosition = Vector3.Lerp(startingShuttlePositions[i], finalShuttlePositions[i], animationPercentage);
+                failureShip.transform.GetChild(4).GetChild(i).localRotation = Quaternion.Lerp(startingShuttleRotations[i], finalShuttleRotations[i], animationPercentage);
             }
 
             yield return null;
