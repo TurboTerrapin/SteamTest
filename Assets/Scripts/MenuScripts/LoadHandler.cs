@@ -219,9 +219,15 @@ public class LoadHandler : MonoBehaviour
         }
         else if (SceneManager.GetActiveScene().name != "TitleScreen") //currently playing in an active session
         {
+            if (ReferenceAssistor.Instance != null && ReferenceAssistor.Instance.failure_handler.failureCamera.activeSelf == true)
+            {
+                //if in failure state let the failure handler know then do nothing after
+                ReferenceAssistor.Instance.failure_handler.handleLobbyChange(true);
+                yield break;
+            }
             PrimaryScript.Instance.unpause(); //forces unpause
             PrimaryScript.Instance.deactivate(false, true); //stops control interaction
-            GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio(); //mute SFX
+            ReferenceAssistor.Instance.audio_manager.GetComponent<AudioManager>().MuteAudio(); //mute SFX
             dummy_camera.SetActive(true);
         }
         hideTitleAndMainMenuElements();
@@ -294,17 +300,22 @@ public class LoadHandler : MonoBehaviour
     IEnumerator connectingLoop()
     {
         TMP_Text connecting_text = connecting_box.transform.GetChild(1).GetComponent<TMP_Text>();
-        while (true)
+        float elapsed_time = 0.0f;
+        while (elapsed_time < GameNetworkManager.CONNECTION_TIMEOUT_PERIOD)
         {
+            elapsed_time += Time.deltaTime;
             string elipse = "";
             for (int i = 0; i < 4; i++)
             {
                 connecting_text.SetText("CONNECTING" + elipse);
                 yield return new WaitForSeconds(0.25f);
+                elapsed_time += 0.25f;
                 elipse += ".";
             }
             yield return null;
         }
+        GameNetworkManager.Instance.Disconnect();
+        displayLostConnection("Connection timeout");
     }
 
     //default loading loop
@@ -352,7 +363,7 @@ public class LoadHandler : MonoBehaviour
             yield return null;
         }
         load_operation = null;
-        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().addPlayer(player_prefab, this);
+        ReferenceAssistor.Instance.player_manager.addPlayer(player_prefab, this);
 
         //wait until PlayerManager interrupts load screen using endLoad()
         while (true)
@@ -365,7 +376,7 @@ public class LoadHandler : MonoBehaviour
     //called whenever the client loads into a scenario 
     IEnumerator loadScenarioTransition()
     {
-        PlayerManager player_manager = GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>();
+        ReferenceAssistor.Instance.player_manager.GetComponent<PlayerManager>();
         GameObject transition_canvas = GameObject.Find("ScenarioTransitioner").GetComponent<TransitionHandler>().TransitionCanvas;
         bool scenario_loaded = false;
         bool switched_to_load_screen = false;
@@ -376,7 +387,7 @@ public class LoadHandler : MonoBehaviour
                 if (load_operation != null && load_operation.isDone == true)
                 {
                     //tell PlayerManager that the new scenario is loaded
-                    player_manager.signifyScenarioLoaded();
+                    ReferenceAssistor.Instance.player_manager.signifyScenarioLoaded();
                     scenario_loaded = true;
                     load_operation = null;
                 }

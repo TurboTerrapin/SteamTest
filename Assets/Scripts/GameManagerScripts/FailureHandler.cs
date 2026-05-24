@@ -4,12 +4,12 @@ using Steamworks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class FailureHandler : NetworkBehaviour
 {
     private static Vector3[] FINAL_SHIP_CHUNK_POSITIONS = new Vector3[] {new Vector3(1.3f, -1.9f, -0.5f), new Vector3(-5.1f, 5.1f, -5.6f), new Vector3(6.9f, 3.8f, -3.5f)};
     private static Quaternion[] FINAL_SHIP_CHUNK_ROTATIONS = new Quaternion[] {new Quaternion(-0.032f, -0.028f, -0.0103f, 0.999f), new Quaternion(-0.031f, 0.033f, 0.034f, 0.998f), new Quaternion(-0.003f, -0.027f, -0.024f, 0.999f)};
+    private static int MINIMUM_PLAYERS_TO_RESTART = 1;
 
     public TMP_Text StarDateText;
     public TMP_Text Report;
@@ -29,15 +29,15 @@ public class FailureHandler : NetworkBehaviour
 
     public TMP_Text[] playerNames;
     public TMP_Text[] playerVotes;
+    public TMP_Text notEnoughPlayersText;
     private List<ulong> playerSteamIDs = new List<ulong>();
     private List<int> playerStates = new List<int>();
-    private bool quitButtonPressed = false;
-    public TMP_Text notEnoughPlayersText;
+    private bool hostDisconnected = false;
 
     // lobbyNames is a string list that could have 1-4 entries
     public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg, bool caught)
     {
-        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
+        GameObject localPlayer = ReferenceAssistor.Instance.player_manager.getLocalPlayer();
 
         // display fail ship
         bridge.SetActive(false);
@@ -50,11 +50,11 @@ public class FailureHandler : NetworkBehaviour
         failureCamera.SetActive(true);
 
         // freeze players
-        GameObject.Find("PlayerManager").GetComponent<PlayerManager>().freezeAllPlayers();
+        ReferenceAssistor.Instance.player_manager.freezeAllPlayers();
         // reset/freeze camera
-        localPlayer.transform.GetComponent<CameraMove>().ResetCamera();
+        localPlayer.GetComponent<CameraMove>().ResetCamera();
         // reset/freeze player
-        localPlayer.transform.GetComponent<PlayerMove>().ResetPlayerMove();
+        localPlayer.GetComponent<PlayerMove>().ResetPlayerMove();
 
         // show UI
         FailureHandlerCanvas.SetActive(true);
@@ -73,27 +73,7 @@ public class FailureHandler : NetworkBehaviour
         StartCoroutine(printReport(lobbyNames, lobbySteamIDs, scenario, msg, caught));
     }
 
-    private void enablefailureShipLitElements(GameObject shipWhiteLights, GameObject shipRadar)
-    {
-        shipWhiteLights.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.lit_white;
-        shipRadar.GetComponent<MeshRenderer>().materials = enabledShipMaterials[3];
-        for (int i = 0; i < 3; i++)
-        {
-            failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = enabledShipMaterials[i];
-        }
-    }
-
-    private void disablefailureShipLitElements(GameObject shipWhiteLights, GameObject shipRadar)
-    {
-        shipWhiteLights.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.pure_black;
-        shipRadar.GetComponent<MeshRenderer>().materials = disabledShipMaterials[3];
-        for (int i = 0; i < 3; i++)
-        {
-            failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = disabledShipMaterials[i];
-        }
-    }
-
-    // print star date and message (2-3 sentences)
+    // play animation then print star date and message (2-3 sentences)
     IEnumerator printReport(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg, bool caught)
     {
         // give a one-second delay
@@ -209,10 +189,10 @@ public class FailureHandler : NetworkBehaviour
             return;
         }
 
-        // Store new state for player
+        // store new state for player
         playerStates[playerSteamIDs.IndexOf(plrSteamID)] = state;
 
-        // Update text for specific player based on their state
+        // update text for specific player based on their state
         switch (state)
         {
             case 0:
@@ -228,9 +208,12 @@ public class FailureHandler : NetworkBehaviour
                 playerVotes[plrIndex].color = Color.red;
 
                 // on first player who quits, display "not enough players" and fade restart button
-                if (quitButtonPressed == false)
+                if (hostDisconnected == true || NetworkManager.Singleton.ConnectedClients.Count < MINIMUM_PLAYERS_TO_RESTART)
                 {
-                    quitButtonPressed = true;
+                    if (hostDisconnected == true)
+                    {
+                        notEnoughPlayersText.SetText("HOST DISCONNECTED");
+                    }
                     StartCoroutine(FadeText(notEnoughPlayersText, 1f, 0.5f));
                     StartCoroutine(fadeGroup(restartGroup, 0.3f, 0.5f));
                     restartGroup.interactable = false;
@@ -251,8 +234,8 @@ public class FailureHandler : NetworkBehaviour
                 }
             }
 
-            // if enough votes, restart game
-            if (restartVotes >= NetworkManager.Singleton.ConnectedClients.Count)
+            // if everyone in lobby says yes, restart game
+            if (restartVotes >= NetworkManager.Singleton.ConnectedClients.Count && restartVotes >= MINIMUM_PLAYERS_TO_RESTART)
             {
                 restartGameRPC();
             }
@@ -279,12 +262,6 @@ public class FailureHandler : NetworkBehaviour
 
     public void handleQuitButtonClick()
     {
-        // to avoid error
-        if (GameNetworkManager.Instance.currentLobby != null && NetworkManager.Singleton != null)
-        {
-            // change player state to 2 - "Left Lobby"
-            playerStateChangeRPC(SteamClient.SteamId, 2);
-        }
         PlayerManager.leaveGame();
     }
 
@@ -294,7 +271,39 @@ public class FailureHandler : NetworkBehaviour
         if (GameNetworkManager.Instance.currentLobby != null && NetworkManager.Singleton != null)
         {
             // change player state to 1 - "Ready"
-            playerStateChangeRPC(SteamClient.SteamId, 1);
+            playerVoteRestartRPC(SteamClient.SteamId);
+        }
+    }
+
+    // called when there is a change to the lobby
+    public void handleLobbyChange(bool hostDisconnect)
+    {
+        if (hostDisconnected == false)
+        {
+            if (hostDisconnect == true)
+            {
+                hostDisconnected = true;
+                handlePlayerStateChange(playerSteamIDs[0], 2);
+                return;
+            }
+        }
+
+        GameObject lobbyHandler = GameObject.Find("LobbyHandler");
+        if (lobbyHandler == null)
+        {
+            return;
+        }
+        List<ulong> steamIDsConnected = lobbyHandler.GetComponent<LobbyHandler>().getPlayerSteamIDsInLobby();
+        for (int i = 0; i < playerSteamIDs.Count; i++)
+        {
+            if (steamIDsConnected.Contains(playerSteamIDs[i]) == false && playerStates[i] != 2)
+            {
+                if (i == 0)
+                {
+                    hostDisconnected = true;
+                }
+                handlePlayerStateChange(playerSteamIDs[i], 2);
+            }
         }
     }
 
@@ -303,19 +312,39 @@ public class FailureHandler : NetworkBehaviour
     {
         // destroys everything except NetworkManager
         PlayerManager.clearDontDestroyOnLoads();
-        // begin loading
+        // begin loading animation
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
         // if host, finish reset of BridgeEnvironment to start the loop from the start
-        if (NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton.IsHost == true)
         {
             SceneSwapper.Instance.ChangeScene("BridgeEnvironment", 0);
         }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void playerStateChangeRPC(ulong plrSteamID, int newState)
+    private void playerVoteRestartRPC(ulong plrSteamID)
     {
-        handlePlayerStateChange(plrSteamID, newState);
+        handlePlayerStateChange(plrSteamID, 1);
+    }
+
+    private void enablefailureShipLitElements(GameObject shipWhiteLights, GameObject shipRadar)
+    {
+        shipWhiteLights.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.lit_white;
+        shipRadar.GetComponent<MeshRenderer>().materials = enabledShipMaterials[3];
+        for (int i = 0; i < 3; i++)
+        {
+            failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = enabledShipMaterials[i];
+        }
+    }
+
+    private void disablefailureShipLitElements(GameObject shipWhiteLights, GameObject shipRadar)
+    {
+        shipWhiteLights.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.pure_black;
+        shipRadar.GetComponent<MeshRenderer>().materials = disabledShipMaterials[3];
+        for (int i = 0; i < 3; i++)
+        {
+            failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials = disabledShipMaterials[i];
+        }
     }
 
     // handles animation for when ship gets caught
@@ -466,7 +495,7 @@ public class FailureHandler : NetworkBehaviour
         }
     }
 
-    // flies in the three shuttles after capture
+    // flies in the four shuttles after capture
     IEnumerator shuttleSwarm()
     {
         // initialize shuttle transform adjustment information

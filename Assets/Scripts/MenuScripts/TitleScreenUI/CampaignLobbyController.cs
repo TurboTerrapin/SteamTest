@@ -137,7 +137,7 @@ public class CampaignLobbyController : MonoBehaviour
         }
 
         //Activate/deactive engage button
-        if (NetworkManager.Singleton.IsHost == true && GameNetworkManager.Instance.currentLobby.Value.MemberCount == NetworkManager.Singleton.ConnectedClientsIds.Count)
+        if (NetworkManager.Singleton.IsHost == true && LobbyHandler.getPlayerNamesInLobby().Count == NetworkManager.Singleton.ConnectedClientsIds.Count)
         {
             ActivateEngageButton();
             ActivateDifficultyGroup();
@@ -212,17 +212,7 @@ public class CampaignLobbyController : MonoBehaviour
     {
         //Do not listen for future updates to the lobby
         SteamFriends.OnPersonaStateChange -= OnFriendChange();
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            GameNetworkManager.Instance.Disconnect();
-        }
-        else
-        {
-            if (NetworkManager.Singleton.ConnectedClientsIds.Count > 1 || (GameNetworkManager.Instance.currentLobby.HasValue == true && GameNetworkManager.Instance.currentLobby.Value.MemberCount > 1))
-            {
-                GameNetworkManager.Instance.Disconnect();
-            }
-        }
+        GameNetworkManager.Instance.Disconnect();
         SwitchTo(CampaignOptions);
     }
 

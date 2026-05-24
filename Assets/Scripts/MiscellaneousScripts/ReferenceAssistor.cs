@@ -2,7 +2,7 @@
     ReferenceAssistor.cs
     - Used to streamline referencing for certain commonly-used things
     Contributor(s): Jake Schott
-    Last Updated: 5/19/2026
+    Last Updated: 5/23/2026
 */
 
 using System.Collections.Generic;
@@ -38,8 +38,11 @@ public class ReferenceAssistor : MonoBehaviour
     public List<GameObject> collectible_items;
 
     public AudioManager audio_manager;
-    public PowerManager power_manager;
     public EffectsHandler effects_handler;
+    public FailureHandler failure_handler;
+    public PlayerManager player_manager;
+    public PowerManager power_manager;
+    public ScenarioManager scenario_manager;
 
     public static ReferenceAssistor Instance { get; private set; }
 

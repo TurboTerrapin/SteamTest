@@ -3,7 +3,7 @@
     - Handles RPCs that pertain to lobby functions, ex. load initiation, difficulty handling
     - Keeps track of who is actually in and connected in the lobby
     Contributor(s): Jake Schott
-    Last Updated: 4/29/2026
+    Last Updated: 5/24/2026
 */
 
 using UnityEngine;
@@ -18,14 +18,13 @@ public class LobbyHandler : NetworkBehaviour
 {
     //CLASS CONSTANTS
     public const int DEFAULT_DIFFICULTY = 0; //easy
-    private static float HEARTBEAT_LENGTH = 5.0f; //time in seconds that a client can go without getting a ping from host before it disconnects
 
     private int difficulty = -1;
     private List<ulong> player_steam_ids = new List<ulong>() { 0, 0, 0, 0 };
     private Dictionary<ulong, ulong> player_client_ids = new Dictionary<ulong, ulong>(); //key client ID, value steam ID
+    private Dictionary<ulong, Coroutine> heartbeat_coroutines = new Dictionary<ulong, Coroutine>(); //key client ID, value heartbeat coroutine
     private List<string> player_names = new List<string>() { "", "", "", "" };
     private bool[] player_connecteds = new bool[] { false, false, false, false };
-    private Coroutine heartbeat_coroutine = null;
 
     private void Awake()
     {
@@ -36,18 +35,18 @@ public class LobbyHandler : NetworkBehaviour
             player_client_ids.Add(0, SteamClient.SteamId);
             player_names[0] = SteamClient.Name;
             player_connecteds[0] = false;
-            SteamMatchmaking.OnLobbyMemberJoined += onLobbyChange;
-            SteamMatchmaking.OnLobbyMemberLeave += onLobbyChange;
-            SteamMatchmaking.OnLobbyCreated += onLobbyCreated;
-            heartbeat_coroutine = StartCoroutine(heartbeatSender()); //send out heartbeat pings
+            SteamMatchmaking.OnLobbyMemberJoined += onSteamLobbyJoined;
+            SteamMatchmaking.OnLobbyMemberLeave += onSteamLobbyLeft;
+            SteamMatchmaking.OnLobbyCreated += onSteamLobbyCreated;
         }
         else
         {
             player_steam_ids[0] = GameNetworkManager.Instance.currentLobby.Value.Owner.Id;
             player_names[0] = GameNetworkManager.Instance.currentLobby.Value.Owner.Name;
             player_connecteds[0] = true;
-            heartbeat_coroutine = StartCoroutine(heartbeatChecker()); //track reception of heartbeat pings
+            heartbeat_coroutines.Add(0, StartCoroutine(heartbeatChecker(0))); //check heartbeats from host
         }
+        heartbeat_coroutines.Add(SteamClient.SteamId, StartCoroutine(heartbeatSender())); //send out heartbeat pings
         NetworkManager.Singleton.OnClientConnectedCallback += onClientConnect;
     }
 
@@ -55,9 +54,9 @@ public class LobbyHandler : NetworkBehaviour
     {
         if (NetworkManager.Singleton.IsHost == true)
         {
-            SteamMatchmaking.OnLobbyMemberJoined -= onLobbyChange;
-            SteamMatchmaking.OnLobbyMemberLeave -= onLobbyChange;
-            SteamMatchmaking.OnLobbyCreated -= onLobbyCreated;
+            SteamMatchmaking.OnLobbyMemberJoined -= onSteamLobbyJoined;
+            SteamMatchmaking.OnLobbyMemberLeave -= onSteamLobbyLeft;
+            SteamMatchmaking.OnLobbyCreated -= onSteamLobbyCreated;
         }
         NetworkManager.Singleton.OnClientConnectedCallback -= onClientConnect;
     }
@@ -128,6 +127,23 @@ public class LobbyHandler : NetworkBehaviour
         return player_client_ids[client_id];
     }
 
+    //only works for host, returns client ID corresponding to Steam ID
+    private ulong getPlayerClientID(ulong steam_id)
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            foreach (KeyValuePair<ulong, ulong> id_match in player_client_ids)
+            {
+                if (id_match.Value == steam_id)
+                {
+                    return id_match.Key;
+                }
+            }
+        }
+
+        return ulong.MaxValue;
+    }
+
     //called by host when restarting a game or when engage is clicked
     public void startLoadForAllPlayers()
     {
@@ -186,7 +202,7 @@ public class LobbyHandler : NetworkBehaviour
     }
 
     //called when the host's created Steam lobby comes back with a result
-    private void onLobbyCreated(Result r, Lobby l)
+    private void onSteamLobbyCreated(Result r, Lobby l)
     {
         if (r == Result.OK)
         {
@@ -196,41 +212,54 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
-    //called on lobby member join or leaving (only run by host)
-    private void onLobbyChange(Lobby l, Friend f)
+    private void onSteamLobbyJoined(Lobby l, Friend f)
     {
-        if (NetworkManager.Singleton.IsHost == false)
+        if (NetworkManager.Singleton.IsHost == false || player_steam_ids.Contains(f.Id) == true)
         {
             return;
         }
 
-        if (player_steam_ids.Contains(f.Id) == true) //remove player from list
+        for (int i = 1; i < 4; i++)
         {
-            //remove from client dictionary
-            foreach (KeyValuePair<ulong, ulong> id_match in player_client_ids)
+            if (player_steam_ids[i] == 0)
             {
-                if (id_match.Value == f.Id)
-                {
-                    player_client_ids.Remove(id_match.Key);
-                    break;
-                }
+                player_steam_ids[i] = f.Id;
+                player_connecteds[i] = false;
+                break;
             }
+        }
 
-            //remove from steam list
-            player_steam_ids[player_steam_ids.IndexOf(f.Id)] = 0;
-        }
-        else //add player to list
+        rebuildLobbyList();
+        lobbyUpdateRPC(player_steam_ids[1], player_steam_ids[2], player_steam_ids[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
+    }
+
+    private void onSteamLobbyLeft(Lobby l, Friend f)
+    {
+        if (NetworkManager.Singleton.IsHost == false || player_steam_ids.Contains(f.Id) == false)
         {
-            for (int i = 1; i < 4; i++)
-            {
-                if (player_steam_ids[i] == 0)
-                {
-                    player_steam_ids[i] = f.Id;
-                    player_connecteds[i] = false;
-                    break;
-                }
-            }
+            return;
         }
+
+        //remove from client dictionary
+        ulong client_id = getPlayerClientID(f.Id);
+        if (client_id != ulong.MaxValue)
+        {
+            player_client_ids.Remove(client_id);
+        }
+
+        //remove from steam list
+        player_steam_ids[player_steam_ids.IndexOf(f.Id)] = 0;
+
+        //remove from heartbeat coroutines
+        if (heartbeat_coroutines.ContainsKey(client_id) == true)
+        {
+            if (heartbeat_coroutines[client_id] != null)
+            {
+                StopCoroutine(heartbeat_coroutines[client_id]);
+            }
+            heartbeat_coroutines.Remove(client_id);
+        }
+
         rebuildLobbyList();
         lobbyUpdateRPC(player_steam_ids[1], player_steam_ids[2], player_steam_ids[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
     }
@@ -262,6 +291,12 @@ public class LobbyHandler : NetworkBehaviour
         else
         {
             player_client_ids[client_id] = steam_id;
+        }
+
+        //add to heartbeat coroutines
+        if (heartbeat_coroutines.ContainsKey(client_id) == false)
+        {
+            heartbeat_coroutines.Add(client_id, StartCoroutine(heartbeatChecker(client_id)));
         }
 
         //find index of connected player
@@ -310,6 +345,15 @@ public class LobbyHandler : NetworkBehaviour
             campaign_lobby.GetComponent<CampaignLobbyController>().OnLobbyChange();
         }
 
+        //trigger visual lobby update if looking at failure screen
+        if (ReferenceAssistor.Instance != null)
+        {
+            if (ReferenceAssistor.Instance.failure_handler.failureCamera.activeSelf == true)
+            {
+                ReferenceAssistor.Instance.failure_handler.handleLobbyChange(false);
+            }
+        }
+
         //if host, check for seat occupants
         if (NetworkManager.Singleton.IsHost == true && SceneManager.GetActiveScene().name != "TitleScreen")
         {
@@ -351,37 +395,73 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
-    IEnumerator heartbeatChecker()
+    //if goes entire HEARTBEAT_LENGTH without being interrupted/restarted then will disconnect
+    IEnumerator heartbeatChecker(ulong client_id_to_check)
     {
-        yield return new WaitForSeconds(HEARTBEAT_LENGTH);
-        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().displayLostConnection("The host has disconnected.");
-        GameNetworkManager.Instance.Disconnect();
-        heartbeat_coroutine = null;
-    }
-
-    IEnumerator heartbeatSender()
-    {
-        float half_heartbeat = HEARTBEAT_LENGTH * 0.5f;
-        while (true)
+        yield return new WaitForSeconds(GameNetworkManager.HEARTBEAT_LENGTH);
+        if (client_id_to_check == 0)
         {
-            yield return new WaitForSeconds(half_heartbeat);
-            heartbeatRPC();
+            GameObject.Find("LoadHandler").GetComponent<LoadHandler>().displayLostConnection("Connection interrupted.");
+            GameNetworkManager.Instance.Disconnect();
+            heartbeat_coroutines[client_id_to_check] = null;
+        }
+        else
+        {
+            if (client_id_to_check != ulong.MaxValue)
+            {
+                player_connecteds[getPlayerIndex(player_client_ids[client_id_to_check])] = false;
+                player_steam_ids[getPlayerIndex(player_client_ids[client_id_to_check])] = 0;
+                player_client_ids.Remove(client_id_to_check);
+                rebuildLobbyList();
+                lobbyUpdateRPC(player_steam_ids[1], player_steam_ids[2], player_steam_ids[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
+                heartbeat_coroutines.Remove(client_id_to_check);
+                NetworkManager.Singleton.DisconnectClient(client_id_to_check);
+            }
         }
     }
 
-    //called by host every HEARTBEAT_TIME to let the players know that a connection is still active
+    //run by every client to signal continued connection to lobby
+    IEnumerator heartbeatSender()
+    {
+        float half_heartbeat = GameNetworkManager.HEARTBEAT_LENGTH * 0.5f;
+        while (true)
+        {
+            yield return new WaitForSeconds(half_heartbeat);
+            if (NetworkManager.Singleton.IsHost == true)
+            {
+                hostToClientHeartbeatRPC();
+            }
+            else
+            {
+                clientToHostHeartbeatRPC(NetworkManager.Singleton.LocalClientId);
+            }
+        }
+    }
+
+    //called by host every half HEARTBEAT_TIME to let the players know that a connection is still active
     [Rpc(SendTo.Everyone)]
-    private void heartbeatRPC()
+    private void hostToClientHeartbeatRPC()
     {
         if (NetworkManager.Singleton.IsHost == true)
         {
             return;
         }
 
-        if (heartbeat_coroutine != null)
+        if (heartbeat_coroutines.ContainsKey(0) == true && heartbeat_coroutines[0] != null)
         {
-            StopCoroutine(heartbeat_coroutine);
+            StopCoroutine(heartbeat_coroutines[0]);
+            heartbeat_coroutines[0] = StartCoroutine(heartbeatChecker(0));
         }
-        heartbeat_coroutine = StartCoroutine(heartbeatChecker());
+    }
+
+    //called by client every half HEARTBEAT_TIME to let the host know that a connection is still active
+    [Rpc(SendTo.Server)]
+    private void clientToHostHeartbeatRPC(ulong plr_client_id)
+    {
+        if (heartbeat_coroutines.ContainsKey(plr_client_id) == true && heartbeat_coroutines[plr_client_id] != null)
+        {
+            StopCoroutine(heartbeat_coroutines[plr_client_id]);
+            heartbeat_coroutines[plr_client_id] = StartCoroutine(heartbeatChecker(plr_client_id));
+        }
     }
 }
