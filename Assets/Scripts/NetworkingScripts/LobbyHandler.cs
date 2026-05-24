@@ -104,6 +104,34 @@ public class LobbyHandler : NetworkBehaviour
         return player_connecteds;
     }
 
+    //returns number of people in Steam lobby (excluding zombies who are in the process of leaving)
+    public int getNumberOfPlayersInSteamLobby()
+    {
+        int to_return = 1;
+        for (int i = 1; i < 4; i++)
+        {
+            if (player_names[i].Equals("") == false)
+            {
+                to_return++;
+            }
+        }
+        return to_return;
+    }
+
+    //returns number of people connected to NetworkManager lobby
+    public int getNumberOfPlayersInNetworkManagerLobby()
+    {
+        int to_return = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            if (player_connecteds[i] == true)
+            {
+                to_return++;
+            }
+        }
+        return to_return;
+    }
+
     //returns 0-3 index of player by name
     public int getPlayerIndex(ulong steam_id)
     {

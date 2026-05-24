@@ -137,7 +137,7 @@ public class CampaignLobbyController : MonoBehaviour
         }
 
         //Activate/deactive engage button
-        if (NetworkManager.Singleton.IsHost == true && LobbyHandler.getPlayerNamesInLobby().Count == NetworkManager.Singleton.ConnectedClientsIds.Count)
+        if (NetworkManager.Singleton.IsHost == true && LobbyHandler.getNumberOfPlayersInSteamLobby() == LobbyHandler.getNumberOfPlayersInNetworkManagerLobby())
         {
             ActivateEngageButton();
             ActivateDifficultyGroup();
