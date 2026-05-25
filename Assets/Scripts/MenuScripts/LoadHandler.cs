@@ -45,6 +45,7 @@ public class LoadHandler : MonoBehaviour
                 already_existing_load_handler.GetComponent<LoadHandler>().titleScreenSteamCheck();
             }
             GameObject.Destroy(gameObject);
+            return;
         }
         transform.name = "LoadHandler";
 
