@@ -26,18 +26,24 @@ public class FailureHandler : NetworkBehaviour
     public GameObject failureShip;
     private Material[][] enabledShipMaterials = new Material[4][];
     private Material[][] disabledShipMaterials = new Material[4][];
+    private LobbyHandler lobbyHandler;
 
     public TMP_Text[] playerNames;
     public TMP_Text[] playerVotes;
     public TMP_Text notEnoughPlayersText;
     private List<ulong> playerSteamIDs = new List<ulong>();
     private List<int> playerStates = new List<int>();
-    private bool hostDisconnected = false;
+    private bool lobbyDisconnected = false;
 
     // lobbyNames is a string list that could have 1-4 entries
     public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg, bool caught)
     {
         GameObject localPlayer = ReferenceAssistor.Instance.player_manager.getLocalPlayer();
+        GameObject lh = GameObject.Find("LobbyHandler");
+        if (lh != null) 
+        { 
+            lobbyHandler = lh.GetComponent<LobbyHandler>();
+        }
 
         // display fail ship
         bridge.SetActive(false);
@@ -150,7 +156,10 @@ public class FailureHandler : NetworkBehaviour
 
         // fade in restart button, quit button, player names, and their votes
         yield return new WaitForSeconds(0.5f);
-        StartCoroutine(fadeGroup(fadeInGroup, 1f, 2f));
+        yield return StartCoroutine(fadeGroup(fadeInGroup, 1f, 2f));
+
+        // check if there are enough players for restart
+        checkForRestart();
     }
 
     IEnumerator printTextCharbyChar(TMP_Text targetText, string fullText)
@@ -206,40 +215,11 @@ public class FailureHandler : NetworkBehaviour
             case 2:
                 playerVotes[plrIndex].text = "Left Lobby";
                 playerVotes[plrIndex].color = Color.red;
-
-                // on first player who quits, display "not enough players" and fade restart button
-                if (hostDisconnected == true || NetworkManager.Singleton.ConnectedClients.Count < MINIMUM_PLAYERS_TO_RESTART)
-                {
-                    if (hostDisconnected == true)
-                    {
-                        notEnoughPlayersText.SetText("HOST DISCONNECTED");
-                    }
-                    StartCoroutine(FadeText(notEnoughPlayersText, 1f, 0.5f));
-                    StartCoroutine(fadeGroup(restartGroup, 0.3f, 0.5f));
-                    restartGroup.interactable = false;
-                    restartGroup.blocksRaycasts = false;
-                }
                 break;
         }
 
-        // check if enough votes for restart
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            int restartVotes = 0;
-            for (int i = 0; i < playerStates.Count; i++)
-            {
-                if (playerStates[i] == 1) // if player is ready
-                {
-                    restartVotes++;
-                }
-            }
-
-            // if everyone in lobby says yes, restart game
-            if (restartVotes >= NetworkManager.Singleton.ConnectedClients.Count && restartVotes >= MINIMUM_PLAYERS_TO_RESTART)
-            {
-                restartGameRPC();
-            }
-        }
+        // check for restart
+        checkForRestart();
     }
 
     // Fade in "not enough players"
@@ -275,32 +255,97 @@ public class FailureHandler : NetworkBehaviour
         }
     }
 
-    // called when there is a change to the lobby
-    public void handleLobbyChange(bool hostDisconnect)
+    private void checkForRestart()
     {
-        if (hostDisconnected == false)
+        int restartVotes = 0;
+        for (int i = 0; i < playerStates.Count; i++)
         {
-            if (hostDisconnect == true)
+            if (playerStates[i] == 1) // if player is ready
             {
-                hostDisconnected = true;
-                handlePlayerStateChange(playerSteamIDs[0], 2);
-                return;
+                restartVotes++;
             }
         }
 
-        GameObject lobbyHandler = GameObject.Find("LobbyHandler");
+        if (lobbyDisconnected == false && lobbyHandler != null && lobbyHandler.getNumberOfPlayersInNetworkManagerLobby() < MINIMUM_PLAYERS_TO_RESTART)
+        {
+            disableRestart();
+            notEnoughPlayersText.color = Color.red;
+            notEnoughPlayersText.SetText("NOT ENOUGH PLAYERS");
+        }
+
+        // check if enough votes for restart
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            // if everyone in lobby says yes, restart game
+            if (lobbyHandler != null && restartVotes >= lobbyHandler.getNumberOfPlayersInNetworkManagerLobby() && restartVotes >= MINIMUM_PLAYERS_TO_RESTART)
+            {
+                restartGameRPC();
+            }
+        }
+    }
+
+    private void disableRestart()
+    {
+        if (restartGroup.interactable == false)
+        {
+            return;
+        }
+        StartCoroutine(FadeText(notEnoughPlayersText, 1f, 0.5f));
+        StartCoroutine(fadeGroup(restartGroup, 0.3f, 0.5f));
+        restartGroup.interactable = false;
+        restartGroup.blocksRaycasts = false;
+    }
+
+    private void displayLobbyDisconnected()
+    {
+        lobbyDisconnected = true;
+
+        // overlay lobby disconnected
+        notEnoughPlayersText.color = Color.red;
+        notEnoughPlayersText.SetText("LOBBY DISCONNECTED");
+
+        // disable ability to restart
+        disableRestart();
+
+        // show unknown for every player except us, which is left lobby
+        for (int i = 0; i < playerSteamIDs.Count; i++)
+        {
+            handlePlayerStateChange(playerSteamIDs[i], 2);
+            if (playerSteamIDs[i] != SteamClient.SteamId)
+            {
+                playerVotes[i].SetText("Unknown");
+            }
+        }
+    }
+
+    // called when there is a change to the lobby
+    public void handleLobbyChange(bool deadLobby)
+    {
+        if (lobbyDisconnected == true)
+        {
+            return;
+        }
+
+        if (deadLobby == true)
+        {
+            displayLobbyDisconnected();
+            return;
+        }
+
         if (lobbyHandler == null)
         {
             return;
         }
-        List<ulong> steamIDsConnected = lobbyHandler.GetComponent<LobbyHandler>().getPlayerSteamIDsInLobby();
+
+        List<ulong> steamIDsConnected = lobbyHandler.getPlayerSteamIDsInLobby();
         for (int i = 0; i < playerSteamIDs.Count; i++)
         {
             if (steamIDsConnected.Contains(playerSteamIDs[i]) == false && playerStates[i] != 2)
             {
                 if (i == 0)
                 {
-                    hostDisconnected = true;
+                    displayLobbyDisconnected();
+                    return;
                 }
                 handlePlayerStateChange(playerSteamIDs[i], 2);
             }
