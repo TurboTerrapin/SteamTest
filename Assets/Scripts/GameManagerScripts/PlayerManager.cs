@@ -3,7 +3,7 @@
     - Handles loading and managing of players/scenes
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 4/27/2026
+    Last Updated: 5/24/2026
 */
 
 using System.Collections;
@@ -144,8 +144,8 @@ public class PlayerManager : NetworkBehaviour
         resetReadyPlayers();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().intializeScenarioDatabase();
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().loadNewScenario();
+            ReferenceAssistor.Instance.scenario_manager.intializeScenarioDatabase();
+            ReferenceAssistor.Instance.scenario_manager.loadNewScenario();
         }
     }
 
@@ -283,7 +283,7 @@ public class PlayerManager : NetworkBehaviour
         //if host, begin the scenario
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
+            ReferenceAssistor.Instance.scenario_manager.startScenario();
         }
 
         //end transition (whether looking at the cinematic shot or load screen)
@@ -315,10 +315,10 @@ public class PlayerManager : NetworkBehaviour
         //if host, check if all players are ready
         if (NetworkManager.Singleton.IsHost == true)
         {
-            if (getNumReadyPlayers() >= NetworkManager.Singleton.ConnectedClientsIds.Count)
+            if (getNumReadyPlayers() >= lobby_handler.getNumberOfPlayersInNetworkManagerLobby())
             {
                 resetReadyPlayers();
-                GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario(!game_initialized);
+                ReferenceAssistor.Instance.scenario_manager.prepScenario(!game_initialized);
                 if (game_initialized == false)
                 {
                     //wait LOAD_IN_DELAY
