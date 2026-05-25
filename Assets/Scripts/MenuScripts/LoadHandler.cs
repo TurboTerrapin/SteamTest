@@ -42,7 +42,6 @@ public class LoadHandler : MonoBehaviour
             {
                 already_existing_load_handler.GetComponent<LoadHandler>().endLoad(false);
                 already_existing_load_handler.GetComponent<LoadHandler>().returnToMainMenu();
-                already_existing_load_handler.GetComponent<LoadHandler>().titleScreenSteamCheck();
             }
             GameObject.Destroy(gameObject);
             return;
@@ -63,7 +62,7 @@ public class LoadHandler : MonoBehaviour
     }
 
     //checks if in TitleScreen and if so aborts everything if not connected to Steam
-    public bool titleScreenSteamCheck()
+    private bool titleScreenSteamCheck()
     {
         if (SceneManager.GetActiveScene().name.Equals("TitleScreen") == true && connection_lost.activeSelf == false)
         {
@@ -228,7 +227,7 @@ public class LoadHandler : MonoBehaviour
         {
             if (ReferenceAssistor.Instance != null && ReferenceAssistor.Instance.failure_handler.failureCamera.activeSelf == true)
             {
-                //if in failure state let the failure handler know then do nothing after
+                //if in failure state let the failure handler know, then do nothing after
                 ReferenceAssistor.Instance.failure_handler.handleLobbyChange(true);
                 yield break;
             }
@@ -242,7 +241,8 @@ public class LoadHandler : MonoBehaviour
 
         connection_lost.transform.GetChild(3).GetComponent<TMP_Text>().SetText(message + " Please return to the main menu.");
         connecting_box.SetActive(false);
-        connection_lost.SetActive(steam_failure.activeSelf == false);
+        steam_failure.SetActive(false);
+        connection_lost.SetActive(true);
     }
 
     public void displayLostConnection(string message)
