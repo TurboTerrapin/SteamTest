@@ -415,12 +415,20 @@ public class LobbyHandler : NetworkBehaviour
     private void updateDifficultyRPC(int new_difficulty)
     {
         difficulty = new_difficulty;
+        Debug.Log("Difficulty changed to " +  difficulty);
 
         GameObject campaign_lobby = GameObject.Find("CampaignLobby");
+        GameObject failure_handler = GameObject.Find("FailureHandler");
+     
         if (campaign_lobby != null)
         {
             campaign_lobby.GetComponent<CampaignLobbyController>().DisplayDifficultyChange(new_difficulty);
         }
+
+        if (failure_handler != null)
+        {
+            failure_handler.GetComponent<FailureHandler>().DisplayDifficulty(new_difficulty);
+        }      
     }
 
     //if goes entire HEARTBEAT_LENGTH without being interrupted/restarted then will disconnect
