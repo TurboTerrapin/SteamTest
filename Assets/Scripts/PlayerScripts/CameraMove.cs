@@ -238,7 +238,7 @@ public class CameraMove : MonoBehaviour
         if (!PrimaryScript.Instance.isPaused())
         {
             //Check for info overlay toggling (hints)
-            if (PrimaryScript.Instance.hintsEnabled() && PrimaryScript.Instance.isActive())
+            if (PrimaryScript.Instance.getHUD() < 2 && PrimaryScript.Instance.infoVisibilityEnabled() && PrimaryScript.Instance.isActive())
             {
                 PrimaryScript.Instance.GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
             }

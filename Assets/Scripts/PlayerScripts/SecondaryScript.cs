@@ -20,7 +20,7 @@ public class SecondaryScript : MonoBehaviour
         new KeyCode[] { KeyCode.Alpha4, KeyCode.Keypad4 } ,
         new KeyCode[] { KeyCode.Alpha5, KeyCode.Keypad5 }
     };
-    private static Color DEFAULT_BORDER_COLOR = new Color(0.4f, 0.4f, 0.4f);
+    private static Color DEFAULT_BORDER_COLOR = new Color(0.04f, 0.04f, 0.04f);
     
     public GameObject secondary_info;
 
@@ -74,8 +74,8 @@ public class SecondaryScript : MonoBehaviour
     public void onStationChange(int pos)
     {
         station_indicator.transform.GetChild(2).gameObject.SetActive(pos >= 0);
-        station_indicator.transform.GetChild(3).gameObject.SetActive(pos == -1);
-        Color c = new Color(0.4f, 0.4f, 0.4f, 0.84f);
+        station_indicator.transform.GetChild(3).gameObject.SetActive(pos < 0);
+        Color c = DEFAULT_BORDER_COLOR;
         if (pos >= 0)
         {
             c = ReferenceAssistor.COLOR_OPTIONS[pos];
@@ -97,7 +97,11 @@ public class SecondaryScript : MonoBehaviour
             foreach (Transform b in t.GetChild(0))
             {
                 bc = c;
-                bc.a = b.GetComponent<UnityEngine.UI.RawImage>().color.a;
+                bc.a = t.GetChild(1).GetComponent<TMP_Text>().color.a;
+                if (pos < 0)
+                {
+                    bc.a = 1.0f;
+                }
                 b.GetComponent<UnityEngine.UI.RawImage>().color = bc;
             }
         }
@@ -118,7 +122,11 @@ public class SecondaryScript : MonoBehaviour
             for (int i = 0; i < 5; i++)
             {
                 bc = c;
-                bc.a = t.GetChild(2).GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
+                bc.a = 1.0f;
+                if (pos >= 0 && t.GetChild(2).GetChild(0).GetChild(i).childCount > 0)
+                {
+                    bc.a = 0.2f;
+                }
                 t.GetChild(2).GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = bc;
             }
             foreach (Transform d in t.GetChild(3))
@@ -280,7 +288,10 @@ public class SecondaryScript : MonoBehaviour
         }
 
         Color c = info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color;
-        c.a = 0.1f;
+        if (GetComponent<PrimaryScript>().currentSeat() >= 0)
+        {
+            c.a = 0.1f;
+        }
         bool hide = info_overlay.transform.GetChild(1).GetChild(input).gameObject.activeSelf;
         for (int i = 0; i < 5; i++)
         {
@@ -294,7 +305,6 @@ public class SecondaryScript : MonoBehaviour
 
         info_overlay.transform.GetChild(1).GetChild(input).gameObject.SetActive(!hide && !force_hide);
         GetComponent<PrimaryScript>().setCursorVisibility(hide && !force_hide);
-        info_overlay.transform.GetChild(0).GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = c;
         if (hide == false && force_hide == false)
         {
             c.a = 1.0f;
@@ -437,10 +447,10 @@ public class SecondaryScript : MonoBehaviour
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
             float background_a = Mathf.Lerp(0.9f, 0.0f, anim_time / 1.0f);
-            float divider_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 1.0f);
-            float border_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 1.0f);
+            float divider_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f);
+            float border_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f);
             float pos_circle_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f);
-            float order_circle_a = Mathf.Lerp(0.04f, 0.0f, anim_time / 1.0f);
+            float order_circle_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 1.0f);
 
             foreach (UnityEngine.UI.RawImage component in background_elements)
             {
@@ -543,7 +553,7 @@ public class SecondaryScript : MonoBehaviour
             exit_button.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
             exit_button.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
 
-            float border_a = Mathf.Lerp(0.84f, 0.0f, anim_time / 0.5f);
+            float border_a = Mathf.Lerp(1.0f, 0.0f, anim_time / 0.5f);
             foreach (Transform t in exit_button.transform.GetChild(2))
             {
                 Color b = t.GetComponent<UnityEngine.UI.RawImage>().color;

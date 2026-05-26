@@ -8322,8 +8322,9 @@ MonoBehaviour:
   CameraSensitivityFillBar: {fileID: 2021344652}
   ActualCameraSensitivityLabel: {fileID: 399748898}
   HUDVisibilityDropdown: {fileID: 1720618159}
-  control_script_holder: {fileID: 0}
-  HintsToggle: {fileID: 1093977227}
+  InfoVisibilityToggle: {fileID: 1093977227}
+  InfoVisibilityLabel: {fileID: 915045136}
+  InfoVisibilityGroup: {fileID: 1093977229}
 --- !u!114 &271491277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25694,7 +25695,7 @@ GameObject:
   - component: {fileID: 915045137}
   - component: {fileID: 915045136}
   m_Layer: 5
-  m_Name: HintsLabel
+  m_Name: InfoVisibilityLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25739,7 +25740,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: HINTS
+  m_text: 'INFO VISIBILITY
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 647b19b7360c549f09d1ac6149e70644, type: 2}
   m_sharedMaterial: {fileID: -2798455105913573538, guid: 647b19b7360c549f09d1ac6149e70644, type: 2}
@@ -31523,8 +31526,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1093977228}
   - component: {fileID: 1093977227}
+  - component: {fileID: 1093977229}
   m_Layer: 5
-  m_Name: HintsToggle
+  m_Name: InfoVisibilityToggle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31598,6 +31602,18 @@ RectTransform:
   m_AnchoredPosition: {x: 45, y: -700}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &1093977229
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093977226}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1097438166
 GameObject:
   m_ObjectHideFlags: 0
@@ -49070,7 +49086,7 @@ MonoBehaviour:
     - m_Text: Default
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
-    - m_Text: Trapezoid Only
+    - m_Text: Essential
       m_Image: {fileID: 0}
       m_Color: {r: 1, g: 1, b: 1, a: 1}
     - m_Text: Minimized

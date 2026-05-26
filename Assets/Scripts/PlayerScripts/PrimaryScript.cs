@@ -6,7 +6,7 @@
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     - Handles transmitting IK targets for hand movement animations
     Contributor(s): Jake Schott, John Aylward
-    Last Updated: 2/17/2026
+    Last Updated: 5/26/2026
 */
 
 using UnityEngine;
@@ -31,6 +31,7 @@ public class PrimaryScript : MonoBehaviour
     private GameObject pause_default_menu;
     private GameObject pause_controls_menu;
     private GameObject pause_settings_menu;
+    private GameObject pause_confirm_quit_menu;
 
     private Camera plr_camera; //player's camera
     private GameObject player_prefab; //corresponding "bean"
@@ -51,7 +52,7 @@ public class PrimaryScript : MonoBehaviour
 
     //SETTINGS
     private int HUD_setting = 0; //0 is Default, 1 is Trapezoid Only, 2 is Minimized, 3 is Cursor Only, 4 is None
-    private bool hints_enabled = false;
+    private bool info_visibility_setting = false; //only applies for HUD_setting 0 and 1 (top left/right elements)
     private bool can_pause = false;
     private bool paused = false;
     private bool is_active = false;
@@ -101,6 +102,7 @@ public class PrimaryScript : MonoBehaviour
         pause_default_menu = player_UI_canvas.transform.GetChild(4).GetChild(0).gameObject;
         pause_settings_menu = player_UI_canvas.transform.GetChild(4).GetChild(1).gameObject;
         pause_controls_menu = player_UI_canvas.transform.GetChild(4).GetChild(2).gameObject;
+        pause_confirm_quit_menu = player_UI_canvas.transform.GetChild(4).GetChild(3).gameObject;
 
         //make an instance so can be referenced
         if (Instance != null)
@@ -116,9 +118,9 @@ public class PrimaryScript : MonoBehaviour
 
         my_animation_controller = plr_prefab.GetComponent<AnimationController>();
 
-        plr_camera = player_prefab.transform.GetComponent<CameraMove>().cameraHolder.transform.GetChild(0).GetComponent<Camera>();
-        player_prefab.transform.GetComponent<CameraMove>().SetMouseSensitvity(player_UI_canvas.GetComponent<UniversalSettingsController>().GetCameraSensitivity());
-        player_prefab.transform.GetComponent<CameraMove>().Initialize();
+        plr_camera = player_prefab.GetComponent<CameraMove>().cameraHolder.transform.GetChild(0).GetComponent<Camera>();
+        player_prefab.GetComponent<CameraMove>().SetMouseSensitvity(player_UI_canvas.GetComponent<UniversalSettingsController>().GetCameraSensitivity());
+        player_prefab.GetComponent<CameraMove>().Initialize();
 
         //begin control interfacing
         primary_info.SetActive(false);
@@ -127,7 +129,7 @@ public class PrimaryScript : MonoBehaviour
         //free player movement, start checking to sit down, begin the scenario
         can_pause = true;
         player_prefab.GetComponent<PlayerMove>().Initialize();
-        if (hints_enabled == true)
+        if (info_visibility_setting == true && HUD_setting < 2)
         {
             GetComponent<SecondaryScript>().displayIntroGraphic(1.0f);
             intro_yield_coroutine = StartCoroutine(introYield());
@@ -143,7 +145,7 @@ public class PrimaryScript : MonoBehaviour
     private void onIntroComplete()
     {
         GetComponent<SecondaryScript>().endIntroGraphicReveal();
-        GetComponent<SecondaryScript>().toggleStationIndicatorVisibility(hints_enabled);
+        GetComponent<SecondaryScript>().toggleStationIndicatorVisibility(info_visibility_setting && HUD_setting < 2);
         activate();
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
@@ -251,6 +253,7 @@ public class PrimaryScript : MonoBehaviour
             trapezoidal_frame.SetActive(HUD_setting < 2 && is_sitting == true); //trapezoid
             minimized_list_frame.gameObject.SetActive(HUD_setting == 2); //minimized list
             sit_frame.SetActive(HUD_setting < 2 && is_sitting == false); //rounded seat indicator
+            setInfoVisibilityEnabled(info_visibility_setting);
             control_update_flag = true; //forces an update
         }
     }
@@ -265,11 +268,11 @@ public class PrimaryScript : MonoBehaviour
     }
 
     //used by settings
-    public void setHintsEnabled(bool enabled)
+    public void setInfoVisibilityEnabled(bool enabled)
     {
-        hints_enabled = enabled;
-        GetComponent<SecondaryScript>().toggleInfoOverlaysVisibility(enabled);
-        GetComponent<SecondaryScript>().toggleStationIndicatorVisibility(enabled && player_prefab != null);
+        info_visibility_setting = enabled;
+        GetComponent<SecondaryScript>().toggleInfoOverlaysVisibility(enabled && HUD_setting < 2);
+        GetComponent<SecondaryScript>().toggleStationIndicatorVisibility(enabled && HUD_setting < 2 && player_prefab != null);
     }
 
     public void setCursorVisibility(bool visibility)
@@ -332,7 +335,8 @@ public class PrimaryScript : MonoBehaviour
         pause_default_menu.SetActive(false);
         pause_settings_menu.SetActive(false);
         pause_controls_menu.SetActive(false);
-        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(is_active && (hints_enabled || HUD_setting == 0));
+        pause_confirm_quit_menu.SetActive(false);
+        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(is_active && (info_visibility_setting || HUD_setting == 0));
         GetComponent<SecondaryScript>().toggleStationOverlayVisibility(is_active && is_sitting && HUD_setting == 0);
         paused = false;
         if (is_active == true)
@@ -375,9 +379,14 @@ public class PrimaryScript : MonoBehaviour
         cursor.SetActive(false);
     }
 
-    public bool hintsEnabled()
+    public int getHUD()
     {
-        return hints_enabled;
+        return HUD_setting;
+    }
+
+    public bool infoVisibilityEnabled()
+    {
+        return info_visibility_setting;
     }
 
     public bool isSitting()
@@ -627,10 +636,10 @@ public class PrimaryScript : MonoBehaviour
                     if (current_ray_target.layer == 6) //the ray hit a control or sensor descriptor (Layer 6 = RayTarget)
                     {
                         //---------------------------------------------------HANDLE UI----------------------------------------------------------
-                        int script_holder = curr_pos;
+                        int script_holder = curr_pos; //0 pilot, 1 tactician, 2 engineer, 3 captain
                         if (current_ray_target.transform.childCount > 1)
                         {
-                            script_holder = 4; //exception for general modules
+                            script_holder = 4; //4 general modules
                         }
                         IControllable target_control = ReferenceAssistor.Instance.module_handlers[script_holder].GetComponent(current_ray_target.transform.GetChild(0).name) as IControllable;
 
