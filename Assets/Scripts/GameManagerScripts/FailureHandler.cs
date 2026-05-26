@@ -1,3 +1,12 @@
+/*
+    FailureHandler.cs
+    - Handles the post-mission failure screen
+    - Handles the animations of the ship exploding or getting captured
+    - Handles restart voting
+    Contributor(s): Beata Musial, Jake Schott
+    Last Updated: 5/25/2026
+*/
+
 using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
