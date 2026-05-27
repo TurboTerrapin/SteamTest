@@ -364,16 +364,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ee9356a17b469b43aa7a73760dc3cbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  torpedo_type: 0
+  torpedo_type: 1
   speed: 50
   damage: 50
-  turn_rate: 60
+  turn_rate: 75
   max_angle_delta: 45
-  detection_radius: 5000
+  detection_radius: 1000
   target_layer:
     serializedVersion: 2
     m_Bits: 256
-  target_tag: StaticObstacle
 --- !u!114 &-2950476582640653740
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -391,7 +390,7 @@ MonoBehaviour:
   is_visible: 1
   is_interest_item: 0
   icon_color: {r: 0, g: 0.8352941, b: 1, a: 1}
-  icon_texture: {fileID: 0}
+  icon_sprite: {fileID: 0}
 --- !u!135 &8254573480922463563
 SphereCollider:
   m_ObjectHideFlags: 0
