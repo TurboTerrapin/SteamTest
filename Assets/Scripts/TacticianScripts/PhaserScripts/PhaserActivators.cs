@@ -26,7 +26,10 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     public List<GameObject> phaser_switches = null;
     public List<GameObject> phaser_coverups = null;
     public GameObject phaser_activator_display;
+
     private PhaserIntensities phaser_intensities;
+    private ShortRangePhasers short_range_phasers;
+    private LongRangePhaser long_range_phaser;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine;
@@ -51,6 +54,8 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     private void Start()
     {
         phaser_intensities = GetComponent<PhaserIntensities>();
+        short_range_phasers = GetComponent<ShortRangePhasers>();
+        long_range_phaser = GetComponent<LongRangePhaser>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -130,6 +135,17 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             phaser_is_enabled[index] = false;
             handlePowerConsumptionChange();
             increasing = false;
+
+            // Notify visuals immediately on disable - beams should stop right away
+            if (index == 0)
+            {
+                if (long_range_phaser != null) long_range_phaser.setActive(false);
+            }
+            else
+            {
+                if (short_range_phasers != null) short_range_phasers.setBeamActive(index - 1, false);
+            }
+
             if (index == 0)
             {
                 phaser_intensities.changeInPower(0, false);
@@ -184,6 +200,16 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
                 phaser_intensities.changeInPower(1, true);
             }
             BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[1]);
+
+            // Notify visuals - beam comes on after the charge animation completes
+            if (index == 0)
+            {
+                if (long_range_phaser != null) long_range_phaser.setActive(true);
+            }
+            else
+            {
+                if (short_range_phasers != null) short_range_phasers.setBeamActive(index - 1, true);
+            }
         }
         else
         {
@@ -213,6 +239,15 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             BUTTON_LISTS[i][0].untoggle();
 
             starting_rotations[i] = switch_rotations[i];
+
+        if (i == 0)
+        {
+            if (long_range_phaser != null) long_range_phaser.setActive(false);
+        }
+        else
+        {
+            if (short_range_phasers != null) short_range_phasers.setBeamActive(i - 1, false);
+        }
         }
 
         float anim_time = power_off_time;
@@ -284,5 +319,6 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             StopCoroutine(phaser_switch_coroutines[index]);
         }
         phaser_switch_coroutines[index] = StartCoroutine(switchPhaser(index));
+
     }
 }

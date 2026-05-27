@@ -1,50 +1,26 @@
 /*
     ShortRangePhasers.cs
-    - Renders the left & right short-range phaser beams
-    - Handles shared pulse phase, semi-tracking aim toward nearest enemy
-    - Pulls active/temperature data from control scripts
-    Last Updated: 4/23/2026
+    Last Updated: 5/1/2026
 */
 
 using UnityEngine;
 
 public class ShortRangePhasers : MonoBehaviour
 {
-    private PhaserActivators phaserActivators;
-    private PhaserIntensities phaserIntensities;
-
     public GameObject shortRangePhaserLeftOrigin;
     public GameObject shortRangePhaserRightOrigin;
 
-    private bool controlsAssigned = false;
+    private float SRBeamDiameter = 0.25f;
+    private float SRBurstDuration = 0.6f;
+    private float SRBurstGapMax = 1.5f;
+    private float SRBurstGapMin = 0.5f;
 
-    private void resolveControls()
-    {
-        if (controlsAssigned) return;
-        if (ReferenceAssistor.Instance == null) return;
-        if (ReferenceAssistor.Instance.module_handlers == null) return;
-        if (ReferenceAssistor.Instance.module_handlers.Count <= 1) return;
-
-        GameObject controlHandler = ReferenceAssistor.Instance.module_handlers[1].gameObject;
-        phaserActivators = controlHandler.GetComponent<PhaserActivators>();
-        phaserIntensities = controlHandler.GetComponent<PhaserIntensities>();
-
-        controlsAssigned = phaserActivators && phaserIntensities;
-    }
-
-    private float minSRBeamDiameter = 0.1f;
-    private float maxSRBeamDiameter = 0.3f;
-    private float SRBeamEndDiameterRatio = 0.4f;
-
-    private float minSRPulseInterval = 1f;
-    private float maxSRPulseInterval = 0.4f;
-
-    private float SRTrackingRadius = 50f;
-    private float SRTrackingRange = 350f;
-    private float SRMaxTrackingAngle = 15f;
+    private float SRTrackingRange = 250f;
+    private float SRMaxTrackingAngle = 10f;
     private float SRTrackingSpeed = 5f;
-    private float SRTargetScanInterval = 1f;
-    private string enemyTag = "Enemy";
+    private float SRTargetScanInterval = 2f;
+
+    private float SRDamagePerSecond = 20f;
 
     private LineRenderer shortRangePhaserLeft;
     private LineRenderer shortRangePhaserRight;
@@ -54,19 +30,23 @@ public class ShortRangePhasers : MonoBehaviour
     private Color shortRangeEmissionColorLeft;
     private Color shortRangeEmissionColorRight;
 
-    private const float SHORT_RANGE_BEAM_LENGTH = 350f;
+    private const float SHORT_RANGE_BEAM_LENGTH = 250f;
     private const string EMISSION_COLOR = "_EmissionColor";
 
-    private float SRPulsePhase;
-    private float[] currSRBeamWidth = new float[2];
+    private float burstCycleTime = 0f; // Shared cycle time - all phasers sync to this
+    private bool[] readyToFire = new bool[2]; // Track if beam has completed at least one full cycle
+    private bool wasFiringLastFrame;
 
-    private Vector3 sharedSRCurrentDir;
+    // beam states (index 0 = left, 1 = right)
+    private Vector3[] currentDirs = new Vector3[2];
+    private Transform[] cachedTargets = new Transform[2];
+    private IDamageable[] cachedDamageables = new IDamageable[2];
+    private Transform[] burstTargets = new Transform[2];
+    private IDamageable[] burstDamageables = new IDamageable[2];
 
-    private Transform cachedTarget;
-    private float nextTargetScanTime;
+    private float nextScanTime;
 
-    private bool leftActive;
-    private bool rightActive;
+    private bool[] beamActive = new bool[2];
     private float srTemp;
 
     private void Start()
@@ -77,6 +57,9 @@ public class ShortRangePhasers : MonoBehaviour
             shortRangePhaserLeft.useWorldSpace = true;
             shortRangePhaserMaterialLeft = new Material(shortRangePhaserLeft.material);
             shortRangeEmissionColorLeft = shortRangePhaserMaterialLeft.GetColor(EMISSION_COLOR);
+            shortRangePhaserLeft.startWidth = SRBeamDiameter;
+            shortRangePhaserLeft.endWidth = SRBeamDiameter;
+            shortRangePhaserLeft.enabled = false;
         }
 
         shortRangePhaserRight = shortRangePhaserRightOrigin.GetComponentInChildren<LineRenderer>(true);
@@ -85,183 +68,306 @@ public class ShortRangePhasers : MonoBehaviour
             shortRangePhaserRight.useWorldSpace = true;
             shortRangePhaserMaterialRight = new Material(shortRangePhaserRight.material);
             shortRangeEmissionColorRight = shortRangePhaserMaterialRight.GetColor(EMISSION_COLOR);
+            shortRangePhaserRight.startWidth = SRBeamDiameter;
+            shortRangePhaserRight.endWidth = SRBeamDiameter;
+            shortRangePhaserRight.enabled = false;
         }
 
-        sharedSRCurrentDir = shortRangePhaserLeftOrigin.transform.forward;
+        currentDirs[0] = shortRangePhaserLeftOrigin.transform.forward;
+        currentDirs[1] = shortRangePhaserRightOrigin.transform.forward;
 
-        currSRBeamWidth[0] = minSRBeamDiameter;
-        currSRBeamWidth[1] = minSRBeamDiameter;
+        readyToFire[0] = false;
+        readyToFire[1] = false;
+
+        enabled = false;
     }
 
-    private void readControls()
+    public void setBeamActive(int beamIndex, bool active)
     {
-        if (phaserActivators != null)
+        if (beamIndex < 0 || beamIndex > 1) return;
+
+        bool wasActive = beamActive[beamIndex];
+        beamActive[beamIndex] = active;
+
+        if (active && !wasActive)
         {
-            bool[] activePhasers = phaserActivators.getActivePhasers();
-            leftActive = activePhasers != null && activePhasers.Length > 1 && activePhasers[1];
-            rightActive = activePhasers != null && activePhasers.Length > 2 && activePhasers[2];
+            // Beam is being turned on - it's NOT ready to fire yet
+            readyToFire[beamIndex] = false;
+            nextScanTime = 0f;
         }
-        if (phaserIntensities != null)
+        else if (!active)
         {
-            float[] phaserTemps = phaserIntensities.getPhaserTemperatures();
-            srTemp = phaserTemps != null && phaserTemps.Length > 1 ? phaserTemps[1] : 0f;
+            cachedTargets[beamIndex] = null;
+            cachedDamageables[beamIndex] = null;
+            burstTargets[beamIndex] = null;
+            burstDamageables[beamIndex] = null;
+            readyToFire[beamIndex] = false;
         }
+
+        if (beamActive[0] || beamActive[1])
+        {
+            enabled = true;
+        }
+    }
+
+    public void setIntensity(float intensity)
+    {
+        srTemp = intensity;
+    }
+
+    private float currentBurstCycleLength()
+    {
+        float gap = Mathf.Lerp(SRBurstGapMax, SRBurstGapMin, srTemp);
+        return SRBurstDuration + gap;
+    }
+
+    private bool isFiring()
+    {
+        return burstCycleTime < SRBurstDuration;
     }
 
     private void Update()
     {
-        if (!controlsAssigned)
-        {
-            resolveControls();
-            if (!controlsAssigned) return;
-        }
 
-        readControls();
-        updateShortRangePhasers(Time.deltaTime);
+        if (!beamActive[0] && !beamActive[1])
+        {
+            burstCycleTime = 0f;
+            wasFiringLastFrame = false;
+            currentDirs[0] = shortRangePhaserLeftOrigin.transform.forward;
+            currentDirs[1] = shortRangePhaserRightOrigin.transform.forward;
+            burstTargets[0] = burstTargets[1] = null;
+            burstDamageables[0] = burstDamageables[1] = null;
+            nextScanTime = 0f;
+            readyToFire[0] = false;
+            readyToFire[1] = false;
+
+            updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, 0, false);
+            updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, 1, false);
+
+            enabled = false;
+            return;
+        }
+        else
+        {
+            float dt = Time.deltaTime;
+            updateShortRangePhasers(dt);
+        }
     }
 
     private void updateShortRangePhasers(float dt)
     {
-        Vector3 defaultForward = shortRangePhaserLeftOrigin.transform.forward;
+        float cycleLength = currentBurstCycleLength();
 
-        if (!leftActive && !rightActive)
+        // Advance shared burst cycle
+        burstCycleTime += dt;
+        if (burstCycleTime >= cycleLength)
         {
-            SRPulsePhase = 0f;
-            sharedSRCurrentDir = defaultForward;
-            cachedTarget = null;
-            nextTargetScanTime = 0f;
-        }
-        else
-        {
-            float currentPulseInterval = Mathf.Lerp(maxSRPulseInterval, minSRPulseInterval, 1 - srTemp);
-            SRPulsePhase += dt / currentPulseInterval;
-            SRPulsePhase %= 2f;
-
-            Vector3 trackingMidpoint = (shortRangePhaserLeftOrigin.transform.position
-                                      + shortRangePhaserRightOrigin.transform.position) / 2f;
-
-            if (Time.time >= nextTargetScanTime)
-            {
-                cachedTarget = getNearestEnemy(trackingMidpoint, defaultForward);
-                nextTargetScanTime = Time.time + SRTargetScanInterval;
-            }
-
-            Vector3 targetDir = defaultForward;
-            if (cachedTarget != null)
-            {
-                Vector3 dirToTarget = (cachedTarget.position - trackingMidpoint).normalized;
-                targetDir = Vector3.RotateTowards(defaultForward, dirToTarget, SRMaxTrackingAngle * Mathf.Deg2Rad, 0f);
-            }
-
-            sharedSRCurrentDir = Vector3.Slerp(sharedSRCurrentDir, targetDir, SRTrackingSpeed * dt);
+            burstCycleTime -= cycleLength;
+            // A new cycle has just started - mark all active beams as ready to fire
+            if (beamActive[0])
+                readyToFire[0] = true;
+            if (beamActive[1])
+                readyToFire[1] = true;
         }
 
-        updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, sharedSRCurrentDir, 0, leftActive, srTemp);
-        updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, sharedSRCurrentDir, 1, rightActive, srTemp);
+        bool firing = isFiring();
+        bool burstJustStarted = firing && !wasFiringLastFrame;
+
+        // Shared scan
+        if (Time.time >= nextScanTime)
+        {
+            performSharedScan();
+            nextScanTime = Time.time + SRTargetScanInterval;
+        }
+
+        // Handle burst starts - only fire if beam is active, ready to fire, AND we're in the firing phase
+        if (burstJustStarted)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                if (!beamActive[i] || !readyToFire[i])
+                {
+                    burstTargets[i] = null;
+                    burstDamageables[i] = null;
+                    continue;
+                }
+
+                GameObject origin = (i == 0) ? shortRangePhaserLeftOrigin : shortRangePhaserRightOrigin;
+
+                if (cachedTargets[i] != null)
+                {
+                    burstTargets[i] = cachedTargets[i];
+                    burstDamageables[i] = cachedDamageables[i];
+                    currentDirs[i] = computeAimDir(origin, burstTargets[i]);
+                }
+                else
+                {
+                    // No target 
+                    burstTargets[i] = null;
+                    burstDamageables[i] = null;
+                    currentDirs[i] = origin.transform.forward;
+                }
+            }
+        }
+
+        // Aim updates
+        updateBeamAim(0, shortRangePhaserLeftOrigin, dt, firing);
+        updateBeamAim(1, shortRangePhaserRightOrigin, dt, firing);
+
+        // Only show beam if active, ready to fire, and we're in firing phase
+        updateShortRangePhaser(shortRangePhaserLeft, shortRangePhaserLeftOrigin, 0, beamActive[0] && readyToFire[0] && firing);
+        updateShortRangePhaser(shortRangePhaserRight, shortRangePhaserRightOrigin, 1, beamActive[1] && readyToFire[1] && firing);
+
+        // Damage during firing 
+        if (firing)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                if (beamActive[i] && readyToFire[i] && burstDamageables[i] != null && burstTargets[i] != null)
+                {
+                    burstDamageables[i].damage(SRDamagePerSecond * dt);
+                }
+            }
+        }
+
+        wasFiringLastFrame = firing;
     }
 
-    private void updateShortRangePhaser(LineRenderer phaser, GameObject origin, Vector3 beamDirection, int index, bool active, float temperature)
+    private void updateBeamAim(int index, GameObject origin, float dt, bool firing)
     {
-        if (phaser == null) return;
-
-        if (!active)
+        if (!beamActive[index] || !readyToFire[index])
         {
-            phaser.enabled = false;
-            currSRBeamWidth[index] = minSRBeamDiameter;
+            currentDirs[index] = origin.transform.forward;
             return;
         }
 
-        float pulseValue = Mathf.SmoothStep(0, 1, Mathf.PingPong(SRPulsePhase, 1));
+        if (!firing)
+        {
 
-        bool beamVisible = pulseValue > 0.3f;
-        phaser.enabled = beamVisible;
+            Transform target = cachedTargets[index];
+            currentDirs[index] = (target != null)
+                ? computeAimDir(origin, target)
+                : origin.transform.forward;
+            return;
+        }
 
-        float beamWidth = Mathf.Lerp(minSRBeamDiameter, maxSRBeamDiameter, Mathf.Max(0.01f, temperature)) * pulseValue;
-        phaser.startWidth = currSRBeamWidth[index];
-        phaser.endWidth = beamWidth * SRBeamEndDiameterRatio;
+        if (burstTargets[index] != null)
+        {
+            Vector3 targetDir = computeAimDir(origin, burstTargets[index]);
+            currentDirs[index] = Vector3.Slerp(currentDirs[index], targetDir, SRTrackingSpeed * dt);
+        }
 
-        phaser.SetPosition(0, origin.transform.position);
-        phaser.SetPosition(1, origin.transform.position + beamDirection * SHORT_RANGE_BEAM_LENGTH);
     }
 
-    private static readonly Collider[] overlapSphereBuffer = new Collider[128];
-
-    private Transform getNearestEnemy(Vector3 originPos, Vector3 forwardDir)
+    private Vector3 computeAimDir(GameObject origin, Transform target)
     {
-        Transform nearestEnemy = null;
-        float minDistance = float.MaxValue;
+        Vector3 originPos = origin.transform.position;
+        Vector3 defaultForward = origin.transform.forward;
+        Vector3 dirToTarget = (target.position - originPos).normalized;
 
-        int overlapCount = Physics.OverlapSphereNonAlloc(originPos, SRTrackingRange, overlapSphereBuffer);
-        for (int i = 0; i < overlapCount; i++)
+        return Vector3.RotateTowards(defaultForward, dirToTarget, SRMaxTrackingAngle * Mathf.Deg2Rad, 0f);
+    }
+
+    private void updateShortRangePhaser(LineRenderer phaser, GameObject origin, int index, bool visible)
+    {
+        if (phaser == null) return;
+
+        if (!visible)
         {
-            Collider col = overlapSphereBuffer[i];
+            phaser.enabled = false;
+            return;
+        }
+
+        phaser.enabled = true;
+
+        Vector3 beamStart = origin.transform.position;
+        Vector3 beamDirection = currentDirs[index];
+        Vector3 beamEnd = beamStart + beamDirection * SHORT_RANGE_BEAM_LENGTH;
+
+        Transform target = burstTargets[index];
+        if (target != null)
+        {
+            Collider targetCol = target.GetComponent<Collider>();
+            if (targetCol != null && targetCol.Raycast(new Ray(beamStart, beamDirection), out RaycastHit hit, SHORT_RANGE_BEAM_LENGTH))
+            {
+                beamEnd = hit.point;
+            }
+        }
+
+        phaser.SetPosition(0, beamStart);
+        phaser.SetPosition(1, beamEnd);
+    }
+
+    private void performSharedScan()
+    {
+        Vector3 leftPos = shortRangePhaserLeftOrigin.transform.position;
+        Vector3 rightPos = shortRangePhaserRightOrigin.transform.position;
+        Vector3 midpoint = (leftPos + rightPos) * 0.5f;
+        float halfSeparation = Vector3.Distance(leftPos, rightPos) * 0.5f;
+        float sharedRadius = SRTrackingRange + halfSeparation;
+
+        Collider[] overlaps = Physics.OverlapSphere(midpoint, sharedRadius);
+
+        Transform[] bestTarget = new Transform[2];
+        IDamageable[] bestDamageable = new IDamageable[2];
+        float[] bestDistance = new float[2] { float.MaxValue, float.MaxValue };
+
+        for (int i = 0; i < overlaps.Length; i++)
+        {
+            Collider col = overlaps[i];
             if (col == null) continue;
-            considerCandidate(col.transform, originPos, forwardDir, ref nearestEnemy, ref minDistance);
+
+            IDamageable dmg = col.GetComponent<IDamageable>();
+            if (dmg == null) continue;
+
+            Transform candidate = col.transform;
+
+            if (beamActive[0])
+            {
+                considerForBeam(candidate, dmg, shortRangePhaserLeftOrigin.transform,
+                                ref bestTarget[0], ref bestDamageable[0], ref bestDistance[0]);
+            }
+            if (beamActive[1])
+            {
+                considerForBeam(candidate, dmg, shortRangePhaserRightOrigin.transform,
+                                ref bestTarget[1], ref bestDamageable[1], ref bestDistance[1]);
+            }
         }
 
-        return nearestEnemy;
-    }
-
-    private void considerCandidate(Transform candidate, Vector3 originPos, Vector3 forwardDir,
-                                   ref Transform nearestEnemy, ref float minDistance)
-    {
-        if (candidate.GetComponent<IDamageable>() == null) return;
-
-        Vector3 dirToTarget = (candidate.position - originPos).normalized;
-        float angle = Vector3.Angle(forwardDir, dirToTarget);
-        if (angle > SRMaxTrackingAngle) return;
-
-        float dist = Vector3.Distance(originPos, candidate.position);
-        if (dist < minDistance)
+        for (int i = 0; i < 2; i++)
         {
-            minDistance = dist;
-            nearestEnemy = candidate;
+            if (beamActive[i])
+            {
+                cachedTargets[i] = bestTarget[i];
+                cachedDamageables[i] = bestDamageable[i];
+            }
         }
     }
-}
 
-
-    // For Debugging
-    /*
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
+    private void considerForBeam(Transform candidate, IDamageable dmg, Transform originTransform,
+                                 ref Transform bestTarget, ref IDamageable bestDamageable, ref float bestDistance)
     {
-        if (shortRangePhaserLeftOrigin == null || shortRangePhaserRightOrigin == null) return;
+        Vector3 originPos = originTransform.position;
+        Vector3 toTarget = candidate.position - originPos;
+        float distSqr = toTarget.sqrMagnitude;
 
-        Vector3 trackingMidpoint = (shortRangePhaserLeftOrigin.transform.position
-                                  + shortRangePhaserRightOrigin.transform.position) / 2f;
-        Vector3 defaultForward = shortRangePhaserLeftOrigin.transform.forward;
+        if (distSqr >= bestDistance) return;
+        if (distSqr > SRTrackingRange * SRTrackingRange) return;
 
-        // Draw the inner proximity radius (Faint Cyan)
-        Gizmos.color = new Color(0f, 1f, 1f, 0.2f);
-        Gizmos.DrawWireSphere(trackingMidpoint, SRTrackingRadius);
+        Vector3 localToTarget = originTransform.InverseTransformDirection(toTarget);
 
-        // Draw the outer limits of the radar sweep (Faint Red)
-        Gizmos.color = new Color(1f, 0f, 0f, 0.1f);
-        Gizmos.DrawWireSphere(trackingMidpoint, SRTrackingRange);
+        if (localToTarget.z <= 0f) return;
 
-        // Calculate the physical edges of the tracking cone
-        Vector3 rightDir = shortRangePhaserLeftOrigin.transform.right;
-        Vector3 upDir = shortRangePhaserLeftOrigin.transform.up;
+        float yaw = Mathf.Atan2(localToTarget.x, localToTarget.z) * Mathf.Rad2Deg;
+        float pitch = Mathf.Atan2(localToTarget.y, localToTarget.z) * Mathf.Rad2Deg;
 
-        Vector3 upperEdge = Quaternion.AngleAxis(-SRMaxTrackingAngle, rightDir) * defaultForward;
-        Vector3 lowerEdge = Quaternion.AngleAxis(SRMaxTrackingAngle, rightDir) * defaultForward;
-        Vector3 leftEdge = Quaternion.AngleAxis(-SRMaxTrackingAngle, upDir) * defaultForward;
-        Vector3 rightEdge = Quaternion.AngleAxis(SRMaxTrackingAngle, upDir) * defaultForward;
+        float hRatio = yaw / SRMaxTrackingAngle;
+        float vRatio = pitch / (SRMaxTrackingAngle * 0.75f);
 
-        // Draw the Cone frame (Solid Red)
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(trackingMidpoint, upperEdge * SRTrackingRange);
-        Gizmos.DrawRay(trackingMidpoint, lowerEdge * SRTrackingRange);
-        Gizmos.DrawRay(trackingMidpoint, leftEdge * SRTrackingRange);
-        Gizmos.DrawRay(trackingMidpoint, rightEdge * SRTrackingRange);
-        Gizmos.DrawRay(trackingMidpoint, defaultForward * SRTrackingRange); // Center-line
+        if ((hRatio * hRatio) + (vRatio * vRatio) > 1f) return;
 
-        // Draw the transparent arc faces using UnityEditor Handles
-        UnityEditor.Handles.color = new Color(1f, 0f, 0f, 0.05f);
-        UnityEditor.Handles.DrawSolidArc(trackingMidpoint, upDir, leftEdge, SRMaxTrackingAngle * 2, SRTrackingRange);
-        UnityEditor.Handles.DrawSolidArc(trackingMidpoint, rightDir, upperEdge, SRMaxTrackingAngle * 2, SRTrackingRange);
+        bestDistance = distSqr;
+        bestTarget = candidate;
+        bestDamageable = dmg;
     }
-#endif
 }
-    */

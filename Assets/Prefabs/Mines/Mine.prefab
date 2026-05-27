@@ -535,7 +535,7 @@ GameObject:
   - component: {fileID: 3217027784087835669}
   m_Layer: 0
   m_Name: Mine
-  m_TagString: Enemy
+  m_TagString: StaticObstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -682,7 +682,9 @@ MonoBehaviour:
   size: 50
   is_ship: 0
   is_visible: 1
+  is_interest_item: 0
   icon_color: {r: 1, g: 0, b: 0, a: 1}
+  icon_texture: {fileID: 0}
 --- !u!114 &-8478366146110442913
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -697,6 +699,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   laser_aperture: {fileID: 7684594979185420220}
   line_renderer: {fileID: 3217027784087835669}
+  health: 50
 --- !u!135 &6612775246537142045
 SphereCollider:
   m_ObjectHideFlags: 0
