@@ -313,7 +313,6 @@ public class ScenarioManager : NetworkBehaviour
         endpoint_reached = false;
         scenario_number += 1;
 
-        /*
         if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
@@ -324,8 +323,8 @@ public class ScenarioManager : NetworkBehaviour
             SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
             return "CollectibleTest";
         }
-        */
 
+        /*
         if (SceneManager.GetActiveScene().name != "MineField")
         {
             SceneSwapper.Instance.ChangeScene("MineField", scenario_number);
@@ -336,6 +335,7 @@ public class ScenarioManager : NetworkBehaviour
             SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
             return "CollectibleTest";
         }
+        */
     }
 
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
