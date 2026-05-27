@@ -378,7 +378,7 @@ public class LobbyHandler : NetworkBehaviour
         {
             if (ReferenceAssistor.Instance.failure_handler.failureCamera.activeSelf == true)
             {
-                ReferenceAssistor.Instance.failure_handler.handleLobbyChange(false);
+                ReferenceAssistor.Instance.failure_handler.HandleLobbyChange(false);
             }
         }
 
@@ -415,7 +415,6 @@ public class LobbyHandler : NetworkBehaviour
     private void updateDifficultyRPC(int new_difficulty)
     {
         difficulty = new_difficulty;
-        Debug.Log("Difficulty changed to " +  difficulty);
 
         GameObject campaign_lobby = GameObject.Find("CampaignLobby");
         GameObject failure_handler = GameObject.Find("FailureHandler");

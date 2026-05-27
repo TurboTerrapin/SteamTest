@@ -228,7 +228,7 @@ public class LoadHandler : MonoBehaviour
             if (ReferenceAssistor.Instance != null && ReferenceAssistor.Instance.failure_handler.failureCamera.activeSelf == true)
             {
                 //if in failure state let the failure handler know, then do nothing after
-                ReferenceAssistor.Instance.failure_handler.handleLobbyChange(true);
+                ReferenceAssistor.Instance.failure_handler.HandleLobbyChange(true);
                 yield break;
             }
             PrimaryScript.Instance.unpause(); //forces unpause

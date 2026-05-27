@@ -99,10 +99,10 @@ public class PrimaryScript : MonoBehaviour
         minimized_list_frame = primary_info.transform.GetChild(1).gameObject;
         sit_frame = primary_info.transform.GetChild(2).gameObject;
         control_title = trapezoidal_frame.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
-        pause_default_menu = player_UI_canvas.transform.GetChild(4).GetChild(0).gameObject;
-        pause_settings_menu = player_UI_canvas.transform.GetChild(4).GetChild(1).gameObject;
-        pause_controls_menu = player_UI_canvas.transform.GetChild(4).GetChild(2).gameObject;
-        pause_confirm_quit_menu = player_UI_canvas.transform.GetChild(4).GetChild(3).gameObject;
+        pause_default_menu = player_UI_canvas.transform.GetChild(3).GetChild(0).gameObject;
+        pause_settings_menu = player_UI_canvas.transform.GetChild(3).GetChild(1).gameObject;
+        pause_controls_menu = player_UI_canvas.transform.GetChild(3).GetChild(2).gameObject;
+        pause_confirm_quit_menu = player_UI_canvas.transform.GetChild(3).GetChild(3).gameObject;
 
         //make an instance so can be referenced
         if (Instance != null)
