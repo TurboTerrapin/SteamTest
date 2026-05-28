@@ -136,15 +136,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             handlePowerConsumptionChange();
             increasing = false;
 
-            // Notify visuals immediately on disable - beams should stop right away
-            if (index == 0)
-            {
-                if (long_range_phaser != null) long_range_phaser.setActive(false);
-            }
-            else
-            {
-                if (short_range_phasers != null) short_range_phasers.setBeamActive(index - 1, false);
-            }
+            short_range_phasers.updateShortRangePhasers();
 
             if (index == 0)
             {
@@ -201,15 +193,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             }
             BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[1]);
 
-            // Notify visuals - beam comes on after the charge animation completes
-            if (index == 0)
-            {
-                if (long_range_phaser != null) long_range_phaser.setActive(true);
-            }
-            else
-            {
-                if (short_range_phasers != null) short_range_phasers.setBeamActive(index - 1, true);
-            }
+            short_range_phasers.updateShortRangePhasers();
         }
         else
         {
@@ -239,16 +223,9 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             BUTTON_LISTS[i][0].untoggle();
 
             starting_rotations[i] = switch_rotations[i];
+        }
 
-        if (i == 0)
-        {
-            if (long_range_phaser != null) long_range_phaser.setActive(false);
-        }
-        else
-        {
-            if (short_range_phasers != null) short_range_phasers.setBeamActive(i - 1, false);
-        }
-        }
+        short_range_phasers.updateShortRangePhasers();
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)

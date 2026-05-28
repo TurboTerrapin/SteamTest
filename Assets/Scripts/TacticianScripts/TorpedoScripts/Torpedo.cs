@@ -44,7 +44,7 @@ public class Torpedo : NetworkBehaviour
     [SerializeField]
     private float max_angle_delta = BASE_ANGLE_DELTA;
     [SerializeField]
-    private float detection_radius = 5000.0f;
+    private float detection_radius = 1000.0f;
     [SerializeField]
     private LayerMask target_layer; // Bitwise collision layer
 

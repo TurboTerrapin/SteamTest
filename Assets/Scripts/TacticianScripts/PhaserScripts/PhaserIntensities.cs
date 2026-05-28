@@ -277,14 +277,5 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         phaser_intensities[index] = phsr_percent;
         handlePowerConsumptionChange();
         displayAdjustment(index);
-
-        if (index == 0)
-        {
-            if (long_range_phaser != null) long_range_phaser.setIntensity(phsr_percent);
-        }
-        else
-        {
-            if (short_range_phasers != null) short_range_phasers.setIntensity(phsr_percent);
-        }
     }
 }
