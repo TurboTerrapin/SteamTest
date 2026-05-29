@@ -2,7 +2,7 @@
     PhaserActivators.cs
     - Determines whether phasers are enabled or not
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/29/2026
 */
 
 using System.Collections;
@@ -28,8 +28,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     public GameObject phaser_activator_display;
 
     private PhaserIntensities phaser_intensities;
-    private ShortRangePhasers short_range_phasers;
-    private LongRangePhaser long_range_phaser;
+    private Phasers phasers;
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine;
@@ -54,8 +53,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     private void Start()
     {
         phaser_intensities = GetComponent<PhaserIntensities>();
-        short_range_phasers = GetComponent<ShortRangePhasers>();
-        long_range_phaser = GetComponent<LongRangePhaser>();
+        phasers = GetComponent<Phasers>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -133,10 +131,9 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
         {
             phaser_coverups[index].SetActive(true);
             phaser_is_enabled[index] = false;
+            phasers.updatePhasers();
             handlePowerConsumptionChange();
             increasing = false;
-
-            short_range_phasers.updateShortRangePhasers();
 
             if (index == 0)
             {
@@ -182,6 +179,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
         {
             phaser_coverups[index].SetActive(false);
             phaser_is_enabled[index] = true;
+            phasers.updatePhasers();
             handlePowerConsumptionChange();
             if (index == 0)
             {
@@ -192,8 +190,6 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
                 phaser_intensities.changeInPower(1, true);
             }
             BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[1]);
-
-            short_range_phasers.updateShortRangePhasers();
         }
         else
         {
@@ -224,8 +220,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
 
             starting_rotations[i] = switch_rotations[i];
         }
-
-        short_range_phasers.updateShortRangePhasers();
+        phasers.updatePhasers();
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)
@@ -296,6 +291,5 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
             StopCoroutine(phaser_switch_coroutines[index]);
         }
         phaser_switch_coroutines[index] = StartCoroutine(switchPhaser(index));
-
     }
 }

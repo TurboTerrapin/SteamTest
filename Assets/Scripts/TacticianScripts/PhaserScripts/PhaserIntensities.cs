@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser intensity screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/29/2026
 */
 
 using System.Collections;
@@ -32,8 +32,6 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     private Coroutine power_loss_coroutine = null;
 
     private PhaserActivators phaser_activators;
-    private ShortRangePhasers short_range_phasers;
-    private LongRangePhaser long_range_phaser;
 
     private float[] phaser_intensities = new float[2] { 0.0f, 0.0f };
     private Vector3[] phaser_slider_initial_positions = new Vector3[2];
@@ -55,9 +53,6 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     private void Start()
     {
         phaser_activators = GetComponent<PhaserActivators>();
-        short_range_phasers = GetComponent<ShortRangePhasers>();
-        long_range_phaser = GetComponent<LongRangePhaser>();
-
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -84,33 +79,39 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
 
-    public float[] getPhaserTemperatures()
+    public float[] getPhaserIntensities()
     {
         return phaser_intensities;
     }
