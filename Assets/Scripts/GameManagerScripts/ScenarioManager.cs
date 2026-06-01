@@ -313,6 +313,18 @@ public class ScenarioManager : NetworkBehaviour
         endpoint_reached = false;
         scenario_number += 1;
 
+        if (SceneManager.GetActiveScene().name != "BlackHole")
+        {
+            SceneSwapper.Instance.ChangeScene("BlackHoleEscape", scenario_number);
+            return "BlackHoleEscape";
+        }
+        else
+        {
+            SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
+            return "CollectibleTest";
+        }
+
+        /*
         if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
@@ -323,7 +335,7 @@ public class ScenarioManager : NetworkBehaviour
             SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
             return "CollectibleTest";
         }
-
+        */
         /*
         if (SceneManager.GetActiveScene().name != "MineField")
         {
