@@ -128,7 +128,7 @@ public class PilotingSystem : NetworkBehaviour
         insideAltitudeBoundary = true;
     }
 
-    //called by ScenarioMap
+    //called by PlayerManager and this
     public string GetTargetHeading()
     {
         GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
@@ -336,7 +336,7 @@ public class PilotingSystem : NetworkBehaviour
             transform.Rotate(0f, -1.0f * currentRotationSpeed * dt, 0f);
         }
 
-        //update maps/rotation slider
+        // Update maps/rotation slider
         RotationChangeRPC();
     }
 
@@ -382,7 +382,7 @@ public class PilotingSystem : NetworkBehaviour
                     {
                         if (transform.GetComponent<ShipHealth>().getHullIntegrity() > 0.0f)
                         {
-                            GameObject.Find("ScenarioManager").GetComponent<ScenarioManager>().endScenario(ScenarioManager.EndCondition.ReachedEndpoint);
+                            ReferenceAssistor.Instance.scenario_manager.endScenario(ScenarioManager.EndCondition.ReachedEndpoint);
                         }
                     }
                     return;
@@ -430,7 +430,7 @@ public class PilotingSystem : NetworkBehaviour
         yield return new WaitForSeconds(2.0f);
         if (countdown <= 0)
         {
-            GameObject.Find("ScenarioManager").GetComponent<ScenarioManager>().endScenario(ScenarioManager.EndCondition.LeftBoundary);
+            ReferenceAssistor.Instance.scenario_manager.endScenario(ScenarioManager.EndCondition.LeftBoundary);
         }
 
         boundaryCountdownCoroutine = null;

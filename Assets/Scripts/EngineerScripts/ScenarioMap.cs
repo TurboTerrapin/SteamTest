@@ -36,7 +36,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     private Coroutine red_flash_coroutine = null;
 
-    void Start()
+    private void Start()
     {
         ITEM_LOCATION_CONVERSION_FACTOR = (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
         INTEREST_ITEM_SIZE_CONVERSION_FACTOR = (0.115f / ScenarioManager.BOUNDARY_SIZE);

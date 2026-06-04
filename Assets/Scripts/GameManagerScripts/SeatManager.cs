@@ -13,7 +13,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Steamworks;
-using Steamworks.Data;
 using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
 using Unity.Netcode;
 using UnityEngine;
@@ -125,20 +124,19 @@ public class SeatManager : NetworkBehaviour
         List<ulong> steam_ids = lobby_handler.getPlayerSteamIDsInLobby();
         for (int i = 0; i < 4; i++)
         {
-            if (occupied_seats[i] != 0)
+            //check if need to unoccupy seat
+            if (occupied_seats[i] != 0 && steam_ids.Contains(occupied_seats[i]) == false)
             {
-                if (steam_ids.Contains(occupied_seats[i]) == false)
+                transmitSeatOccupantChangeRPC(i, 0, 0, false);
+                if (i == 3)
                 {
-                    if (i != 3) //captain seat is permanent
-                    {
-                        spawnSeat(i, NetworkManager.Singleton.LocalClientId, true);
-                    }
-                    else
-                    {
-                        transmitCaptainAnimationRPC(false);
-                    }
-                    transmitSeatOccupantChangeRPC(i, 0, 0, false);
+                    transmitCaptainAnimationRPC(false);
                 }
+            }
+            //check if seat got destroyed because player who left owned it as a network object
+            if (i != 3 && (physical_seats[i] == null || (physical_seats[i].GetComponent<NetworkObject>() != null && steam_ids.Contains(lobby_handler.getPlayerSteamID(physical_seats[i].GetComponent<NetworkObject>().OwnerClientId)) == true)))
+            {
+                spawnSeat(i, NetworkManager.Singleton.LocalClientId, true);
             }
         }
     }

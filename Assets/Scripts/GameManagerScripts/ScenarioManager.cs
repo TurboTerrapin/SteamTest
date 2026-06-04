@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott, Henryk Musial
-    Last Updated: 5/22/2026
+    Last Updated: 6/4/2026
 */
 
 using System.Collections;
@@ -28,7 +28,7 @@ public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
     private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure based on difficulty
-    private static int[] OBTAINBLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary based on difficulty
+    private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
@@ -94,11 +94,12 @@ public class ScenarioManager : NetworkBehaviour
     //returns a list of coordinates of length num_points that is of at least min_distance from each other and not intersecting with off-limits locations
     public List<Vector3> generateSpawnLocations(float min_distance, int num_points, List<OffLimitsSpawnLocation> off_limits_locations)
     {
-        float spawn_area_radius = BOUNDARY_SIZE * 0.5f;
+        float spawn_area_radius = BOUNDARY_SIZE * 0.45f;
         float spawn_area_height = BOUNDARY_ALTITUDE * 2.0f;
+        Vector3 world_root_center = new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f);
 
         //reset spawn_locations to new list that includes the number of collectible items to be spawned as well
-        num_points += OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty];
+        num_points += OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty];
         spawn_locations = new List<Vector3>(num_points);
 
         float cell_size = min_distance / Mathf.Sqrt(3.0f); //grid cell size = minDistance / sqrt(3)
@@ -181,7 +182,6 @@ public class ScenarioManager : NetworkBehaviour
         }
 
         //generate spawn points
-        Vector3 world_root_center = new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f);
         for (int i = 0; i < num_points; i++)
         {
             bool found = false;
@@ -202,7 +202,7 @@ public class ScenarioManager : NetworkBehaviour
 
                 if (isValid(candidate_point))
                 {
-                    spawn_locations.Add(candidate_point + world_root_center);
+                    spawn_locations.Add(candidate_point);
                     Vector3Int coord = getGridCoordinate(candidate_point);
                     grid[coord.x, coord.y, coord.z] = spawn_locations.Count - 1; //store point index
                     found = true;
@@ -219,13 +219,19 @@ public class ScenarioManager : NetworkBehaviour
                 float x = r * Mathf.Cos(angle);
                 float z = r * Mathf.Sin(angle);
                 float y = Random.Range(-spawn_area_height / 2.0f, spawn_area_height / 2.0f);
-                spawn_locations.Add(new Vector3(x, y, z) + world_root_center);
+                spawn_locations.Add(new Vector3(x, y, z));
             }
+        }
+
+        //add world_root_center
+        for (int i = 0; i < spawn_locations.Count; i++)
+        {
+            spawn_locations[i] += world_root_center;
         }
 
         //return the locations that are not occupied by the collectibles (0-OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty]) to be spawned
         List<Vector3> free_locations = new List<Vector3>(num_points);
-        for (int i = OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty]; i < num_points; i++)
+        for (int i = OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty]; i < num_points; i++)
         {
             free_locations.Add(spawn_locations[i]);
         }
@@ -312,8 +318,7 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
-
-        if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
+        if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
         {
             SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
             return "RedLightGreenLight";
@@ -324,8 +329,9 @@ public class ScenarioManager : NetworkBehaviour
             return "CollectibleTest";
         }
 
+
         /*
-        if (SceneManager.GetActiveScene().name != "MineField")
+                if (SceneManager.GetActiveScene().name != "MineField")
         {
             SceneSwapper.Instance.ChangeScene("MineField", scenario_number);
             return "MineField";
@@ -376,9 +382,9 @@ public class ScenarioManager : NetworkBehaviour
         }
 
         //spawn collectibles
-        for (int i = 0; i < OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty]; i++) 
+        for (int i = 0; i < OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty]; i++) 
         {
-            spawnCollectibleItem(i, i >= OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty] / 2);
+            spawnCollectibleItem(i, i >= OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty] / 2);
         }
     }
 
@@ -522,11 +528,11 @@ public class ScenarioManager : NetworkBehaviour
         exit_rotation = exit_rot;
 
         scenario_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
+        GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
 
         //if host, position the ship to entrance position and let the network sync the transform
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
             GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
         }
     }

@@ -1,7 +1,7 @@
 /*
     MineField.cs
     Contributor(s): Henryk Musial
-    Last Updated: 4/1/2026
+    Last Updated: 6/1/2026
 */
 
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ public class MineField : NetworkBehaviour, IScenario
         if (NetworkManager.Singleton.IsHost == false)
             return;
 
-        float minDistance = 50.0f;
+        float minDistance = 200.0f;
 
         int totalMines = MINE_QUANTITY;
 
