@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2026
+    Last Updated: 6/4/2026
 */
 
 using System.Collections;
@@ -34,7 +34,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
     private GameObject coolant_circle; //the UI section that shows the engine coolant flow
     private GameObject temperature; //the UI section that shows the engine temperature
 
-    private PilotingSystem piloting_system;
+    private ShipMovement ship_movement;
     private EngineMonitoring engine_monitoring;
 
     private bool is_powered = false;
@@ -59,7 +59,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
 
     private void Start()
     {
-        piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
+        ship_movement = ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>();
         engine_monitoring = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EngineMonitoring>();
 
         coolant_circle = engine_coolant_supply_display.transform.GetChild(0).gameObject;
@@ -331,7 +331,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
         //if host, adjust maximum impulse speed
         if (NetworkManager.Singleton.IsHost == true)
         {
-            piloting_system.AdjustMaxImpulseSpeed(getMaxImpulseSpeedBasedOnEngineTemperature());
+            ship_movement.AdjustMaxImpulseSpeed(getMaxImpulseSpeedBasedOnEngineTemperature());
         }
 
         //update pilot position

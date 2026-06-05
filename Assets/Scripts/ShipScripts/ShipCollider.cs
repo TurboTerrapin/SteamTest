@@ -3,7 +3,7 @@
     - Forwards collision events to CollisionHandler
     - Forwards damage to ShipHealth
     Contributor(s): Henryk Musial
-    Last Updated: 3/21/2026
+    Last Updated: 6/4/2026
 */
 
 using Unity.Netcode;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class ShipCollider : MonoBehaviour, IDamageable
 {
-    public CollisionHandler collisionHandler;
+    public ShipCollisionHandler shipCollisionHandler;
     [SerializeField]
     private int section = -1;
     private ShipHealth shipHealth;
@@ -27,7 +27,7 @@ public class ShipCollider : MonoBehaviour, IDamageable
 
     private void OnCollisionEnter(Collision collision)
     {
-        collisionHandler.HandleCollision(GetComponent<Collider>(), collision.collider);
+        shipCollisionHandler.HandleCollision(GetComponent<Collider>(), collision.collider);
     }
 
     public void damage(float damage)

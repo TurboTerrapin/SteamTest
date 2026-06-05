@@ -42504,7 +42504,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76cfcf6b03b95a24dad86f2a9164dec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionHandler: {fileID: 271686963}
+  shipCollisionHandler: {fileID: 271686966}
   section: 1
 --- !u!1 &204550261
 GameObject:
@@ -53151,11 +53151,10 @@ GameObject:
   - component: {fileID: 271686957}
   - component: {fileID: 271686955}
   - component: {fileID: 271686954}
-  - component: {fileID: 271686956}
   - component: {fileID: 271686960}
   - component: {fileID: 271686964}
-  - component: {fileID: 271686959}
-  - component: {fileID: 271686963}
+  - component: {fileID: 271686965}
+  - component: {fileID: 271686966}
   - component: {fileID: 271686962}
   m_Layer: 0
   m_Name: Spaceship
@@ -53216,18 +53215,6 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &271686956
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 271686953}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 780c5300605a9d04e93aaba810432f1e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &271686957
 Transform:
   m_ObjectHideFlags: 0
@@ -53249,25 +53236,6 @@ Transform:
   - {fileID: 1961599426}
   m_Father: {fileID: 645922982}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &271686959
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 271686953}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 689f5d622eef3ab4fa713d2f75534da5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentRotationSpeed: 0
-  forwardSpeed: 0
-  currentVelocity: {x: 0, y: 0, z: 0}
-  impulseSpeedAdjustmentFactor: 1
-  currentImpulseSpeed: 0
-  currentHorizontalSpeed: 0
-  currentVerticalSpeed: 0
 --- !u!114 &271686960
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53327,23 +53295,6 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 1
---- !u!114 &271686963
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 271686953}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecaf6f3125c5ced4f9187a53f7a718ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shipColliders:
-  - {fileID: 818934480}
-  - {fileID: 204116773}
-  - {fileID: 1757304822}
-  - {fileID: 887096632}
 --- !u!114 &271686964
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53357,6 +53308,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inventory_display: {fileID: 1331838815}
+--- !u!114 &271686965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271686953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eba19f7fd5a006044af92063f57fd96b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &271686966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 271686953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9f278949f0c4d441bd30a486b4ed97d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shipColliders:
+  - {fileID: 818934480}
+  - {fileID: 204116773}
+  - {fileID: 1757304822}
+  - {fileID: 887096632}
 --- !u!1 &272647305
 GameObject:
   m_ObjectHideFlags: 0
@@ -157259,8 +157239,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 10
+  far clip plane: 5000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -165274,7 +165254,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76cfcf6b03b95a24dad86f2a9164dec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionHandler: {fileID: 271686963}
+  shipCollisionHandler: {fileID: 271686966}
   section: 0
 --- !u!1 &820008251
 GameObject:
@@ -176625,7 +176605,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76cfcf6b03b95a24dad86f2a9164dec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionHandler: {fileID: 271686963}
+  shipCollisionHandler: {fileID: 271686966}
   section: 3
 --- !u!1 &887766445
 GameObject:
@@ -200311,6 +200291,8 @@ MonoBehaviour:
   - {fileID: 3595416978092082850, guid: 7055e4c20b928a3419f6de5e7800edbf, type: 3}
   - {fileID: 8483089212619779395, guid: 01872ba92a5e014439743bff1720331f, type: 3}
   - {fileID: 965407766980161814, guid: 29db905491c6e1d468cddb74d582a150, type: 3}
+  world_root: {fileID: 0}
+  spaceship: {fileID: 271686953}
   audio_manager: {fileID: 17234537}
   effects_handler: {fileID: 629750337}
   failure_handler: {fileID: 1294688396}
@@ -352640,7 +352622,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76cfcf6b03b95a24dad86f2a9164dec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collisionHandler: {fileID: 271686963}
+  shipCollisionHandler: {fileID: 271686966}
   section: 2
 --- !u!1 &1757537587
 GameObject:

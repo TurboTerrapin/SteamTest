@@ -2,7 +2,7 @@
     ReferenceAssistor.cs
     - Used to streamline referencing for certain commonly-used things
     Contributor(s): Jake Schott
-    Last Updated: 5/23/2026
+    Last Updated: 6/4/2026
 */
 
 using System.Collections.Generic;
@@ -37,6 +37,8 @@ public class ReferenceAssistor : MonoBehaviour
 
     public List<GameObject> collectible_items;
 
+    public GameObject world_root;
+    public GameObject spaceship;
     public AudioManager audio_manager;
     public EffectsHandler effects_handler;
     public FailureHandler failure_handler;
@@ -54,5 +56,10 @@ public class ReferenceAssistor : MonoBehaviour
             Destroy(this);
         }
         Instance = this;
+    }
+
+    public void assignWorldRoot(GameObject wr)
+    {
+        world_root = wr;
     }
 }

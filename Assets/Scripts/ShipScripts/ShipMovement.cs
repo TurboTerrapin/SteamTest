@@ -1,19 +1,19 @@
 /*
-    PilotingSystem.cs
+    ShipMovement.cs
     - Handles moving WorldRoot to traverse through space
     - Handles rotating Spaceship
     - Handles boundary checking/handling
     - Handles getting "stunned" when running into immovable objects
     - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
     Contributor(s): Henryk Musial
-    Last Updated: 5/13/2026
+    Last Updated: 6/4/2026
 */
 
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
-public class PilotingSystem : NetworkBehaviour
+public class ShipMovement : NetworkBehaviour
 {
     [Header("Speed Settings")]
     private float maxThrusterSpeed = 6f;
@@ -43,18 +43,18 @@ public class PilotingSystem : NetworkBehaviour
     private float steeringInput;
     private float horizontalThrust;
     private float verticalThrust;
+    private float impulseSpeedAdjustmentFactor = 1.0f;
 
     // Movement state
     private float smoothedSteeringInput = 0f;
     private bool inReverse;
-    public float currentRotationSpeed;
-    public float forwardSpeed;
-    public Vector3 currentVelocity;
+    private float currentRotationSpeed;
+    private float forwardSpeed;
+    private Vector3 currentVelocity;
 
-    public float impulseSpeedAdjustmentFactor = 1.0f;
-    public float currentImpulseSpeed = 0f;
-    public float currentHorizontalSpeed = 0f;
-    public float currentVerticalSpeed = 0f;
+    private float currentImpulseSpeed = 0f;
+    private float currentHorizontalSpeed = 0f;
+    private float currentVerticalSpeed = 0f;
 
     // Stun values
     private float stunFactor = 0.0f; //ranges from 0 to 1
@@ -72,7 +72,7 @@ public class PilotingSystem : NetworkBehaviour
     private bool insideAltitudeBoundary = true; //used for altitude boundary display in EngineerMap
     private Coroutine boundaryCountdownCoroutine = null;
 
-    public bool AssignControlReferences()
+    private void AssignControlReferences()
     {
         impulseThrottle = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
         shipSteering = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ShipSteering>();
@@ -83,9 +83,20 @@ public class PilotingSystem : NetworkBehaviour
         flyingInstruments = ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>();
         proximityMap = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProximityMap>();
         scenarioMap = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
+    }
 
-        return impulseThrottle && shipSteering &&
-               horizontalThrusters && verticalThrusters;
+    private void Start()
+    {
+        AssignControlReferences();
+    }
+
+    private void FixedUpdate()
+    {
+        if (ReferenceAssistor.Instance.world_root != null)
+        {
+            UpdateInput();
+            UpdateMovement(ReferenceAssistor.Instance.world_root.transform, Time.fixedDeltaTime);
+        }
     }
 
     //called by EngineCoolantSupply
@@ -208,7 +219,7 @@ public class PilotingSystem : NetworkBehaviour
         Vector2 returnPoint = ScenarioManager.getBoundaryPointFromAngle(pathPointAngle + angleDifference);
         return returnPoint;
     }
-    
+
     //called by ScenarioManager.setNewPathsRPC() at the start of every scenario
     public void SetPaths(Vector2 entrancePath, float entranceRotation, Vector2 exitPath, float exitRotation)
     {
@@ -230,10 +241,8 @@ public class PilotingSystem : NetworkBehaviour
         exitIntercepts[1] = exitPoints[1].y - (exitSlope * exitPoints[1].x);
     }
 
-    public void UpdateMovement(Transform worldRoot)
+    public void UpdateMovement(Transform worldRoot, float dt)
     {
-        float dt = Time.deltaTime;
-
         Vector3 forward = transform.forward;
         Vector3 horizontal = -transform.right;
         Vector3 vertical = transform.up;
@@ -514,7 +523,7 @@ public class PilotingSystem : NetworkBehaviour
         //if host, check boundary
         if (NetworkManager.Singleton.IsHost == true)
         {
-            BoundaryCheck(worldRoot);   
+            BoundaryCheck(worldRoot);
         }
     }
 }

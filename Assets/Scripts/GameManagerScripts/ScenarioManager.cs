@@ -318,10 +318,11 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
         scenario_number += 1;
-        if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
+
+        if (SceneManager.GetActiveScene().name != "MineField")
         {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-            return "RedLightGreenLight";
+            SceneSwapper.Instance.ChangeScene("MineField", scenario_number);
+            return "MineField";
         }
         else
         {
@@ -329,12 +330,11 @@ public class ScenarioManager : NetworkBehaviour
             return "CollectibleTest";
         }
 
-
         /*
-                if (SceneManager.GetActiveScene().name != "MineField")
+        if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
         {
-            SceneSwapper.Instance.ChangeScene("MineField", scenario_number);
-            return "MineField";
+            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+            return "RedLightGreenLight";
         }
         else
         {
@@ -358,8 +358,8 @@ public class ScenarioManager : NetworkBehaviour
         //clear spawn locations
         spawn_locations.Clear();
 
-        //assign the piloting system the new WorldRoot
-        GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+        //assign ReferenceAssistor the new WorldRoot
+        ReferenceAssistor.Instance.assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
         
         //generate new entrance/exit path locations and angles
         generatePaths();
@@ -528,12 +528,12 @@ public class ScenarioManager : NetworkBehaviour
         exit_rotation = exit_rot;
 
         scenario_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
-        GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
+        ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
 
         //if host, position the ship to entrance position and let the network sync the transform
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
+            ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().PlaceShip(entrance_position, ent_rot);
         }
     }
 

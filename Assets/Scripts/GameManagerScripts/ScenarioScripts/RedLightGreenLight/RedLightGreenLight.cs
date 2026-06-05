@@ -105,7 +105,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     {
         if (stunSound.isPlaying == false)
         {
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().StunShip();
+            ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().StunShip();
             playStunSoundRPC();
         }
     }

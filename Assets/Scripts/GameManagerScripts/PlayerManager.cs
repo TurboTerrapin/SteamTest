@@ -266,9 +266,9 @@ public class PlayerManager : NetworkBehaviour
     //when paths are generated, ship is relocated into entrance path, thus requiring an update to ship screens
     public void handleShipRepositioning()
     {
-        float ship_rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation.eulerAngles.y;
+        float ship_rotation = ReferenceAssistor.Instance.spaceship.transform.rotation.eulerAngles.y;
         string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
-        string target_heading = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().GetTargetHeading();
+        string target_heading = ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().GetTargetHeading();
 
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateAltimeterScreen();
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateCourseHeadingScreen(ship_rotation, current_heading);
