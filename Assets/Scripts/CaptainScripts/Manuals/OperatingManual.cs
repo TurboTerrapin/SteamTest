@@ -1,15 +1,15 @@
 /*
-    OperationsManual.cs
-    - Handles enabling/disabling of operations manual
+    OperatingManual.cs
+    - Handles enabling/disabling of operating manual
     Contributor(s): Jake Schott
-    Last Updated: 2/19/2026
+    Last Updated: 6/6/2026
 */
 
 using UnityEngine;
 using System.Collections;
 using TMPro;
 
-public class OperationsManual : Manual
+public class OperatingManual : Manual
 {
     //CLASS CONSTANTS
     private static float INTRO_TIME = 1.0f;

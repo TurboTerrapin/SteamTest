@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2026
+    Last Updated: 6/6/2026
 */
 
 using System.Collections;
@@ -730,12 +730,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //6
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //7
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PhaserHeat")); //8
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //9
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //10
+        engineer_modules.Add(ReferenceAssistor.Instance.spaceship.GetComponent("ShipHealth")); //9
+        engineer_modules.Add(ReferenceAssistor.Instance.spaceship.GetComponent("ShipHealth")); //10
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ShieldStrength")); //11
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("TorpedoLoader")); //12
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EngineCoolantSupply")); //13
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipInventory")); //14
+        engineer_modules.Add(ReferenceAssistor.Instance.spaceship.GetComponent("ShipInventory")); //14
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("CargoEject")); //15
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ComputerRegulator")); //16
         engineer_modules.Add(this); //17
@@ -756,7 +756,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //8
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //9
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //10
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperationsManual")); //11
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperatingManual")); //11
         positional_modules[3] = captain_modules;
     }
 }

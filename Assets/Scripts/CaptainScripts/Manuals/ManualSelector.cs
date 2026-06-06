@@ -1,8 +1,8 @@
 /*
     ShipManualSelector.cs
-    - Sends inputs to ShipManual and CommunicationsManual (directional, selection, and back)
+    - Sends inputs to ShipManual and OperatingManual (directional, selection, and back)
     Contributor(s): Jake Schott
-    Last Updated: 2/19/2026
+    Last Updated: 6/6/2026
 */
 
 using Unity.Netcode;
@@ -17,7 +17,7 @@ public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
     private static float COOLDOWN_TIME = 0.0f;
     private static Vector3[] PUSH_DIRECTIONS = { new Vector3(-0.003f, -0.0074f, 0f), new Vector3(0.003f, -0.0074f, 0f) };
 
-    private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATIONS MANUAL" };
+    private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATING MANUAL" };
     private List<string> CONTROL_DESCS = new List<string> { "SELECT", "BACK", "UP", "DOWN", "LEFT", "RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 12, 0, 2, 1, 3 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
@@ -31,7 +31,7 @@ public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
     private bool[] is_active = new bool[] { false, false };
     private Coroutine[] manual_input_coroutine = new Coroutine[] { null, null };
 
-    private List<string> ray_targets = new List<string> { "procedure_manual_options", "operations_manual_options" };
+    private List<string> ray_targets = new List<string> { "procedure_manual_options", "operating_manual_options" };
 
     private static HUDInfo hud_info = null;
 
@@ -49,7 +49,7 @@ public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
     private void Start()
     {
         manuals[0] = GetComponent<ProcedureManual>();
-        manuals[1] = GetComponent<OperationsManual>();
+        manuals[1] = GetComponent<OperatingManual>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
         for (int i = 0; i < 2; i++)
