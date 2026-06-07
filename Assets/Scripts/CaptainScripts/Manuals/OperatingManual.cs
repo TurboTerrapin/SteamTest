@@ -2,7 +2,7 @@
     OperatingManual.cs
     - Handles enabling/disabling of operating manual
     Contributor(s): Jake Schott
-    Last Updated: 6/6/2026
+    Last Updated: 6/7/2026
 */
 
 using UnityEngine;
@@ -21,8 +21,8 @@ public class OperatingManual : Manual
 
     IEnumerator activateManual()
     {
-        welcome_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
-        welcome_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("LOADING");
+        welcome_screen.transform.GetChild(0).GetComponent<TMP_Text>().SetText("LOADING");
+        welcome_screen.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
         welcome_screen.SetActive(true);
 
         float animation_time = INTRO_TIME * 0.8f;
@@ -31,10 +31,10 @@ public class OperatingManual : Manual
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             animation_time -= dt;
 
-            welcome_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - (animation_time / (INTRO_TIME * 0.8f));
+            welcome_screen.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - (animation_time / (INTRO_TIME * 0.8f));
             yield return null;
         }
-        welcome_screen.transform.GetChild(1).GetComponent<TMP_Text>().SetText("DONE");
+        welcome_screen.transform.GetChild(0).GetComponent<TMP_Text>().SetText("DONE");
 
         yield return new WaitForSeconds(INTRO_TIME * 0.2f);
 
