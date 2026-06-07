@@ -17,7 +17,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
     private static float MAX_POWER_CONSUMPTION = 0.4f; //6 circles, 2 per manual
 
     private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATING MANUAL" };
-    public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on situation analysis and response.", "Information resource on ship functions and station controls." };
+    public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on situation analysis and response.", "Information resource on ship features and station functions." };
     private List<string> CONTROL_DESCS = new List<string> { "TURN ON", "TURN OFF" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
