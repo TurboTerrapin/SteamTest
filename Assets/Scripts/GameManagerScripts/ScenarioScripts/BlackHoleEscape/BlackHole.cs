@@ -1,33 +1,3 @@
-/*
-using UnityEngine;
-
-public class BlackHole : MonoBehaviour
-{
-    public Transform accretion_disk_vertical;
-    public Transform accretion_disk_horizontal;
-    public float spin_speed = 40.0f; // Degrees per second
-
-    private float accumulated_spin = 0.0f; //total rotation angle
-
-    private void Update()
-    {
-        if (accretion_disk_horizontal != null)
-        {
-            // By spinning around the local Z-axis (0, 0, 1) in Space.Self,
-            accretion_disk_horizontal.Rotate(0.0f, 0.0f, -spin_speed * Time.deltaTime, Space.Self);
-        }
-
-        // 2. Handle the vertical photon ring billboard and rotation
-        if (Camera.main != null && accretion_disk_vertical != null)
-        {
-            accretion_disk_vertical.LookAt(Camera.main.transform);
-            accumulated_spin = (accumulated_spin - (spin_speed * Time.deltaTime)) % 360.0f;
-            accretion_disk_vertical.Rotate(0.0f, 0.0f, accumulated_spin, Space.Self);
-        }
-    }
-}
-
-*/
 
 using UnityEngine;
 
