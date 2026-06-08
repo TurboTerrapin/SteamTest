@@ -23,23 +23,19 @@ public class BlackHole : MonoBehaviour
 
     private void Update()
     {
-        if (accretion_disk_horizontal != null)
-        {
-            accretion_disk_horizontal.Rotate(0.0f, 0.0f, -spin_speed * Time.deltaTime, Space.Self);
-        }
+        accretion_disk_horizontal.Rotate(0.0f, 0.0f, -spin_speed * Time.deltaTime, Space.Self);
 
         // Vertical Photon Ring Behavior
         if (Camera.main != null && accretion_disk_vertical != null)
         {
             accretion_disk_vertical.LookAt(Camera.main.transform);
-
-            // Spin logic
-            accumulated_spin = (accumulated_spin - (spin_speed * Time.deltaTime)) % 360.0f;
-            accretion_disk_vertical.Rotate(0.0f, 0.0f, accumulated_spin, Space.Self);
-
             // pulsing
             float pulse = Mathf.Sin(Time.time * pulse_speed) * pulse_amount;
             accretion_disk_vertical.localScale = vertical_base_scale + new Vector3(pulse, pulse, 0f);
         }
+
+        // Spin logic
+        accumulated_spin = (accumulated_spin - (spin_speed * Time.deltaTime)) % 360.0f;
+        accretion_disk_vertical.Rotate(0.0f, 0.0f, accumulated_spin, Space.Self);
     }
 }
