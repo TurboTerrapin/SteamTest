@@ -2,7 +2,7 @@
     PowerRegulationModuleF.cs
     - Handles the timing mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 5/9/2026
+    Last Updated: 6/8/2026
 */
 
 using System.Collections;
@@ -19,6 +19,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
     private static float FURTHEST_TIMING_BAR_POINT = 0.1f;
     private static Vector3 BUTTON_PUSH_DIRECTION = new Vector3(0.002f, -0.004f, -0.002f);
     private static float[] STAGE_WIDTHS = new float[3] { 0.05f, 0.04f, 0.03f };
+    private static Color[] STAGE_COLORS = new Color[3] { ReferenceAssistor.COLOR_OPTIONS[3], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[2] };
     private static float[] ARROW_LOCATIONS = new float[3] { -0.079f, 0.0f, 0.079f };
 
     private string CONTROL_NAME = "SEQUENCE COORDINATOR";
@@ -306,7 +307,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
         stage = new_stage;
         active_button = new_stage;
 
-        changeColor(ReferenceAssistor.COLOR_OPTIONS[new_stage]);
+        changeColor(STAGE_COLORS[new_stage]);
         pointer_arrow.transform.localPosition = new Vector3(ARROW_LOCATIONS[active_button], -0.0035f, 0.0f);
         timing_bar.GetComponent<RectTransform>().sizeDelta = new Vector2(0.005f, STAGE_WIDTHS[new_stage]);
         timing_bar.transform.GetChild(0).transform.localPosition = new Vector3(0.0f, STAGE_WIDTHS[new_stage] * -0.5f, 0.0f);
