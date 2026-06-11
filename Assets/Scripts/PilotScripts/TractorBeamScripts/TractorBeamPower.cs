@@ -70,30 +70,37 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     private void displayAdjustment()
     {
         //update cargo door
@@ -121,6 +128,17 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
 
         //update handle rotation
         tractor_beam_handle.transform.localRotation = Quaternion.Euler(-150.0f + (80.0f * power), 0.0f, 0.0f);
+
+        //update lit indicator
+        if (item_captured_display.activeSelf == false && power > 0.0f && tractor_beam_active_indicator.GetComponent<MeshRenderer>().material.name.Contains("Unlit Dark Blue") == true)
+        {
+            tractor_beam_inactive_indicator.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.lit_red;
+        }
+        else if (power == 0.0f)
+        {
+            tractor_beam_active_indicator.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.unlit_dark_blue;
+            tractor_beam_inactive_indicator.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.unlit_red;
+        }
 
         //update either range or item captured screen
         range_display.SetActive(tractor_beam.GetCapturedItem() == null);
@@ -167,18 +185,14 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = tractor_beam_options.getCapturedItemTexture();
             c.a = 1.0f;
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
-            setTractorBeamStatusIndicators(false);
         }
-        else
-        {
-            tractor_beam.UpdateBeam(power);
-        }
+        setTractorBeamStatusIndicators(false);
     }
 
     //called by TractorBeam
     public void setTractorBeamStatusIndicators(bool active)
     {
-        if (is_powered == false || tractor_beam.GetCapturedItem() != null)
+        if (power == 0.0f || is_powered == false || tractor_beam.GetCapturedItem() != null)
         {
             tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_dark_blue;
             tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;

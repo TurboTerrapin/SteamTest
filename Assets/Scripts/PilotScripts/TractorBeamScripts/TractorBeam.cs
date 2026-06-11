@@ -179,6 +179,7 @@ public class TractorBeam : NetworkBehaviour
     public void ClearCapturedItem()
     {
         itemCurrentlyCaptured = false;
+        currentlyAttracting = false;
         capturedItem = null;
         capturedItemSerialNumber = "";
         itemCaptureAdjustmentCoroutine = null;

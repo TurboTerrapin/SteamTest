@@ -1,9 +1,9 @@
 /*
     SignalJammer.cs
     - Meant to temporarily jam signals
-    - Does nothing
+    - Adds COUNTDOWN_ADJUSTMENT_TIME to detection countdown
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 6/11/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     private static float JAM_TIME = 10.0f; //seconds
     private static float RESET_TIME = 15.0f; //seconds
     private static float BUTTON_PUSH_TIME = 1.0f; //seconds
+    private static int COUNTDOWN_ADJUSTMENT_TIME = 30; //seconds, how long to add to detection countdown when activated
     private static Vector3 BUTTON_FINAL_POS = new Vector3(-2.4599f, -0.6773f, 2.1674f);
     private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
     private static Color BLUE = new Color(0.0f, 0.84f, 1.0f, 1.0f);
@@ -65,26 +66,32 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -321,6 +328,12 @@ public class SignalJammer : NetworkBehaviour, IControllable, IPowerable, IIKTarg
     [Rpc(SendTo.Everyone)]
     private void transmitSignalJamRPC()
     {
+        //if host, add COUNTDOWN_ADJUSTMENT_TIME to detection countdown
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            ReferenceAssistor.Instance.scenario_manager.addCountdownTime(COUNTDOWN_ADJUSTMENT_TIME);
+        }
+
         if (signal_jam_coroutine != null)
         {
             StopCoroutine(signal_jam_coroutine);

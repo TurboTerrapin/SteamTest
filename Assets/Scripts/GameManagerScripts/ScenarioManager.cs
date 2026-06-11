@@ -65,6 +65,7 @@ public class ScenarioManager : NetworkBehaviour
     private bool endpoint_reached = false;
     private bool game_over = false;
     private int scenario_number = 0;
+    private int countdown_time_to_add = 0; //for controls/scenarios that want to add countdown time
     private int game_difficulty = -1; //assigned by LobbyHandler, goes easy, medium, hard, expert (0-3)
 
     //entrance/exit channel info
@@ -398,6 +399,12 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
     }
 
+    //called by SignalJammer.cs
+    public void addCountdownTime(int time_to_add)
+    {
+        countdown_time_to_add += time_to_add;
+    }
+
     IEnumerator scenarioCountdown()
     {
         int time_remaining = COUNTDOWN_TIME[getDifficulty()];
@@ -405,6 +412,8 @@ public class ScenarioManager : NetworkBehaviour
         while (time_remaining > 0)
         {
             yield return new WaitForSeconds(1.0f);
+            time_remaining += countdown_time_to_add;
+            countdown_time_to_add = 0;
             time_remaining--;
             countdownUpdateRPC(time_remaining);
         }
