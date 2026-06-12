@@ -4,7 +4,7 @@
     - Handles hull integrity (health of the most damaged section)
     - Updates screens in engineer position
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2026
+    Last Updated: 6/11/2026
 */
 
 using System.Collections;

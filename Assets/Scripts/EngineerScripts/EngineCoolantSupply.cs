@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 6/4/2026
+    Last Updated: 6/11/2026
 */
 
 using System.Collections;
@@ -314,10 +314,12 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
             if (engine_temperature < 0.5f && et >= 0.5f)
             {
                 ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[0]);
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[2]);
             }
             else if (engine_temperature < 1.0f && et >= 1.0f)
             {
                 ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[1]);
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[2]);
             }
         }
 

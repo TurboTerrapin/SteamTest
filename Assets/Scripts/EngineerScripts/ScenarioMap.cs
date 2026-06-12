@@ -244,11 +244,6 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     public void updateShipBoundaryCountdownStatus(int countdown_value)
     {
-        countdown.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
-        if (countdown_value >= 10 && countdown_value < 20)
-        {
-            countdown.transform.localPosition = new Vector3(0.0f, -0.34f, 0.0f);
-        }
         if (countdown_value <= 10 && countdown_value > 0)
         {
             ReferenceAssistor.Instance.audio_manager.AddNotification(2, boundary_notifications[3 + countdown_value]);

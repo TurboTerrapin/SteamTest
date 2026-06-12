@@ -2,7 +2,7 @@
     ScenarioCountdown.cs
     - Handles scenario countdown timer visual in engineer position (boundary expiration)
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2026
+    Last Updated: 6/11/2026
 */
 
 using System.Collections.Generic;
@@ -24,7 +24,7 @@ public class ScenarioCountdown : MonoBehaviour, IPowerable
         {
             ReferenceAssistor.Instance.audio_manager.AddNotification(1, countdown_notifications[1]);
         }
-        else if (total_seconds == 12)
+        else if (total_seconds == 15)
         {
             ReferenceAssistor.Instance.audio_manager.AddNotification(3, countdown_notifications[2]);
         }

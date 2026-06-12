@@ -2,12 +2,13 @@
     PhaserHeat.cs
     - Adjusts short-range and long-range heat based on usage and intensity
     Contributor(s): Jake Schott
-    Last Updated: 5/29/2026
+    Last Updated: 6/11/2026
 */
 
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 
 public class PhaserHeat : NetworkBehaviour, IPowerable
@@ -18,10 +19,10 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
     private static Color[] PHASER_CATEGORY_COLORS = new Color[2] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[2] };
 
     public GameObject phaser_heat_display;
+    public List<AudioClip> overheat_notifications;
     private UnityEngine.UI.Image[] phaser_heat_bars = new UnityEngine.UI.Image[2];
     private PhaserActivators phaser_activators;
     private PhaserIntensities phaser_intensities;
-    private Phasers phasers;
 
     private float[] phaser_heats = new float[] { 0.0f, 0.0f };
     private int[] phaser_states = new int[] { 0, 0 }; //0 is zero heat, 1 is overheating, 2 is overheated/cooling down
@@ -31,7 +32,6 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
     {
         phaser_activators = ReferenceAssistor.Instance.module_handlers[1].GetComponent<PhaserActivators>();
         phaser_intensities = ReferenceAssistor.Instance.module_handlers[1].GetComponent<PhaserIntensities>();
-        phasers = ReferenceAssistor.Instance.module_handlers[1].GetComponent<Phasers>();
         phaser_heat_bars[0] = phaser_heat_display.transform.GetChild(1).GetChild(2).GetComponent<UnityEngine.UI.Image>();
         phaser_heat_bars[1] = phaser_heat_display.transform.GetChild(2).GetChild(2).GetComponent<UnityEngine.UI.Image>();
     }
@@ -72,6 +72,12 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
     {
         //adjust title
         phaser_heat_display.transform.GetChild(1 + phaser_category).GetChild(1).GetComponent<TMP_Text>().SetText(PHASER_HEAT_STATE_MESSAGES[phaser_states[phaser_category]]);
+
+        //play sound
+        if (phaser_states[phaser_category] == 2)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(0, overheat_notifications[phaser_category]);
+        }
 
         //find color
         Color c = PHASER_CATEGORY_COLORS[phaser_category];
