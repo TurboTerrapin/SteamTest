@@ -372,7 +372,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
 
     public void displayProbeHealth(float health)
     {
-        Color probe_color = ShipHealth.getDesiredColor(health * 100.0f);
+        Color probe_color = ShipHealth.getHealthColor(health * 100.0f);
         probe_health_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = probe_color;
         probe_health_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = health;
     }

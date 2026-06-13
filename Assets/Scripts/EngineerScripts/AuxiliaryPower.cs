@@ -3,7 +3,7 @@
     - Can only be used once per scenario
     - Restores power to any disabled power regulation modules (can restart power on the ship)
     Contributor(s): Jake Schott
-    Last Updated: 5/5/2026
+    Last Updated: 6/12/2026
 */
 
 using System.Collections;
@@ -11,13 +11,12 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
+using UnityEngine.UI;
 
 public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float LEVER_PULL_TIME = 0.5f;
-    private static float CIRCLE_ANIMATION_TIME = 5.0f;
 
     private string CONTROL_NAME = "AUXILIARY POWER";
     private static string INFO_MESSAGE = "Completes all modules and restores power immediately (does not recharge).";
@@ -30,8 +29,6 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     public List<GameObject> auxiliary_power_arrows = null;
     public GameObject IK_target;
 
-    private UnityEngine.UI.RawImage auxiliary_power_outer_circle;
-    private UnityEngine.UI.Image auxiliary_power_fill_circle;
     private TMP_Text auxiliary_power_available_label;
 
     private bool auxiliary_power_available = true;
@@ -49,9 +46,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
 
     private void Start()
     {
-        auxiliary_power_outer_circle = auxiliary_power_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>();
-        auxiliary_power_fill_circle = auxiliary_power_display.transform.GetChild(1).GetChild(1).GetComponent<UnityEngine.UI.Image>();
-        auxiliary_power_available_label = auxiliary_power_display.transform.GetChild(2).GetComponent<TMP_Text>();
+        auxiliary_power_available_label = auxiliary_power_display.transform.GetChild(0).GetComponent<TMP_Text>();
 
         hud_info = new HUDInfo(CONTROL_NAME);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
@@ -63,30 +58,37 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public void resetAuxiliaryPower()
     {
         if (auxiliary_power_activation_coroutine != null)
@@ -105,10 +107,8 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
         auxiliary_power_lever.transform.localRotation = Quaternion.Euler(-84.0f, -45.0f, 90.0f);
 
         //turn blue
-        auxiliary_power_fill_circle.fillAmount = 1.0f;
-        auxiliary_power_outer_circle.color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-        auxiliary_power_available_label.color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-        auxiliary_power_available_label.SetText("AVAILABLE");
+        auxiliary_power_available_label.SetText("AUXILIARY\nAVAILABLE");
+        displayAvailabilityAdjustment(new Color(0.0f, 0.84f, 1.0f, 0.2f));
         displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 0.2f));
 
         //reset state variables
@@ -119,6 +119,15 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     public bool canUseAuxiliaryPower()
     {
         return auxiliary_power_available;
+    }
+
+    private void displayAvailabilityAdjustment(Color c)
+    {
+        auxiliary_power_available_label.color = c;
+        foreach (Transform arrow in auxiliary_power_available_label.transform)
+        {
+            arrow.GetComponent<RawImage>().color = c;
+        }
     }
 
     private void displayArrowAdjustment(Color c)
@@ -147,6 +156,7 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
                     StopCoroutine(auxiliary_power_emergency_flasher_coroutine);
                     auxiliary_power_emergency_flasher_coroutine = null;
                 }
+                displayAvailabilityAdjustment(new Color(0.0f, 0.84f, 1.0f, 1.0f));
                 displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 1.0f));
             }
         }
@@ -159,7 +169,8 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     {
         if (auxiliary_power_available == true)
         {
-            displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 0.08f));
+            displayAvailabilityAdjustment(new Color(0.0f, 0.84f, 1.0f, 0.2f));
+            displayArrowAdjustment(new Color(0.0f, 0.84f, 1.0f, 0.2f));
         }
         currently_available = false;
         BUTTONS[0].updateInteractable(false);
@@ -202,21 +213,10 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
             transmitAuxiliaryPowerActivationRPC();
         }
 
-        //empty circle
-        anim_time = CIRCLE_ANIMATION_TIME;
-        while (anim_time > 0.0f)
-        {
-            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
-
-            auxiliary_power_fill_circle.fillAmount = anim_time / CIRCLE_ANIMATION_TIME;
-
-            yield return null;
-        }
-
         //turn red
-        auxiliary_power_outer_circle.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
-        auxiliary_power_available_label.color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
-        auxiliary_power_available_label.SetText("UNAVAILABLE");
+        displayAvailabilityAdjustment(new Color(1.0f, 0.0f, 0.0f, 0.2f));
+        displayArrowAdjustment(new Color(1.0f, 0.0f, 0.0f, 0.2f));
+        auxiliary_power_available_label.SetText("---------\n---------");
 
         auxiliary_power_activation_coroutine = null;
     }
@@ -261,6 +261,6 @@ public class AuxiliaryPower : NetworkBehaviour, IControllable, IIKTargetable
     [Rpc(SendTo.Everyone)]
     private void transmitAuxiliaryPowerActivationRPC()
     {
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().useAuxiliaryPower();
+        ReferenceAssistor.Instance.power_manager.GetComponent<PowerRegulator>().useAuxiliaryPower();
     }
 }

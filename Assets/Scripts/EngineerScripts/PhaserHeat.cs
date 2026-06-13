@@ -13,8 +13,9 @@ using TMPro;
 
 public class PhaserHeat : NetworkBehaviour, IPowerable
 {
-    private static float PHASER_OVERHEAT_TIME = 30.0f; //takes 30 seconds to overheat at max intensity, double at minimum intensity
-    private static float PHASER_COOLDOWN_TIME = 20.0f; //takes 20 seconds to cool down after overheating
+    //0 is long-range, 1 is short-range
+    private static float[] PHASER_OVERHEAT_TIMES = new float[2] { 40.0f, 30.0f }; //how long it takes to overheat at max intensity
+    private static float[] PHASER_COOLDOWN_TIMES = new float[2] { 20.0f, 25.0f }; //how long it takes to cool down
     private static string[] PHASER_HEAT_STATE_MESSAGES = new string[3] { "INACTIVE", "ACTIVE", "OVERHEATED" };
     private static Color[] PHASER_CATEGORY_COLORS = new Color[2] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[2] };
 
@@ -114,28 +115,28 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
             {
                 if (phaser_states[i] == 2)
                 {
-                    phaser_heats[i] = Mathf.Max(0.0f, phaser_heats[i] - (Time.deltaTime / PHASER_COOLDOWN_TIME));
+                    phaser_heats[i] = Mathf.Max(0.0f, phaser_heats[i] - (Time.deltaTime / PHASER_COOLDOWN_TIMES[i]));
                 }
             }
 
             //increase or decrease long-range phaser heat
             if (phaser_states[0] < 2 && active_phasers[0] == true)
             {
-                phaser_heats[0] = Mathf.Min(1.0f, phaser_heats[0] + ((Time.deltaTime / PHASER_OVERHEAT_TIME) * (1.0f + intensities[0])));
+                phaser_heats[0] = Mathf.Min(1.0f, phaser_heats[0] + ((Time.deltaTime / PHASER_OVERHEAT_TIMES[0]) * (1.0f + intensities[0])));
             }
             else if (phaser_states[0] == 1 && active_phasers[0] == false)
             {
-                phaser_heats[0] = Mathf.Max(0.0f, phaser_heats[0] - (Time.deltaTime / PHASER_OVERHEAT_TIME));
+                phaser_heats[0] = Mathf.Max(0.0f, phaser_heats[0] - (Time.deltaTime / PHASER_OVERHEAT_TIMES[0]));
             }
 
             //increase or decrease short-range phaser heat
             if (phaser_states[1] < 2 && (active_phasers[1] == true || active_phasers[2] == true))
             {
-                phaser_heats[1] = Mathf.Min(1.0f, phaser_heats[1] + ((Time.deltaTime / PHASER_OVERHEAT_TIME) * (1.0f + intensities[1])));
+                phaser_heats[1] = Mathf.Min(1.0f, phaser_heats[1] + ((Time.deltaTime / PHASER_OVERHEAT_TIMES[1]) * (1.0f + intensities[1])));
             }
             else if (phaser_states[1] == 1 && active_phasers[1] == false && active_phasers[2] == false)
             {
-                phaser_heats[1] = Mathf.Max(0.0f, phaser_heats[1] - (Time.deltaTime / PHASER_OVERHEAT_TIME));
+                phaser_heats[1] = Mathf.Max(0.0f, phaser_heats[1] - (Time.deltaTime / PHASER_OVERHEAT_TIMES[1]));
             }
 
             //send updates

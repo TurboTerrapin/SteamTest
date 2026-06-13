@@ -3,7 +3,7 @@
     - Handles the six power sources (minigames)
     - Handles the power status screen and its six bars
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2026
+    Last Updated: 6/12/2026
 */
 
 using System.Collections;
@@ -22,17 +22,16 @@ public class PowerRegulator : NetworkBehaviour
     private static Color[] POWER_STATUS_COLORS = new Color[3]{ new Color(0.0f, 0.84f, 1.0f), new Color(1.0f, 0.47f, 0.0f), new Color(1.0f, 0.0f, 0.0f) };
     private static string[] POWER_STATUS_MESSAGES = new string[3]{ "NOMINAL", "CRITICAL", "OFFLINE" };
 
-    public GameObject power_status;
+    public GameObject regulation_modules_display;
     public List<GameObject> power_regulation_modules = null;
     public AudioSource power_regulation_correct_sound;
     public AudioSource power_regulation_incorrect_sound;
     public AudioClip power_status_critical_notification;
 
     //power status screen UI components
-    private GameObject power_bars;
-    private GameObject power_restoration_message;
     private TMP_Text power_status_label;
-    private TMP_Text power_status_message;
+    private TMP_Text modules_online_label;
+    private GameObject module_circles;
 
     //power regulation module UI components
     private List<UnityEngine.UI.Image> time_bars = new List<UnityEngine.UI.Image>();
@@ -51,10 +50,9 @@ public class PowerRegulator : NetworkBehaviour
 
     private void Start()
     {
-        power_status_label = power_status.transform.GetChild(0).GetComponent<TMP_Text>();
-        power_status_message = power_status.transform.GetChild(1).GetComponent<TMP_Text>();
-        power_restoration_message = power_status.transform.GetChild(2).gameObject;
-        power_bars = power_status.transform.GetChild(3).gameObject;
+        power_status_label = regulation_modules_display.transform.GetChild(0).GetComponent<TMP_Text>();
+        modules_online_label = power_status_label.transform.GetChild(0).GetComponent<TMP_Text>();
+        module_circles = regulation_modules_display.transform.GetChild(1).gameObject;
 
         auxiliary_power = ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>();
 
@@ -356,7 +354,7 @@ public class PowerRegulator : NetworkBehaviour
             List<float> desired_fill_amounts = new List<float>();
             for (int i = 0; i < 6; i++)
             {
-                starting_fill_amounts.Add(power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().fillAmount);
+                starting_fill_amounts.Add(module_circles.transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount);
                 float desired_fill_amount = Random.Range(0.9f, 1.0f);
 
                 if (enabled_power_sources[i] == false)
@@ -373,7 +371,7 @@ public class PowerRegulator : NetworkBehaviour
 
                 for (int i = 0; i < 6; i++)
                 {
-                    power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill_amounts[i], desired_fill_amounts[i], 1.0f - (anim_time / POWER_BAR_UPDATE_SPEED));
+                    module_circles.transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_fill_amounts[i], desired_fill_amounts[i], 1.0f - (anim_time / POWER_BAR_UPDATE_SPEED));
                 }
                 yield return null;
             }
@@ -387,7 +385,7 @@ public class PowerRegulator : NetworkBehaviour
         time_bar.color = new Color(1.0f, 0.47f, 0.0f);
         time_bar.fillAmount = 1.0f;
 
-        float depletion_time = DEPLETION_TIME[GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().getDifficulty()];
+        float depletion_time = DEPLETION_TIME[ReferenceAssistor.Instance.scenario_manager.getDifficulty()];
         float anim_time = depletion_time;
 
         while (anim_time > 0.0f)
@@ -428,7 +426,7 @@ public class PowerRegulator : NetworkBehaviour
     {
         //determine power status state
         int state = 0;
-        if (transform.GetComponent<PowerManager>().getShipHasPower() == false)
+        if (GetComponent<PowerManager>().getShipHasPower() == false)
         {
             state = 2;
         }
@@ -460,22 +458,22 @@ public class PowerRegulator : NetworkBehaviour
         }
 
         //update status text
-        power_status_message.color = POWER_STATUS_COLORS[state];
-        power_status_message.text = "STATUS: " + POWER_STATUS_MESSAGES[state];
+        power_status_label.color = POWER_STATUS_COLORS[state];
+        power_status_label.SetText(POWER_STATUS_MESSAGES[state]);
+
+        //update number of online modules
+        modules_online_label.color = POWER_STATUS_COLORS[state];
+        modules_online_label.SetText(getPowerSourcesEnabled().ToString() + "/6 ONLINE");
 
         //update power bars color
+        Color c = POWER_STATUS_COLORS[state];
         for (int i = 0; i < 6; i++)
         {
-            power_bars.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().color = POWER_STATUS_COLORS[state];
-            power_bars.transform.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(POWER_STATUS_COLORS[state].r, POWER_STATUS_COLORS[state].g, POWER_STATUS_COLORS[state].b, 0.2f);
-            power_bars.transform.GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = POWER_STATUS_COLORS[state];
-        }
-
-        //show/hide power restoration message
-        power_restoration_message.SetActive(state == 2);
-        if (state == 2)
-        {
-            power_restoration_message.GetComponent<TMP_Text>().text = "RESTORATION PROGRESS: " + Mathf.Min(3, getPowerSourcesEnabled()) + "/3";
+            c.a = 0.2f;
+            module_circles.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = c;
+            c.a = 1.0f;
+            module_circles.transform.GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.Image>().color = c;
+            module_circles.transform.GetChild(i).GetChild(2).GetComponent<TMP_Text>().color = c;
         }
     }
 
