@@ -142,9 +142,9 @@ public class BackgroundAnimator : MonoBehaviour
             wall_energy_percentage %= 1.0f;
         }
         ceiling_energy_percentage += dt;
-        if (ceiling_energy_percentage > 2.0f)
+        if (ceiling_energy_percentage > 1.8f)
         {
-            ceiling_energy_percentage %= 2.0f;
+            ceiling_energy_percentage %= 1.8f;
         }
         float positional_adjustment = (1.0f - wall_energy_percentage) * 0.45f;
         energy_circles[0].transform.localPosition = new Vector3(0.0f, -positional_adjustment, 0.0f);
