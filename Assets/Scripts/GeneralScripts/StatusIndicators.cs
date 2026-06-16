@@ -66,13 +66,17 @@ public class StatusIndicators : MonoBehaviour, IPowerable, IDescribable
             {
                 ship_status_displays[i].transform.GetChild(0).GetComponent<SpriteRenderer>().color = to_display;
             }
-            else //walls
+            else if (ship_status_displays[i].transform.childCount > 1) //walls
             {
                 foreach (Transform t in ship_status_displays[i].transform)
                 {
                     to_display.a = t.GetComponent<SpriteRenderer>().color.a;
                     t.GetComponent<SpriteRenderer>().color = to_display;
                 }
+            }
+            else //SEACC logos
+            {
+                ship_status_displays[i].GetComponent<SpriteRenderer>().color = to_display;
             }
         }
     }
