@@ -544,7 +544,7 @@ MonoBehaviour:
   is_visible: 1
   is_interest_item: 1
   icon_color: {r: 1, g: 0, b: 0, a: 1}
-  icon_texture: {fileID: 0}
+  icon_sprite: {fileID: 0}
 --- !u!114 &216705619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -841,7 +841,7 @@ MonoBehaviour:
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
   m_LightLayerMask: 1
-  m_RenderingLayers: 1
+  m_RenderingLayers: 4
   m_CustomShadowLayers: 0
   m_ShadowLayerMask: 1
   m_ShadowRenderingLayers: 1
@@ -897,8 +897,8 @@ Light:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_RenderingLayerMask: 4
+  m_Lightmapping: 1
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
