@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott, Henryk Musial
-    Last Updated: 6/4/2026
+    Last Updated: 6/19/2026
 */
 
 using System.Collections;
@@ -27,6 +27,7 @@ public struct OffLimitsSpawnLocation
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
+    //private static int[] SCENARIOS_NEEDED_UNTIL_VICTORY = new int[] { 5, 7, 8, 10 }; //how many scenarios until reaching Deep Space Five based on difficulty
     private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure based on difficulty
     private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap

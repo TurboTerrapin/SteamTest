@@ -14,7 +14,7 @@ public class TransitionHandler : MonoBehaviour
 
     public void ShowTransition(int scenario)
     {
-        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
+        GameObject localPlayer = ReferenceAssistor.Instance.player_manager.getLocalPlayer();
 
         GameObject transitionCamera = transform.GetChild(0).gameObject;
 
@@ -42,7 +42,7 @@ public class TransitionHandler : MonoBehaviour
             toHide.color = new Color(textColor.r, textColor.g, textColor.b, 0.0f);
         }
 
-        GameObject localPlayer = GameObject.Find("PlayerManager").GetComponent<PlayerManager>().getLocalPlayer();
+        GameObject localPlayer = ReferenceAssistor.Instance.player_manager.getLocalPlayer();
 
         GameObject playerCamera = localPlayer.transform.GetChild(0).gameObject;
         GameObject transitionCamera = transform.GetChild(0).gameObject;
