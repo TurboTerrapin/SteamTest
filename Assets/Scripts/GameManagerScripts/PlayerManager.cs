@@ -140,6 +140,9 @@ public class PlayerManager : NetworkBehaviour
         //position local player
         local_player.transform.localPosition = spawn_points.transform.GetChild(lobby_handler.getPlayerIndex(lobby_handler.getPlayerSteamID(NetworkManager.Singleton.LocalClientId))).localPosition;
 
+        //inform crew manifest of player name
+        ReferenceAssistor.Instance.module_handlers[4].GetComponent<CrewManifest>().reportAsReady();
+
         //reset ready player counter to 0 to prepare for scenario load instead of BridgeEnvironment load
         resetReadyPlayers();
         if (NetworkManager.Singleton.IsHost == true)

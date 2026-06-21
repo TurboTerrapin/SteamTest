@@ -274,7 +274,6 @@ public class CustomizeCharacterMenu : MonoBehaviour
         ClothingOptionText.text = ClothingOptions[CurrentClothingOptionIndex];
     }
 
-
     private void PreviousHairOption()
     {
         CurrentHairOptionIndex--;
@@ -572,5 +571,4 @@ public class CustomizeCharacterMenu : MonoBehaviour
         CustomizationMenu.SetActive(false);
         MainMenu.SetActive(true);
     }
-
 }

@@ -51,7 +51,7 @@ public class FailureHandler : NetworkBehaviour
     private bool lobbyDisconnected = false;
 
     // lobbyNames is a string list that could have 1-4 entries
-    public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg, bool caught)
+    public void displayDeathScreen(List<string> lobbyNames, List<ulong> lobbySteamIDs, string stardate, string msg, bool caught)
     {
         GameObject localPlayer = ReferenceAssistor.Instance.player_manager.getLocalPlayer();
         GameObject lh = GameObject.Find("LobbyHandler");
@@ -108,11 +108,11 @@ public class FailureHandler : NetworkBehaviour
         }
 
         // print report
-        StartCoroutine(printReport(lobbyNames, lobbySteamIDs, scenario, msg, caught));
+        StartCoroutine(printReport(lobbyNames, lobbySteamIDs, stardate, msg, caught));
     }
 
     // play animation then print star date and message (2-3 sentences)
-    IEnumerator printReport(List<string> lobbyNames, List<ulong> lobbySteamIDs, int scenario, string msg, bool caught)
+    IEnumerator printReport(List<string> lobbyNames, List<ulong> lobbySteamIDs, string stardate, string msg, bool caught)
     {
         // give a one-second delay
         yield return new WaitForSeconds(1.0f);
@@ -131,40 +131,8 @@ public class FailureHandler : NetworkBehaviour
         starDateText.text = "";
         reportText.text = "";
 
-        // print stardate based on scenario #
-        switch (scenario)
-        {
-            case 1:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5199.509"));
-                break;
-            case 2:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5199.762"));
-                break;
-            case 3:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5199.931"));
-                break;
-            case 4:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5200.227"));
-                break;
-            case 5:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5200.501"));
-                break;
-            case 6:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5200.691"));
-                break;
-            case 7:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5200.987"));
-                break;
-            case 8:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5201.219"));
-                break;
-            case 9:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5201.515"));
-                break;
-            case 10:
-                yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STAR DATE: 5201.599"));
-                break;
-        }
+        // print stardate
+        yield return StartCoroutine(PrintTextCharbyChar(starDateText, "STARDATE: " + stardate));
 
         // print report message
         yield return StartCoroutine(PrintTextCharbyChar(reportText, msg));
@@ -436,7 +404,7 @@ public class FailureHandler : NetworkBehaviour
         // if host, finish reset of BridgeEnvironment to start the loop from the start
         if (NetworkManager.Singleton.IsHost == true)
         {
-            SceneSwapper.Instance.ChangeScene("BridgeEnvironment", 0);
+            SceneSwapper.Instance.ChangeScene("BridgeEnvironment");
         }
     }
 

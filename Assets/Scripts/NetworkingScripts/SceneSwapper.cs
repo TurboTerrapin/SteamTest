@@ -37,9 +37,8 @@ public class SceneSwapper : MonoBehaviour
         }
     }
 
-    public void ChangeScene(string sceneName, int newScene)
+    public void ChangeScene(string sceneName)
     {
-        currentScene = newScene;
         //Debug.Log("Scene num for " + sceneName + " is " + currentScene + " in sceneNames list");
         NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
     }
@@ -68,7 +67,7 @@ public class SceneSwapper : MonoBehaviour
 
         int scene = FindSceneByList(sceneNames);
         
-        ChangeScene(sceneNames[scene], scene);
+        ChangeScene(sceneNames[scene]);
     }
 
     public void ChangeScenarioEasy()
@@ -88,7 +87,7 @@ public class SceneSwapper : MonoBehaviour
 
         if (scene == -1)
         {
-            ChangeScene(sceneNames[0], 0);
+            ChangeScene(sceneNames[0]);
             return;
         }
 
@@ -108,7 +107,7 @@ public class SceneSwapper : MonoBehaviour
             }
         }
 
-        ChangeScene(sceneName, currentScene);
+        ChangeScene(sceneName);
     }
 
 
@@ -139,7 +138,7 @@ public class SceneSwapper : MonoBehaviour
             }
         }
 
-        ChangeScene(sceneName, currentScene);
+        ChangeScene(sceneName);
     }
 
 
@@ -170,7 +169,7 @@ public class SceneSwapper : MonoBehaviour
             }
         }
 
-        ChangeScene(sceneName, currentScene);
+        ChangeScene(sceneName);
     }
 
 

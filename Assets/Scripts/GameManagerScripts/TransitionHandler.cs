@@ -1,9 +1,14 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
+using NUnit.Framework;
 
 public class TransitionHandler : MonoBehaviour
 {
+    //CLASS CONSTANTS
+    private static int[] TRANSITION_OPTIONS = new int[10] { 0, 0, 2, 4, 1, 4, 3, 2, 0, 1 }; //0 is BL, 1 is BM, 2 is BR, 3 is TL, 4 is TR
+
     public Transform ScenarioTransitionCamera;
 
     // Parents
@@ -11,8 +16,9 @@ public class TransitionHandler : MonoBehaviour
     public Transform TransitionText;
     public GameObject TransitionCanvas;
     public GameObject FakeShip;
+    private List<int> availableTransitionOptions = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    public void ShowTransition(int scenario)
+    public void ShowTransition(int transitionOption, string starDate, string distanceToDSF)
     {
         GameObject localPlayer = ReferenceAssistor.Instance.player_manager.getLocalPlayer();
 
@@ -28,18 +34,16 @@ public class TransitionHandler : MonoBehaviour
         // show UI
         TransitionCanvas.SetActive(true);
 
-        StartCoroutine(StartTransition(scenario));
+        StartCoroutine(StartTransition(transitionOption, starDate, distanceToDSF));
     }
 
     public void EndTransition()
     {
         StopAllCoroutines();
         TransitionCanvas.SetActive(false);
-        for (int i = 0; i < TransitionText.transform.childCount; i++)
+        foreach (Transform option in TransitionText)
         {
-            TMP_Text toHide = TransitionText.transform.GetChild(i).GetComponent<TMP_Text>();
-            Color textColor = toHide.color;
-            toHide.color = new Color(textColor.r, textColor.g, textColor.b, 0.0f);
+            option.gameObject.SetActive(false);
         }
 
         GameObject localPlayer = ReferenceAssistor.Instance.player_manager.getLocalPlayer();
@@ -55,133 +59,51 @@ public class TransitionHandler : MonoBehaviour
         FakeShip.SetActive(false);
     }
 
-    IEnumerator StartTransition(int scenario)
+    // randomly returns an option from 0-9 to inclusive (used to avoid repeats)
+    public int GetTransitionOption()
     {
-        switch (scenario)
+        if (availableTransitionOptions.Count == 0)
         {
-            case 1:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(0), CameraPositions.GetChild(1), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(0).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(1).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(2).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(3).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-            case 2:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(2), CameraPositions.GetChild(3), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(4).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(5).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(6).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(7).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-            case 3:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(4), CameraPositions.GetChild(5), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(8).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(9).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(10).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(11).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-            case 4:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(6), CameraPositions.GetChild(7), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(12).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(13).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(14).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(15).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-            case 5:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(8), CameraPositions.GetChild(9), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(16).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(17).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(18).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(19).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-            case 6:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(10), CameraPositions.GetChild(11), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(12).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(20).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(14).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(21).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-
-            case 7:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(12), CameraPositions.GetChild(13), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(4).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(22).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(6).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(23).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-
-            case 8:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(14), CameraPositions.GetChild(15), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(8).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(24).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(10).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(25).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-
-            case 9:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(16), CameraPositions.GetChild(17), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(0).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(26).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(2).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(27).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
-
-            case 10:
-                StartCoroutine(MoveCamera(CameraPositions.GetChild(18), CameraPositions.GetChild(19), 12f));
-
-                yield return new WaitForSeconds(2f);
-                StartCoroutine(FadeText(TransitionText.GetChild(16).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(28).GetComponent<TMP_Text>(), 1f, 1.5f));
-
-                yield return new WaitForSeconds(3f);
-                StartCoroutine(FadeText(TransitionText.GetChild(18).GetComponent<TMP_Text>(), 1f, 1.5f));
-                StartCoroutine(FadeText(TransitionText.GetChild(29).GetComponent<TMP_Text>(), 1f, 1.5f));
-                break;
+            for (int i = 0; i < 10; i++)
+            {
+                availableTransitionOptions.Add(i);
+            }
         }
+        int optionToReturn = availableTransitionOptions[Random.Range(0, availableTransitionOptions.Count)];
+        availableTransitionOptions.Remove(optionToReturn);
+        return optionToReturn;
+    }
+
+    IEnumerator StartTransition(int transitionOption, string starDate, string distanceToDSF)
+    {
+        // hide all options
+        foreach (Transform option in TransitionText)
+        {
+            option.gameObject.SetActive(false);
+        }
+
+        // reset selected option
+        foreach (Transform text in TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]))
+        {
+            text.GetComponent<TMP_Text>().alpha = 0.0f;
+        }
+        TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]).gameObject.SetActive(true);
+
+        // set text
+        TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]).GetChild(1).GetComponent<TMP_Text>().text = starDate;
+        TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]).GetChild(3).GetComponent<TMP_Text>().text = distanceToDSF + " lightyears";
+
+        StartCoroutine(MoveCamera(CameraPositions.GetChild(transitionOption * 2), CameraPositions.GetChild((transitionOption * 2) + 1), 12f));
+
+        yield return new WaitForSeconds(2f);
+
+        StartCoroutine(FadeText(TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]).GetChild(0).GetComponent<TMP_Text>(), 1f, 1.5f));
+        StartCoroutine(FadeText(TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]).GetChild(1).GetComponent<TMP_Text>(), 1f, 1.5f));
+
+        yield return new WaitForSeconds(3f);
+
+        StartCoroutine(FadeText(TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]).GetChild(2).GetComponent<TMP_Text>(), 1f, 1.5f));
+        StartCoroutine(FadeText(TransitionText.GetChild(TRANSITION_OPTIONS[transitionOption]).GetChild(3).GetComponent<TMP_Text>(), 1f, 1.5f));
     }
 
     IEnumerator FadeText(TMP_Text text, float targetAlpha, float duration)

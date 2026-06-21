@@ -27,8 +27,14 @@ public struct OffLimitsSpawnLocation
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    //private static int[] SCENARIOS_NEEDED_UNTIL_VICTORY = new int[] { 5, 7, 8, 10 }; //how many scenarios until reaching Deep Space Five based on difficulty
     private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure based on difficulty
+    private static int[][] SCENARIO_SEQUENCE = new int[][] //denotes number of scenarios and scenario tier (1-3) to reach Deep Space Five
+    {
+        new int[]{ 1, 1, 2, 2, 3 }, //easy
+        new int[]{ 1, 2, 2, 3, 2, 3}, //medium
+        new int[]{ 2, 2, 1, 2, 1, 2, 3, 3}, //hard
+        new int[]{ 2, 2, 3, 2, 2, 3, 2, 3, 2, 3} //expert
+    };
     private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
@@ -65,7 +71,7 @@ public class ScenarioManager : NetworkBehaviour
     private List<Vector3> spawn_locations = new List<Vector3>();
     private bool endpoint_reached = false;
     private bool game_over = false;
-    private int scenario_number = 0;
+    private int scenarios_defeated = 0;
     private int countdown_time_to_add = 0; //for controls/scenarios that want to add countdown time
     private int game_difficulty = -1; //assigned by LobbyHandler, goes easy, medium, hard, expert (0-3)
 
@@ -78,7 +84,7 @@ public class ScenarioManager : NetworkBehaviour
     private void Awake()
     {
         lobby_handler = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>();
-        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
+        ship_inventory = ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>();
         scenario_countdown = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioCountdown>();
         scenario_map = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
         power_manager = ReferenceAssistor.Instance.power_manager;
@@ -267,7 +273,7 @@ public class ScenarioManager : NetworkBehaviour
     //called by prepScenario()
     private void spawnCollectibleItem(int location_index, bool utility)
     {
-        Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+        Transform world_root = ReferenceAssistor.Instance.world_root.transform;
 
         int item_index = 0;
         if (utility == true)
@@ -319,16 +325,15 @@ public class ScenarioManager : NetworkBehaviour
     public string loadNewScenario()
     {
         endpoint_reached = false;
-        scenario_number += 1;
 
         if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
         {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
+            SceneSwapper.Instance.ChangeScene("RedLightGreenLight");
             return "RedLightGreenLight";
         }
         else
         {
-            SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
+            SceneSwapper.Instance.ChangeScene("CollectibleTest");
             return "CollectibleTest";
         }
 
@@ -476,12 +481,11 @@ public class ScenarioManager : NetworkBehaviour
             return;
         }
 
-        endpoint_reached = true;
-
         if (reason == EndCondition.ReachedEndpoint) //only success condition is to reach endpoint
         {
             endpoint_reached = true;
-            handleTransitionRPC(scenario_number);
+            scenarios_defeated++;
+            handleTransitionRPC(scenario_transitioner.GetComponent<TransitionHandler>().GetTransitionOption(), scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length));
             return;
         }
 
@@ -525,7 +529,7 @@ public class ScenarioManager : NetworkBehaviour
         //turn off power
         ReferenceAssistor.Instance.power_manager.totalShutdown(false);
 
-        handleFailureRPC(scenario_number, failure_report_message, (reason == EndCondition.TimeRanOut || reason == EndCondition.LeftBoundary));
+        handleFailureRPC(scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length), failure_report_message, (reason == EndCondition.TimeRanOut || reason == EndCondition.LeftBoundary));
     }
 
     //ensures every player has the same entrance/exit path locations and rotations
@@ -588,10 +592,10 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void handleTransitionRPC(int sn)
+    private void handleTransitionRPC(int transition_option, float percent_to_DSF)
     {
         //prepare to load next scenario
-        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().resetReadyPlayers();
+        ReferenceAssistor.Instance.player_manager.resetReadyPlayers();
 
         //power down all stations and reset certain controls (power will be restored later)
         controlResetHelper();
@@ -604,7 +608,10 @@ public class ScenarioManager : NetworkBehaviour
         PrimaryScript.Instance.deactivate(true, false);
 
         //show transition
-        scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
+        scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(transition_option, OverviewTracker.getStarDate(percent_to_DSF), OverviewTracker.getDistanceToDSF(percent_to_DSF));
+
+        //update overview screen in back of bridge
+        ReferenceAssistor.Instance.module_handlers[4].GetComponent<OverviewTracker>().updateOverviewDisplay(percent_to_DSF);
 
         //if host, begin to load the next scenario
         if (NetworkManager.Singleton.IsHost == true)
@@ -624,16 +631,16 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void handleFailureRPC(int scenario_number, string failure_message, bool caught)
+    private void handleFailureRPC(float percent_to_DSF, string failure_message, bool caught)
     {
         //mute audio
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+        ReferenceAssistor.Instance.audio_manager.MuteAudio();
 
         //stop checking for controls/seats
         PrimaryScript.Instance.deactivate(false, true);
 
         //display death screen using scenario number sn and death message frm
-        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), scenario_number, failure_message, caught);
+        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), OverviewTracker.getStarDate(percent_to_DSF), failure_message, caught);
     }
 
     //used to update the boundary expiration timer in engineer position

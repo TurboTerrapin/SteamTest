@@ -254,7 +254,7 @@ public class CampaignLobbyController : MonoBehaviour
         {
             c.SyncCustomizationRPC();
         }
-        SceneSwapper.Instance.ChangeScene("BridgeEnvironment", 0);
+        SceneSwapper.Instance.ChangeScene("BridgeEnvironment");
     }
 
     private void SwitchTo(GameObject target)
