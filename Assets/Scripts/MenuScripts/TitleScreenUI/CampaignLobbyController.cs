@@ -4,6 +4,7 @@ using Steamworks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CampaignLobbyController : MonoBehaviour
 {
@@ -254,7 +255,7 @@ public class CampaignLobbyController : MonoBehaviour
         {
             c.SyncCustomizationRPC();
         }
-        SceneSwapper.Instance.ChangeScene("BridgeEnvironment");
+        NetworkManager.Singleton.SceneManager.LoadScene("BridgeEnvironment", LoadSceneMode.Single);
     }
 
     private void SwitchTo(GameObject target)

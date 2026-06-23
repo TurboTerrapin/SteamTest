@@ -2,12 +2,13 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott, Henryk Musial
-    Last Updated: 6/19/2026
+    Last Updated: 6/22/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -35,7 +36,13 @@ public class ScenarioManager : NetworkBehaviour
         new int[]{ 2, 2, 1, 2, 1, 2, 3, 3}, //hard
         new int[]{ 2, 2, 3, 2, 2, 3, 2, 3, 2, 3} //expert
     };
-    private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary based on difficulty
+    private static string[][] SCENARIO_POSSIBILITIES = new string[][]
+    {
+        new string[]{ "RedLightGreenLight", "Minefield", "BlackAndWhite", "Historian", "SinisterSymphony", "PartyMode", "GuardiansOfPeace" }, //tier 1 scenarios
+        new string[]{ "Indestructibles", "Wreckage", "IntergalacticZoo", "PurpleAlert" }, //tier 2 scenarios
+        new string[]{ "Temple", "BlackHole", "InvisibleEnemy", "MiserableMeevils", "ZybokProtocol" } //tier 3 scenarios
+    };
+    private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary per scenario based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
@@ -71,7 +78,15 @@ public class ScenarioManager : NetworkBehaviour
     private List<Vector3> spawn_locations = new List<Vector3>();
     private bool endpoint_reached = false;
     private bool game_over = false;
-    private int scenarios_defeated = 0;
+    private List<string>[] already_defeated_scenarios = new List<string>[]
+    {
+        new List<string>(), //tier 1 scenarios
+        new List<string>(), //tier 2 scenarios
+        new List<string>() //tier 3 scenarios
+    };
+    private List<string> implemented_scenarios = new List<string>();
+    private int num_scenarios_defeated = 0;
+    private int current_scenario_index = -1;
     private int countdown_time_to_add = 0; //for controls/scenarios that want to add countdown time
     private int game_difficulty = -1; //assigned by LobbyHandler, goes easy, medium, hard, expert (0-3)
 
@@ -92,11 +107,31 @@ public class ScenarioManager : NetworkBehaviour
         lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
         background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
         game_difficulty = lobby_handler.getDifficulty();
+
+        for (int tier = 0; tier < 3; tier++)
+        {
+            for (int scenario = 0; scenario < SCENARIO_POSSIBILITIES[tier].Length; scenario++)
+            {
+                for (int scene = 0; scene < SceneManager.sceneCountInBuildSettings; scene++)
+                {
+                    if (SceneUtility.GetScenePathByBuildIndex(scene).Contains(SCENARIO_POSSIBILITIES[tier][scenario]) == true)
+                    {
+                        implemented_scenarios.Add(SCENARIO_POSSIBILITIES[tier][scenario]);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     public int getDifficulty()
     {
         return game_difficulty;
+    }
+
+    public int getCurrentScenarioIndex()
+    {
+        return current_scenario_index;
     }
 
     //returns a list of coordinates of length num_points that is of at least min_distance from each other and not intersecting with off-limits locations
@@ -321,34 +356,67 @@ public class ScenarioManager : NetworkBehaviour
         }
     }
 
+    //returns scenario name (ex. "RedLightGreenLight") of a randomly-selected eligible scenario in given tier (SCENARIO_POSSIBILITIES)
+    private string identifyNextScenario(int tier)
+    {
+        List<string> possible_scenarios = new List<string>();
+        for (int i = 0; i < SCENARIO_POSSIBILITIES[tier].Length; i++)
+        {
+            if (already_defeated_scenarios[tier].Contains(SCENARIO_POSSIBILITIES[tier][i]) == false && implemented_scenarios.Contains(SCENARIO_POSSIBILITIES[tier][i]) == true)
+            {
+                possible_scenarios.Add(SCENARIO_POSSIBILITIES[tier][i]);
+            }
+        }
+        if (possible_scenarios.Count == 0)
+        {
+            return "";
+        }
+        return possible_scenarios[Random.Range(0, possible_scenarios.Count)];
+    }
+
+    //gets scenario index from name
+    private int getScenarioIndexFromName(string name)
+    {
+        int scenario_index = -1;
+        for (int tier = 0; tier < 3; tier++)
+        {
+            for (int index = 0; index < SCENARIO_POSSIBILITIES[tier].Length; index++)
+            {
+                scenario_index++;
+                if (SCENARIO_POSSIBILITIES[tier][index].CompareTo(name) == 0)
+                {
+                    return scenario_index;
+                }
+            }
+        }
+        return -1;
+    }
+
     //called when start of scenario transition
-    public string loadNewScenario()
+    public void loadNewScenario()
     {
         endpoint_reached = false;
 
-        if (SceneManager.GetActiveScene().name != "RedLightGreenLight")
+        string next_scenario = ""; //used for override for testing (blank means obey sequence and random)
+
+        if (next_scenario.CompareTo("") == 0)
         {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight");
-            return "RedLightGreenLight";
-        }
-        else
-        {
-            SceneSwapper.Instance.ChangeScene("CollectibleTest");
-            return "CollectibleTest";
+            int tier_to_select = SCENARIO_SEQUENCE[game_difficulty][num_scenarios_defeated] - 1; //-1 to make it index nicely 0-2 instead of 1-3
+            if (already_defeated_scenarios[tier_to_select].Count == SCENARIO_POSSIBILITIES[tier_to_select].Length)
+            {
+                already_defeated_scenarios[tier_to_select].Clear();
+            }
+            next_scenario = identifyNextScenario(tier_to_select);
         }
 
-        /*
-                if (SceneManager.GetActiveScene().name != "MineField")
+        current_scenario_index = getScenarioIndexFromName(next_scenario);
+        if (current_scenario_index == -1)
         {
-            SceneSwapper.Instance.ChangeScene("MineField", scenario_number);
-            return "MineField";
+            next_scenario = SCENARIO_POSSIBILITIES[0][0]; //default to RLGL
+            current_scenario_index = 0; //default to RLGL
         }
-        else
-        {
-            SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
-            return "CollectibleTest";
-        }
-        */
+
+        NetworkManager.Singleton.SceneManager.LoadScene(next_scenario, LoadSceneMode.Single);
     }
 
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
@@ -364,9 +432,6 @@ public class ScenarioManager : NetworkBehaviour
 
         //clear spawn locations
         spawn_locations.Clear();
-
-        //assign ReferenceAssistor the new WorldRoot
-        ReferenceAssistor.Instance.assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
         
         //generate new entrance/exit path locations and angles
         generatePaths();
@@ -484,8 +549,8 @@ public class ScenarioManager : NetworkBehaviour
         if (reason == EndCondition.ReachedEndpoint) //only success condition is to reach endpoint
         {
             endpoint_reached = true;
-            scenarios_defeated++;
-            handleTransitionRPC(scenario_transitioner.GetComponent<TransitionHandler>().GetTransitionOption(), scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length));
+            num_scenarios_defeated++;
+            handleTransitionRPC(current_scenario_index, scenario_transitioner.GetComponent<TransitionHandler>().GetTransitionOption(), num_scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length));
             return;
         }
 
@@ -529,7 +594,7 @@ public class ScenarioManager : NetworkBehaviour
         //turn off power
         ReferenceAssistor.Instance.power_manager.totalShutdown(false);
 
-        handleFailureRPC(scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length), failure_report_message, (reason == EndCondition.TimeRanOut || reason == EndCondition.LeftBoundary));
+        handleFailureRPC(num_scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length), failure_report_message, (reason == EndCondition.TimeRanOut || reason == EndCondition.LeftBoundary));
     }
 
     //ensures every player has the same entrance/exit path locations and rotations
@@ -592,8 +657,11 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void handleTransitionRPC(int transition_option, float percent_to_DSF)
+    private void handleTransitionRPC(int defeated_scenario_index, int transition_option, float percent_to_DSF)
     {
+        //update logs
+        LogMenuController.OnScenarioBeaten(defeated_scenario_index);
+
         //prepare to load next scenario
         ReferenceAssistor.Instance.player_manager.resetReadyPlayers();
 

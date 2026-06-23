@@ -10,8 +10,8 @@ public class LogMenuController : MonoBehaviour
     [System.Serializable]
     public class PlayerLogData 
     {
+        public bool HasEncountered;
         public int TimesBeaten;
-        public bool HasBeaten;
     }
 
     // AnomalyData = DEFINITION (identified name, tier, and sprite)
@@ -20,7 +20,7 @@ public class LogMenuController : MonoBehaviour
     public class AnomalyDatabase 
     {
         public string AnomalyID;
-        public string Tier;
+        public int Tier;
         public Color TierColor;
         public Sprite Sprite;
     }
@@ -34,9 +34,9 @@ public class LogMenuController : MonoBehaviour
 
     public AnomalyDatabase[] IdentifiedAnomalyInfo; // All anomaly definitions
 
-    public List<PlayerLogData> PlayerLogDataList = new List<PlayerLogData>(); // Runtime player progress
+    public static List<PlayerLogData> PlayerLogDataList = new List<PlayerLogData>(); // Runtime player progress
 
-    public int TotalAnomalies = 16;
+    public static int TotalAnomalies = 16;
 
     public GameObject LogsMenu;
     public GameObject MainMenu;
@@ -52,18 +52,19 @@ public class LogMenuController : MonoBehaviour
 
     public Sprite QuestionMark; // Unidentified Anomaly Sprite
 
-    private string filePath; // file path where JSON is stored
+    private static string FilePath;
 
-    void Start()
+    private void Start()
     {
-        // Build save file path
-        filePath = Path.Combine(Application.persistentDataPath, "logData.json");
-
-        LoadLogData();
-
+        // If unloaded, load data
+        if (PlayerLogDataList.Count == 0)
+        {
+            LoadLogData();
+        }
         //ResetLogs(); // For testing purposes 
-        //HasBeaten(0); // For testing purpose (0 is ANOMALY 1A)
-        //HasBeaten(1); // For testing purpose (1 is ANOMALY 1B)
+        //OnScenarioBeaten(0); // For testing purpose (0 is ANOMALY 1A)
+        //OnScenarioBeaten(1); // For testing purpose (1 is ANOMALY 1B)
+        UpdateLogUI();
 
         Page1.SetActive(true);
         NextPageButton.SetActive(true);
@@ -73,7 +74,7 @@ public class LogMenuController : MonoBehaviour
     }
 
     // Creates default unknown anomaly slots if no save file exists
-    public void CreateUnidentifiedAnomalyLogs() 
+    public static void CreateUnidentifiedAnomalyLogs() 
     {
         PlayerLogDataList = new List<PlayerLogData>(); // Reset list
 
@@ -82,23 +83,21 @@ public class LogMenuController : MonoBehaviour
         {
             PlayerLogDataList.Add(new PlayerLogData
             {
-                TimesBeaten = 0,
-                HasBeaten = false
+                HasEncountered = false,
+                TimesBeaten = 0
             });
         }
     }
     
     // Clears all log data (for testing purposes)
-    public void ResetLogs()
+    public static void ResetLogs()
     {
         PlayerLogDataList.Clear();
-        CreateUnidentifiedAnomalyLogs();
-        UpdateLogUI() ;
-        if (File.Exists(filePath)) 
+        if (FilePath != "" && File.Exists(FilePath)) 
         {
-            File.Delete(filePath);
+            File.Delete(FilePath);
         }
-
+        LoadLogData();
         SaveLogData();
     }
 
@@ -112,12 +111,12 @@ public class LogMenuController : MonoBehaviour
             if (i < PlayerLogDataList.Count)
             {
                 Sprite CurrentSprite = QuestionMark;
-                string CurrentTier = "Tier ?";
+                int CurrentTier = 0;
                 Color CurrentTierColor = Color.white;
                 string CurrentAnomalyID = "UNIDENTIFIED ANOMALY";
 
-                // if the player has beaten any anomaly before, set all anomaly data to identified info
-                if (PlayerLogDataList[i].HasBeaten)
+                // If the player has encountered the anomaly before, set all anomaly data to identified info
+                if (PlayerLogDataList[i].HasEncountered)
                 {
                     CurrentSprite = IdentifiedAnomalyInfo[i].Sprite;
                     CurrentTier = IdentifiedAnomalyInfo[i].Tier;
@@ -129,8 +128,8 @@ public class LogMenuController : MonoBehaviour
                 LogSlots[i].UpdateLogSlot(
                     CurrentAnomalyID,
                     CurrentTier,
+                    PlayerLogDataList[i].HasEncountered,
                     PlayerLogDataList[i].TimesBeaten,
-                    PlayerLogDataList[i].HasBeaten,
                     CurrentSprite,
                     QuestionMark,
                     CurrentTierColor
@@ -140,18 +139,25 @@ public class LogMenuController : MonoBehaviour
         }
     }
 
-    // Marks an anomaly as beaten and updates/saves the data
-    public void HasBeaten(int index) 
+    // Marks anomaly as encountered and updates/saves the data
+    public static void OnScenarioEncountered(int index)
     {
-        PlayerLogDataList[index].HasBeaten = true;
-        PlayerLogDataList[index].TimesBeaten++;
-
+        LoadLogData();
+        PlayerLogDataList[index].HasEncountered = true;
         SaveLogData();
-        UpdateLogUI();
+    }
+
+    // Increments anomaly beaten count and updates/saves the data
+    public static void OnScenarioBeaten(int index) 
+    {
+        LoadLogData();
+        PlayerLogDataList[index].HasEncountered = true;
+        PlayerLogDataList[index].TimesBeaten++;
+        SaveLogData();
     }
 
     // Saves log data into a JSON file
-    public void SaveLogData()
+    public static void SaveLogData()
     {
         // Create wrapper object with current log data so it can be written
         LogSaveData data = new LogSaveData 
@@ -160,15 +166,22 @@ public class LogMenuController : MonoBehaviour
         };
 
         string json = JsonUtility.ToJson(data); // Convert to JSON string
-        File.WriteAllText(filePath, json); // Write file
+        File.WriteAllText(FilePath, json); // Write file
     }
 
     // Loads log data from disk OR calls CreateUnknownAnomalyLogs()
-    public void LoadLogData()
+    public static void LoadLogData()
     {
-        if (File.Exists(filePath))
+        // If loaded already, return
+        if (PlayerLogDataList.Count > 0)
         {
-            string json = File.ReadAllText(filePath); // Read file
+            return;
+        }
+
+        FilePath = Path.Combine(Application.persistentDataPath, "logData.json"); // file path where JSON is stored
+        if (File.Exists(FilePath))
+        {
+            string json = File.ReadAllText(FilePath); // Read file
             LogSaveData data = JsonUtility.FromJson<LogSaveData>(json); // Parse JSON
 
             PlayerLogDataList = data.logs;

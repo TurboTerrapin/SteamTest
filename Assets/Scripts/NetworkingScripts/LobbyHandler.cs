@@ -382,10 +382,20 @@ public class LobbyHandler : NetworkBehaviour
             }
         }
 
-        //if host, check for seat occupants
-        if (NetworkManager.Singleton.IsHost == true && SceneManager.GetActiveScene().name != "TitleScreen")
+        //check for game-specific things
+        if (SceneManager.GetActiveScene().name != "TitleScreen")
         {
-            GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().checkForMissingSeats();
+            //if host, check for seat occupants
+            if (NetworkManager.Singleton.IsHost == true)
+            {
+                GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().checkForMissingSeats();
+            }
+
+            //update controls that are affected by # of players
+            if (ReferenceAssistor.Instance != null)
+            {
+                ReferenceAssistor.Instance.module_handlers[4].GetComponent<CrewManifest>().updateCrewManifest();
+            }
         }
     }
 

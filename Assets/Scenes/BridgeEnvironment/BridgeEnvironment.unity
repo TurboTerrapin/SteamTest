@@ -116393,7 +116393,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &438859318
 RectTransform:
   m_ObjectHideFlags: 0
@@ -126644,7 +126644,7 @@ GameObject:
   m_Component:
   - component: {fileID: 473784288}
   m_Layer: 0
-  m_Name: BridgeRetinalScanner
+  m_Name: BridgeFacialScanner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -126664,7 +126664,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1418719993}
-  - {fileID: 647418839}
   m_Father: {fileID: 1523278773}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &474119299
@@ -171765,92 +171764,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 647149410}
   m_CullTransparentMesh: 1
---- !u!1 &647418838
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 647418839}
-  - component: {fileID: 647418841}
-  - component: {fileID: 647418840}
-  m_Layer: 0
-  m_Name: RetinalScannerSuccessIndicator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &647418839
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 647418838}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.7071067, y: -0.000000053385072, z: 0.000000053385083, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 473784288}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &647418840
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 647418838}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 2021fad35c27062489d7ad9f6ac32f93, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &647418841
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 647418838}
-  m_Mesh: {fileID: -4946846235426697007, guid: eb6b2228abae8c44298115b55913e16e, type: 3}
 --- !u!1 &647561893
 GameObject:
   m_ObjectHideFlags: 0
@@ -317184,6 +317097,7 @@ Transform:
   - {fileID: 5837420813350397344}
   - {fileID: 8968136622408887050}
   - {fileID: 3280996884329259812}
+  - {fileID: 2134287047}
   m_Father: {fileID: 1523278773}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1188217819
@@ -381500,7 +381414,7 @@ GameObject:
   - component: {fileID: 1418719995}
   - component: {fileID: 1418719994}
   m_Layer: 0
-  m_Name: RetinalScanners
+  m_Name: FacialScanner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -381544,7 +381458,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3dcb6deb48f029249a0affe276863002, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f3ddac85c285f3d4db42f61247f29f9c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -381573,7 +381488,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1418719992}
-  m_Mesh: {fileID: -946606621454889568, guid: eb6b2228abae8c44298115b55913e16e, type: 3}
+  m_Mesh: {fileID: 4432103686772499406, guid: eb6b2228abae8c44298115b55913e16e, type: 3}
 --- !u!1 &1418761681
 GameObject:
   m_ObjectHideFlags: 0
@@ -408522,7 +408437,6 @@ Transform:
   m_Children:
   - {fileID: 1187852002}
   - {fileID: 874769485}
-  - {fileID: 2134287047}
   - {fileID: 473784288}
   - {fileID: 4188819176186845949}
   - {fileID: 653694311}
@@ -535296,14 +535210,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.4745098, b: 0, a: 0.2}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.2}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c6f9abfe60f204240ac75d12c1b7f55a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: dac8302f59ea01d498573c5f386ee207, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -565724,12 +565638,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2134287046}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: 0.7071068, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1523278773}
+  m_Father: {fileID: 1187852002}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &2134292862
 GameObject:

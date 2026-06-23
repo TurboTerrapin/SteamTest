@@ -13,6 +13,7 @@ using Steamworks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class FailureHandler : NetworkBehaviour
 {
@@ -404,7 +405,7 @@ public class FailureHandler : NetworkBehaviour
         // if host, finish reset of BridgeEnvironment to start the loop from the start
         if (NetworkManager.Singleton.IsHost == true)
         {
-            SceneSwapper.Instance.ChangeScene("BridgeEnvironment");
+            NetworkManager.Singleton.SceneManager.LoadScene("BridgeEnvironment", LoadSceneMode.Single);
         }
     }
 

@@ -168,7 +168,7 @@ public class PlayerManager : NetworkBehaviour
         audio_manager.GetComponent<AudioManager>().InitializeAudio();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            startScenarioRPC();
+            startScenarioRPC(ReferenceAssistor.Instance.scenario_manager.getCurrentScenarioIndex());
         }
         handleShipRepositioning();
     }
@@ -263,6 +263,10 @@ public class PlayerManager : NetworkBehaviour
     //called by LoadHandler.cs
     public void signifyScenarioLoaded()
     {
+        //assign ReferenceAssistor the new WorldRoot
+        ReferenceAssistor.Instance.assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+
+        //let others know you have loaded the scenario
         scenarioLoadedRPC(SteamClient.SteamId);
     }
 
@@ -281,13 +285,16 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void startScenarioRPC()
+    private void startScenarioRPC(int current_scenario_index)
     {
         //if host, begin the scenario
         if (NetworkManager.Singleton.IsHost == true)
         {
             ReferenceAssistor.Instance.scenario_manager.startScenario();
         }
+
+        //update logs
+        LogMenuController.OnScenarioEncountered(current_scenario_index);
 
         //end transition (whether looking at the cinematic shot or load screen)
         scenario_transitioner.GetComponent<TransitionHandler>().EndTransition();
@@ -352,7 +359,7 @@ public class PlayerManager : NetworkBehaviour
             {
                 yield return null;
             }
-            startScenarioRPC();
+            startScenarioRPC(ReferenceAssistor.Instance.scenario_manager.getCurrentScenarioIndex());
         }
     }
 }

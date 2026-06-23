@@ -34,7 +34,7 @@ public class CrewManifest : NetworkBehaviour
         transmitCrewMemberNameRPC(SteamClient.SteamId, crew_member_name);
     }
 
-    private void updateCrewManifest()
+    public void updateCrewManifest()
     {
         GameObject lobby_handler = GameObject.Find("LobbyHandler");
         if (lobby_handler == null)

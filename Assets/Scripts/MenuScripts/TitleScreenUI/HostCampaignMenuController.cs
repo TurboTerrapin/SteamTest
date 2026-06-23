@@ -1,7 +1,9 @@
-using UnityEngine;
 using System.Collections.Generic;
-using TMPro;
 using Steamworks;
+using TMPro;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class HostCampaignMenuController : MonoBehaviour
 {
@@ -34,7 +36,7 @@ public class HostCampaignMenuController : MonoBehaviour
 
     public void HandleEngageButtonClick()
     {
-        SceneSwapper.Instance.ChangeScene("BridgeEnvironment");
+        NetworkManager.Singleton.SceneManager.LoadScene("BridgeEnvironment", LoadSceneMode.Single);
     }
 
     private void SwitchTo(GameObject target)
