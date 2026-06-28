@@ -1,14 +1,14 @@
 /*
-    UniversalCommunicatorCodeData.cs
+    ManualCodeLinker.cs
     - Used for linking scenario database entries to a manual code display
     Contributor(s): Jake Schott
-    Last Updated: 2/21/2026
+    Last Updated: 6/28/2026
 */
 
 using TMPro;
 using UnityEngine;
 
-public class ManualCodeLinker : MonoBehaviour
+public class ManualCodeLinker : MonoBehaviour, IManualLinker
 {
     [SerializeField]
     private GameObject corresponding_database_entry;

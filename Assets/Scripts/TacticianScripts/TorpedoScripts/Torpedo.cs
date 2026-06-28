@@ -3,22 +3,12 @@
     - Handles torpedo movement and heatseeking
     - Manages stats based on type
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 5/27/2026
+    Last Updated: 6/26/2026
 */
 
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
-
-public enum TorpedoType
-{
-    Photon,         // Default, damage
-    Proton,         // Shield bonus
-    Ion,            // Disable movement
-    Quantum,        // Disable weapons
-    Superluminal,   // Anti-cloak
-    Chroniton       // Instakill
-}
 
 public class Torpedo : NetworkBehaviour
 {
@@ -32,9 +22,8 @@ public class Torpedo : NetworkBehaviour
     private static float TRACKING_DELAY = 0.25f; // Time in seconds before tracking begins
     private static float MIN_HIT_DISTANCE = 5.0f; // Distance threshold to trigger damage
 
-    [Header("TorpedoSettings")]
     [SerializeField]
-    private TorpedoType torpedo_type;
+    private IDamageable.DamageType damage_type;
     [SerializeField]
     private float speed = BASE_SPEED;
     [SerializeField]
@@ -248,34 +237,11 @@ public class Torpedo : NetworkBehaviour
             return;
         }
 
-        // Placeholder for damage application based on Type
-        switch (torpedo_type)
-        {
-            case TorpedoType.Photon:
-                // Standard Damage
-                break;
-            case TorpedoType.Proton:
-                // Extra Shield Damage
-                break;
-            case TorpedoType.Ion:
-                // Disable Movement
-                break;
-            case TorpedoType.Quantum:
-                // Disable Weapons
-                break;
-            case TorpedoType.Superluminal:
-                // Reveal Cloak
-                break;
-            case TorpedoType.Chroniton:
-                // Instakill
-                break;
-        }
-
         // Apply damage to IDamageable
         IDamageable[] damage_targets = hit_obj.GetComponents<IDamageable>();
         foreach (IDamageable damage_target in damage_targets)
         {
-            damage_target.damage(damage);
+            damage_target.damage(damage, damage_type);
         }
     }
 }

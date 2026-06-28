@@ -3,7 +3,7 @@
     - Forwards collision events to CollisionHandler
     - Forwards damage to ShipHealth
     Contributor(s): Henryk Musial
-    Last Updated: 6/4/2026
+    Last Updated: 6/26/2026
 */
 
 using Unity.Netcode;
@@ -22,7 +22,7 @@ public class ShipCollider : MonoBehaviour, IDamageable
         {
             Destroy(this);
         }
-        shipHealth = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipHealth>();
+        shipHealth = ReferenceAssistor.Instance.spaceship.GetComponent<ShipHealth>();
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -30,7 +30,7 @@ public class ShipCollider : MonoBehaviour, IDamageable
         shipCollisionHandler.HandleCollision(GetComponent<Collider>(), collision.collider);
     }
 
-    public void damage(float damage)
+    public void damage(float damage, IDamageable.DamageType damage_type)
     {
         shipHealth.damageSection(damage, section);
     }

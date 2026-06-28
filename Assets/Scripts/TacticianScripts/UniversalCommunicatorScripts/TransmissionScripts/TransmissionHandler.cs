@@ -5,7 +5,7 @@
     - Updates frequency text
     - Handles the actual receiving/broadcasting of UniversalCommunicator messages
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2026
+    Last Updated: 6/28/2026
 */
 
 using System.Collections;
@@ -20,6 +20,7 @@ public class TransmissionHandler : NetworkBehaviour
     private static float WAVE_SPEED = 0.05f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
     private static int FREQUENCY_COUNT = 12; //the # of frequency options
+    public static int[] FREQUENCY_RANGES = new int[2] { 1200, 1400 }; //currently 120.0 to 140.0
 
     public GameObject frequency_display;
     public GameObject wave_display;
@@ -107,10 +108,10 @@ public class TransmissionHandler : NetworkBehaviour
             List<float> new_frequencies = new List<float>();
             for (int i = 0; i < FREQUENCY_COUNT; i++)
             {
-                float to_add = UnityEngine.Random.Range(1200, 1401) / 10.0f;
-                while (new_frequencies.Contains(to_add))
+                float to_add = UnityEngine.Random.Range(FREQUENCY_RANGES[0], FREQUENCY_RANGES[1] + 1) / 10.0f;
+                while (new_frequencies.Contains(to_add) == true)
                 {
-                    to_add = UnityEngine.Random.Range(1200, 1401) / 10.0f;
+                    to_add = UnityEngine.Random.Range(FREQUENCY_RANGES[0], FREQUENCY_RANGES[1] + 1) / 10.0f;
                 }
                 new_frequencies.Add(to_add);
             }
@@ -120,6 +121,12 @@ public class TransmissionHandler : NetworkBehaviour
                 transmitFrequencyUpdateRPC(i, new_frequencies[i], 0);
             }
         }
+    }
+
+    //returns texture of wave from 0-6 index
+    public Texture getWaveTextureFromIndex(int index)
+    {
+        return wave_display.transform.GetChild(1).GetChild(index).gameObject.GetComponent<UnityEngine.UI.RawImage>().mainTexture;
     }
 
     //finds a frequency that is an empty wave and replaces it with new frequency and wave combination
@@ -137,7 +144,7 @@ public class TransmissionHandler : NetworkBehaviour
                     transmitFrequencyUpdateRPC(i, freq, cw);
                     return;
                 }
-                if (frequencies[i].corresponding_wave == 0)
+                if (frequencies[i].corresponding_wave == 0 && i != frequency_index)
                 {
                     dummy_candidates.Add(i);
                 }
@@ -156,6 +163,7 @@ public class TransmissionHandler : NetworkBehaviour
             frequencies[to_replace_index] = fd;
 
             //re-sort
+            float current_frequency = frequencies[frequency_index].frequency;
             List<FrequencyData> to_reorganize = new List<FrequencyData>();
             for (int i = 0; i < FREQUENCY_COUNT; i++)
             {
@@ -171,10 +179,27 @@ public class TransmissionHandler : NetworkBehaviour
                 to_reorganize.Add(to_add);
             }
 
+            //readjust index if current frequency got shifted
+            if (to_reorganize[frequency_index].frequency != current_frequency)
+            {
+                for (int i = 0; i < FREQUENCY_COUNT; i++)
+                {
+                    if (to_reorganize[i].frequency == current_frequency)
+                    {
+                        frequency_index = i;
+                        transmitIndexReadjustmentRPC(frequency_index);
+                        break;
+                    }
+                }
+            }
+
             //transmit new list
             for (int i = 0; i < FREQUENCY_COUNT; i++)
             {
-                transmitFrequencyUpdateRPC(i, to_reorganize[i].frequency, to_reorganize[i].corresponding_wave);
+                if (frequencies[i].frequency != to_reorganize[i].frequency || frequencies[i].corresponding_wave != to_reorganize[i].corresponding_wave)
+                {
+                    transmitFrequencyUpdateRPC(i, to_reorganize[i].frequency, to_reorganize[i].corresponding_wave);
+                }
             }
         }
     }
@@ -231,7 +256,7 @@ public class TransmissionHandler : NetworkBehaviour
         //update signal wave sprites
         for (int i = 0; i < 3; i++)
         {
-            waves.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().texture = wave_display.transform.GetChild(1).GetChild(frequencies[frequency_index].corresponding_wave).gameObject.GetComponent<UnityEngine.UI.RawImage>().mainTexture;
+            waves.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().texture = getWaveTextureFromIndex(frequencies[frequency_index].corresponding_wave);
         }
     }
 
@@ -486,14 +511,24 @@ public class TransmissionHandler : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
+    private void transmitIndexReadjustmentRPC(int index)
+    {
+        frequency_index = index;
+        displayFrequencyAdjustment();
+    }
+
+    [Rpc(SendTo.Everyone)]
     private void transmitFrequencyUpdateRPC(int index, float freq, int cw)
     {
+        //find index slot and set new frequency float value and new wave int value
         FrequencyData to_set = frequencies[index];
         to_set.frequency = freq;
         to_set.corresponding_wave = cw;
         frequencies[index] = to_set;
-
-        displayFrequencyAdjustment();
+        if (index == frequency_index)
+        {
+            displayFrequencyAdjustment();
+        }
         
         //check if need to alert
         if (cw != 0 && alert_indicator_coroutine == null)

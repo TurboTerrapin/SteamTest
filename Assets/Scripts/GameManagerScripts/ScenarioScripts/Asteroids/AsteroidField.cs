@@ -2,7 +2,7 @@
     AsteroidField.cs
     - Spawns a field of asteroids for scenario purposes
     Contributor(s): Jake Schott
-    Last Updated: 5/14/2026
+    Last Updated: 6/24/2026
 */
 
 using System.Collections.Generic;
@@ -12,12 +12,6 @@ using UnityEngine;
 public class AsteroidField : NetworkBehaviour
 {
     public GameObject asteroid;
-    private ScenarioManager scenario_manager;
-
-    private void Start()
-    {
-        scenario_manager = GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>();   
-    }
 
     //only run by the host
     public void spawnField(List<Vector3> asteroid_spawn_locations)
@@ -32,7 +26,7 @@ public class AsteroidField : NetworkBehaviour
         {
             GameObject curr_asteroid = GameObject.Instantiate(asteroid, world_root);
 
-            float scale = Random.Range(8.0f, 30.0f);
+            float scale = Random.Range(3.0f, 40.0f);
             curr_asteroid.transform.localScale = Vector3.one * scale;
             curr_asteroid.transform.localRotation = Random.rotation;
 

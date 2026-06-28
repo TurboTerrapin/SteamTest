@@ -2,7 +2,7 @@
     Phasers.cs
     - Handles short-and-long-range phaser targeting, firing, and rendering
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 5/28/2026
+    Last Updated: 6/27/2026
 */
 
 using System.Collections;
@@ -100,11 +100,9 @@ public class Phasers : NetworkBehaviour
         {
             if (phaserTargetObjects[0] != null)
             {
-                phaserTargetObjects[0].GetComponent<IDamageable>().damage(Mathf.Lerp(DAMAGES[0].x, DAMAGES[0].y, intensity));
+                phaserTargetObjects[0].GetComponent<IDamageable>().damage(Mathf.Lerp(DAMAGES[0].x, DAMAGES[0].y, intensity), IDamageable.DamageType.LongRangePhaser);
             }
         }
-
-        yield break;
     }
 
     IEnumerator shortRangePhaserFire(bool[] activePhasers, float intensity)
@@ -153,7 +151,7 @@ public class Phasers : NetworkBehaviour
             {
                 if (phaserTargetObjects[p + 1] != null)
                 {
-                    phaserTargetObjects[p + 1].GetComponent<IDamageable>().damage(Mathf.Lerp(DAMAGES[1].x, DAMAGES[1].y, intensity));
+                    phaserTargetObjects[p + 1].GetComponent<IDamageable>().damage(Mathf.Lerp(DAMAGES[1].x, DAMAGES[1].y, intensity), IDamageable.DamageType.ShortRangePhaser);
                 }
             }
         }
@@ -230,7 +228,7 @@ public class Phasers : NetworkBehaviour
         Vector3 beamEnd = phaserOrigins[phaserCategory + phaserIndex].transform.position + (beamDirection * BEAM_RANGES[phaserCategory]);
 
         // check for collision point (and if hit something that isn't our target on the way there, then set the target to null to stop damage)
-        if (Physics.Raycast(new Ray(phaserOrigins[phaserCategory + phaserIndex].transform.position, beamDirection), out RaycastHit hit, BEAM_RANGES[phaserCategory], 8))
+        if (Physics.Raycast(new Ray(phaserOrigins[phaserCategory + phaserIndex].transform.position, beamDirection), out RaycastHit hit, BEAM_RANGES[phaserCategory], LayerMask.GetMask("CollisionObjects")))
         {
             beamEnd = hit.point;
             if (hit.collider.gameObject != phaserTargetObjects[phaserCategory + phaserIndex])
@@ -242,6 +240,12 @@ public class Phasers : NetworkBehaviour
         return beamEnd;
     }
 
+    // returns true if GameObject is a valid phaser target
+    private bool isValidTarget(GameObject testTarget)
+    {
+        return (testTarget.GetComponent<IDamageable>() != null && (testTarget.GetComponent<CollectibleItem>() == null || testTarget.GetComponent<CollectibleItem>().getItemCategory() > 1));
+    }
+
     // returns null if no target found or a reference to a target within range and angle of phaserCategory
     private GameObject findTargetOutOfList(int phaserCategory, int phaserIndex, Collider[] possibleTargets)
     {
@@ -251,7 +255,7 @@ public class Phasers : NetworkBehaviour
         for (int i = 0; i < possibleTargets.Length; i++)
         {
             Collider currentTarget = possibleTargets[i];
-            if (currentTarget.GetComponent<IDamageable>() != null && (currentTarget.GetComponent<CollectibleItem>() == null || currentTarget.GetComponent<CollectibleItem>().getItemCategory() > 1))
+            if (isValidTarget(currentTarget.gameObject) == true)
             {
                 float distToTarget = getDistanceToTarget(phaserCategory, phaserIndex, currentTarget.transform.position);
 
@@ -265,6 +269,18 @@ public class Phasers : NetworkBehaviour
                 {
                     bestDistance = distToTarget;
                     bestTarget = currentTarget.gameObject;
+                }
+            }
+        }
+
+        // check to make sure the phaser isn't clipping the target's collider
+        if (bestTarget == null)
+        {
+            if (Physics.Raycast(new Ray(phaserOrigins[phaserCategory + phaserIndex].transform.position, phaserOrigins[phaserCategory + phaserIndex].transform.forward), out RaycastHit hit, BEAM_RANGES[phaserCategory], LayerMask.GetMask("CollisionObjects")))
+            {
+                if (isValidTarget(hit.collider.gameObject) == true)
+                {
+                    bestTarget = hit.collider.gameObject;
                 }
             }
         }

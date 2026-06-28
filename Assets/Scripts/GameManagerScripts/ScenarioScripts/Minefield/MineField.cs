@@ -1,41 +1,66 @@
 /*
-    MineField.cs
+    Minefield.cs
     Contributor(s): Henryk Musial
-    Last Updated: 6/1/2026
+    Last Updated: 6/28/2026
 */
 
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class MineField : NetworkBehaviour, IScenario
+public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible
 {
     //CLASS CONSTANTS
-    private static int MINE_QUANTITY = 30;
-    //private static int SEEKER_MINE_QUANTITY = 20;
-    private static string DEATH_MESSAGE = "You died buddy get better at this game";
+    private static int MINE_QUANTITY = 55;
+    public static float DETECTION_RANGE = 600.0f;
+    private static float EMISSION_REDUCER_EFFECT = 75.0f; // Each reducer reduces detection range by this much
+    public static int[] WARNING_SIGNAL_PERIOD_TIMES = new int[] { 120, 90, 60, 45 }; // Easy, medium, hard, expert
+    private static string DEATH_MESSAGE = "Stolen ship SEACC-3002 was found adrift within a field of mines. Crew was unable to maneuver around or disable the mines and sustained extensive hull damage. No survivors were found.";
 
-    public GameObject mine;
+    public GameObject normalMine;
     public GameObject seekerMine;
+    private Transform scenarioDatabaseMF;
+    private PhaserFrequency phaserFrequency;
+    private Coroutine warningSignalCoroutine;
+
+    private float currentTransmissionFrequency = 0.0f;
+    private int currentTransmissionIndex = 0;
+    private float detectionRange = DETECTION_RANGE;
+
+    private void Awake()
+    {
+        phaserFrequency = ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>();
+    }
 
     public void initiateScenario()
     {
         if (NetworkManager.Singleton.IsHost == false)
+        {
             return;
+        }
 
-        float minDistance = 200.0f;
-
-        int totalMines = MINE_QUANTITY;
-
-        List<Vector3> positions = 
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().generateSpawnLocations(minDistance, totalMines, null);
+        // Spawn mines (half normal, half seeker)
+        float minDistance = 250.0f;
+        List<Vector3> positions =
+            ReferenceAssistor.Instance.scenario_manager.generateSpawnLocations(minDistance, MINE_QUANTITY, null);
 
         Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
 
         for (int i = 0; i < MINE_QUANTITY; i++)
         {
-            GameObject curr_mine = GameObject.Instantiate(mine, world_root);
-            curr_mine.name = "Mine_" + i;
+            bool isSeekerMine = (Random.Range(0, 2) == 0);
+            GameObject curr_mine;
+            if (isSeekerMine == true)
+            {
+                curr_mine = GameObject.Instantiate(seekerMine, world_root);
+            }
+            else
+            {
+                curr_mine = GameObject.Instantiate(normalMine, world_root);
+            }
+
+            curr_mine.name = "Mine" + i;
             curr_mine.GetComponent<NetworkObject>().SynchronizeTransform = true;
 
             Vector3 spawn_location = positions[i];
@@ -45,10 +70,78 @@ public class MineField : NetworkBehaviour, IScenario
             curr_mine.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             curr_mine.GetComponent<NetworkObject>().TrySetParent(world_root);
         }
+
+        // Set initial frequency and wave combination
+        warningSignalCoroutine = StartCoroutine(WarningSignalLoop());
     }
 
     public string getDeathMessage()
     {
         return DEATH_MESSAGE;
+    }
+
+    IEnumerator WarningSignalLoop()
+    {
+        while (true)
+        {
+            // Wipe current frequency and index combination
+            if (currentTransmissionFrequency != 0.0f)
+            {
+                ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().frequencyReplacement(currentTransmissionFrequency, 0);
+            }
+
+            // Identify new frequency and index combination
+            float newTransmissionFrequency = currentTransmissionFrequency;
+            while (newTransmissionFrequency == currentTransmissionFrequency)
+            {
+                newTransmissionFrequency = UnityEngine.Random.Range(TransmissionHandler.FREQUENCY_RANGES[0], TransmissionHandler.FREQUENCY_RANGES[1] + 1) / 10.0f;
+            }
+            List<int> possibleTransmissionIndexes = new List<int>() { 1, 2, 3, 4, 5, 6 };
+            possibleTransmissionIndexes.Remove(currentTransmissionIndex);
+            int newTransmissionIndex = possibleTransmissionIndexes[Random.Range(0, possibleTransmissionIndexes.Count)];
+
+            // Set and automatically transmit new frequency and index combination
+            currentTransmissionFrequency = newTransmissionFrequency;
+            currentTransmissionIndex = newTransmissionIndex;
+            ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().frequencyReplacement(currentTransmissionFrequency, currentTransmissionIndex);
+
+            yield return new WaitForSeconds(WARNING_SIGNAL_PERIOD_TIMES[ReferenceAssistor.Instance.scenario_manager.getDifficulty()]);
+        }
+    }
+
+    public float getMineDetectionRange()
+    {
+        return detectionRange;
+    }
+
+    public void onEmissionChange()
+    {
+        bool[] enabledReducers = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EmissionReducers>().getEnabledReducers();
+        float updatedDetectionRange = DETECTION_RANGE;
+        for (int i = 0; i < 2; i++)
+        {
+            if (enabledReducers[i] == true)
+            {
+                updatedDetectionRange -= EMISSION_REDUCER_EFFECT;
+            }
+        }
+        detectionRange = updatedDetectionRange;
+    }
+
+    public bool damageTypeBypassesMineShields(IDamageable.DamageType damage_type)
+    {
+        if (damage_type == IDamageable.DamageType.LongRangePhaser)
+        {
+            return (scenarioDatabaseMF.transform.GetChild(currentTransmissionIndex).GetComponent<PhaserFrequencyData>().getPhaserFrequency(0) == phaserFrequency.getCurrentPhaserFrequency(0));
+        }
+        else if (damage_type == IDamageable.DamageType.ShortRangePhaser)
+        {
+            return (scenarioDatabaseMF.transform.GetChild(currentTransmissionIndex).GetComponent<PhaserFrequencyData>().getPhaserFrequency(1) == phaserFrequency.getCurrentPhaserFrequency(1));
+        }
+        else if (damage_type == IDamageable.DamageType.Explosive || damage_type == IDamageable.DamageType.Collision)
+        {
+            return false;
+        }
+        return true;
     }
 }

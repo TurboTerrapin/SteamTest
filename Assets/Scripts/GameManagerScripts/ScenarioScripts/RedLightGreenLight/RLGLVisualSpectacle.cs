@@ -54,7 +54,7 @@ public class RLGLVisualSpectacle : MonoBehaviour
         }
         else if (other.GetComponent<Probe>() != null) //Destroy probes
         {
-            other.GetComponent<Probe>().damage(99999.9f);
+            other.GetComponent<Probe>().damage(99999.9f, IDamageable.DamageType.Explosive);
         }
     }
 }

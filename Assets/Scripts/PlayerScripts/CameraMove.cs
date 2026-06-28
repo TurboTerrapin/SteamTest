@@ -6,7 +6,7 @@
     - Handles camera shaking
     - Handles displaying hints if hints enabled (ex. MISSION OBJECTIVE, POWER MONITORING)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 4/26/2026
+    Last Updated: 6/25/2026
 */
 
 using System.Collections;
@@ -135,6 +135,14 @@ public class CameraMove : MonoBehaviour
         if (myCamera != null)
         {
             myCamera.fieldOfView = DEFAULT_FOV;
+        }
+    }
+
+    public void ResetCameraEffects()
+    {
+        foreach (UnityEngine.Rendering.VolumeComponent effect in ReferenceAssistor.Instance.camera_settings.profile.components)
+        {
+            effect.active = false;
         }
     }
 

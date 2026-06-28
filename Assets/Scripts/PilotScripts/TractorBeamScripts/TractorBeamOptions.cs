@@ -2,7 +2,7 @@
     TractorBeamOptions.cs
     - Handles items in tractor beam storage position
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 6/24/2026
 */
 
 using System.Collections;
@@ -19,7 +19,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
 
     private List<string> CONTROL_NAMES = new List<string>() { "ITEM DESTROYER", "ITEM COLLECTOR" };
     private List<string> INFO_MESSAGES = new List<string>() { "Destroys the item held in the tractor beam item holding position.", "Collects and stores the item held in the tractor beam item holding position for later use." };
-    private List<string> CONTROL_DESCS = new List<string>() {"DESTROY", "COLLECT"};
+    private List<string> CONTROL_DESCS = new List<string>() { "DESTROY", "COLLECT" };
     private List<int> CONTROL_INDEXES = new List<int>() {6};
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
@@ -55,7 +55,7 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
     private void Start()
     {
         tractor_beam = GetComponent<TractorBeam>();
-        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
+        ship_inventory = ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0]);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
@@ -73,31 +73,39 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
+       
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     //used on scenario transition to automatically collect whatever is inside storage
     public void resetToDefault()
     {
@@ -105,11 +113,18 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         {
             if (tractor_beam.GetCapturedItem() != null)
             {
-                transmitItemAdjustmentRPC(1);
+                if (tractor_beam.GetCapturedItem().GetComponent<CollectibleItem>() != null)
+                {
+                    transmitItemAdjustmentRPC(1);
+                }
+                else
+                {
+                    transmitItemAdjustmentRPC(0);
+                }
             }
         }
     }
-
+    
     public Color getCapturedItemColor()
     {
         if (tractor_beam.GetCapturedItem() == null)
@@ -128,8 +143,13 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         return tractor_beam.GetCapturedItem().GetComponent<ITractorBeamable>().getItemTexture();
     }
 
-    private void displayTransparencyUpdate(float a)
+    private void displayTransparencyUpdate()
     {
+        float a = 1.0f;
+        if ((is_active[0] == false && is_active[1] == false) || is_powered == false)
+        {
+            a = 0.2f;
+        }
         Color c = item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
         c.a = a;
         item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
@@ -138,12 +158,17 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         {
             line.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.09f, 0.75f, a);
         }
-        foreach (GameObject display in option_displays)
+        for (int i = 0; i < 2; i++)
         {
-            c = display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
+            a = 0.2f;
+            if (is_active[i] == true && is_powered == true)
+            {
+                a = 1.0f;
+            }
+            c = option_displays[i].transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color;
             c.a = a;
-            display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
-            display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.Image>().color = c;
+            option_displays[i].transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
+            option_displays[i].transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.Image>().color = c;
         }
     }
 
@@ -254,18 +279,19 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
         item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = getCapturedItemTexture();
         item_display.transform.GetChild(0).gameObject.SetActive(true);
-        displayTransparencyUpdate(1.0f);
+        serial_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText(serial_number);
+        is_active[0] = true;
+        BUTTON_LISTS[0][0].updateInteractable(true);
+        if (item.GetComponent<CollectibleItem>() != null)
+        {
+            is_active[1] = true;
+            BUTTON_LISTS[1][0].updateInteractable(true);
+        }
         if (reticle_spin_coroutine == null)
         {
             reticle_spin_coroutine = StartCoroutine(reticleSpinner());
         }
-        for (int i = 0; i < 2; i++)
-        {
-            is_active[i] = true;
-            BUTTON_LISTS[i][0].updateInteractable(true);
-        }
-
-        serial_display.transform.GetChild(0).GetComponent<TMP_Text>().text = serial_number;
+        displayTransparencyUpdate();
     }
 
     public void deactivate()
@@ -277,13 +303,13 @@ public class TractorBeamOptions : NetworkBehaviour, IControllable, IPowerable, I
         }
         item_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.09f, 0.75f);
         item_display.transform.GetChild(0).gameObject.SetActive(false);
-        serial_display.transform.GetChild(0).GetComponent<TMP_Text>().text = "";
-        displayTransparencyUpdate(0.2f);
+        serial_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText("");
         for (int i = 0; i < 2; i++)
         {
             is_active[i] = false;
             BUTTON_LISTS[i][0].updateInteractable(false);
         }
+        displayTransparencyUpdate();
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)

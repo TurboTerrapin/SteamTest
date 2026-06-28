@@ -3,7 +3,7 @@
     - Alerts ProbeController.cs when damaged
     - Handles visual things
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 6/26/2026
 */
 
 using System.Collections;
@@ -23,9 +23,9 @@ public class Probe : MonoBehaviour, IDamageable
         probe_controller = ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProbeController>();
     }
 
-    public void damage(float dam)
+    public void damage(float damage, IDamageable.DamageType damage_type)
     {
-        probe_controller.damageProbe(dam);
+        probe_controller.damageProbe(damage);
     }
 
     //orange flashing

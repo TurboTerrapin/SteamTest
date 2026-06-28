@@ -153,6 +153,10 @@ public class Manual : MonoBehaviour, IPowerable
             curr_screen.SetActive(false);
             curr_screen = curr_button.GetComponent<ManualButton>().select_panel;
             curr_screen.SetActive(true);
+            foreach (IManualLinker ml in curr_button.GetComponents<IManualLinker>())
+            {
+                ml.link();
+            }
             if (curr_button.GetComponent<ManualCodeLinker>() != null)
             {
                 curr_button.GetComponent<ManualCodeLinker>().link();

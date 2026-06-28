@@ -16,6 +16,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
@@ -24,18 +26,23 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     public static int[] GREEN_LIGHT_PERIOD_TIMES = new int[] { 40, 35, 30, 20 }; //easy, medium, hard, expert
     private static float CENTER_SPEED = 50.0f;
     private static float[] RING_SPEEDS = new float[] { 25.0f, 60.0f, 40.0f, 75.0f };
+    private static float WARNING_EFFECT_UPDATE_SPEED = 5.0f;
 
     private ScenarioManager scenarioManager;
-    private ImpulseThrottle impulse;
+    private ImpulseThrottle impulseThrottle;
     private EnergyPattern energyPattern;
     private ShipHealth shipHealth;
     private Coroutine redLightCoroutine = null;
     private Coroutine greenLightCoroutine = null;
     public RLGLVisualSpectacle visualSpectacle;
     public AudioSource rlglSound;
+    private UnityEngine.Rendering.Universal.ChromaticAberration chromaticAberration;
+    private UnityEngine.Rendering.Universal.ScreenSpaceLensFlare screenSpaceLensFlare;
+    private UnityEngine.Rendering.Universal.ColorAdjustments colorAdjustments;
     public AudioSource stunSound;
+    private float rlglWarningEffectIntensity = 0.0f;
+    private bool currentlyRedLight = true;
 
-    private GameObject spaceship;
     private Transform scenarioDatabaseRLGL;
 
     //--ENERGY PATTERN INFORMATION--//
@@ -47,7 +54,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     private int numDotted = 0;
     //-------------------------//
 
-    //randomizes ring color
+    //randomizes energy pattern colors (except center)
     private void randomizeColors()
     {
         for (int i = 0; i < 4; i++)
@@ -84,20 +91,45 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     private void Start()
     {
-        scenarioManager = GameObject.FindWithTag("ScenarioManager").GetComponent<ScenarioManager>();
+        scenarioManager = ReferenceAssistor.Instance.scenario_manager.GetComponent<ScenarioManager>();
         scenarioDatabaseRLGL = scenarioManager.transform.GetChild(0).GetChild(InitRedLightGreenLight.SCENARIO_DATABASE_INDEX);
 
-        impulse = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
-
+        impulseThrottle = ReferenceAssistor.Instance.module_handlers[0].GetComponent<ImpulseThrottle>();
         energyPattern = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>();
+        shipHealth = ReferenceAssistor.Instance.spaceship.GetComponent<ShipHealth>();
+        ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out chromaticAberration);
+        ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out screenSpaceLensFlare);
+        ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out colorAdjustments);
+        screenSpaceLensFlare.tintColor.Override(Color.white);
+        screenSpaceLensFlare.samples.Override(1);
+        screenSpaceLensFlare.vignetteEffect.Override(1.0f);
+        screenSpaceLensFlare.streaksIntensity.Override(0.1f);
+        displayWarningEffectAdjustment();
+    }
 
-        spaceship = GameObject.FindWithTag("Spaceship");
-        shipHealth = spaceship.GetComponent<ShipHealth>();
+    private void displayWarningEffectAdjustment()
+    {
+        rlglSound.pitch = rlglWarningEffectIntensity * 2.0f;
+        ReferenceAssistor.Instance.audio_manager.AdjustDistortion(0.92f * rlglWarningEffectIntensity);
+        chromaticAberration.intensity.Override(rlglWarningEffectIntensity);
+        screenSpaceLensFlare.intensity.Override(rlglWarningEffectIntensity * 50.0f);
+        colorAdjustments.postExposure.Override(rlglWarningEffectIntensity * 5.0f);
+        colorAdjustments.saturation.Override(rlglWarningEffectIntensity * 75.0f);
     }
 
     private void Update()
     {
-        rlglSound.volume = impulse.getCurrentImpulse() * 0.5f;
+        float updatedIntensity = 0.0f;
+        if (currentlyRedLight == true)
+        {
+            updatedIntensity = impulseThrottle.getCurrentImpulse();
+        }
+        updatedIntensity = Mathf.MoveTowards(rlglWarningEffectIntensity, updatedIntensity,  WARNING_EFFECT_UPDATE_SPEED * Time.deltaTime);
+        if (updatedIntensity != rlglWarningEffectIntensity)
+        {
+            rlglWarningEffectIntensity = updatedIntensity;
+            displayWarningEffectAdjustment();
+        }
     }
 
     //called when ship runs into the visual spectacle
@@ -183,18 +215,18 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             while (true)
             {
                 //if the ship is moving
-                if (impulse.getCurrentImpulse() > 0.0f)
+                if (impulseThrottle.getCurrentImpulse() > 0.0f)
                 {
                     float timeBeforeDamageIsInflicted = 1.0f;
-                    while (timeBeforeDamageIsInflicted > 0.0f && impulse.getCurrentImpulse() > 0.0f)
+                    while (timeBeforeDamageIsInflicted > 0.0f && impulseThrottle.getCurrentImpulse() > 0.0f)
                     {
                         timeBeforeDamageIsInflicted -= Time.deltaTime;
                         yield return null;
                     }
                     
-                    if (impulse.getCurrentImpulse() > 0.0f)
+                    if (impulseThrottle.getCurrentImpulse() > 0.0f)
                     {
-                        shipHealth.damageAllSections(10.0f * impulse.getCurrentImpulse());
+                        shipHealth.damageAllSections(10.0f * impulseThrottle.getCurrentImpulse());
                     }
                 }
                 else
@@ -346,6 +378,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         visualSpectacle.SetRedLight();
 
+        currentlyRedLight = true;
         redLightCoroutine = StartCoroutine(RedLightState());
     }
 
@@ -362,6 +395,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         visualSpectacle.SetGreenLight();
 
+        currentlyRedLight = false;
         greenLightCoroutine = StartCoroutine(GreenLightState());
     }
 

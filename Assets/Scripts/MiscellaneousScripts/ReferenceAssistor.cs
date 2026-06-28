@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ReferenceAssistor : MonoBehaviour
 {
@@ -39,6 +40,7 @@ public class ReferenceAssistor : MonoBehaviour
 
     public GameObject world_root;
     public GameObject spaceship;
+    public Volume camera_settings;
     public AudioManager audio_manager;
     public EffectsHandler effects_handler;
     public FailureHandler failure_handler;

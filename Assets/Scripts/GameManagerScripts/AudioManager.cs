@@ -23,10 +23,16 @@ public class AudioManager : MonoBehaviour
 
     public void InitializeAudio()
     {
+        ResetToDefault();
         SetMasterVolume(0.75f);
 
         audioSources[0].GetComponent<AudioSource>().Play(); //play ambient noise
         audioSources[1].GetComponent<AudioSource>().Play(); //play ship beeps
+    }
+
+    public void ResetToDefault()
+    {
+        AdjustDistortion(0.0f);
     }
 
     public void ActivateComputerVoice()
@@ -48,6 +54,11 @@ public class AudioManager : MonoBehaviour
             computerVoicePlayerCoroutine = null;
         }
         computerVoiceActive = false;
+    }
+
+    public void AdjustDistortion(float percentage)
+    {
+        masterMixer.SetFloat("SFXDistortion", percentage);
     }
 
     public void SetMasterVolume(float volume)

@@ -2,7 +2,7 @@
     EmissionReducers.cs
     - Handles enabling/disabling of port and starboard engine emission reducers
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 6/26/2026
 */
 
 using System.Collections;
@@ -28,7 +28,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
-    public bool[] enabled_reducers = new bool[2] { false, false };
+    private bool[] enabled_reducers = new bool[2] { false, false };
     private float[] enabled_reducer_progress = new float[2] { 0.0f, 0.0f };
     private float[] switch_angles = new float[2] { 90.0f, 90.0f };
     private Coroutine[] reducer_switch_coroutines = new Coroutine[2] { null, null };
@@ -68,30 +68,50 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
         hud_info.setPowerConsumption(power_consumption);
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
+    }
+
+    public bool[] getEnabledReducers()
+    {
+        return enabled_reducers;
+    }
+
+    private void onReducerChange()
+    {
+        GameObject scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
+        if (scenario_handler != null && scenario_handler.GetComponent<IEmissionSusceptible>() != null)
+        {
+            scenario_handler.GetComponent<IEmissionSusceptible>().onEmissionChange();
+        }
     }
 
     private void displayReducerChange(int reducer_to_change, float current_percentage)
@@ -158,6 +178,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
             starting_rotation = 180.0f;
             desired_rotation = 90.0f;
             enabled_reducers[reducer_to_change] = false; //disable reducer
+            onReducerChange();
             handlePowerConsumptionChange();
             displayReducerChange(reducer_to_change, 1.0f);
         }
@@ -204,6 +225,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
         else
         {
             enabled_reducers[reducer_to_change] = true; //enable reducer
+            onReducerChange();
             handlePowerConsumptionChange();
             displayReducerChange(reducer_to_change, 1.0f);
             BUTTON_LISTS[reducer_to_change][0].updateDesc(CONTROL_DESCS[1]);
@@ -246,6 +268,8 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
             starting_percentages[i] = enabled_reducer_progress[i];
             enabled_reducer_progress[i] = 0.0f;
         }
+
+        onReducerChange();
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)

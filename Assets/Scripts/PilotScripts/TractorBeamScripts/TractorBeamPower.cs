@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 3/27/2026
+    Last Updated: 6/24/2026
 */
 
 using System.Collections;
@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -180,11 +181,25 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
         displayAdjustment();
         if (tractor_beam.GetCapturedItem() != null)
         {
-            //update item captured
+            //update item icon
             Color c = tractor_beam_options.getCapturedItemColor();
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = tractor_beam_options.getCapturedItemTexture();
-            c.a = 1.0f;
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
+
+            //update as COLLECT ITEM? or DESTROY ITEM? if not collectible
+            string option_message = "COLLECT\nITEM?";
+            Color option_color = new Color(0.0f, 0.09f, 0.75f);
+            float collect_a = 1.0f;
+            if (tractor_beam.GetCapturedItem().GetComponent<CollectibleItem>() == null)
+            {
+                option_message = "DESTROY\nITEM?";
+                option_color = ReferenceAssistor.COLOR_OPTIONS[2];
+                collect_a = 0.2f;
+            }
+            item_captured_display.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText(option_message);
+            item_captured_display.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().color = option_color;
+            item_captured_display.transform.GetChild(1).GetChild(1).GetComponent<RawImage>().color = new Color(0.0f, 0.09f, 0.75f, collect_a);
+            item_captured_display.transform.GetChild(1).GetChild(1).GetChild(1).GetComponent<Image>().color = new Color(0.0f, 0.09f, 0.75f, collect_a);
         }
         setTractorBeamStatusIndicators(false);
     }

@@ -15,6 +15,7 @@ AudioMixerGroupController:
   m_Send: 00000000000000000000000000000000
   m_Effects:
   - {fileID: 8324366842668941804}
+  - {fileID: -4078642384996568917}
   m_UserColorIndex: 0
   m_Mute: 0
   m_Solo: 0
@@ -38,6 +39,22 @@ AudioMixerGroupController:
   m_Mute: 0
   m_Solo: 0
   m_BypassEffects: 0
+--- !u!244 &-4078642384996568917
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 14b525b4ec1b51a4ea3d6a0941c59771
+  m_EffectName: Distortion
+  m_MixLevel: e240b06f2690a334c8fff0e1223a5d35
+  m_Parameters:
+  - m_ParameterName: Level
+    m_GUID: 200a04f49186ad742b84cbf401611663
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!244 &-3741345790249626236
 AudioMixerEffectController:
   m_ObjectHideFlags: 3
@@ -72,6 +89,8 @@ AudioMixerController:
     name: MasterVolume
   - guid: 5745f6063a8d2411b9a354d4bdd6899b
     name: SFXVolume
+  - guid: 200a04f49186ad742b84cbf401611663
+    name: SFXDistortion
   m_AudioMixerGroupViews:
   - guids:
     - 872add486ed54499682f149090a6954a
@@ -125,6 +144,7 @@ AudioMixerSnapshotController:
   m_AudioMixer: {fileID: 24100000}
   m_SnapshotID: 0e9c415a615934ae99baf0457f76f6b6
   m_FloatValues:
+    200a04f49186ad742b84cbf401611663: 0
     5745f6063a8d2411b9a354d4bdd6899b: 0.020936936
     115f407a7bd8242aea8ba69ce31979a2: -80
     7165abdd9c81e4377bbe37fcde548526: 8

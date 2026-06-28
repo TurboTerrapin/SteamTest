@@ -95,7 +95,7 @@ public class TractorBeam : NetworkBehaviour
 
         foreach (Collider collider in potentialTargets)
         {
-            if (collider.GetComponent<ITractorBeamable>() != null)
+            if (collider.GetComponent<ITractorBeamable>() != null && collider.GetComponent<ITractorBeamable>().getTractorBeamable() == true)
             {
                 Vector3 toTarget = collider.transform.position - beamOriginPoint.transform.position;
                 float distance = toTarget.magnitude;
@@ -147,7 +147,11 @@ public class TractorBeam : NetworkBehaviour
 
                 if (distance <= captureDistance)
                 {
-                    string serialNumber = targetXform.GetComponent<CollectibleItem>().getSerialNumber();
+                    string serialNumber = "";
+                    if (targetXform.GetComponent<CollectibleItem>() != null)
+                    {
+                        serialNumber = targetXform.GetComponent<CollectibleItem>().getSerialNumber();
+                    }
                     OnTargetCapturedRPC(targetXform.GetComponent<NetworkObject>().NetworkObjectId, serialNumber);
                     return; // Stop attracting, target found
                 }

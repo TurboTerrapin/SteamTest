@@ -5,7 +5,6 @@
     Last Updated: 7/31/2025
 */
 
-
 public interface IBroadcastable
 {
     public bool canFetchTransmission(int frequency);

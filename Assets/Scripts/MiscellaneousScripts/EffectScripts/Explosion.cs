@@ -123,7 +123,7 @@ public class Explosion : MonoBehaviour
                     {
                         if (damage_target != null)
                         {
-                            damage_target.damage(MAX_EXPLOSION_DAMAGE * (1.0f - (Vector3.Distance(transform.position, et.ClosestPoint(transform.position)) / (size * EXPLOSION_SPHERE_FACTOR))));
+                            damage_target.damage(MAX_EXPLOSION_DAMAGE * (1.0f - (Vector3.Distance(transform.position, et.ClosestPoint(transform.position)) / (size * EXPLOSION_SPHERE_FACTOR))), IDamageable.DamageType.Explosive);
                         }
                     }
                 }

@@ -3,7 +3,7 @@
     - Deals with collision impacts
     - Communicates to ShipHealth 
     Contributor(s): Henryk Musial
-    Last Updated: 6/4/2026
+    Last Updated: 6/26/2026
 */
 
 using System.Collections.Generic;
@@ -58,7 +58,7 @@ public class ShipCollisionHandler : MonoBehaviour
         IDamageable[] damage_targets = impactObjectCollider.GetComponents<IDamageable>();
         foreach (IDamageable damage_target in damage_targets)
         {
-            damage_target.damage(damage_to_deal);
+            damage_target.damage(damage_to_deal, IDamageable.DamageType.Collision);
         }
 
         //damage the ship directly

@@ -8,7 +8,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -45,7 +44,7 @@ public class ScenarioManager : NetworkBehaviour
     private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary per scenario based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
     public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
-    public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
+    public const int START_DIST_OFFSET = 600; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
     public const float PATH_SIZE = 10.0f; //for entrance/exit paths, degrees of the boundary, does not reflect on NavigationMap so be careful!
     private static int MAX_SPAWN_LOCATION_SEARCH_ATTEMPTS = 30;
@@ -53,11 +52,11 @@ public class ScenarioManager : NetworkBehaviour
     //different reasons for why a scenario ended
     public enum EndCondition
     {
-        ReachedEndpoint = 0,
-        LeftBoundary = 1,
-        ShipDestroyed = 2,
-        TimeRanOut = 3,
-        SelfDestructed = 4
+        ReachedEndpoint,
+        LeftBoundary,
+        ShipDestroyed,
+        TimeRanOut,
+        SelfDestructed
     }
 
     public GameObject player_manager; 
@@ -132,6 +131,11 @@ public class ScenarioManager : NetworkBehaviour
     public int getCurrentScenarioIndex()
     {
         return current_scenario_index;
+    }
+
+    public bool getGameOver()
+    {
+        return game_over;
     }
 
     //returns a list of coordinates of length num_points that is of at least min_distance from each other and not intersecting with off-limits locations
@@ -397,7 +401,7 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
 
-        string next_scenario = ""; //used for override for testing (blank means obey sequence and random)
+        string next_scenario = "Minefield"; //used for override for testing (blank means obey sequence and random)
 
         if (next_scenario.CompareTo("") == 0)
         {
@@ -671,9 +675,11 @@ public class ScenarioManager : NetworkBehaviour
         //reset and mute audio
         ReferenceAssistor.Instance.audio_manager.DeactivateComputerVoice();
         ReferenceAssistor.Instance.audio_manager.MuteAudio();
+        ReferenceAssistor.Instance.audio_manager.ResetToDefault();
 
         //stop checking for controls/seats
         PrimaryScript.Instance.deactivate(true, false);
+        ReferenceAssistor.Instance.player_manager.getLocalPlayer().GetComponent<CameraMove>().ResetCameraEffects();
 
         //show transition
         scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(transition_option, OverviewTracker.getStarDate(percent_to_DSF), OverviewTracker.getDistanceToDSF(percent_to_DSF));
@@ -701,6 +707,9 @@ public class ScenarioManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void handleFailureRPC(float percent_to_DSF, string failure_message, bool caught)
     {
+        //set game over to true
+        game_over = true;
+
         //mute audio
         ReferenceAssistor.Instance.audio_manager.MuteAudio();
 
