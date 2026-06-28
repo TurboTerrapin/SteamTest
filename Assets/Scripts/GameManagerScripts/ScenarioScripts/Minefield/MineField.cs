@@ -28,9 +28,10 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible
     private int currentTransmissionIndex = 0;
     private float detectionRange = DETECTION_RANGE;
 
-    private void Awake()
+    private void Start()
     {
         phaserFrequency = ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>();
+        scenarioDatabaseMF = ReferenceAssistor.Instance.scenario_manager.transform.GetChild(0).GetChild(InitMinefield.SCENARIO_DATABASE_INDEX);
     }
 
     public void initiateScenario()
@@ -96,14 +97,14 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible
             {
                 newTransmissionFrequency = UnityEngine.Random.Range(TransmissionHandler.FREQUENCY_RANGES[0], TransmissionHandler.FREQUENCY_RANGES[1] + 1) / 10.0f;
             }
-            List<int> possibleTransmissionIndexes = new List<int>() { 1, 2, 3, 4, 5, 6 };
+            List<int> possibleTransmissionIndexes = new List<int>() { 0, 1, 2, 3, 4, 5 };
             possibleTransmissionIndexes.Remove(currentTransmissionIndex);
             int newTransmissionIndex = possibleTransmissionIndexes[Random.Range(0, possibleTransmissionIndexes.Count)];
 
             // Set and automatically transmit new frequency and index combination
             currentTransmissionFrequency = newTransmissionFrequency;
             currentTransmissionIndex = newTransmissionIndex;
-            ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().frequencyReplacement(currentTransmissionFrequency, currentTransmissionIndex);
+            ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().frequencyReplacement(currentTransmissionFrequency, currentTransmissionIndex + 1);
 
             yield return new WaitForSeconds(WARNING_SIGNAL_PERIOD_TIMES[ReferenceAssistor.Instance.scenario_manager.getDifficulty()]);
         }

@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
