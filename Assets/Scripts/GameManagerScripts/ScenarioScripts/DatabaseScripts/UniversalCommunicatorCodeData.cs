@@ -2,7 +2,7 @@
     UniversalCommunicatorCodeData.cs
     - Data holder for universal communicator codes
     Contributor(s): Jake Schott
-    Last Updated: 2/21/2026
+    Last Updated: 6/29/2026
 */
 
 using UnityEngine;
@@ -10,11 +10,11 @@ using System.Collections.Generic;
 
 public class UniversalCommunicatorCodeData : MonoBehaviour
 {
-    private int[] code_indices = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
+    private int[] code_indexes = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
     private bool[] code_is_numeric = new bool[] { false, false, false, false, false, false, false, false };
     private int[] code_colors = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    public void setCodeIndices(List<int> code)
+    public void setCodeIndexes(List<int> code)
     {
         for (int i = 0; i < code.Count; i++)
         {
@@ -22,11 +22,11 @@ public class UniversalCommunicatorCodeData : MonoBehaviour
             {
                 break;
             }
-            code_indices[i] = code[i];
+            code_indexes[i] = code[i];
         }
     }
 
-    public void setCodeIndices(int[] code)
+    public void setCodeIndexes(int[] code)
     {
         for (int i = 0; i < code.Length; i++)
         {
@@ -34,7 +34,7 @@ public class UniversalCommunicatorCodeData : MonoBehaviour
             {
                 break;
             }
-            code_indices[i] = code[i];
+            code_indexes[i] = code[i];
         }
     }
 
@@ -70,7 +70,7 @@ public class UniversalCommunicatorCodeData : MonoBehaviour
             {
                 break;
             }
-            if (colors[i] >= 0 && colors[i] < 4)
+            if (colors[i] >= 0)
             {
                 code_colors[i] = colors[i];
             }
@@ -85,16 +85,16 @@ public class UniversalCommunicatorCodeData : MonoBehaviour
             {
                 break;
             }
-            if (colors[i] >= 0 && colors[i] < 4)
+            if (colors[i] >= 0)
             {
                 code_colors[i] = colors[i];
             }
         }
     }
 
-    public int[] getCodeIndices()
+    public int[] getCodeIndexes()
     {
-        return code_indices;
+        return code_indexes;
     }
 
     public bool[] getCodeIsNumeric()

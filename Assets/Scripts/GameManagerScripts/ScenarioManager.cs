@@ -441,7 +441,7 @@ public class ScenarioManager : NetworkBehaviour
         generatePaths();
 
         //reset transmission frequencies
-        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<FrequencyAdjuster>().resetFrequencies();
 
         //check for a scenario script and handle any sort of scenario prep (ex. starting an energy pattern, spawning cheeseballs)
         scenario_handler = GameObject.FindWithTag("ScenarioHandler");
@@ -645,7 +645,7 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<ThreatDetectors>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProximityMapOptions>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<LongRangeDirection>().resetToDefault();
-        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<FrequencyAdjuster>().resetFrequencies();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<TorpedoBaySelector>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>().resetToDefault();

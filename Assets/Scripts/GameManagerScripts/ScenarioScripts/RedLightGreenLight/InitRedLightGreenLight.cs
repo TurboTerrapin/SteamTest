@@ -87,7 +87,7 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
             cin[i] = false;
             cc[i] = 0;
         }
-        scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeIndices(ci);
+        scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeIndexes(ci);
         scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeIsNumeric(cin);
         scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeColors(cc);
     }

@@ -2,11 +2,11 @@
     IUniversalBroadcastable.cs
     - Interface for all scenarios that involve broadcasting a transmission to the ship
     Contributor(s): Jake Schott
-    Last Updated: 7/31/2025
+    Last Updated: 6/29/2026
 */
 
 public interface IBroadcastable
 {
-    public bool canFetchTransmission(int frequency);
-    public void fetchTransmission(int frequency);
+    public bool canFetchTransmission(float frequency);
+    public UniversalCommunicatorCodeData fetchTransmission(float frequency);
 }

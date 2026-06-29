@@ -215,6 +215,7 @@ GameObject:
   - component: {fileID: 1817782555}
   - component: {fileID: 1817782554}
   - component: {fileID: 1817782556}
+  - component: {fileID: 1817782557}
   m_Layer: 0
   m_Name: ScenarioHandler
   m_TagString: ScenarioHandler
@@ -267,11 +268,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 1817782552}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 273689b285ccb8644913c86983bdc18f, type: 3}
+  m_Script: {fileID: 11500000, guid: 31f3de00dd4c0f84f9de21f3d74ff55a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   normalMine: {fileID: 2945743492132302079, guid: ce3da95b7cb8e854594068e28910b041, type: 3}
   seekerMine: {fileID: 2945743492132302079, guid: 38e62a714d27aef46be09cb64b950b46, type: 3}
+--- !u!114 &1817782557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817782552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fca9e8e77c1cb184c9fa25e76fd2a1e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

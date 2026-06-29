@@ -61,7 +61,7 @@ public class SeekerMine : NetworkBehaviour, IDamageable
 
     IEnumerator MineController()
     {
-        while (true)
+        while (target_ship != null)
         {
             float distance_to_ship = Vector3.Distance(transform.position, target_ship.position);
             if (distance_to_ship <= mine_field.getMineDetectionRange() && ReferenceAssistor.Instance.scenario_manager.getGameOver() == false)

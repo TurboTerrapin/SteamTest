@@ -17,8 +17,8 @@ public class ManualPhaserTransmissionWaveLinker : MonoBehaviour, IManualLinker
     public void link()
     {
         TransmissionWaveData data = corresponding_database_entry.GetComponent<TransmissionWaveData>();
-        TransmissionHandler transmission_handler = ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>();
+        FrequencyAdjuster frequency_adjuster = ReferenceAssistor.Instance.module_handlers[1].GetComponent<FrequencyAdjuster>();
 
-        corresponding_transmission_wave_icon.GetComponent<UnityEngine.UI.RawImage>().texture = transmission_handler.getWaveTextureFromIndex(data.getTransmissionWave());
+        corresponding_transmission_wave_icon.GetComponent<UnityEngine.UI.RawImage>().texture = frequency_adjuster.transmission_wave_options[data.getTransmissionWave()];
     }
 }

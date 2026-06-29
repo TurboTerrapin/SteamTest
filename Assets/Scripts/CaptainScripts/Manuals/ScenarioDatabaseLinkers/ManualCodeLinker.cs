@@ -2,7 +2,7 @@
     ManualCodeLinker.cs
     - Used for linking scenario database entries to a manual code display
     Contributor(s): Jake Schott
-    Last Updated: 6/28/2026
+    Last Updated: 6/29/2026
 */
 
 using TMPro;
@@ -20,7 +20,7 @@ public class ManualCodeLinker : MonoBehaviour, IManualLinker
         UniversalCommunicatorCodeData data = corresponding_database_entry.GetComponent<UniversalCommunicatorCodeData>();
         UniversalCommunicator uc = ReferenceAssistor.Instance.module_handlers[1].GetComponent<UniversalCommunicator>();
 
-        int[] ci = data.getCodeIndices();
+        int[] ci = data.getCodeIndexes();
         bool[] cin = data.getCodeIsNumeric();
         int[] cc = data.getCodeColors();
 

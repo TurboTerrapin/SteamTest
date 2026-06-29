@@ -134,10 +134,28 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         }
     }
 
-    //only updates the chracter in the output (read-only) mode
-    private void displayOutputAdjustment()
+    //only updates the chracters in the output (read-only) mode
+    public void displayOutputAdjustment(List<int> output_indexes, List<int> output_is_numeric, List<int> output_colors)
     {
-        //TODO
+        Color[] output_color_options = new Color[] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[2], ReferenceAssistor.COLOR_OPTIONS[3], Color.red };
+        for (int i = 0; i < 8; i++)
+        {
+            output_view.transform.GetChild(1 + i).gameObject.SetActive(output_indexes != null && output_is_numeric[i] == 1);
+            output_view.transform.GetChild(9 + i).gameObject.SetActive(output_indexes != null && output_is_numeric[i] != 1);
+            if (output_indexes != null)
+            {
+                if (output_is_numeric[i] == 1)
+                {
+                    output_view.transform.GetChild(1 + i).GetComponent<TMP_Text>().SetText(getCharacterDisplay(output_indexes[i]).transform.GetChild(0).GetComponent<TMP_Text>().text);
+                    output_view.transform.GetChild(1 + i).GetComponent<TMP_Text>().color = output_color_options[output_colors[i]];
+                }
+                else
+                {
+                    output_view.transform.GetChild(9 + i).GetComponent<UnityEngine.UI.RawImage>().texture = getCharacterDisplay(output_indexes[i]).transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().mainTexture;
+                    output_view.transform.GetChild(9 + i).GetComponent<UnityEngine.UI.RawImage>().color = output_color_options[output_colors[i]];
+                }
+            }
+        }
     }
 
     private void rebuildMessagePreview()
@@ -259,7 +277,7 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
         }
         else
         {
-            displayOutputAdjustment();
+            displayOutputAdjustment(null, null, null);
         }
 
         //move pointer to default position

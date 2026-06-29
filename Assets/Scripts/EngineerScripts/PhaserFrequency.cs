@@ -85,7 +85,6 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable, IIKT
             int shortestIndex = 1;
             if (increasing)
             {
-                
                 shortestDistance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[shortestIndex].transform.position);
                 for (int i = 2; i < IK_targets.Count; i++)
                 {

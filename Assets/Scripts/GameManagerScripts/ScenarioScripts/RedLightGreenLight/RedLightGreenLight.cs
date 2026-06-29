@@ -236,12 +236,12 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         }
     }
 
-    public bool checkTransmission(int frequency, List<int> code_indexes, List<int> code_is_numeric, int code_color)
+    public bool checkTransmission(float frequency, List<int> code_indexes, List<int> code_is_numeric, int code_color)
     {
         return isFriendlyMessage(code_indexes, code_is_numeric, code_color);
     }
 
-    public void handleTransmission(int frequency, List<int> codeIndexes, List<int> codeIsNumeric, int codeColor)
+    public void handleTransmission(float frequency, List<int> codeIndexes, List<int> codeIsNumeric, int codeColor)
     {
         if (NetworkManager.Singleton.IsHost == true && greenLightCoroutine == null)
         {
@@ -258,6 +258,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
             }
         }
     }
+
     private bool isFriendlyMessage(List<int> ci, List<int> cin, int cc)
     {
         if (greenLightCoroutine != null)
@@ -271,7 +272,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         }
 
         int[] friendlyMessageIndexes = new int[8];
-        int[] correspondingCode = scenarioDatabaseRLGL.transform.GetChild(centerIndex).GetComponent<UniversalCommunicatorCodeData>().getCodeIndices();
+        int[] correspondingCode = scenarioDatabaseRLGL.transform.GetChild(centerIndex).GetComponent<UniversalCommunicatorCodeData>().getCodeIndexes();
         for (int i = 0; i < 8; i++)
         {
             friendlyMessageIndexes[i] = correspondingCode[i];
