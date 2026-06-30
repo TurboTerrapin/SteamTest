@@ -251,10 +251,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 836f58f8e798e014eb6028392a48410b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  phaser_sound: {fileID: 6663332432737685690}
   shield_sound: {fileID: 6988614020403497298}
-  phaser_origin: {fileID: 7684594979185420220}
   mine_shield: {fileID: 4220850335559061456}
+  mine_light: {fileID: 7567737946473365122}
+  phaser_sound: {fileID: 6663332432737685690}
+  phaser_origin: {fileID: 7684594979185420220}
   line_renderer: {fileID: 5952290578884238278}
 --- !u!135 &6612775246537142045
 SphereCollider:
@@ -275,7 +276,7 @@ SphereCollider:
   m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 8.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!82 &6988614020403497298
 AudioSource:

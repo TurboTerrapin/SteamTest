@@ -3,13 +3,13 @@
     - Handles asteroid health
     - Handles adjusting map icon size
     Contributor(s): Jake Schott
-    Last Updated: 6/24/2026
+    Last Updated: 6/29/2026
 */
 
 using Unity.Netcode;
 using UnityEngine;
 
-public class Asteroid : MonoBehaviour, IDamageable, ITractorBeamable
+public class Asteroid : MonoBehaviour, IDamageable, ITractorBeamable, ITorpedoTargetable
 {
     //CLASS CONSTANTS
     private Color EXPLOSION_COLOR = new Color(0.4f, 0.4f, 0.3f);
@@ -45,9 +45,14 @@ public class Asteroid : MonoBehaviour, IDamageable, ITractorBeamable
         //handle destruction
         if (item_health <= 0.0f)
         {
-            ReferenceAssistor.Instance.effects_handler.createExplosion(transform.position, transform.localScale.x * EXPLOSION_SIZE_FACTOR, EXPLOSION_COLOR);
+            ReferenceAssistor.Instance.effects_handler.createExplosion(transform.position, transform.localScale.x * EXPLOSION_SIZE_FACTOR, false, EXPLOSION_COLOR);
             GetComponent<NetworkObject>().Despawn(true);
         }
+    }
+
+    public bool getTorpedoTargetable(IDamageable.DamageType torpedo_type)
+    {
+        return true;
     }
 
     public bool getTractorBeamable()

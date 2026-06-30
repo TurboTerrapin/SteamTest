@@ -75,7 +75,7 @@ public class CollectibleItem : MonoBehaviour, ITractorBeamable, IDamageable
         //handle destruction
         if (item_health <= 0.0f)
         {
-            ReferenceAssistor.Instance.effects_handler.createExplosion(transform.position, explosion_size, explosion_color);
+            ReferenceAssistor.Instance.effects_handler.createExplosion(transform.position, explosion_size, false, explosion_color);
             GetComponent<NetworkObject>().Despawn(true);
         }
     }

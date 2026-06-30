@@ -233,7 +233,7 @@ public class Phasers : NetworkBehaviour
             beamEnd = hit.point;
             if (hit.collider.gameObject != phaserTargetObjects[phaserCategory + phaserIndex])
             {
-                phaserOrigins[phaserCategory + phaserIndex] = null;
+                phaserTargetObjects[phaserCategory + phaserIndex] = null;
             }
         }
 
@@ -353,7 +353,7 @@ public class Phasers : NetworkBehaviour
         phaserFireCoroutines[1] = StartCoroutine(shortRangePhaserFire(activePhasers, intensity));
     }
 
-    // communicated to clients to ensure that they are on the same page for long-range phasers
+    // communicated to clients to ensure that they are on the same page for long-range phaser
     [Rpc(SendTo.NotServer)]
     private void longRangePhaserFireRPC(Vector3 target, float intensity)
     {

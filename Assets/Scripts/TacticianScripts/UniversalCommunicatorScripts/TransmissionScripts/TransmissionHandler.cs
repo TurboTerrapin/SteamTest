@@ -299,6 +299,10 @@ public class TransmissionHandler : NetworkBehaviour
         {
             input_output_toggle.forceSwitch(false);
         }
+        else if (universal_communicator.getInputMode() == false && index == 1)
+        {
+            input_output_toggle.forceSwitch(true);
+        }
         input_output_toggle.deactivate();
 
         //update power consumption

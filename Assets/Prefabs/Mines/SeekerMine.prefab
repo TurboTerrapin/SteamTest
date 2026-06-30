@@ -425,6 +425,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shield_sound: {fileID: 641487943988767471}
   mine_shield: {fileID: 7872692542258902735}
+  mine_light: {fileID: 3693554960815844944}
 --- !u!135 &6612775246537142045
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -444,7 +445,7 @@ SphereCollider:
   m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 8.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!82 &641487943988767471
 AudioSource:

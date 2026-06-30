@@ -3,7 +3,7 @@
     - Handles torpedo movement and heatseeking
     - Manages stats based on type
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 6/26/2026
+    Last Updated: 6/29/2026
 */
 
 using System.Collections;
@@ -92,8 +92,8 @@ public class Torpedo : NetworkBehaviour
 
         foreach (var hit in hits)
         {
-            // Is a candidate if has an IDamageable script and is either not collectible or not in collectible item categories 0 (utility) or 1 (torpedo)
-            if (hit.GetComponent<IDamageable>() != null && (hit.GetComponent<CollectibleItem>() == null || hit.GetComponent<CollectibleItem>().getItemCategory() > 1))
+            // Is a candidate if has an IDamageable script and ITorpedoTargetable that includes this torpedo type
+            if (hit.GetComponent<IDamageable>() != null && hit.GetComponent<ITorpedoTargetable>() != null && hit.GetComponent<ITorpedoTargetable>().getTorpedoTargetable(damage_type))
             {
                 // NEW: Ensure the target is actually inside our forward seek cone
                 float dist = Vector3.Distance(transform.position, hit.transform.position);
@@ -140,7 +140,7 @@ public class Torpedo : NetworkBehaviour
 
         // Create the explosion
         EffectsHandler effects_handler = ReferenceAssistor.Instance.effects_handler;
-        effects_handler.createExplosion(transform.position, 4.0f, GetComponent<MapItem>().getColor());
+        effects_handler.createExplosion(transform.position, 4.0f, true, GetComponent<MapItem>().getColor());
 
         // Deactivate torpedo
         current_target = null;

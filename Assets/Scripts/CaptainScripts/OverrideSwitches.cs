@@ -1,8 +1,8 @@
 /*
-    ComputerOverride.cs
+    OverrideSwitches.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 4/25/2026
+    Last Updated: 6/30/2026
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using Unity.Netcode;
 using UnityEngine;
 using static AnimatorHandler;
 
-public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
+public class OverrideSwitches : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.2f; //how long the switch takes to be flipped
@@ -30,7 +30,7 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIK
 
     private bool is_powered = false;
     private Coroutine power_loss_coroutine = null;
-    private bool[] enabled_overrides = new bool[6] { false, false, false, false, false, false};
+    private bool[] enabled_overrides = new bool[6] { false, false, false, false, false, false };
     private Coroutine[] override_switch_coroutines = new Coroutine[6] { null, null, null, null, null, null };
 
     private List<string> ray_targets = new List<string> { "override_switch_a1", "override_switch_a2", "override_switch_a3", "override_switch_b1", "override_switch_b2", "override_switch_b3" };
@@ -68,31 +68,38 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIK
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return ik_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     private void handlePowerConsumptionChange()
     {
         float consumed_power = 0.0f;
@@ -108,11 +115,25 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIK
         hud_info.setPowerConsumption(consumed_power);
     }
 
+    private void onOverrideSwitchChange()
+    {
+        GameObject scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
+        if (scenario_handler != null && scenario_handler.GetComponent<IOverrideSwitchCommunicable>() != null)
+        {
+            scenario_handler.GetComponent<IOverrideSwitchCommunicable>().onOverrideSwitchChange();
+        }
+    }
+    
+    public bool[] getOverrideSwitches()
+    {
+        return enabled_overrides;
+    }
+
     private void displayAdjustment(int index)
     {
         //adjust corresponding color indicator
         Color c = override_displays[index / 3].transform.GetChild(index % 3).GetComponent<UnityEngine.UI.RawImage>().color;
-        c.a = 0.2f;
+        c.a = 0.1f;
         if (enabled_overrides[index] == true)
         {
             c.a = 1.0f;
@@ -124,12 +145,13 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIK
     IEnumerator overrideChange(int override_to_change)
     {
         bool disabling = enabled_overrides[override_to_change];
-        
+
         if (disabling == true)
         {
             enabled_overrides[override_to_change] = false; //disable override
             handlePowerConsumptionChange();
             displayAdjustment(override_to_change);
+            onOverrideSwitchChange();
         }
 
         float anim_time = SWITCH_TIME;
@@ -156,6 +178,7 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIK
             enabled_overrides[override_to_change] = true; //enable override
             handlePowerConsumptionChange();
             displayAdjustment(override_to_change);
+            onOverrideSwitchChange();
         }
 
         yield return new WaitForSeconds(COOLDOWN_TIME);
@@ -212,6 +235,7 @@ public class ComputerOverride : NetworkBehaviour, IControllable, IPowerable, IIK
 
             starting_rotations[i] = override_switches.transform.GetChild(i).localRotation.eulerAngles.x;
         }
+        onOverrideSwitchChange();
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)

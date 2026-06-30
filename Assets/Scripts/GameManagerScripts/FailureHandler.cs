@@ -4,7 +4,7 @@
     - Handles the animations of the ship exploding or getting captured
     - Handles restart voting
     Contributor(s): Beata Musial, Jake Schott
-    Last Updated: 5/26/2026
+    Last Updated: 6/29/2026
 */
 
 using System.Collections;
@@ -464,7 +464,7 @@ public class FailureHandler : NetworkBehaviour
         for (int i = 0; i < explosionsToTrigger.Count; i++)
         {
             int nextExplosion = UnityEngine.Random.Range(0, explosionsToTrigger.Count);
-            explosionsToTrigger[nextExplosion].GetComponent<Explosion>().explode(UnityEngine.Random.Range(4.0f, 8.0f));
+            explosionsToTrigger[nextExplosion].GetComponent<Explosion>().explode(UnityEngine.Random.Range(4.0f, 8.0f), true);
             explosionsToTrigger.RemoveAt(nextExplosion);
             yield return new WaitForSeconds(0.15f);
         }

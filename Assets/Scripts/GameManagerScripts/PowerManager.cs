@@ -752,7 +752,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("SelfDestruct")); //4
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipStatus")); //5
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerArray")); //6
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerOverride")); //7
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OverrideSwitches")); //7
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //8
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //9
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //10

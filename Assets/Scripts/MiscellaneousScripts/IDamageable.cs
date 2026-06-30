@@ -10,17 +10,17 @@ public interface IDamageable
     //different damage designations
     public enum DamageType
     {
-        Explosive,
-        Collision,
-        EnemyPhaser,
-        ShortRangePhaser,
-        LongRangePhaser,
         PhotonTorpedo,
         ProtonTorpedo,
         IonTorpedo,
         QuantumTorpedo,
         SuperluminalTorpedo,
-        ChronitonTorpedo
+        ChronitonTorpedo,
+        Explosive,
+        Collision,
+        EnemyPhaser,
+        ShortRangePhaser,
+        LongRangePhaser
     }
 
     public void damage(float damage, DamageType damage_type);

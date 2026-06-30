@@ -44,6 +44,7 @@ public class Explosion : MonoBehaviour
     public List<AudioClip> sound_options;
 
     private float size = 1.0f;
+    private bool deals_damage = true;
     private Color primary_color = ReferenceAssistor.COLOR_OPTIONS[2];
     private Color secondary_color = ReferenceAssistor.COLOR_OPTIONS[2];
 
@@ -56,22 +57,25 @@ public class Explosion : MonoBehaviour
     }
 
     //explodes on default size (1) and default color (orange)
-    public void explode()
+    public void explode(bool visual_only)
     {
+        deals_damage = !visual_only;
         beginAnimation();
     }
 
     //explodes on default size (1) and default color (orange)
-    public void explode(float explosion_size)
+    public void explode(float explosion_size, bool visual_only)
     {
         size = Mathf.Max(1.0f, explosion_size);
+        deals_damage = !visual_only;
         beginAnimation();
     }
 
     //explodes on size and color
-    public void explode(float explosion_size, Color explosion_color)
+    public void explode(float explosion_size, bool visual_only, Color explosion_color)
     {
         size = Mathf.Max(1.0f, explosion_size);
+        deals_damage = !visual_only;
         primary_color = explosion_color;
         secondary_color = explosion_color;
 
@@ -79,9 +83,10 @@ public class Explosion : MonoBehaviour
     }
 
     //explodes on size, primary color, and secondary color
-    public void explode(float explosion_size, Color base_color, Color accent_color)
+    public void explode(float explosion_size, bool visual_only, Color base_color, Color accent_color)
     {
         size = Mathf.Max(1.0f, explosion_size);
+        deals_damage = !visual_only;
         primary_color = base_color;
         secondary_color = accent_color;
 
@@ -111,7 +116,7 @@ public class Explosion : MonoBehaviour
     private void beginAnimation()
     {
         //damage nearby items (including ship)
-        if (NetworkManager.Singleton.IsHost == true && GetComponent<NetworkObject>() != null)
+        if (NetworkManager.Singleton.IsHost == true && deals_damage == true && GetComponent<NetworkObject>() != null)
         {
             Collider[] explosion_targets = Physics.OverlapSphere(transform.position, size * EXPLOSION_SPHERE_FACTOR);
             foreach (Collider et in explosion_targets)

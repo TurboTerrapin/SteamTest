@@ -401,7 +401,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             //handle destruction
             if (probe_health <= 0.0f) 
             {
-                ReferenceAssistor.Instance.effects_handler.createExplosion(current_probe.transform.position, 3.0f);
+                ReferenceAssistor.Instance.effects_handler.createExplosion(current_probe.transform.position, 3.0f, false);
                 current_probe.GetComponent<NetworkObject>().Despawn(true);
                 transmitProbeConnectionChangeRPC(false, false);
             }
