@@ -40,6 +40,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable, IIKTargetable
 
     private List<FrequencyData> frequencies = new List<FrequencyData>();
     private bool is_active = false;
+    private bool alert_necessary = false;
     private float shift = 0.0f; //used for horizontal wave movement
     private int frequency_index = 0;
     private float dial_rotation = 0.0f;
@@ -62,6 +63,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable, IIKTargetable
     {
         public float frequency; //ex. 120.6 MH
         public int corresponding_wave; //ex. 0 for empty wave (just a line)
+        public bool notification_needed; //true if need to announce
     }
 
     private void Start()
@@ -161,7 +163,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable, IIKTargetable
     IEnumerator alertIndicatorFlasher()
     {
         float elapsed_time = 0.0f;
-        while (true)
+        while (alert_necessary == true)
         {
             elapsed_time += Time.deltaTime * 2.0f;
             float a = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
@@ -287,7 +289,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable, IIKTargetable
             //transmit new list
             for (int i = 0; i < FREQUENCY_COUNT; i++)
             {
-                if (frequencies[i].frequency != to_reorganize[i].frequency || frequencies[i].corresponding_wave != to_reorganize[i].corresponding_wave)
+                if (frequencies[i].frequency == freq || frequencies[i].frequency != to_reorganize[i].frequency || frequencies[i].corresponding_wave != to_reorganize[i].corresponding_wave)
                 {
                     transmitFrequencyUpdateRPC(i, to_reorganize[i].frequency, to_reorganize[i].corresponding_wave);
                 }
@@ -355,25 +357,37 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable, IIKTargetable
         }
     }
 
-    //checks if alert flash is necessary and starts/stops it
+    //checks if alert flash is necessary and starts it
     private void updateAlertStatus()
     {
-        bool alert_necessary = false;
-        if (is_active == true)
+        bool notification_necessary = false;
+
+        alert_necessary = false;
+        if (transmission_wave_display.activeSelf == true)
         {
-            foreach (FrequencyData f in frequencies)
+            for (int i = 0; i < frequencies.Count; i++)
             {
-                if (f.corresponding_wave != 0)
+                FrequencyData fd = frequencies[i];
+                if (fd.corresponding_wave != 0)
                 {
                     alert_necessary = true;
-                    break;
                 }
+                if (fd.notification_needed == true)
+                {
+                    notification_necessary = true;
+                }
+                fd.notification_needed = false;
+                frequencies[i] = fd;
             }
+        }
+
+        if (notification_necessary == true)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(0, transmission_detected_notification);
         }
 
         if (alert_necessary == true && alert_indicator_coroutine == null)
         {
-            ReferenceAssistor.Instance.audio_manager.AddNotification(0, transmission_detected_notification);
             alert_indicator.color = new Color(1.0f, 0.47f, 0.0f);
             alert_indicator_coroutine = StartCoroutine(alertIndicatorFlasher());
         }
@@ -428,6 +442,7 @@ public class FrequencyAdjuster : NetworkBehaviour, IControllable, IIKTargetable
         FrequencyData to_set = frequencies[index];
         to_set.frequency = freq;
         to_set.corresponding_wave = cw;
+        to_set.notification_needed = (cw != 0);
         frequencies[index] = to_set;
         if (index == frequency_index)
         {

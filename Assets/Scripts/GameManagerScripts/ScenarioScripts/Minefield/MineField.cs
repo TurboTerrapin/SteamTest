@@ -1,7 +1,7 @@
 /*
     Minefield.cs
     Contributor(s): Henryk Musial
-    Last Updated: 6/29/2026
+    Last Updated: 7/1/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
     private static float EMISSION_REDUCER_EFFECT = 75.0f; // Each reducer reduces detection range by this much
     private static IDamageable.DamageType[] VALID_TORPEDO_TYPES = new IDamageable.DamageType[] { IDamageable.DamageType.IonTorpedo, IDamageable.DamageType.SuperluminalTorpedo, IDamageable.DamageType.ChronitonTorpedo }; // Torpedo types that disable/destroy the mines
     public static int[] WARNING_SIGNAL_PERIOD_TIMES = new int[] { 120, 90, 60, 45 }; // Easy, medium, hard, expert
+    public static int[] MINE_RESET_TIMES = new int[] { 6, 5, 4, 3 }; // Easy, medium, hard, expert
     private static int[] WARNING_SIGNAL_INDEXES = new int[8] { 10, 10, 10, 10, 10, 10, 10, 10 };
     private static bool[] WARNING_SIGNAL_IS_NUMERIC = new bool[8] { false, false, false, false, false, false, false, false };
     private static int[] WARNING_SIGNAL_COLORS = new int[8] { 2, 4, 2, 4, 2, 4, 2, 4 };
@@ -25,13 +26,14 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
     public GameObject normalMine;
     public GameObject seekerMine;
     public Material mineLitGreen;
+    public Material mineLitBlue;
     private Transform scenarioDatabaseMF;
     private ShipBeacon shipBeacon;
     private OverrideSwitches overrideSwitches;
     private PhaserFrequency phaserFrequency;
     private UniversalCommunicatorCodeData warningSignalCodeData;
 
-    private bool minesCurrentlyEnabled = true;
+    private bool minesCurrentlyDisabled = false;
     private float currentTransmissionFrequency = 0.0f;
     private int currentTransmissionIndex = -1;
     private float detectionRange = DETECTION_RANGE;
@@ -111,6 +113,7 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
 
     IEnumerator WarningSignalLoop()
     {
+        bool firstPass = true;
         while (true)
         {
             // Wipe current frequency and index combination
@@ -134,9 +137,25 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
             currentTransmissionIndex = newTransmissionIndex;
             ReferenceAssistor.Instance.module_handlers[1].GetComponent<FrequencyAdjuster>().frequencyReplacement(currentTransmissionFrequency, currentTransmissionIndex + 1);
 
-            // Check enabled status
-            checkMinesEnabledStatus();
+            // Check disabled status
+            checkMinesDisabledStatus();
 
+            // Temporarily reset and disable the mines if not first pass
+            if (firstPass == false)
+            {
+                // Temporarily disable the mines
+                updateMineResettingStatusRPC(true);
+
+                yield return new WaitForSeconds(MINE_RESET_TIMES[ReferenceAssistor.Instance.scenario_manager.getDifficulty()]);
+
+                // End reset period
+                updateMineResettingStatusRPC(false);
+            }
+            else
+            {
+                firstPass = false;
+            }
+            
             yield return new WaitForSeconds(WARNING_SIGNAL_PERIOD_TIMES[ReferenceAssistor.Instance.scenario_manager.getDifficulty()]);
         }
     }
@@ -165,13 +184,14 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
         detectionRange = updatedDetectionRange;
     }
 
-    private void checkMinesEnabledStatus()
+    private void checkMinesDisabledStatus()
     {
+        bool mines_should_be_disabled = true;
+        
         // Ship beacon must be enabled
-        bool new_status = false;
         if (shipBeacon.getBeaconEnabled() == false)
         {
-            new_status = true;
+            mines_should_be_disabled = false;
         }
 
         // Override switches must match database based on current transmission wave index
@@ -180,14 +200,14 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
         {
             if (currentOverrideSwitches[i] != scenarioDatabaseMF.transform.GetChild(currentTransmissionIndex).GetComponent<OverrideSwitchesData>().getSwitchEnabled(i))
             {
-                new_status = true;
+                mines_should_be_disabled = false;
             }
         }
 
         // Update if necessary
-        if (new_status != minesCurrentlyEnabled)
+        if (mines_should_be_disabled != minesCurrentlyDisabled)
         {
-            updateMineEnabledStatusRPC(new_status);
+            updateMineDisabledStatusRPC(mines_should_be_disabled);
         }
     }
 
@@ -198,7 +218,7 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
             return;
         }
 
-        checkMinesEnabledStatus();
+        checkMinesDisabledStatus();
     }
 
     public void onOverrideSwitchChange()
@@ -208,7 +228,7 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
             return;
         }
 
-        checkMinesEnabledStatus();
+        checkMinesDisabledStatus();
     }
 
     public bool damageTypeBypassesMineShields(IDamageable.DamageType damage_type)
@@ -243,18 +263,34 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
     }
 
     [Rpc(SendTo.Everyone)]
-    private void updateMineEnabledStatusRPC(bool enabled)
+    private void updateMineResettingStatusRPC(bool resetting)
     {
-        minesCurrentlyEnabled = enabled;
         foreach (Transform t in ReferenceAssistor.Instance.world_root.transform)
         {
             if (t.GetComponent<NormalMine>() != null)
             {
-                t.GetComponent<NormalMine>().UpdateEnabledStatus(enabled);
+                t.GetComponent<NormalMine>().UpdateResettingStatus(resetting);
             }
             else if (t.GetComponent<SeekerMine>() != null)
             {
-                t.GetComponent<SeekerMine>().UpdateEnabledStatus(enabled);
+                t.GetComponent<SeekerMine>().UpdateResettingStatus(resetting);
+            }
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void updateMineDisabledStatusRPC(bool disabled)
+    {
+        minesCurrentlyDisabled = disabled;
+        foreach (Transform t in ReferenceAssistor.Instance.world_root.transform)
+        {
+            if (t.GetComponent<NormalMine>() != null)
+            {
+                t.GetComponent<NormalMine>().UpdateDisabledStatus(disabled);
+            }
+            else if (t.GetComponent<SeekerMine>() != null)
+            {
+                t.GetComponent<SeekerMine>().UpdateDisabledStatus(disabled);
             }
         }
     }

@@ -401,7 +401,7 @@ public class ScenarioManager : NetworkBehaviour
     {
         endpoint_reached = false;
 
-        string next_scenario = "Minefield"; //used for override for testing (blank means obey sequence and random)
+        string next_scenario = "RedLightGreenLight"; //used for override for testing (blank means obey sequence and random)
 
         if (next_scenario.CompareTo("") == 0)
         {

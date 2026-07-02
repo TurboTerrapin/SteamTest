@@ -73,6 +73,7 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
     {
         centerColors[index] = centerColor;
         Color c = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().color_options[centerColor];
+        manual_options[index].GetComponent<ManualEnergyPatternCenterLinker>().setColor(c);
         c.a = 0.2f;
         manual_options[index].color = c;
         manual_options[index].transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = c;

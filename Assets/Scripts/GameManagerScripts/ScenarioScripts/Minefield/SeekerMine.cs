@@ -38,7 +38,7 @@ public class SeekerMine : Mine, IDamageable, ITorpedoTargetable
         while (target_ship != null)
         {
             float distance_to_ship = Vector3.Distance(transform.position, target_ship.position);
-            if (disabled == false && distance_to_ship <= mine_field.getMineDetectionRange() && ReferenceAssistor.Instance.scenario_manager.getGameOver() == false)
+            if (currently_disabled == false && currently_resetting == false && distance_to_ship <= mine_field.getMineDetectionRange() && ReferenceAssistor.Instance.scenario_manager.getGameOver() == false)
             {
                 LookAtShip();
                 MoveTowardShip();

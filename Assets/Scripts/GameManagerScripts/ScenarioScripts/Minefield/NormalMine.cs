@@ -55,7 +55,7 @@ public class NormalMine : Mine, IDamageable, ITorpedoTargetable
         {
             float distance_to_ship = Vector3.Distance(transform.position, target_ship.position);
 
-            if (permanently_disabled == false && phaser_fire_coroutine == null && distance_to_ship <= mine_field.getMineDetectionRange() && ReferenceAssistor.Instance.scenario_manager.getGameOver() == false)
+            if (permanently_disabled == false && currently_resetting == false && phaser_fire_coroutine == null && distance_to_ship <= mine_field.getMineDetectionRange() && ReferenceAssistor.Instance.scenario_manager.getGameOver() == false)
             {
                 // Check for collision point (and if hit something that isn't our target on the way there, then set the target to null to stop damage)
                 if (Physics.Raycast(new Ray(phaser_origin.transform.position, phaser_origin.transform.forward), out RaycastHit hit, Minefield.DETECTION_RANGE, LayerMask.GetMask("ShipColliders")))
@@ -70,7 +70,7 @@ public class NormalMine : Mine, IDamageable, ITorpedoTargetable
                 }
             }
 
-            if (disabled == false && distance_to_ship <= mine_field.getMineDetectionRange())
+            if (currently_disabled == false && currently_resetting == false && distance_to_ship <= mine_field.getMineDetectionRange())
             {
                 LookAtShip();
             }
