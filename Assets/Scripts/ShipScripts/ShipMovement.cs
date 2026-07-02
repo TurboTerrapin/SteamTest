@@ -46,6 +46,7 @@ public class ShipMovement : NetworkBehaviour
     private float impulseSpeedAdjustmentFactor = 1.0f;
 
     // Movement state
+    private bool movementAllowed = false;
     private float smoothedSteeringInput = 0f;
     private bool inReverse;
     private float currentRotationSpeed;
@@ -92,7 +93,7 @@ public class ShipMovement : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (ReferenceAssistor.Instance.world_root != null)
+        if (ReferenceAssistor.Instance.world_root != null && movementAllowed == true)
         {
             UpdateInput();
             UpdateMovement(ReferenceAssistor.Instance.world_root.transform, Time.fixedDeltaTime);
@@ -103,6 +104,25 @@ public class ShipMovement : NetworkBehaviour
     public void AdjustMaxImpulseSpeed(float factor)
     {
         impulseSpeedAdjustmentFactor = factor;
+    }
+
+    //called by ScenarioManager
+    public void UnlockMovement()
+    {
+        movementAllowed = true;
+    }
+
+    //called by ScenarioManager
+    public void LockMovement()
+    {
+        currentRotationSpeed = 0.0f;
+        currentVelocity = Vector3.zero;
+        currentImpulseSpeed = 0.0f;
+        currentVerticalSpeed = 0.0f;
+        currentHorizontalSpeed = 0.0f;
+        smoothedSteeringInput = 0.0f;
+
+        movementAllowed = false;
     }
 
     //called by DirectionalShifter
@@ -281,8 +301,6 @@ public class ShipMovement : NetworkBehaviour
         {
             worldRoot.position -= currentVelocity * dt;
         }
-
-        forwardSpeed = currentVelocity.magnitude;
 
         HandleRotation(dt);
 

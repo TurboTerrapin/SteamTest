@@ -400,8 +400,9 @@ public class ScenarioManager : NetworkBehaviour
     public void loadNewScenario()
     {
         endpoint_reached = false;
+        ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().LockMovement();
 
-        string next_scenario = "RedLightGreenLight"; //used for override for testing (blank means obey sequence and random)
+        string next_scenario = ""; //used for override for testing (blank means obey sequence and random)
 
         if (next_scenario.CompareTo("") == 0)
         {
@@ -468,6 +469,7 @@ public class ScenarioManager : NetworkBehaviour
     public void startScenario()
     {
         enableScenarioTimer();
+        ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().UnlockMovement();
         ReferenceAssistor.Instance.power_manager.GetComponent<PowerRegulator>().initializePowerRegulator();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();

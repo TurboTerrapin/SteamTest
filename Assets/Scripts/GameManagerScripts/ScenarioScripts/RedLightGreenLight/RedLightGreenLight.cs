@@ -99,6 +99,9 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out chromaticAberration);
         ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out screenSpaceLensFlare);
         ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out colorAdjustments);
+        chromaticAberration.active = true;
+        screenSpaceLensFlare.active = true;
+        colorAdjustments.active = true;
         screenSpaceLensFlare.tintColor.Override(Color.white);
         screenSpaceLensFlare.samples.Override(1);
         screenSpaceLensFlare.vignetteEffect.Override(1.0f);
