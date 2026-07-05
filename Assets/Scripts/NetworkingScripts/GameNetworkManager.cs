@@ -4,7 +4,7 @@
     - Handles connecting/disconnecting as host and client
     - Communicates with LoadHandler for connecting/disconnect screens
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 5/23/2026
+    Last Updated: 7/2/2026
 */
 
 using System.Collections;
@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 
 public class GameNetworkManager : MonoBehaviour
 {
-    public const float HEARTBEAT_LENGTH = 5.0f; //time in seconds that a client can go without getting a ping from host before it disconnects
+    public const float HEARTBEAT_LENGTH = 6.5f; //time in seconds that a client can go without getting a ping from host before it disconnects
     public const float CONNECTION_TIMEOUT_PERIOD = 15.0f; //time in seconds before a client gives up trying to connect to a host 
 
     public static GameNetworkManager Instance { get; private set; } = null;

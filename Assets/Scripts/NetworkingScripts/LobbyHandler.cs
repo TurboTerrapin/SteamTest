@@ -468,10 +468,9 @@ public class LobbyHandler : NetworkBehaviour
     //run by every client to signal continued connection to lobby
     IEnumerator heartbeatSender()
     {
-        float half_heartbeat = GameNetworkManager.HEARTBEAT_LENGTH * 0.5f;
         while (true)
         {
-            yield return new WaitForSeconds(half_heartbeat);
+            yield return new WaitForSeconds(0.5f);
             if (NetworkManager.Singleton.IsHost == true)
             {
                 hostToClientHeartbeatRPC();
@@ -483,7 +482,7 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
-    //called by host every half HEARTBEAT_TIME to let the players know that a connection is still active
+    //called by host every 0.5 seconds to let the players know that a connection is still active
     [Rpc(SendTo.Everyone)]
     private void hostToClientHeartbeatRPC()
     {
@@ -499,7 +498,7 @@ public class LobbyHandler : NetworkBehaviour
         }
     }
 
-    //called by client every half HEARTBEAT_TIME to let the host know that a connection is still active
+    //called by client every 0.5 seconds to let the host know that a connection is still active
     [Rpc(SendTo.Server)]
     private void clientToHostHeartbeatRPC(ulong plr_client_id)
     {

@@ -4,7 +4,7 @@
     - Adjusts probe controller screen (the four directional arcs)
     - Affects probe position if host
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 7/4/2026
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
 {
     //CLASS CONSTANTS
     private static float BUTTON_SPEED = 10.0f;
-    private static float PROBE_SPEED = 10.0f;
+    private static float PROBE_SPEED = 25.0f;
     private static Vector3 LATERAL_BUTTON_MOVE_DIRECTION = new Vector3(0.0016f, -0.006f, 0.0016f);
 
     private string CONTROL_NAME = "PROBE LATERAL MOVEMENT";

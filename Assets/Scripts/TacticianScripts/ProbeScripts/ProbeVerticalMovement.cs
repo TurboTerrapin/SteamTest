@@ -4,7 +4,7 @@
     - Affects probe if host
     - Tells ProbeInfo to update altimeter
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2026
+    Last Updated: 7/4/2026
 */
 
 using System.Collections;
@@ -17,7 +17,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
 {
     //CLASS CONSTANTS
     private static float LEVER_SPEED = 200.0f;
-    private static float PROBE_SPEED = 0.2f;
+    private static float PROBE_SPEED = 0.5f;
 
     private string CONTROL_NAME = "PROBE VERTICAL MOVEMENT";
     private static string INFO_MESSAGE = "Handles the up and down movement of an active probe.";

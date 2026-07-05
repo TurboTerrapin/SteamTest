@@ -52,9 +52,9 @@ public class RLGLVisualSpectacle : MonoBehaviour
         {
             RedLightGreenLight.shipEnteredSpectacle();
         }
-        else if (other.GetComponent<Probe>() != null) //Destroy probes
+        else if (other.GetComponent<CollectibleItem>() != null) //Destroy collectible items
         {
-            other.GetComponent<Probe>().damage(99999.9f, IDamageable.DamageType.Explosive);
+            other.GetComponent<IDamageable>().damage(99999.9f, IDamageable.DamageType.Explosive);
         }
     }
 }
