@@ -402,7 +402,7 @@ public class ScenarioManager : NetworkBehaviour
         endpoint_reached = false;
         ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().LockMovement();
 
-        string next_scenario = "BlackAndWhite"; //used for override for testing (blank means obey sequence and random)
+        string next_scenario = ""; //used for override for testing (blank means obey sequence and random)
 
         if (next_scenario.CompareTo("") == 0)
         {
@@ -445,11 +445,10 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<FrequencyAdjuster>().resetFrequencies();
 
         //check for a scenario script and handle any sort of scenario prep (ex. starting an energy pattern, spawning cheeseballs)
-        scenario_handler = GameObject.FindWithTag("ScenarioHandler");
         IScenario scenario_script = getScenarioScript();
         if (scenario_script != null)
         {
-            scenario_script.initiateScenario();
+            scenario_script.prepScenario();
         }
 
         //ensure spawn locations created for obtainable collectibles
@@ -474,6 +473,11 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
         ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
+        IScenario scenario_script = getScenarioScript();
+        if (scenario_script != null)
+        {
+            scenario_script.initiateScenario();
+        }
     }
 
     //called by SignalJammer.cs
@@ -520,16 +524,12 @@ public class ScenarioManager : NetworkBehaviour
     //returns the IScenario script component attached to ScenarioHandler as the first component beneath NetworkObject (if it exists)
     private IScenario getScenarioScript()
     {
+        scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
         if (scenario_handler != null)
         {
-            Component scenario_script_component = scenario_handler.GetComponentAtIndex(2);
-            if (scenario_script_component != null)
+            if (scenario_handler.GetComponent<IScenario>() != null)
             {
-                IScenario scenario_script = (IScenario)scenario_script_component;
-                if (scenario_script != null)
-                {
-                    return scenario_script;
-                }
+                return scenario_handler.GetComponent<IScenario>();
             }
         }
         return null;

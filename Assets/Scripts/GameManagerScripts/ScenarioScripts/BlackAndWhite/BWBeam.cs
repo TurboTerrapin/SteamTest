@@ -1,5 +1,5 @@
 /*
-    BlackAndWhiteWallBeam.cs
+    BWBeam.cs
     - Used to destroy collectible items
     Contributor(s): Jake Schott
     Last Updated: 7/3/2026
@@ -8,7 +8,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class BlackAndWhiteBeam : MonoBehaviour
+public class BWBeam : MonoBehaviour
 {
     private void Start()
     {

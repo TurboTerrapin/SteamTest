@@ -1,14 +1,14 @@
 /*
-    BlackAndWhiteWall.cs
+    BWWall.cs
     - Used to stun the ship if it flies into the wall while active
     Contributor(s): Jake Schott
-    Last Updated: 7/3/2026
+    Last Updated: 7/6/2026
 */
 
 using Unity.Netcode;
 using UnityEngine;
 
-public class BlackAndWhiteWall : MonoBehaviour
+public class BWWall : MonoBehaviour
 {
     public BlackAndWhite black_and_white;
 

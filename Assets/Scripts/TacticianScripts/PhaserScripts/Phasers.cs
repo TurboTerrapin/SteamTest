@@ -241,9 +241,13 @@ public class Phasers : NetworkBehaviour
     }
 
     // returns true if GameObject is a valid phaser target
-    private bool isValidTarget(GameObject testTarget)
+    private bool isValidTarget(int phaserCategory, GameObject testTarget)
     {
-        return (testTarget.GetComponent<IDamageable>() != null && (testTarget.GetComponent<CollectibleItem>() == null || testTarget.GetComponent<CollectibleItem>().getItemCategory() > 1));
+        if (phaserCategory == 0)
+        {
+            return (testTarget.GetComponent<IDamageable>() != null && testTarget.GetComponent<IPhaserTargetable>() != null && testTarget.GetComponent<IPhaserTargetable>().getPhaserTargetable(IDamageable.DamageType.LongRangePhaser));
+        }
+        return (testTarget.GetComponent<IDamageable>() != null && testTarget.GetComponent<IPhaserTargetable>() != null && testTarget.GetComponent<IPhaserTargetable>().getPhaserTargetable(IDamageable.DamageType.ShortRangePhaser));
     }
 
     // returns null if no target found or a reference to a target within range and angle of phaserCategory
@@ -255,7 +259,7 @@ public class Phasers : NetworkBehaviour
         for (int i = 0; i < possibleTargets.Length; i++)
         {
             Collider currentTarget = possibleTargets[i];
-            if (isValidTarget(currentTarget.gameObject) == true)
+            if (isValidTarget(phaserCategory, currentTarget.gameObject) == true)
             {
                 float distToTarget = getDistanceToTarget(phaserCategory, phaserIndex, currentTarget.transform.position);
 
@@ -278,7 +282,7 @@ public class Phasers : NetworkBehaviour
         {
             if (Physics.Raycast(new Ray(phaserOrigins[phaserCategory + phaserIndex].transform.position, phaserOrigins[phaserCategory + phaserIndex].transform.forward), out RaycastHit hit, BEAM_RANGES[phaserCategory], LayerMask.GetMask("CollisionObjects")))
             {
-                if (isValidTarget(hit.collider.gameObject) == true)
+                if (isValidTarget(phaserCategory, hit.collider.gameObject) == true)
                 {
                     bestTarget = hit.collider.gameObject;
                 }

@@ -145,7 +145,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
     }
 
     //only run by host
-    public void initiateScenario()
+    public void prepScenario()
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
@@ -157,6 +157,17 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         offLimitsLocations.Add(new OffLimitsSpawnLocation(Vector3.zero, 650.0f));
         List<Vector3> spawnLocations = scenarioManager.generateSpawnLocations(50.0f, 100, offLimitsLocations);
         GetComponent<AsteroidField>().spawnField(spawnLocations);
+
+        visualSpectacle.Activate();
+    }
+
+    //only run by host
+    public void initiateScenario()
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
 
         //initialize pattern, randomize initial colors and textures
         randomizeColors();
@@ -185,7 +196,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
         patternInitializationRPC(centerIndex, cc, rt, rid);
         enterRedLightStateRPC();
-        visualSpectacle.Activate();
     }
     IEnumerator GreenLightState()
     {

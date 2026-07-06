@@ -3,13 +3,13 @@
     - Handles asteroid health
     - Handles adjusting map icon size
     Contributor(s): Jake Schott
-    Last Updated: 6/29/2026
+    Last Updated: 7/6/2026
 */
 
 using Unity.Netcode;
 using UnityEngine;
 
-public class Asteroid : MonoBehaviour, IDamageable, ITractorBeamable, ITorpedoTargetable
+public class Asteroid : MonoBehaviour, IDamageable, ITractorBeamable, ITorpedoTargetable, IPhaserTargetable
 {
     //CLASS CONSTANTS
     private Color EXPLOSION_COLOR = new Color(0.4f, 0.4f, 0.3f);
@@ -53,6 +53,11 @@ public class Asteroid : MonoBehaviour, IDamageable, ITractorBeamable, ITorpedoTa
     public bool getTorpedoTargetable(IDamageable.DamageType torpedo_type)
     {
         return true;
+    }
+
+    public bool getPhaserTargetable(IDamageable.DamageType phaser_type) 
+    { 
+        return true; 
     }
 
     public bool getTractorBeamable()

@@ -5,6 +5,8 @@
     - Handles flashing of circle
     - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
+using static AnimatorHandler;
+
     Last Updated: 6/30/2026
 */
 
@@ -12,8 +14,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
-
 public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS

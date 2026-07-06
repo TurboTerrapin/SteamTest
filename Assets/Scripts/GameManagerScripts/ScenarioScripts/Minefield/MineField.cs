@@ -52,7 +52,8 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
         warningSignalCodeData.setCodeColors(WARNING_SIGNAL_COLORS);
     }
 
-    public void initiateScenario()
+    // Only run by host
+    public void prepScenario()
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
@@ -88,6 +89,15 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
 
             curr_mine.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             curr_mine.GetComponent<NetworkObject>().TrySetParent(world_root);
+        }
+    }
+
+    // Only run by host
+    public void initiateScenario()
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
         }
 
         // Set initial frequency and wave combination

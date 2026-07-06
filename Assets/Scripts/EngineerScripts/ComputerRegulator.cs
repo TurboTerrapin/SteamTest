@@ -2,7 +2,7 @@
     ComputerRegulator.cs
     - Allows the toggling of various computer programs
     Contributor(s): Jake Schott
-    Last Updated: 3/24/2026
+    Last Updated: 7/6/2026
 */
 
 using System.Collections;
@@ -21,7 +21,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
     private static Color[] PROGRAM_COLORS = new Color[] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[3], ReferenceAssistor.COLOR_OPTIONS[2] };
 
     private static string[] PROGRAM_NAMES = new string[] { "RESEARCH", "SECURITY", "DATA STORAGE", "LIFE SUPPORT" };
-    private static string[][] PROGRAM_FEATURES = new string[][] { 
+    private static string[][] PROGRAM_FEATURES = new string[][] {
         new string[]{ "BIOLOGY", "GEOLOGY", "RADIATION", "LINGUISTICS", "CHEMISTRY" },
         new string[]{ "ELEVATORS", "DOORS", "CAMERAS", "VAULT", "BRIG" },
         new string[]{ "COMMUNICATIONS", "PASSKEYS", "SHIP LOGS", "CREW INFO", "NAVIGATION" },
@@ -64,7 +64,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
     public bool does_right_hand_flip = false;
     public Vector3 right_hand_offset = Vector3.zero;
     public float lerp_speed = 5f;
-    
+
     private int button_index = 0;
 
     private void Start()
@@ -89,30 +89,37 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_targets[button_index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public void initializeComputerRegulator()
     {
         if (NetworkManager.Singleton.IsHost == false)
@@ -150,6 +157,21 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
         displaySelectionAdjustment();
     }
 
+    public void overrideProgramActiveState(int category, int program, bool state)
+    {
+        active_programs[category][program] = state;
+
+        transmitActiveProgramsRPC(DataConverter.arrayToString(active_programs[0]),
+                                  DataConverter.arrayToString(active_programs[1]),
+                                  DataConverter.arrayToString(active_programs[2]),
+                                  DataConverter.arrayToString(active_programs[3]));
+    }
+
+    public bool getProgramActiveState(int category, int program)
+    {
+        return active_programs[category][program];
+    }
+
     private void displayPageAdjustment()
     {
         Color page_color = PROGRAM_COLORS[current_page];
@@ -177,6 +199,15 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
         }
         footer.transform.GetChild(2).GetComponent<TMP_Text>().SetText("PAGE " + (current_page + 1));
         footer.transform.GetChild(2).GetComponent<TMP_Text>().color = page_color;
+    }
+
+    private void onComputerRegulatorChange()
+    {
+        GameObject scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
+        if (scenario_handler != null && scenario_handler.GetComponent<IComputerRegulatorSusceptible>() != null)
+        {
+            scenario_handler.GetComponent<IComputerRegulatorSusceptible>().onComputerRegulatorChange();
+        }
     }
 
     private void displaySelectionAdjustment()
@@ -248,6 +279,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
                     displayPageAdjustment();
                 }
                 displaySelectionAdjustment();
+                onComputerRegulatorChange();
             }
         }
 
@@ -324,7 +356,6 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
         }
     }
 
-
     public void powerOn(int position)
     {
         is_powered = true;
@@ -368,6 +399,7 @@ public class ComputerRegulator : NetworkBehaviour, IControllable, IPowerable, II
 
         displayPageAdjustment();
         displaySelectionAdjustment();
+        onComputerRegulatorChange();
     }
 
     [Rpc(SendTo.Everyone)]

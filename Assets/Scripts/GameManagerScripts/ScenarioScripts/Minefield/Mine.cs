@@ -7,10 +7,10 @@ using Unity.Netcode;
 using UnityEngine;
 using System.Collections;
 
-public class Mine : NetworkBehaviour, IDamageable, ITorpedoTargetable
+public class Mine : NetworkBehaviour, IDamageable, ITorpedoTargetable, IPhaserTargetable
 {
     protected static float DISABLED_BLINK_INTERVAL = 0.2f;
-    protected static float currently_resetting_BLINK_INTERVAL = 0.05f;
+    protected static float BLINK_INTERVAL = 0.05f;
     protected static float DEFAULT_SHIELD_FLASH_TIME = 1.0f;
 
     public AudioSource shield_sound;
@@ -123,6 +123,11 @@ public class Mine : NetworkBehaviour, IDamageable, ITorpedoTargetable
         return (mine_field.torpedoTracksMine(torpedo_type) && !(torpedo_type != IDamageable.DamageType.IonTorpedo && permanently_disabled == true));
     }
 
+    public bool getPhaserTargetable(IDamageable.DamageType phaser_type)
+    {
+        return true;
+    }
+
     public void UpdateResettingStatus(bool reset)
     {
         // Only reset if not permanentlycurrently_disabled
@@ -145,7 +150,7 @@ public class Mine : NetworkBehaviour, IDamageable, ITorpedoTargetable
             {
                 StopCoroutine(disable_flash_coroutine);
             }
-            disable_flash_coroutine = StartCoroutine(DisabledFlash(mine_field.mineLitBlue, currently_resetting_BLINK_INTERVAL));
+            disable_flash_coroutine = StartCoroutine(DisabledFlash(mine_field.mineLitBlue, BLINK_INTERVAL));
 
             // Disable
             currently_resetting = true;
