@@ -679,6 +679,9 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.audio_manager.MuteAudio();
         ReferenceAssistor.Instance.audio_manager.ResetToDefault();
 
+        //reset scenario light layer
+        ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(false);
+
         //stop checking for controls/seats
         PrimaryScript.Instance.deactivate(true, false);
         ReferenceAssistor.Instance.player_manager.getLocalPlayer().GetComponent<CameraMove>().ResetCameraEffects();
