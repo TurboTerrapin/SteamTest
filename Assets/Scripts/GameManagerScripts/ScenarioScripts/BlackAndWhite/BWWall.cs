@@ -1,8 +1,8 @@
 /*
     BWWall.cs
-    - Used to stun the ship if it flies into the wall while active
+    - Used to stun the ship if it flies into a collider while active
     Contributor(s): Jake Schott
-    Last Updated: 7/6/2026
+    Last Updated: 7/18/2026
 */
 
 using Unity.Netcode;
@@ -39,7 +39,20 @@ public class BWWall : MonoBehaviour
             return;
         }
 
-        if (other.gameObject.layer == 9) //Stun ship
+        if (other.gameObject.layer == 9) //stun ship
+        {
+            black_and_white.shipEnteredBarrier();
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (is_active == false)
+        {
+            return;
+        }
+
+        if (collision.collider.gameObject.layer == 9) //stun ship
         {
             black_and_white.shipEnteredBarrier();
         }

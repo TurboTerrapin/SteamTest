@@ -16,6 +16,7 @@ public class BWEmitter : MonoBehaviour, IDamageable, ITorpedoTargetable, IPhaser
     public BlackAndWhite black_and_white;
 
     private float emitter_health = 1.0f;
+    private bool protected_by_shields = true;
 
     private void Start()
     {
@@ -40,6 +41,11 @@ public class BWEmitter : MonoBehaviour, IDamageable, ITorpedoTargetable, IPhaser
             return;
         }
 
+        if (protected_by_shields == true && damage_type != IDamageable.DamageType.Explosive)
+        {
+            return;
+        }
+
         emitter_health = Mathf.Max(0.0f, emitter_health - damage);
 
         //handle destruction
@@ -52,11 +58,11 @@ public class BWEmitter : MonoBehaviour, IDamageable, ITorpedoTargetable, IPhaser
 
     public bool getTorpedoTargetable(IDamageable.DamageType torpedo_type)
     {
-        return true;
+        return protected_by_shields == false;
     }
 
     public bool getPhaserTargetable(IDamageable.DamageType phaser_type)
     {
-        return true;
+        return protected_by_shields == false;
     }
 }

@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4187409}
   m_Layer: 0
-  m_Name: LightBeams
+  m_Name: BWLightBeams
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -165,7 +165,7 @@ GameObject:
   - component: {fileID: 23386254}
   - component: {fileID: 23386253}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -238,7 +238,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 23386251}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &33047373
 GameObject:
   m_ObjectHideFlags: 0
@@ -301,7 +301,7 @@ GameObject:
   - component: {fileID: 46101976}
   - component: {fileID: 46101975}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -374,7 +374,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 46101973}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &46349954
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,7 +385,7 @@ GameObject:
   m_Component:
   - component: {fileID: 46349955}
   m_Layer: 0
-  m_Name: Gates
+  m_Name: BWControlNodes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -481,7 +481,7 @@ GameObject:
   - component: {fileID: 48277829}
   - component: {fileID: 48277828}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -554,7 +554,60 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 48277826}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+--- !u!1 &58814723
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 58814724}
+  - component: {fileID: 58814725}
+  m_Layer: 8
+  m_Name: BorderCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &58814724
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 58814723}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.000015258789}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 198041982}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &58814725
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 58814723}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 40, y: 5320, z: 20}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &65786610
 GameObject:
   m_ObjectHideFlags: 0
@@ -567,12 +620,13 @@ GameObject:
   - component: {fileID: 65786617}
   - component: {fileID: 65786616}
   - component: {fileID: 65786615}
+  - component: {fileID: 65786619}
   - component: {fileID: 65786614}
   - component: {fileID: 65786613}
   - component: {fileID: 65786612}
   - component: {fileID: 65786611}
   m_Layer: 8
-  m_Name: GateA4
+  m_Name: BWControlNodeA4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -680,7 +734,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 65786610}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &65786615
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -761,6 +815,19 @@ Transform:
   - {fileID: 71745909}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &65786619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 65786610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &71745908
 GameObject:
   m_ObjectHideFlags: 0
@@ -773,7 +840,7 @@ GameObject:
   - component: {fileID: 71745911}
   - component: {fileID: 71745910}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -846,7 +913,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 71745908}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &93871099
 GameObject:
   m_ObjectHideFlags: 0
@@ -859,12 +926,13 @@ GameObject:
   - component: {fileID: 93871107}
   - component: {fileID: 93871106}
   - component: {fileID: 93871105}
+  - component: {fileID: 93871108}
   - component: {fileID: 93871104}
   - component: {fileID: 93871103}
   - component: {fileID: 93871102}
   - component: {fileID: 93871101}
   m_Layer: 8
-  m_Name: GateE2
+  m_Name: BWControlNodeE2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -988,7 +1056,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 93871099}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &93871105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1053,6 +1121,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &93871108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93871099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &102864347
 GameObject:
   m_ObjectHideFlags: 0
@@ -1063,8 +1144,9 @@ GameObject:
   m_Component:
   - component: {fileID: 102864348}
   - component: {fileID: 102864349}
-  m_Layer: 0
-  m_Name: BorderCollider
+  - component: {fileID: 102864350}
+  m_Layer: 8
+  m_Name: BorderTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1082,7 +1164,8 @@ Transform:
   m_LocalPosition: {x: -0, y: 0, z: 142}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 237408687}
   m_Father: {fileID: 2739052146897469826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &102864349
@@ -1100,12 +1183,25 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 40, y: 5000, z: 20}
+  m_Size: {x: 40, y: 5320, z: 20}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &102864350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102864347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46b5d36499a9f654eb5a2b5bc15989bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &121228904
 GameObject:
   m_ObjectHideFlags: 0
@@ -1118,12 +1214,13 @@ GameObject:
   - component: {fileID: 121228912}
   - component: {fileID: 121228911}
   - component: {fileID: 121228910}
+  - component: {fileID: 121228913}
   - component: {fileID: 121228909}
   - component: {fileID: 121228908}
   - component: {fileID: 121228907}
   - component: {fileID: 121228906}
   m_Layer: 8
-  m_Name: GateB3
+  m_Name: BWControlNodeB3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1247,7 +1344,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 121228904}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &121228910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1312,6 +1409,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &121228913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 121228904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &133467725
 GameObject:
   m_ObjectHideFlags: 0
@@ -1450,7 +1560,7 @@ GameObject:
   - component: {fileID: 155604603}
   - component: {fileID: 155604602}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1523,7 +1633,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 155604600}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &156822675
 GameObject:
   m_ObjectHideFlags: 0
@@ -1536,12 +1646,13 @@ GameObject:
   - component: {fileID: 156822682}
   - component: {fileID: 156822681}
   - component: {fileID: 156822680}
+  - component: {fileID: 156822684}
   - component: {fileID: 156822679}
   - component: {fileID: 156822678}
   - component: {fileID: 156822677}
   - component: {fileID: 156822676}
   m_Layer: 8
-  m_Name: GateA6
+  m_Name: BWControlNodeA6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1649,7 +1760,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 156822675}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &156822680
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1730,6 +1841,19 @@ Transform:
   - {fileID: 1137169906}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &156822684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 156822675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &163149125
 GameObject:
   m_ObjectHideFlags: 0
@@ -1742,12 +1866,13 @@ GameObject:
   - component: {fileID: 163149133}
   - component: {fileID: 163149132}
   - component: {fileID: 163149131}
+  - component: {fileID: 163149134}
   - component: {fileID: 163149130}
   - component: {fileID: 163149129}
   - component: {fileID: 163149128}
   - component: {fileID: 163149127}
   m_Layer: 8
-  m_Name: GateD5
+  m_Name: BWControlNodeD5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1871,7 +1996,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 163149125}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &163149131
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1936,6 +2061,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &163149134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 163149125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &163764250
 GameObject:
   m_ObjectHideFlags: 0
@@ -2069,7 +2207,7 @@ GameObject:
   - component: {fileID: 179460526}
   - component: {fileID: 179460525}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2142,7 +2280,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 179460523}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &185240267
 GameObject:
   m_ObjectHideFlags: 0
@@ -2172,8 +2310,8 @@ Transform:
   m_GameObject: {fileID: 185240267}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 50, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: 50, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -2274,8 +2412,9 @@ GameObject:
   m_Component:
   - component: {fileID: 198041982}
   - component: {fileID: 198041983}
-  m_Layer: 0
-  m_Name: BorderCollider
+  - component: {fileID: 198041984}
+  m_Layer: 8
+  m_Name: BorderTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2293,7 +2432,8 @@ Transform:
   m_LocalPosition: {x: -0, y: 0, z: -142}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 58814724}
   m_Father: {fileID: 2739052146897469826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &198041983
@@ -2311,12 +2451,25 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 40, y: 5000, z: 20}
+  m_Size: {x: 40, y: 5320, z: 20}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &198041984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 198041981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46b5d36499a9f654eb5a2b5bc15989bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &198699786
 GameObject:
   m_ObjectHideFlags: 0
@@ -2329,7 +2482,7 @@ GameObject:
   - component: {fileID: 198699789}
   - component: {fileID: 198699788}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2402,7 +2555,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 198699786}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &206242593
 GameObject:
   m_ObjectHideFlags: 0
@@ -2415,12 +2568,13 @@ GameObject:
   - component: {fileID: 206242601}
   - component: {fileID: 206242600}
   - component: {fileID: 206242599}
+  - component: {fileID: 206242602}
   - component: {fileID: 206242598}
   - component: {fileID: 206242597}
   - component: {fileID: 206242596}
   - component: {fileID: 206242595}
   m_Layer: 8
-  m_Name: GateE7
+  m_Name: BWControlNodeE7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2544,7 +2698,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 206242593}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &206242599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2609,6 +2763,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &206242602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 206242593}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &217243324
 GameObject:
   m_ObjectHideFlags: 0
@@ -2649,6 +2816,59 @@ Transform:
   - {fileID: 898702547}
   m_Father: {fileID: 4187409}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &237408686
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 237408687}
+  - component: {fileID: 237408688}
+  m_Layer: 8
+  m_Name: BorderCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &237408687
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237408686}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.000015258789}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 102864348}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &237408688
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237408686}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 40, y: 5320, z: 20}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &238560986
 GameObject:
   m_ObjectHideFlags: 0
@@ -2661,12 +2881,13 @@ GameObject:
   - component: {fileID: 238560993}
   - component: {fileID: 238560992}
   - component: {fileID: 238560991}
+  - component: {fileID: 238560995}
   - component: {fileID: 238560990}
   - component: {fileID: 238560989}
   - component: {fileID: 238560988}
   - component: {fileID: 238560987}
   m_Layer: 8
-  m_Name: GateA0
+  m_Name: BWControlNodeA0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2774,7 +2995,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 238560986}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &238560991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2855,6 +3076,19 @@ Transform:
   - {fileID: 1932329650}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &238560995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238560986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &238739808
 GameObject:
   m_ObjectHideFlags: 0
@@ -2867,12 +3101,13 @@ GameObject:
   - component: {fileID: 238739815}
   - component: {fileID: 238739814}
   - component: {fileID: 238739813}
+  - component: {fileID: 238739817}
   - component: {fileID: 238739812}
   - component: {fileID: 238739811}
   - component: {fileID: 238739810}
   - component: {fileID: 238739809}
   m_Layer: 8
-  m_Name: GateA7
+  m_Name: BWControlNodeA7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2980,7 +3215,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 238739808}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &238739813
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3061,6 +3296,19 @@ Transform:
   - {fileID: 1803958063}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &238739817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238739808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &243950368
 GameObject:
   m_ObjectHideFlags: 0
@@ -3073,12 +3321,13 @@ GameObject:
   - component: {fileID: 243950376}
   - component: {fileID: 243950375}
   - component: {fileID: 243950374}
+  - component: {fileID: 243950377}
   - component: {fileID: 243950373}
   - component: {fileID: 243950372}
   - component: {fileID: 243950371}
   - component: {fileID: 243950370}
   m_Layer: 8
-  m_Name: GateC6
+  m_Name: BWControlNodeC6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3202,7 +3451,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 243950368}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &243950374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3267,6 +3516,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &243950377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243950368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &254664919
 GameObject:
   m_ObjectHideFlags: 0
@@ -3521,12 +3783,13 @@ GameObject:
   - component: {fileID: 265925532}
   - component: {fileID: 265925531}
   - component: {fileID: 265925530}
+  - component: {fileID: 265925533}
   - component: {fileID: 265925529}
   - component: {fileID: 265925528}
   - component: {fileID: 265925527}
   - component: {fileID: 265925526}
   m_Layer: 8
-  m_Name: GateB0
+  m_Name: BWControlNodeB0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3650,7 +3913,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 265925524}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &265925530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3715,6 +3978,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &265925533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 265925524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &275937665
 GameObject:
   m_ObjectHideFlags: 0
@@ -3969,12 +4245,13 @@ GameObject:
   - component: {fileID: 288748060}
   - component: {fileID: 288748059}
   - component: {fileID: 288748058}
+  - component: {fileID: 288748061}
   - component: {fileID: 288748057}
   - component: {fileID: 288748056}
   - component: {fileID: 288748055}
   - component: {fileID: 288748054}
   m_Layer: 8
-  m_Name: GateE8
+  m_Name: BWControlNodeE8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4098,7 +4375,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 288748052}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &288748058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4163,6 +4440,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &288748061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 288748052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &294164113
 GameObject:
   m_ObjectHideFlags: 0
@@ -4175,12 +4465,13 @@ GameObject:
   - component: {fileID: 294164120}
   - component: {fileID: 294164119}
   - component: {fileID: 294164118}
+  - component: {fileID: 294164122}
   - component: {fileID: 294164117}
   - component: {fileID: 294164116}
   - component: {fileID: 294164115}
   - component: {fileID: 294164114}
   m_Layer: 8
-  m_Name: GateA3
+  m_Name: BWControlNodeA3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4288,7 +4579,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 294164113}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &294164118
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4369,6 +4660,19 @@ Transform:
   - {fileID: 48277827}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &294164122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 294164113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &296607124
 GameObject:
   m_ObjectHideFlags: 0
@@ -4502,12 +4806,13 @@ GameObject:
   - component: {fileID: 317472141}
   - component: {fileID: 317472140}
   - component: {fileID: 317472139}
+  - component: {fileID: 317472142}
   - component: {fileID: 317472138}
   - component: {fileID: 317472137}
   - component: {fileID: 317472136}
   - component: {fileID: 317472135}
   m_Layer: 8
-  m_Name: GateF5
+  m_Name: BWControlNodeF5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4631,7 +4936,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 317472133}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &317472139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4696,6 +5001,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &317472142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 317472133}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &322680933
 GameObject:
   m_ObjectHideFlags: 0
@@ -4745,7 +5063,7 @@ GameObject:
   - component: {fileID: 330835973}
   - component: {fileID: 330835972}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4818,7 +5136,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330835970}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &334692905
 GameObject:
   m_ObjectHideFlags: 0
@@ -4831,12 +5149,13 @@ GameObject:
   - component: {fileID: 334692913}
   - component: {fileID: 334692912}
   - component: {fileID: 334692911}
+  - component: {fileID: 334692914}
   - component: {fileID: 334692910}
   - component: {fileID: 334692909}
   - component: {fileID: 334692908}
   - component: {fileID: 334692907}
   m_Layer: 8
-  m_Name: GateG2
+  m_Name: BWControlNodeG2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4960,7 +5279,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 334692905}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &334692911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5025,6 +5344,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &334692914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 334692905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &343179041
 GameObject:
   m_ObjectHideFlags: 0
@@ -5037,7 +5369,7 @@ GameObject:
   - component: {fileID: 343179044}
   - component: {fileID: 343179043}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5110,7 +5442,61 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 343179041}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+--- !u!1 &356685070
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 356685071}
+  - component: {fileID: 356685072}
+  m_Layer: 8
+  m_Name: BWWallEmitterCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &356685071
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 356685070}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6148136428246140790}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &356685072
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 356685070}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -1343252770393012625, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
 --- !u!1 &358892804
 GameObject:
   m_ObjectHideFlags: 0
@@ -5123,12 +5509,13 @@ GameObject:
   - component: {fileID: 358892812}
   - component: {fileID: 358892811}
   - component: {fileID: 358892810}
+  - component: {fileID: 358892813}
   - component: {fileID: 358892809}
   - component: {fileID: 358892808}
   - component: {fileID: 358892807}
   - component: {fileID: 358892806}
   m_Layer: 8
-  m_Name: GateC5
+  m_Name: BWControlNodeC5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5252,7 +5639,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 358892804}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &358892810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5317,6 +5704,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &358892813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 358892804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &375133563
 GameObject:
   m_ObjectHideFlags: 0
@@ -5450,7 +5850,7 @@ GameObject:
   - component: {fileID: 383165630}
   - component: {fileID: 383165629}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5523,7 +5923,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 383165627}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &404215564
 GameObject:
   m_ObjectHideFlags: 0
@@ -5536,12 +5936,13 @@ GameObject:
   - component: {fileID: 404215572}
   - component: {fileID: 404215571}
   - component: {fileID: 404215570}
+  - component: {fileID: 404215573}
   - component: {fileID: 404215569}
   - component: {fileID: 404215568}
   - component: {fileID: 404215567}
   - component: {fileID: 404215566}
   m_Layer: 8
-  m_Name: GateD8
+  m_Name: BWControlNodeD8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5665,7 +6066,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 404215564}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &404215570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5730,6 +6131,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &404215573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 404215564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &404314547
 GameObject:
   m_ObjectHideFlags: 0
@@ -5878,12 +6292,13 @@ GameObject:
   - component: {fileID: 424640297}
   - component: {fileID: 424640296}
   - component: {fileID: 424640295}
+  - component: {fileID: 424640298}
   - component: {fileID: 424640294}
   - component: {fileID: 424640293}
   - component: {fileID: 424640292}
   - component: {fileID: 424640291}
   m_Layer: 8
-  m_Name: GateG1
+  m_Name: BWControlNodeG1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6007,7 +6422,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 424640289}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &424640295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6072,6 +6487,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &424640298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 424640289}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &447679752
 GameObject:
   m_ObjectHideFlags: 0
@@ -6084,12 +6512,13 @@ GameObject:
   - component: {fileID: 447679759}
   - component: {fileID: 447679758}
   - component: {fileID: 447679757}
+  - component: {fileID: 447679761}
   - component: {fileID: 447679756}
   - component: {fileID: 447679755}
   - component: {fileID: 447679754}
   - component: {fileID: 447679753}
   m_Layer: 8
-  m_Name: GateA8
+  m_Name: BWControlNodeA8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6197,7 +6626,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 447679752}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &447679757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6278,6 +6707,19 @@ Transform:
   - {fileID: 1078621749}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &447679761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 447679752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &465998507
 GameObject:
   m_ObjectHideFlags: 0
@@ -6411,7 +6853,7 @@ GameObject:
   - component: {fileID: 480631525}
   - component: {fileID: 480631524}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6484,7 +6926,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 480631522}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &488463176
 GameObject:
   m_ObjectHideFlags: 0
@@ -6542,7 +6984,7 @@ GameObject:
   - component: {fileID: 488727221}
   - component: {fileID: 488727220}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6615,7 +7057,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 488727218}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &489453996
 GameObject:
   m_ObjectHideFlags: 0
@@ -6628,12 +7070,13 @@ GameObject:
   - component: {fileID: 489454004}
   - component: {fileID: 489454003}
   - component: {fileID: 489454002}
+  - component: {fileID: 489454005}
   - component: {fileID: 489454001}
   - component: {fileID: 489454000}
   - component: {fileID: 489453999}
   - component: {fileID: 489453998}
   m_Layer: 8
-  m_Name: GateB5
+  m_Name: BWControlNodeB5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6757,7 +7200,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 489453996}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &489454002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6822,6 +7265,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &489454005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 489453996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &491565706
 GameObject:
   m_ObjectHideFlags: 0
@@ -6834,12 +7290,13 @@ GameObject:
   - component: {fileID: 491565714}
   - component: {fileID: 491565713}
   - component: {fileID: 491565712}
+  - component: {fileID: 491565715}
   - component: {fileID: 491565711}
   - component: {fileID: 491565710}
   - component: {fileID: 491565709}
   - component: {fileID: 491565708}
   m_Layer: 8
-  m_Name: GateB6
+  m_Name: BWControlNodeB6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6963,7 +7420,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 491565706}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &491565712
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7028,6 +7485,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &491565715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 491565706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &493155911
 GameObject:
   m_ObjectHideFlags: 0
@@ -7040,7 +7510,7 @@ GameObject:
   - component: {fileID: 493155914}
   - component: {fileID: 493155913}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7113,7 +7583,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 493155911}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &493348062
 GameObject:
   m_ObjectHideFlags: 0
@@ -7126,7 +7596,7 @@ GameObject:
   - component: {fileID: 493348065}
   - component: {fileID: 493348064}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7199,7 +7669,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 493348062}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &497252018
 GameObject:
   m_ObjectHideFlags: 0
@@ -7212,7 +7682,7 @@ GameObject:
   - component: {fileID: 497252021}
   - component: {fileID: 497252020}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7285,7 +7755,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 497252018}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &499146501
 GameObject:
   m_ObjectHideFlags: 0
@@ -7336,12 +7806,13 @@ GameObject:
   - component: {fileID: 502611708}
   - component: {fileID: 502611707}
   - component: {fileID: 502611706}
+  - component: {fileID: 502611709}
   - component: {fileID: 502611705}
   - component: {fileID: 502611704}
   - component: {fileID: 502611703}
   - component: {fileID: 502611702}
   m_Layer: 8
-  m_Name: GateD7
+  m_Name: BWControlNodeD7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7465,7 +7936,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 502611700}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &502611706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7530,6 +8001,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &502611709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502611700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &542010189
 GameObject:
   m_ObjectHideFlags: 0
@@ -7668,12 +8152,13 @@ GameObject:
   - component: {fileID: 595530421}
   - component: {fileID: 595530420}
   - component: {fileID: 595530419}
+  - component: {fileID: 595530422}
   - component: {fileID: 595530418}
   - component: {fileID: 595530417}
   - component: {fileID: 595530416}
   - component: {fileID: 595530415}
   m_Layer: 8
-  m_Name: GateE6
+  m_Name: BWControlNodeE6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7797,7 +8282,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 595530413}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &595530419
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7862,6 +8347,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &595530422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 595530413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &596527004
 GameObject:
   m_ObjectHideFlags: 0
@@ -7874,7 +8372,7 @@ GameObject:
   - component: {fileID: 596527007}
   - component: {fileID: 596527006}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7947,7 +8445,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 596527004}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &606719381
 GameObject:
   m_ObjectHideFlags: 0
@@ -7960,8 +8458,9 @@ GameObject:
   - component: {fileID: 606719385}
   - component: {fileID: 606719384}
   - component: {fileID: 606719383}
-  m_Layer: 0
-  m_Name: BWWallEmitterContainer
+  - component: {fileID: 606719386}
+  m_Layer: 8
+  m_Name: BWWallEmitterTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7979,7 +8478,8 @@ Transform:
   m_LocalPosition: {x: -0, y: -156.75, z: -0.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1431636339}
   m_Father: {fileID: 2739052146897469826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!64 &606719383
@@ -7997,13 +8497,13 @@ MeshCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: -4137989621840263965, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
+  m_Mesh: {fileID: -1343252770393012625, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
 --- !u!23 &606719384
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8059,7 +8559,20 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 606719381}
-  m_Mesh: {fileID: -4137989621840263965, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
+  m_Mesh: {fileID: -1343252770393012625, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
+--- !u!114 &606719386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 606719381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46b5d36499a9f654eb5a2b5bc15989bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &615957553
 GameObject:
   m_ObjectHideFlags: 0
@@ -8072,7 +8585,7 @@ GameObject:
   - component: {fileID: 615957556}
   - component: {fileID: 615957555}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8145,7 +8658,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 615957553}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &631856240
 GameObject:
   m_ObjectHideFlags: 0
@@ -8158,7 +8671,7 @@ GameObject:
   - component: {fileID: 631856243}
   - component: {fileID: 631856242}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8231,7 +8744,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 631856240}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &638805726
 GameObject:
   m_ObjectHideFlags: 0
@@ -8294,7 +8807,7 @@ GameObject:
   - component: {fileID: 645957441}
   - component: {fileID: 645957440}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8367,7 +8880,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 645957438}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &650003884
 GameObject:
   m_ObjectHideFlags: 0
@@ -8874,12 +9387,13 @@ GameObject:
   - component: {fileID: 705286812}
   - component: {fileID: 705286811}
   - component: {fileID: 705286810}
+  - component: {fileID: 705286813}
   - component: {fileID: 705286809}
   - component: {fileID: 705286808}
   - component: {fileID: 705286807}
   - component: {fileID: 705286806}
   m_Layer: 8
-  m_Name: GateD2
+  m_Name: BWControlNodeD2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9003,7 +9517,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705286804}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &705286810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9068,6 +9582,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &705286813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705286804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &734358164
 GameObject:
   m_ObjectHideFlags: 0
@@ -9080,12 +9607,13 @@ GameObject:
   - component: {fileID: 734358172}
   - component: {fileID: 734358171}
   - component: {fileID: 734358170}
+  - component: {fileID: 734358173}
   - component: {fileID: 734358169}
   - component: {fileID: 734358168}
   - component: {fileID: 734358167}
   - component: {fileID: 734358166}
   m_Layer: 8
-  m_Name: GateG5
+  m_Name: BWControlNodeG5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9209,7 +9737,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 734358164}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &734358170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9274,6 +9802,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &734358173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 734358164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &749322935
 GameObject:
   m_ObjectHideFlags: 0
@@ -9286,12 +9827,13 @@ GameObject:
   - component: {fileID: 749322942}
   - component: {fileID: 749322941}
   - component: {fileID: 749322940}
+  - component: {fileID: 749322944}
   - component: {fileID: 749322939}
   - component: {fileID: 749322938}
   - component: {fileID: 749322937}
   - component: {fileID: 749322936}
   m_Layer: 8
-  m_Name: GateA5
+  m_Name: BWControlNodeA5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9399,7 +9941,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 749322935}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &749322940
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9480,6 +10022,19 @@ Transform:
   - {fileID: 750574901}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &749322944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 749322935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &750574900
 GameObject:
   m_ObjectHideFlags: 0
@@ -9492,7 +10047,7 @@ GameObject:
   - component: {fileID: 750574903}
   - component: {fileID: 750574902}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9565,7 +10120,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 750574900}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &751647254
 GameObject:
   m_ObjectHideFlags: 0
@@ -9578,7 +10133,7 @@ GameObject:
   - component: {fileID: 751647257}
   - component: {fileID: 751647256}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9651,7 +10206,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 751647254}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &761193163
 GameObject:
   m_ObjectHideFlags: 0
@@ -9664,12 +10219,13 @@ GameObject:
   - component: {fileID: 761193171}
   - component: {fileID: 761193170}
   - component: {fileID: 761193169}
+  - component: {fileID: 761193172}
   - component: {fileID: 761193168}
   - component: {fileID: 761193167}
   - component: {fileID: 761193166}
   - component: {fileID: 761193165}
   m_Layer: 8
-  m_Name: GateD6
+  m_Name: BWControlNodeD6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9793,7 +10349,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 761193163}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &761193169
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9858,6 +10414,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &761193172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 761193163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &772692295
 GameObject:
   m_ObjectHideFlags: 0
@@ -9870,12 +10439,13 @@ GameObject:
   - component: {fileID: 772692303}
   - component: {fileID: 772692302}
   - component: {fileID: 772692301}
+  - component: {fileID: 772692304}
   - component: {fileID: 772692300}
   - component: {fileID: 772692299}
   - component: {fileID: 772692298}
   - component: {fileID: 772692297}
   m_Layer: 8
-  m_Name: GateG8
+  m_Name: BWControlNodeG8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9999,7 +10569,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 772692295}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &772692301
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10064,6 +10634,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &772692304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 772692295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &777412475
 GameObject:
   m_ObjectHideFlags: 0
@@ -10076,12 +10659,13 @@ GameObject:
   - component: {fileID: 777412483}
   - component: {fileID: 777412482}
   - component: {fileID: 777412481}
+  - component: {fileID: 777412484}
   - component: {fileID: 777412480}
   - component: {fileID: 777412479}
   - component: {fileID: 777412478}
   - component: {fileID: 777412477}
   m_Layer: 8
-  m_Name: GateF3
+  m_Name: BWControlNodeF3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10205,7 +10789,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 777412475}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &777412481
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10270,6 +10854,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &777412484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 777412475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &784923510
 GameObject:
   m_ObjectHideFlags: 0
@@ -10282,7 +10879,7 @@ GameObject:
   - component: {fileID: 784923513}
   - component: {fileID: 784923512}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10355,7 +10952,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 784923510}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &812748048
 GameObject:
   m_ObjectHideFlags: 0
@@ -10368,7 +10965,7 @@ GameObject:
   - component: {fileID: 812748051}
   - component: {fileID: 812748050}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10441,7 +11038,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 812748048}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &822028301
 GameObject:
   m_ObjectHideFlags: 0
@@ -10504,12 +11101,13 @@ GameObject:
   - component: {fileID: 829836535}
   - component: {fileID: 829836534}
   - component: {fileID: 829836533}
+  - component: {fileID: 829836536}
   - component: {fileID: 829836532}
   - component: {fileID: 829836531}
   - component: {fileID: 829836530}
   - component: {fileID: 829836529}
   m_Layer: 8
-  m_Name: GateG0
+  m_Name: BWControlNodeG0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10633,7 +11231,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 829836527}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &829836533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10698,6 +11296,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &829836536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829836527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &839312588
 GameObject:
   m_ObjectHideFlags: 0
@@ -10710,12 +11321,13 @@ GameObject:
   - component: {fileID: 839312596}
   - component: {fileID: 839312595}
   - component: {fileID: 839312594}
+  - component: {fileID: 839312597}
   - component: {fileID: 839312593}
   - component: {fileID: 839312592}
   - component: {fileID: 839312591}
   - component: {fileID: 839312590}
   m_Layer: 8
-  m_Name: GateG4
+  m_Name: BWControlNodeG4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10839,7 +11451,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 839312588}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &839312594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10904,6 +11516,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &839312597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 839312588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &840710999
 GameObject:
   m_ObjectHideFlags: 0
@@ -10951,7 +11576,7 @@ GameObject:
   - component: {fileID: 855926953}
   - component: {fileID: 855926952}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11024,7 +11649,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 855926950}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &860678694
 GameObject:
   m_ObjectHideFlags: 0
@@ -11037,12 +11662,13 @@ GameObject:
   - component: {fileID: 860678702}
   - component: {fileID: 860678701}
   - component: {fileID: 860678700}
+  - component: {fileID: 860678703}
   - component: {fileID: 860678699}
   - component: {fileID: 860678698}
   - component: {fileID: 860678697}
   - component: {fileID: 860678696}
   m_Layer: 8
-  m_Name: GateF2
+  m_Name: BWControlNodeF2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11166,7 +11792,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 860678694}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &860678700
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11231,6 +11857,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &860678703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 860678694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &875126911
 GameObject:
   m_ObjectHideFlags: 0
@@ -11364,7 +12003,7 @@ GameObject:
   - component: {fileID: 882541483}
   - component: {fileID: 882541482}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11437,7 +12076,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 882541480}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &884936350
 GameObject:
   m_ObjectHideFlags: 0
@@ -11450,12 +12089,13 @@ GameObject:
   - component: {fileID: 884936358}
   - component: {fileID: 884936357}
   - component: {fileID: 884936356}
+  - component: {fileID: 884936359}
   - component: {fileID: 884936355}
   - component: {fileID: 884936354}
   - component: {fileID: 884936353}
   - component: {fileID: 884936352}
   m_Layer: 8
-  m_Name: GateE4
+  m_Name: BWControlNodeE4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11579,7 +12219,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 884936350}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &884936356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11644,6 +12284,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &884936359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884936350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &887323818
 GameObject:
   m_ObjectHideFlags: 0
@@ -11777,12 +12430,13 @@ GameObject:
   - component: {fileID: 898670986}
   - component: {fileID: 898670985}
   - component: {fileID: 898670984}
+  - component: {fileID: 898670987}
   - component: {fileID: 898670983}
   - component: {fileID: 898670982}
   - component: {fileID: 898670981}
   - component: {fileID: 898670980}
   m_Layer: 8
-  m_Name: GateC1
+  m_Name: BWControlNodeC1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11906,7 +12560,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 898670978}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &898670984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11971,6 +12625,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &898670987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 898670978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &898702546
 GameObject:
   m_ObjectHideFlags: 0
@@ -12000,8 +12667,8 @@ Transform:
   m_GameObject: {fileID: 898702546}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 100, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: 100, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -12104,12 +12771,13 @@ GameObject:
   - component: {fileID: 910981159}
   - component: {fileID: 910981158}
   - component: {fileID: 910981157}
+  - component: {fileID: 910981160}
   - component: {fileID: 910981156}
   - component: {fileID: 910981155}
   - component: {fileID: 910981154}
   - component: {fileID: 910981153}
   m_Layer: 8
-  m_Name: GateF6
+  m_Name: BWControlNodeF6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12233,7 +12901,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 910981151}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &910981157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12298,6 +12966,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &910981160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910981151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &911344734
 GameObject:
   m_ObjectHideFlags: 0
@@ -12310,7 +12991,7 @@ GameObject:
   - component: {fileID: 911344737}
   - component: {fileID: 911344736}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12383,7 +13064,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 911344734}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &937005581
 GameObject:
   m_ObjectHideFlags: 0
@@ -12396,12 +13077,13 @@ GameObject:
   - component: {fileID: 937005589}
   - component: {fileID: 937005588}
   - component: {fileID: 937005587}
+  - component: {fileID: 937005590}
   - component: {fileID: 937005586}
   - component: {fileID: 937005585}
   - component: {fileID: 937005584}
   - component: {fileID: 937005583}
   m_Layer: 8
-  m_Name: GateG6
+  m_Name: BWControlNodeG6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12525,7 +13207,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 937005581}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &937005587
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12590,6 +13272,87 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &937005590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 937005581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
+--- !u!1 &941393120
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 941393121}
+  - component: {fileID: 941393123}
+  - component: {fileID: 941393122}
+  m_Layer: 8
+  m_Name: BorderTrigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &941393121
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941393120}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 2623, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1000306968}
+  m_Father: {fileID: 2739052146897469826}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &941393122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941393120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46b5d36499a9f654eb5a2b5bc15989bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
+--- !u!65 &941393123
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941393120}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 40, y: 80, z: 265}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &943473763
 GameObject:
   m_ObjectHideFlags: 0
@@ -12602,12 +13365,13 @@ GameObject:
   - component: {fileID: 943473771}
   - component: {fileID: 943473770}
   - component: {fileID: 943473769}
+  - component: {fileID: 943473772}
   - component: {fileID: 943473768}
   - component: {fileID: 943473767}
   - component: {fileID: 943473766}
   - component: {fileID: 943473765}
   m_Layer: 8
-  m_Name: GateB4
+  m_Name: BWControlNodeB4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12731,7 +13495,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 943473763}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &943473769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12796,6 +13560,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &943473772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 943473763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &950192944
 GameObject:
   m_ObjectHideFlags: 0
@@ -12808,12 +13585,13 @@ GameObject:
   - component: {fileID: 950192952}
   - component: {fileID: 950192951}
   - component: {fileID: 950192950}
+  - component: {fileID: 950192953}
   - component: {fileID: 950192949}
   - component: {fileID: 950192948}
   - component: {fileID: 950192947}
   - component: {fileID: 950192946}
   m_Layer: 8
-  m_Name: GateE1
+  m_Name: BWControlNodeE1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12937,7 +13715,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 950192944}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &950192950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13002,6 +13780,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &950192953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950192944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &953740961
 GameObject:
   m_ObjectHideFlags: 0
@@ -13031,8 +13822,8 @@ Transform:
   m_GameObject: {fileID: 953740961}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -50, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: -50, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -13135,12 +13926,13 @@ GameObject:
   - component: {fileID: 969618311}
   - component: {fileID: 969618310}
   - component: {fileID: 969618309}
+  - component: {fileID: 969618312}
   - component: {fileID: 969618308}
   - component: {fileID: 969618307}
   - component: {fileID: 969618306}
   - component: {fileID: 969618305}
   m_Layer: 8
-  m_Name: GateC8
+  m_Name: BWControlNodeC8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13264,7 +14056,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 969618303}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &969618309
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13329,6 +14121,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &969618312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 969618303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &975168463
 GameObject:
   m_ObjectHideFlags: 0
@@ -13341,7 +14146,7 @@ GameObject:
   - component: {fileID: 975168466}
   - component: {fileID: 975168465}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13414,7 +14219,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 975168463}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &977983981
 GameObject:
   m_ObjectHideFlags: 0
@@ -13548,7 +14353,7 @@ GameObject:
   - component: {fileID: 987164792}
   - component: {fileID: 987164791}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13621,7 +14426,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 987164789}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &992032545
 GameObject:
   m_ObjectHideFlags: 0
@@ -13634,7 +14439,7 @@ GameObject:
   - component: {fileID: 992032548}
   - component: {fileID: 992032547}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13707,7 +14512,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 992032545}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &993999695
 GameObject:
   m_ObjectHideFlags: 0
@@ -14076,6 +14881,59 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!1 &1000306967
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1000306968}
+  - component: {fileID: 1000306969}
+  m_Layer: 8
+  m_Name: BorderCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1000306968
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000306967}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 941393121}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1000306969
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000306967}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 40, y: 80, z: 265}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1023557827
 GameObject:
   m_ObjectHideFlags: 0
@@ -14088,7 +14946,7 @@ GameObject:
   - component: {fileID: 1023557830}
   - component: {fileID: 1023557829}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14161,7 +15019,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1023557827}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1025986147
 GameObject:
   m_ObjectHideFlags: 0
@@ -14173,7 +15031,6 @@ GameObject:
   - component: {fileID: 1025986148}
   - component: {fileID: 1025986151}
   - component: {fileID: 1025986149}
-  - component: {fileID: 1025986150}
   m_Layer: 8
   m_Name: ShipBarrier
   m_TagString: Untagged
@@ -14217,103 +15074,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 50, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!82 &1025986150
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1025986147}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: -8555366355017602613, guid: 7bae398e1ad926142b2c77962f4a592f, type: 2}
-  m_audioClip: {fileID: 8300000, guid: e091a159b64c0ab4c83832d2ac6c33fc, type: 3}
-  m_Resource: {fileID: 8300000, guid: e091a159b64c0ab4c83832d2ac6c33fc, type: 3}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &1025986151
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14339,7 +15099,7 @@ GameObject:
   - component: {fileID: 1032842913}
   - component: {fileID: 1032842912}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14412,7 +15172,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1032842910}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1050744393
 GameObject:
   m_ObjectHideFlags: 0
@@ -14546,7 +15306,7 @@ GameObject:
   - component: {fileID: 1078621751}
   - component: {fileID: 1078621750}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14619,7 +15379,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1078621748}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1083991576
 GameObject:
   m_ObjectHideFlags: 0
@@ -14632,7 +15392,7 @@ GameObject:
   - component: {fileID: 1083991579}
   - component: {fileID: 1083991578}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14705,7 +15465,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1083991576}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1109111097
 GameObject:
   m_ObjectHideFlags: 0
@@ -14839,12 +15599,13 @@ GameObject:
   - component: {fileID: 1126770710}
   - component: {fileID: 1126770709}
   - component: {fileID: 1126770708}
+  - component: {fileID: 1126770712}
   - component: {fileID: 1126770707}
   - component: {fileID: 1126770706}
   - component: {fileID: 1126770705}
   - component: {fileID: 1126770704}
   m_Layer: 8
-  m_Name: GateA2
+  m_Name: BWControlNodeA2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14952,7 +15713,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1126770703}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1126770708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15033,6 +15794,19 @@ Transform:
   - {fileID: 46101974}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &1126770712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126770703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1137169905
 GameObject:
   m_ObjectHideFlags: 0
@@ -15045,7 +15819,7 @@ GameObject:
   - component: {fileID: 1137169908}
   - component: {fileID: 1137169907}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15118,7 +15892,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1137169905}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1140920102
 GameObject:
   m_ObjectHideFlags: 0
@@ -15252,7 +16026,7 @@ GameObject:
   - component: {fileID: 1142188588}
   - component: {fileID: 1142188587}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15325,7 +16099,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1142188585}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1144576857
 GameObject:
   m_ObjectHideFlags: 0
@@ -15355,8 +16129,8 @@ Transform:
   m_GameObject: {fileID: 1144576857}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 75, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: 75, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -15459,12 +16233,13 @@ GameObject:
   - component: {fileID: 1151473776}
   - component: {fileID: 1151473775}
   - component: {fileID: 1151473774}
+  - component: {fileID: 1151473777}
   - component: {fileID: 1151473773}
   - component: {fileID: 1151473772}
   - component: {fileID: 1151473771}
   - component: {fileID: 1151473770}
   m_Layer: 8
-  m_Name: GateF8
+  m_Name: BWControlNodeF8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15588,7 +16363,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1151473768}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1151473774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15653,6 +16428,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1151473777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1151473768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1160528249
 GameObject:
   m_ObjectHideFlags: 0
@@ -15665,7 +16453,7 @@ GameObject:
   - component: {fileID: 1160528252}
   - component: {fileID: 1160528251}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15738,7 +16526,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1160528249}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1176585445
 GameObject:
   m_ObjectHideFlags: 0
@@ -15837,7 +16625,7 @@ GameObject:
   - component: {fileID: 1186540461}
   - component: {fileID: 1186540460}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15910,7 +16698,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1186540458}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1188113934
 GameObject:
   m_ObjectHideFlags: 0
@@ -15923,7 +16711,7 @@ GameObject:
   - component: {fileID: 1188113937}
   - component: {fileID: 1188113936}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15996,7 +16784,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1188113934}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1213421225
 GameObject:
   m_ObjectHideFlags: 0
@@ -16009,7 +16797,7 @@ GameObject:
   - component: {fileID: 1213421228}
   - component: {fileID: 1213421227}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16082,7 +16870,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1213421225}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1235183528
 GameObject:
   m_ObjectHideFlags: 0
@@ -16095,7 +16883,7 @@ GameObject:
   - component: {fileID: 1235183531}
   - component: {fileID: 1235183530}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16168,7 +16956,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1235183528}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1236553229
 GameObject:
   m_ObjectHideFlags: 0
@@ -16181,7 +16969,7 @@ GameObject:
   - component: {fileID: 1236553232}
   - component: {fileID: 1236553231}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16254,7 +17042,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236553229}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1260885402
 GameObject:
   m_ObjectHideFlags: 0
@@ -16317,12 +17105,13 @@ GameObject:
   - component: {fileID: 1280948490}
   - component: {fileID: 1280948489}
   - component: {fileID: 1280948488}
+  - component: {fileID: 1280948491}
   - component: {fileID: 1280948487}
   - component: {fileID: 1280948486}
   - component: {fileID: 1280948485}
   - component: {fileID: 1280948484}
   m_Layer: 8
-  m_Name: GateC7
+  m_Name: BWControlNodeC7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16446,7 +17235,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1280948482}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1280948488
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16511,6 +17300,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1280948491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1280948482}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1289538730
 GameObject:
   m_ObjectHideFlags: 0
@@ -16523,12 +17325,13 @@ GameObject:
   - component: {fileID: 1289538738}
   - component: {fileID: 1289538737}
   - component: {fileID: 1289538736}
+  - component: {fileID: 1289538739}
   - component: {fileID: 1289538735}
   - component: {fileID: 1289538734}
   - component: {fileID: 1289538733}
   - component: {fileID: 1289538732}
   m_Layer: 8
-  m_Name: GateC0
+  m_Name: BWControlNodeC0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16652,7 +17455,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1289538730}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1289538736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16717,6 +17520,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1289538739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1289538730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1302417714
 GameObject:
   m_ObjectHideFlags: 0
@@ -16729,12 +17545,13 @@ GameObject:
   - component: {fileID: 1302417721}
   - component: {fileID: 1302417720}
   - component: {fileID: 1302417719}
+  - component: {fileID: 1302417723}
   - component: {fileID: 1302417718}
   - component: {fileID: 1302417717}
   - component: {fileID: 1302417716}
   - component: {fileID: 1302417715}
   m_Layer: 8
-  m_Name: GateA1
+  m_Name: BWControlNodeA1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16842,7 +17659,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1302417714}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1302417719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16923,6 +17740,19 @@ Transform:
   - {fileID: 1443031742}
   m_Father: {fileID: 46349955}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
+--- !u!114 &1302417723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1302417714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1303551109
 GameObject:
   m_ObjectHideFlags: 0
@@ -16935,12 +17765,13 @@ GameObject:
   - component: {fileID: 1303551117}
   - component: {fileID: 1303551116}
   - component: {fileID: 1303551115}
+  - component: {fileID: 1303551118}
   - component: {fileID: 1303551114}
   - component: {fileID: 1303551113}
   - component: {fileID: 1303551112}
   - component: {fileID: 1303551111}
   m_Layer: 8
-  m_Name: GateE0
+  m_Name: BWControlNodeE0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17064,7 +17895,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1303551109}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1303551115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17129,6 +17960,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1303551118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1303551109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1323459056
 GameObject:
   m_ObjectHideFlags: 0
@@ -17141,7 +17985,7 @@ GameObject:
   - component: {fileID: 1323459059}
   - component: {fileID: 1323459058}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17214,7 +18058,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1323459056}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1374661827
 GameObject:
   m_ObjectHideFlags: 0
@@ -17294,8 +18138,8 @@ Transform:
   m_GameObject: {fileID: 1383779572}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -100, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: -100, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -17484,12 +18328,13 @@ GameObject:
   - component: {fileID: 1385671945}
   - component: {fileID: 1385671944}
   - component: {fileID: 1385671943}
+  - component: {fileID: 1385671946}
   - component: {fileID: 1385671942}
   - component: {fileID: 1385671941}
   - component: {fileID: 1385671940}
   - component: {fileID: 1385671939}
   m_Layer: 8
-  m_Name: GateE3
+  m_Name: BWControlNodeE3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17613,7 +18458,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1385671937}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1385671943
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17678,6 +18523,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1385671946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1385671937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1387082458
 GameObject:
   m_ObjectHideFlags: 0
@@ -17811,7 +18669,7 @@ GameObject:
   - component: {fileID: 1415828459}
   - component: {fileID: 1415828458}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17884,7 +18742,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1415828456}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1418224888
 GameObject:
   m_ObjectHideFlags: 0
@@ -17897,12 +18755,13 @@ GameObject:
   - component: {fileID: 1418224896}
   - component: {fileID: 1418224895}
   - component: {fileID: 1418224894}
+  - component: {fileID: 1418224897}
   - component: {fileID: 1418224893}
   - component: {fileID: 1418224892}
   - component: {fileID: 1418224891}
   - component: {fileID: 1418224890}
   m_Layer: 8
-  m_Name: GateD0
+  m_Name: BWControlNodeD0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18026,7 +18885,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1418224888}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1418224894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18091,6 +18950,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1418224897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1418224888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1428462523
 GameObject:
   m_ObjectHideFlags: 0
@@ -18103,7 +18975,7 @@ GameObject:
   - component: {fileID: 1428462526}
   - component: {fileID: 1428462525}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18176,7 +19048,61 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1428462523}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+--- !u!1 &1431636338
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1431636339}
+  - component: {fileID: 1431636340}
+  m_Layer: 8
+  m_Name: BWWallEmitterCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1431636339
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1431636338}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 606719382}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &1431636340
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1431636338}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -1343252770393012625, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
 --- !u!1 &1433924443
 GameObject:
   m_ObjectHideFlags: 0
@@ -18189,7 +19115,7 @@ GameObject:
   - component: {fileID: 1433924446}
   - component: {fileID: 1433924445}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18262,7 +19188,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1433924443}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1440911757
 GameObject:
   m_ObjectHideFlags: 0
@@ -18275,12 +19201,13 @@ GameObject:
   - component: {fileID: 1440911765}
   - component: {fileID: 1440911764}
   - component: {fileID: 1440911763}
+  - component: {fileID: 1440911766}
   - component: {fileID: 1440911762}
   - component: {fileID: 1440911761}
   - component: {fileID: 1440911760}
   - component: {fileID: 1440911759}
   m_Layer: 8
-  m_Name: GateE5
+  m_Name: BWControlNodeE5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18404,7 +19331,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1440911757}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1440911763
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18469,6 +19396,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1440911766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1440911757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1443031741
 GameObject:
   m_ObjectHideFlags: 0
@@ -18481,7 +19421,7 @@ GameObject:
   - component: {fileID: 1443031744}
   - component: {fileID: 1443031743}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18554,7 +19494,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1443031741}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1454655767
 GameObject:
   m_ObjectHideFlags: 0
@@ -18688,7 +19628,7 @@ GameObject:
   - component: {fileID: 1462930293}
   - component: {fileID: 1462930292}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18761,7 +19701,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1462930290}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1466540473
 GameObject:
   m_ObjectHideFlags: 0
@@ -18774,7 +19714,7 @@ GameObject:
   - component: {fileID: 1466540476}
   - component: {fileID: 1466540475}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18847,7 +19787,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1466540473}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1483825662
 GameObject:
   m_ObjectHideFlags: 0
@@ -18877,8 +19817,8 @@ Transform:
   m_GameObject: {fileID: 1483825662}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 25, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: 25, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -18981,12 +19921,13 @@ GameObject:
   - component: {fileID: 1487231071}
   - component: {fileID: 1487231070}
   - component: {fileID: 1487231069}
+  - component: {fileID: 1487231072}
   - component: {fileID: 1487231068}
   - component: {fileID: 1487231067}
   - component: {fileID: 1487231066}
   - component: {fileID: 1487231065}
   m_Layer: 8
-  m_Name: GateF1
+  m_Name: BWControlNodeF1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19110,7 +20051,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1487231063}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1487231069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19175,6 +20116,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1487231072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487231063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1503038949
 GameObject:
   m_ObjectHideFlags: 0
@@ -19187,12 +20141,13 @@ GameObject:
   - component: {fileID: 1503038957}
   - component: {fileID: 1503038956}
   - component: {fileID: 1503038955}
+  - component: {fileID: 1503038958}
   - component: {fileID: 1503038954}
   - component: {fileID: 1503038953}
   - component: {fileID: 1503038952}
   - component: {fileID: 1503038951}
   m_Layer: 8
-  m_Name: GateG7
+  m_Name: BWControlNodeG7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19316,7 +20271,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1503038949}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1503038955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19381,6 +20336,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1503038958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1503038949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1518415745
 GameObject:
   m_ObjectHideFlags: 0
@@ -19393,12 +20361,13 @@ GameObject:
   - component: {fileID: 1518415753}
   - component: {fileID: 1518415752}
   - component: {fileID: 1518415751}
+  - component: {fileID: 1518415754}
   - component: {fileID: 1518415750}
   - component: {fileID: 1518415749}
   - component: {fileID: 1518415748}
   - component: {fileID: 1518415747}
   m_Layer: 8
-  m_Name: GateB8
+  m_Name: BWControlNodeB8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19522,7 +20491,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1518415745}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1518415751
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19587,6 +20556,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1518415754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1518415745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1535661896
 GameObject:
   m_ObjectHideFlags: 0
@@ -19599,12 +20581,13 @@ GameObject:
   - component: {fileID: 1535661904}
   - component: {fileID: 1535661903}
   - component: {fileID: 1535661902}
+  - component: {fileID: 1535661905}
   - component: {fileID: 1535661901}
   - component: {fileID: 1535661900}
   - component: {fileID: 1535661899}
   - component: {fileID: 1535661898}
   m_Layer: 8
-  m_Name: GateC2
+  m_Name: BWControlNodeC2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19728,7 +20711,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1535661896}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1535661902
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19793,6 +20776,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1535661905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1535661896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1560720232
 GameObject:
   m_ObjectHideFlags: 0
@@ -19926,12 +20922,13 @@ GameObject:
   - component: {fileID: 1561297076}
   - component: {fileID: 1561297075}
   - component: {fileID: 1561297074}
+  - component: {fileID: 1561297077}
   - component: {fileID: 1561297073}
   - component: {fileID: 1561297072}
   - component: {fileID: 1561297071}
   - component: {fileID: 1561297070}
   m_Layer: 8
-  m_Name: GateF0
+  m_Name: BWControlNodeF0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20055,7 +21052,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1561297068}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1561297074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20120,6 +21117,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1561297077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561297068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1562726735
 GameObject:
   m_ObjectHideFlags: 0
@@ -20132,7 +21142,7 @@ GameObject:
   - component: {fileID: 1562726738}
   - component: {fileID: 1562726737}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20205,7 +21215,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1562726735}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1589795562
 GameObject:
   m_ObjectHideFlags: 0
@@ -20255,7 +21265,7 @@ GameObject:
   - component: {fileID: 1596610913}
   - component: {fileID: 1596610912}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20328,7 +21338,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1596610910}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1613150166
 GameObject:
   m_ObjectHideFlags: 0
@@ -20462,7 +21472,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 46349955}
   - {fileID: 1756627656}
   - {fileID: 404314548}
   - {fileID: 1374661828}
@@ -20473,6 +21482,7 @@ Transform:
   - {fileID: 1613150167}
   - {fileID: 33047374}
   - {fileID: 1025986148}
+  - {fileID: 46349955}
   - {fileID: 4187409}
   - {fileID: 2739052146897469826}
   - {fileID: 1589795563}
@@ -20492,12 +21502,13 @@ GameObject:
   - component: {fileID: 1657108999}
   - component: {fileID: 1657108998}
   - component: {fileID: 1657108997}
+  - component: {fileID: 1657109000}
   - component: {fileID: 1657108996}
   - component: {fileID: 1657108995}
   - component: {fileID: 1657108994}
   - component: {fileID: 1657108993}
   m_Layer: 8
-  m_Name: GateD1
+  m_Name: BWControlNodeD1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20621,7 +21632,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1657108991}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1657108997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20686,6 +21697,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1657109000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1657108991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1660509552
 GameObject:
   m_ObjectHideFlags: 0
@@ -20698,7 +21722,7 @@ GameObject:
   - component: {fileID: 1660509555}
   - component: {fileID: 1660509554}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20771,7 +21795,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1660509552}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1693036985
 GameObject:
   m_ObjectHideFlags: 0
@@ -20784,12 +21808,13 @@ GameObject:
   - component: {fileID: 1693036993}
   - component: {fileID: 1693036992}
   - component: {fileID: 1693036991}
+  - component: {fileID: 1693036994}
   - component: {fileID: 1693036990}
   - component: {fileID: 1693036989}
   - component: {fileID: 1693036988}
   - component: {fileID: 1693036987}
   m_Layer: 8
-  m_Name: GateF7
+  m_Name: BWControlNodeF7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20913,7 +21938,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1693036985}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1693036991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20978,6 +22003,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1693036994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1693036985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1706791342
 GameObject:
   m_ObjectHideFlags: 0
@@ -21007,8 +22045,8 @@ Transform:
   m_GameObject: {fileID: 1706791342}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: 0, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -21111,12 +22149,13 @@ GameObject:
   - component: {fileID: 1729148186}
   - component: {fileID: 1729148185}
   - component: {fileID: 1729148184}
+  - component: {fileID: 1729148187}
   - component: {fileID: 1729148183}
   - component: {fileID: 1729148182}
   - component: {fileID: 1729148181}
   - component: {fileID: 1729148180}
   m_Layer: 8
-  m_Name: GateD4
+  m_Name: BWControlNodeD4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21240,7 +22279,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1729148178}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1729148184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21305,6 +22344,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1729148187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729148178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1734048851
 GameObject:
   m_ObjectHideFlags: 0
@@ -21334,8 +22386,8 @@ Transform:
   m_GameObject: {fileID: 1734048851}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -25, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: -25, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -21438,12 +22490,13 @@ GameObject:
   - component: {fileID: 1735923429}
   - component: {fileID: 1735923428}
   - component: {fileID: 1735923427}
+  - component: {fileID: 1735923430}
   - component: {fileID: 1735923426}
   - component: {fileID: 1735923425}
   - component: {fileID: 1735923424}
   - component: {fileID: 1735923423}
   m_Layer: 8
-  m_Name: GateD3
+  m_Name: BWControlNodeD3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21567,7 +22620,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1735923421}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1735923427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21632,6 +22685,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1735923430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735923421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1756627655
 GameObject:
   m_ObjectHideFlags: 0
@@ -21694,7 +22760,7 @@ GameObject:
   - component: {fileID: 1764784162}
   - component: {fileID: 1764784161}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21767,7 +22833,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1764784159}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1770629805
 GameObject:
   m_ObjectHideFlags: 0
@@ -21901,7 +22967,7 @@ GameObject:
   - component: {fileID: 1789882936}
   - component: {fileID: 1789882935}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21974,7 +23040,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1789882933}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1802831573
 GameObject:
   m_ObjectHideFlags: 0
@@ -22004,8 +23070,8 @@ Transform:
   m_GameObject: {fileID: 1802831573}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -75, y: 0, z: 2500}
-  m_LocalScale: {x: 2.5, y: 160, z: 2.5}
+  m_LocalPosition: {x: -75, y: 0, z: 2500.1}
+  m_LocalScale: {x: 2.5, y: 152.5, z: 2.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 217243325}
@@ -22108,7 +23174,7 @@ GameObject:
   - component: {fileID: 1803958065}
   - component: {fileID: 1803958064}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22181,7 +23247,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1803958062}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1807821395
 GameObject:
   m_ObjectHideFlags: 0
@@ -22194,7 +23260,7 @@ GameObject:
   - component: {fileID: 1807821398}
   - component: {fileID: 1807821397}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22267,7 +23333,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1807821395}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1810571725
 GameObject:
   m_ObjectHideFlags: 0
@@ -22280,7 +23346,7 @@ GameObject:
   - component: {fileID: 1810571728}
   - component: {fileID: 1810571727}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22353,7 +23419,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1810571725}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1817782552
 GameObject:
   m_ObjectHideFlags: 0
@@ -22365,6 +23431,7 @@ GameObject:
   - component: {fileID: 1817782555}
   - component: {fileID: 1817782554}
   - component: {fileID: 1817782556}
+  - component: {fileID: 1817782557}
   m_Layer: 0
   m_Name: ScenarioHandler
   m_TagString: ScenarioHandler
@@ -22420,7 +23487,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6497190342fe59d46abdcb789f25bf20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stun_sound: {fileID: 1025986150}
   light_beam_material_options:
   - {fileID: 2100000, guid: f3ddac85c285f3d4db42f61247f29f9c, type: 2}
   - {fileID: 2100000, guid: 0808fd7a25c262042ba95e7638c5096a, type: 2}
@@ -22447,10 +23513,119 @@ MonoBehaviour:
   - {fileID: 687746389}
   shield_generators: []
   shields: []
+  map_indicators:
+  - {fileID: 1756627655}
+  - {fileID: 404314547}
+  - {fileID: 1374661827}
+  - {fileID: 638805726}
+  - {fileID: 1943992180}
+  - {fileID: 822028301}
+  - {fileID: 1260885402}
+  - {fileID: 1613150166}
+  - {fileID: 33047373}
   vertical_light_beams: {fileID: 217243324}
   horizontal_light_beams: {fileID: 499146501}
   extended_light_beams: {fileID: 488463176}
+  control_nodes: {fileID: 46349954}
   ship_barrier: {fileID: 1025986151}
+  wall_extensions: {fileID: 9201594744350923676}
+--- !u!82 &1817782557
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817782552}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: -8555366355017602613, guid: 7bae398e1ad926142b2c77962f4a592f, type: 2}
+  m_audioClip: {fileID: 8300000, guid: d4547a46efe36844bb8e4b77d048a43e, type: 3}
+  m_Resource: {fileID: 8300000, guid: d4547a46efe36844bb8e4b77d048a43e, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1842610933
 GameObject:
   m_ObjectHideFlags: 0
@@ -22463,7 +23638,7 @@ GameObject:
   - component: {fileID: 1842610936}
   - component: {fileID: 1842610935}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22536,7 +23711,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1842610933}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1857742147
 GameObject:
   m_ObjectHideFlags: 0
@@ -22549,7 +23724,7 @@ GameObject:
   - component: {fileID: 1857742150}
   - component: {fileID: 1857742149}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22622,7 +23797,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1857742147}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1862241036
 GameObject:
   m_ObjectHideFlags: 0
@@ -22756,12 +23931,13 @@ GameObject:
   - component: {fileID: 1863318456}
   - component: {fileID: 1863318455}
   - component: {fileID: 1863318454}
+  - component: {fileID: 1863318457}
   - component: {fileID: 1863318453}
   - component: {fileID: 1863318452}
   - component: {fileID: 1863318451}
   - component: {fileID: 1863318450}
   m_Layer: 8
-  m_Name: GateF4
+  m_Name: BWControlNodeF4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22885,7 +24061,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1863318448}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1863318454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22950,6 +24126,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1863318457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863318448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1871610808
 GameObject:
   m_ObjectHideFlags: 0
@@ -22962,7 +24151,7 @@ GameObject:
   - component: {fileID: 1871610811}
   - component: {fileID: 1871610810}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23035,7 +24224,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1871610808}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1890649695
 GameObject:
   m_ObjectHideFlags: 0
@@ -23073,6 +24262,74 @@ Transform:
   - {fileID: 3352455606118133515}
   m_Father: {fileID: 1623204593}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1894193667
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1894193668}
+  - component: {fileID: 1894193670}
+  - component: {fileID: 1894193669}
+  m_Layer: 8
+  m_Name: BorderTrigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1894193668
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1894193667}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -2623, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1961228714}
+  m_Father: {fileID: 2739052146897469826}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1894193669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1894193667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46b5d36499a9f654eb5a2b5bc15989bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
+--- !u!65 &1894193670
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1894193667}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 40, y: 80, z: 265}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1900157468
 GameObject:
   m_ObjectHideFlags: 0
@@ -23085,12 +24342,13 @@ GameObject:
   - component: {fileID: 1900157476}
   - component: {fileID: 1900157475}
   - component: {fileID: 1900157474}
+  - component: {fileID: 1900157477}
   - component: {fileID: 1900157473}
   - component: {fileID: 1900157472}
   - component: {fileID: 1900157471}
   - component: {fileID: 1900157470}
   m_Layer: 8
-  m_Name: GateC3
+  m_Name: BWControlNodeC3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23214,7 +24472,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1900157468}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1900157474
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23279,6 +24537,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1900157477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900157468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1904467916
 GameObject:
   m_ObjectHideFlags: 0
@@ -23291,12 +24562,13 @@ GameObject:
   - component: {fileID: 1904467924}
   - component: {fileID: 1904467923}
   - component: {fileID: 1904467922}
+  - component: {fileID: 1904467925}
   - component: {fileID: 1904467921}
   - component: {fileID: 1904467920}
   - component: {fileID: 1904467919}
   - component: {fileID: 1904467918}
   m_Layer: 8
-  m_Name: GateC4
+  m_Name: BWControlNodeC4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23420,7 +24692,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1904467916}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &1904467922
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23485,6 +24757,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &1904467925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1904467916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &1932329649
 GameObject:
   m_ObjectHideFlags: 0
@@ -23497,7 +24782,7 @@ GameObject:
   - component: {fileID: 1932329652}
   - component: {fileID: 1932329651}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23570,7 +24855,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1932329649}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &1943992180
 GameObject:
   m_ObjectHideFlags: 0
@@ -23863,6 +25148,59 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1958760253}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1961228713
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1961228714}
+  - component: {fileID: 1961228715}
+  m_Layer: 8
+  m_Name: BorderCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1961228714
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961228713}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1894193668}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1961228715
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1961228713}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 40, y: 80, z: 265}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1971524133
 GameObject:
   m_ObjectHideFlags: 0
@@ -24087,7 +25425,7 @@ GameObject:
   - component: {fileID: 2002174399}
   - component: {fileID: 2002174398}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24160,7 +25498,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2002174396}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &2022114580
 GameObject:
   m_ObjectHideFlags: 0
@@ -24294,7 +25632,7 @@ GameObject:
   - component: {fileID: 2032544252}
   - component: {fileID: 2032544251}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24367,7 +25705,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2032544249}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &2046731943
 GameObject:
   m_ObjectHideFlags: 0
@@ -24501,12 +25839,13 @@ GameObject:
   - component: {fileID: 2091046484}
   - component: {fileID: 2091046483}
   - component: {fileID: 2091046482}
+  - component: {fileID: 2091046485}
   - component: {fileID: 2091046481}
   - component: {fileID: 2091046480}
   - component: {fileID: 2091046479}
   - component: {fileID: 2091046478}
   m_Layer: 8
-  m_Name: GateB7
+  m_Name: BWControlNodeB7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24630,7 +25969,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2091046476}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &2091046482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24695,6 +26034,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &2091046485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2091046476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &2105100607
 GameObject:
   m_ObjectHideFlags: 0
@@ -24707,12 +26059,13 @@ GameObject:
   - component: {fileID: 2105100615}
   - component: {fileID: 2105100614}
   - component: {fileID: 2105100613}
+  - component: {fileID: 2105100616}
   - component: {fileID: 2105100612}
   - component: {fileID: 2105100611}
   - component: {fileID: 2105100610}
   - component: {fileID: 2105100609}
   m_Layer: 8
-  m_Name: GateG3
+  m_Name: BWControlNodeG3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24836,7 +26189,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2105100607}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &2105100613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24901,6 +26254,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &2105100616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2105100607}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &2108857318
 GameObject:
   m_ObjectHideFlags: 0
@@ -24999,7 +26365,7 @@ GameObject:
   - component: {fileID: 2112363999}
   - component: {fileID: 2112363998}
   m_Layer: 0
-  m_Name: BWGateCenterLight
+  m_Name: BWControlNodeCenterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25072,7 +26438,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2112363996}
-  m_Mesh: {fileID: -8806604488528257162, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: -8412278641142833002, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!1 &2129888152
 GameObject:
   m_ObjectHideFlags: 0
@@ -25085,12 +26451,13 @@ GameObject:
   - component: {fileID: 2129888160}
   - component: {fileID: 2129888159}
   - component: {fileID: 2129888158}
+  - component: {fileID: 2129888161}
   - component: {fileID: 2129888157}
   - component: {fileID: 2129888156}
   - component: {fileID: 2129888155}
   - component: {fileID: 2129888154}
   m_Layer: 8
-  m_Name: GateB2
+  m_Name: BWControlNodeB2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25214,7 +26581,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2129888152}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &2129888158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25279,6 +26646,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &2129888161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2129888152}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!1 &2144458354
 GameObject:
   m_ObjectHideFlags: 0
@@ -25291,12 +26671,13 @@ GameObject:
   - component: {fileID: 2144458362}
   - component: {fileID: 2144458361}
   - component: {fileID: 2144458360}
+  - component: {fileID: 2144458363}
   - component: {fileID: 2144458359}
   - component: {fileID: 2144458358}
   - component: {fileID: 2144458357}
   - component: {fileID: 2144458356}
   m_Layer: 8
-  m_Name: GateB1
+  m_Name: BWControlNodeB1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25420,7 +26801,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2144458354}
-  m_Mesh: {fileID: -2526182992635867962, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
+  m_Mesh: {fileID: 8662432708776518011, guid: 8a2107ba067ee114088314f8a0876eb2, type: 3}
 --- !u!114 &2144458360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25485,6 +26866,19 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &2144458363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144458354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726296a81b89094c8fab249ee3a5630, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!4 &119753807495871141
 Transform:
   m_ObjectHideFlags: 0
@@ -25735,6 +27129,8 @@ Transform:
   - {fileID: 606719382}
   - {fileID: 102864348}
   - {fileID: 198041982}
+  - {fileID: 941393121}
+  - {fileID: 1894193668}
   m_Father: {fileID: 1623204593}
   m_LocalEulerAnglesHint: {x: -89.98, y: 0, z: 90}
 --- !u!4 &2826843252565723315
@@ -26191,7 +27587,8 @@ Transform:
   m_LocalPosition: {x: -0, y: 156.75, z: -0.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 356685071}
   m_Father: {fileID: 2739052146897469826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6380183698536963160
@@ -26279,8 +27676,9 @@ GameObject:
   - component: {fileID: 7132938837173405907}
   - component: {fileID: 4979219072049740825}
   - component: {fileID: 7132938837173405908}
-  m_Layer: 0
-  m_Name: BWWallEmitterContainer
+  - component: {fileID: 7132938837173405909}
+  m_Layer: 8
+  m_Name: BWWallEmitterTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26324,7 +27722,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6780522376702483916}
-  m_Mesh: {fileID: -4137989621840263965, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
+  m_Mesh: {fileID: -1343252770393012625, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
 --- !u!64 &7132938837173405908
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -26340,13 +27738,26 @@ MeshCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: -4137989621840263965, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
+  m_Mesh: {fileID: -1343252770393012625, guid: 0ea5f230ece2bb4449bf27d845f67fe2, type: 3}
+--- !u!114 &7132938837173405909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6780522376702483916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46b5d36499a9f654eb5a2b5bc15989bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  black_and_white: {fileID: 1817782556}
 --- !u!23 &7357776175929132494
 MeshRenderer:
   m_ObjectHideFlags: 0
