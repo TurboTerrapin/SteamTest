@@ -56,6 +56,11 @@ public class BWEmitter : MonoBehaviour, IDamageable, ITorpedoTargetable, IPhaser
         }
     }
 
+    public void onProtectiveShieldsDiabled()
+    {
+        protected_by_shields = false;
+    }
+
     public bool getTorpedoTargetable(IDamageable.DamageType torpedo_type)
     {
         return protected_by_shields == false;

@@ -161,7 +161,6 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         visualSpectacle.Activate();
     }
 
-    //only run by host
     public void initiateScenario()
     {
         if (NetworkManager.Singleton.IsHost == false)

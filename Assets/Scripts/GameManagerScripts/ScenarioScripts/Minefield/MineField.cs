@@ -92,7 +92,6 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
         }
     }
 
-    // Only run by host
     public void initiateScenario()
     {
         if (NetworkManager.Singleton.IsHost == false)

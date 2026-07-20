@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott, Henryk Musial
-    Last Updated: 6/22/2026
+    Last Updated: 7/19/2026
 */
 
 using System.Collections;
@@ -43,7 +43,7 @@ public class ScenarioManager : NetworkBehaviour
     };
     private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary per scenario based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
-    public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
+    public const int BOUNDARY_ALTITUDE = 130; //how high/low the ship can go in either direction
     public const int START_DIST_OFFSET = 600; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
     public const float PATH_SIZE = 10.0f; //for entrance/exit paths, degrees of the boundary, does not reflect on NavigationMap so be careful!
@@ -467,17 +467,25 @@ public class ScenarioManager : NetworkBehaviour
     //only run by host, called by PlayerManager.startScenarioRPC()
     public void startScenario()
     {
+        //general player stuff
+        IScenario scenario_script = getScenarioScript();
+        if (scenario_script != null)
+        {
+            scenario_script.initiateScenario();
+        }
+
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        //host-only stuff
         enableScenarioTimer();
         ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().UnlockMovement();
         ReferenceAssistor.Instance.power_manager.GetComponent<PowerRegulator>().initializePowerRegulator();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
         ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
-        IScenario scenario_script = getScenarioScript();
-        if (scenario_script != null)
-        {
-            scenario_script.initiateScenario();
-        }
     }
 
     //called by SignalJammer.cs

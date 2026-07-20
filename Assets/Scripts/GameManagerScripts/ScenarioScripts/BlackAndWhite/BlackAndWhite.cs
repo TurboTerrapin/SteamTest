@@ -2,7 +2,7 @@
     BlackAndWhite.cs
     - Handles all the functions pertaining to the black-and-white scenario (the wall one)
     Contributor(s): Jake Schott
-    Last Updated: 7/18/2026
+    Last Updated: 7/20/2026
 */
 
 using System.Collections;
@@ -17,17 +17,18 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
     private static string DEATH_MESSAGE = "Stolen ship SEACC-3002 was found destroyed near an anomalous barrier. Crew was unable to disable the wall without sustaining critical damage. No survivors were found.";
     private static Color[] LIGHT_BEAM_COLORS_OPTIONS = new Color[9] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[2], ReferenceAssistor.COLOR_OPTIONS[3], Color.white, Color.red, Color.yellow, Color.blue, new Color(1.0f, 0.0f, 0.5f) };
     private static float COLOR_RESTORATION_TIME = 5.0f;
+    private static float SHIELD_OSCILLATION_REFRESH_SPEED = 1.0f;
     private static int CENTER_INDEX = 8;
     private static float CENTER_SPEED = 55.0f;
     private static List<float> RING_SPEEDS = new List<float>() { 10.0f, 15.0f, 10.0f, 15.0f };
     private static int[] NUM_NODES_TO_RESTORE_COLOR = new int[] { 1, 2, 3, 4 }; //corresponds to easy, medium, hard, expert difficulties
 
+    public Material emitter_shield_material;
     public List<Material> light_beam_material_options = null;  
     public List<Mesh> radiation_options = null;
     public List<GameObject> radiation_emitters = null;
-    public List<GameObject> shield_generators = null;
-    public List<GameObject> shields = null;
-    public List<GameObject> map_indicators = null;
+    public List<GameObject> emitter_shield_generators = null;
+    public List<GameObject> emitter_shields = null;
     public GameObject vertical_light_beams;
     public GameObject horizontal_light_beams;
     public GameObject extended_light_beams;
@@ -37,6 +38,7 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
 
     private bool color_restored = false;
     private bool barrier_disabled = false;
+    private bool[] enabled_emitter_shields = new bool[2] { true, true };
     private int special_emitter = -1; //the emitter that must be destroyed to bring color back
     private int[] emitter_radiation_patterns = new int[6] { -1, -1, -1, -1, -1, -1 }; //corresponds to A, B, C, D, E, and F mesh options
     private bool[] emitter_active_states = new bool[6] { true, true, true, true, true, true };
@@ -49,13 +51,33 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
 
     private void Start()
     {
-        //set screen to black-and-white
-        ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out color_adjustments);
-        color_adjustments.active = true;
-        color_adjustments.saturation.Override(-100.0f);
+        //prepare emitter shield material
+        emitter_shield_material = new Material(emitter_shield_material);
 
-        //enable light layer two
-        ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(true);
+        //oscillate shield brightness
+        emitter_shields[0].GetComponent<MeshRenderer>().material = emitter_shield_material;
+        emitter_shields[1].GetComponent<MeshRenderer>().material = emitter_shield_material;
+        StartCoroutine(shieldBrightnessOscillator());
+    }
+
+    IEnumerator shieldBrightnessOscillator()
+    {
+        float elapsed_time = 0.0f;
+        Color darker_blue = new Color(0.0f, 0.1f, 0.15f);
+        Color lighter_blue = new Color(0.0f, 0.22f, 0.3f);
+        while (enabled_emitter_shields[0] == true || enabled_emitter_shields[1] == true)
+        {
+            elapsed_time += Time.deltaTime * SHIELD_OSCILLATION_REFRESH_SPEED;
+            float oscillation_progress = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
+            emitter_shield_material.SetColor("_EmissionColor", Color.Lerp(darker_blue, lighter_blue, oscillation_progress));
+
+            yield return null;
+        }
+    }
+
+    private void OnDisable()
+    {
+        Destroy(emitter_shield_material);
     }
 
     //only run by host
@@ -65,11 +87,26 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         {
             return;
         }
+
+        List<OffLimitsSpawnLocation> offLimitsLocations = new List<OffLimitsSpawnLocation>();
+        for (int i = 0; i < 33; i++)
+        {
+            offLimitsLocations.Add(new OffLimitsSpawnLocation(new Vector3((i * 150.0f) + -2400.0f, 0.0f, 2500.0f), 200.0f));
+        }
+        List<Vector3> spawnLocations = ReferenceAssistor.Instance.scenario_manager.generateSpawnLocations(50.0f, 100, offLimitsLocations);
+        GetComponent<AsteroidField>().spawnField(spawnLocations);
     }
 
-    //only run by host
     public void initiateScenario()
     {
+        //set screen to black-and-white
+        ReferenceAssistor.Instance.camera_settings.GetComponent<Volume>().profile.TryGet(out color_adjustments);
+        color_adjustments.active = true;
+        color_adjustments.saturation.Override(-100.0f);
+
+        //enable light layer two
+        ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(true);
+
         if (NetworkManager.Singleton.IsHost == false)
         {
             return;
@@ -192,6 +229,24 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         }
 
         updateRadiationVisibilityRPC(ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().getProgramActiveState(0, 2));
+    }
+
+    public void onShieldGeneratorDisabled(GameObject generator)
+    {
+        if (emitter_shield_generators.IndexOf(generator) != -1)
+        {
+            emitter_shield_generators[emitter_shield_generators.IndexOf(generator)] = null;
+            for (int i = 0; i < 2; i++)
+            {
+                if (enabled_emitter_shields[i] == true)
+                {
+                    if (emitter_shield_generators[i * 2] == null && emitter_shield_generators[(i* 2) + 1] == null)
+                    {
+                        shieldDisabledRPC(i);
+                    }
+                }
+            }
+        }
     }
 
     public void onEmitterDestroyed(GameObject emitter)
@@ -336,6 +391,17 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
     }
 
     [Rpc(SendTo.Everyone)]
+    private void shieldDisabledRPC(int index)
+    {
+        enabled_emitter_shields[index] = false;
+        emitter_shields[index].SetActive(false);
+        for (int i = 0; i < 3; i++)
+        {
+            radiation_emitters[i + (index * 3)].GetComponent<BWEmitter>().onProtectiveShieldsDiabled();
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
     private void restoreColorRPC()
     {
         color_restored = true;
@@ -346,6 +412,9 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
     private void barrierDisabledRPC()
     {
         barrier_disabled = true;
+
+        //play sound
+        wall_extensions.GetComponent<AudioSource>().Play();
 
         //disable main barrier but enable secondary barriers
         if (NetworkManager.Singleton.IsHost == true)
@@ -358,9 +427,12 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         }
 
         //hide red map icons
-        foreach (GameObject m in map_indicators)
+        foreach (Transform t in ReferenceAssistor.Instance.world_root.transform)
         {
-            GameObject.Destroy(m);
+            if (t.gameObject.name.CompareTo("MapIndicator") == 0)
+            {
+                GameObject.Destroy(t.gameObject);
+            }
         }
 
         StartCoroutine(barrierDisableFlicker());

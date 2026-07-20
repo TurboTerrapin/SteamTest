@@ -287,11 +287,8 @@ public class PlayerManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void startScenarioRPC(int current_scenario_index)
     {
-        //if host, begin the scenario
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            ReferenceAssistor.Instance.scenario_manager.startScenario();
-        }
+        //begin the scenario
+        ReferenceAssistor.Instance.scenario_manager.startScenario();
 
         //update logs
         LogMenuController.OnScenarioEncountered(current_scenario_index);

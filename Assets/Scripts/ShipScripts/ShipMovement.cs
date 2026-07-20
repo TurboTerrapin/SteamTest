@@ -6,7 +6,7 @@
     - Handles getting "stunned" when running into immovable objects
     - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
     Contributor(s): Henryk Musial
-    Last Updated: 6/4/2026
+    Last Updated: 7/19/2026
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ using UnityEngine;
 public class ShipMovement : NetworkBehaviour
 {
     [Header("Speed Settings")]
-    private float maxThrusterSpeed = 6f;
+    private float maxThrusterSpeed = 10f;
     private float maxImpulseForwardSpeed = 50f;
     private float maxImpulseReverseSpeed = 20f;
 

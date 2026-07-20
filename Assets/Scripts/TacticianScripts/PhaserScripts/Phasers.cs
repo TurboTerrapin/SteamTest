@@ -2,7 +2,7 @@
     Phasers.cs
     - Handles short-and-long-range phaser targeting, firing, and rendering
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 6/27/2026
+    Last Updated: 7/19/2026
 */
 
 using System.Collections;
@@ -72,9 +72,9 @@ public class Phasers : NetworkBehaviour
     IEnumerator longRangePhaserFire(float intensity)
     {
         phaserRenderers[0].enabled = true;
-        phaserRenderers[0].SetPosition(1, phaserTargetLocations[0]);
         phaserSounds[0].pitch = 1.8f - (1.0f * intensity);
         phaserSounds[0].Play();
+        phaserRenderers[0].SetPosition(1, phaserTargetLocations[0]);
 
         // play animation
         float activeTime = Mathf.Lerp(FIRE_TIMES[0].x, FIRE_TIMES[0].y, intensity);
@@ -88,7 +88,8 @@ public class Phasers : NetworkBehaviour
             phaserRenderers[0].startWidth = beamWidth;
             phaserRenderers[0].endWidth = beamWidth;
             phaserRenderers[0].SetPosition(0, phaserOrigins[0].transform.position);
-            
+            phaserRenderers[0].SetPosition(1, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[0]));
+
             yield return null;
         }
 
@@ -115,7 +116,6 @@ public class Phasers : NetworkBehaviour
             if (activePhasers[p] == true)
             {
                 phaserSounds[p + 1].Play();
-                phaserRenderers[p + 1].SetPosition(1, phaserTargetLocations[p + 1]);
             }
         }
 
@@ -133,6 +133,7 @@ public class Phasers : NetworkBehaviour
                 phaserRenderers[p + 1].startWidth = beamWidth;
                 phaserRenderers[p + 1].endWidth = beamWidth;
                 phaserRenderers[p + 1].SetPosition(0, phaserOrigins[p + 1].transform.position);
+                phaserRenderers[p + 1].SetPosition(1, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[p + 1]));
             }
 
             yield return null;
@@ -217,14 +218,18 @@ public class Phasers : NetworkBehaviour
 
     private Vector3 getPhaserTargetCoordinate(int phaserCategory, int phaserIndex)
     {
-        // if no target, just return forward * beam range
-        if (phaserTargetObjects[phaserCategory + phaserIndex] == null)
+        // find direction
+        Vector3 beamDirection;
+        if (phaserTargetObjects[phaserCategory + phaserIndex] == null) // no target, just use forward
         {
-            return phaserOrigins[phaserCategory + phaserIndex].transform.position + (phaserOrigins[phaserCategory + phaserIndex].transform.forward * BEAM_RANGES[phaserCategory]);
+            beamDirection = phaserOrigins[phaserCategory + phaserIndex].transform.forward;
+        }
+        else // yes target, find angle
+        {
+            Vector3 dirToTarget = (phaserTargetObjects[phaserCategory + phaserIndex].transform.position - phaserOrigins[phaserCategory + phaserIndex].transform.position).normalized;
+            beamDirection = Vector3.RotateTowards(phaserOrigins[phaserCategory + phaserIndex].transform.forward, dirToTarget, MAX_TRACKING_ANGLES[phaserCategory] * Mathf.Deg2Rad, 0.0f);
         }
 
-        Vector3 dirToTarget = (phaserTargetObjects[phaserCategory + phaserIndex].transform.position - phaserOrigins[phaserCategory + phaserIndex].transform.position).normalized;
-        Vector3 beamDirection = Vector3.RotateTowards(phaserOrigins[phaserCategory + phaserIndex].transform.forward, dirToTarget, MAX_TRACKING_ANGLES[phaserCategory] * Mathf.Deg2Rad, 0.0f);
         Vector3 beamEnd = phaserOrigins[phaserCategory + phaserIndex].transform.position + (beamDirection * BEAM_RANGES[phaserCategory]);
 
         // check for collision point (and if hit something that isn't our target on the way there, then set the target to null to stop damage)
@@ -237,7 +242,7 @@ public class Phasers : NetworkBehaviour
             }
         }
 
-        return beamEnd;
+        return ReferenceAssistor.Instance.world_root.transform.InverseTransformPoint(beamEnd);
     }
 
     // returns true if GameObject is a valid phaser target
