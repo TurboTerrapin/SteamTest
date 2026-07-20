@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 6/24/2026
+    Last Updated: 7/20/2026
 */
 
 using System.Collections;
@@ -16,7 +16,7 @@ using UnityEngine.UI;
 public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float MOVE_SPEED = 75.0f;
+    private static float MOVE_SPEED = 200.0f;
     public static float TRACTOR_BEAM_RANGE = 50.0f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 

@@ -4,7 +4,7 @@
     - Handles physical buttons
     - Meant to be extended
     Contributor(s): Jake Schott
-    Last Updated: 3/2/2026
+    Last Updated: 7/20/2026
 */
 
 using System.Collections.Generic;
@@ -14,8 +14,8 @@ using Unity.Netcode;
 public class ThrusterControl : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    protected static float PUSH_SPEED = 4.0f; //how fast the physical button takes to be pushed relative to the bars
-    protected static float MOVE_SPEED = 0.5f;
+    protected static float PUSH_SPEED = 20.0f; //how fast the physical button takes to be pushed relative to the bars
+    protected static float MOVE_SPEED = 0.1f;
     protected static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
     protected static Vector3 BUTTON_INITIAL_POS = new Vector3(0.0f, 0.0f, 0.0f);
     protected static Vector3 BUTTON_FINAL_POS = new Vector3(0.0f, -0.006f, 0.0025f);

@@ -93,8 +93,7 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         {
             offLimitsLocations.Add(new OffLimitsSpawnLocation(new Vector3((i * 150.0f) + -2400.0f, 0.0f, 2500.0f), 200.0f));
         }
-        List<Vector3> spawnLocations = ReferenceAssistor.Instance.scenario_manager.generateSpawnLocations(50.0f, 100, offLimitsLocations);
-        GetComponent<AsteroidField>().spawnField(spawnLocations);
+        List<Vector3> spawnLocations = ReferenceAssistor.Instance.scenario_manager.generateSpawnLocations(50.0f, 0, offLimitsLocations);
     }
 
     public void initiateScenario()
@@ -314,6 +313,20 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         }
     }
 
+    IEnumerator shieldDisableFlash(int index)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            emitter_shields[index].SetActive(true);
+
+            yield return new WaitForSeconds(Random.Range(0.1f, 0.3f));
+
+            emitter_shields[index].SetActive(false);
+
+            yield return new WaitForSeconds(Random.Range(0.05f, 0.35f));
+        }
+    }
+
     [Rpc(SendTo.Everyone)]
     private void playElectricStunSoundRPC()
     {
@@ -399,6 +412,7 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         {
             radiation_emitters[i + (index * 3)].GetComponent<BWEmitter>().onProtectiveShieldsDiabled();
         }
+        StartCoroutine(shieldDisableFlash(index));
     }
 
     [Rpc(SendTo.Everyone)]
