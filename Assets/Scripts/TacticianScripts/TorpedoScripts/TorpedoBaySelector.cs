@@ -10,7 +10,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-using UnityEngine.Rendering;
 
 public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -60,26 +59,32 @@ public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, I
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -94,36 +99,54 @@ public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, I
     {
         for (int i = 0; i < 4; i++)
         {
-            selector_display.transform.GetChild(0).GetChild(i * 2).gameObject.SetActive(false);
-            for (int x = 0; x < 2; x++)
+            selector_display.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(false);
+            for (int t = 0; t < 5; t++)
             {
-                Color c = selector_display.transform.GetChild(1).GetChild(x + (i * 2)).GetComponent<UnityEngine.UI.RawImage>().color;
-                c.a = 0.2f;
-                selector_display.transform.GetChild(1).GetChild(x + (i * 2)).GetComponent<UnityEngine.UI.RawImage>().color = c;
+                Color c = selector_display.transform.GetChild(2).GetChild(i).GetChild(t).GetComponent<UnityEngine.UI.RawImage>().color;
+                if (c.a > 0.05f)
+                {
+                    c.a = 0.1f;
+                    selector_display.transform.GetChild(2).GetChild(i).GetChild(t).GetComponent<UnityEngine.UI.RawImage>().color = c;
+                }
             }
         }
 
         float animation_time = MOVE_TIME;
 
-        Vector3 starting_pos = selector_lever.transform.localPosition;
-        Vector3 dest_pos = Vector3.Lerp(initial_pos, FINAL_POS, current_bay / 3.0f);
+        Vector3 starting_lever_pos = selector_lever.transform.localPosition;
+        Vector3 dest_lever_pos = Vector3.Lerp(initial_pos, FINAL_POS, current_bay / 3.0f);
 
-        //move slider
+        Vector3 starting_marker_pos = selector_display.transform.GetChild(0).GetChild(0).transform.localPosition;
+        Vector3 dest_marker_pos = Vector3.Lerp(new Vector3(0.0f, -0.04f, 0.0f), new Vector3(0.0f, 0.04f, 0.0f), current_bay / 3.0f);
+
+        //move slider and marker
         while (animation_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             animation_time = Mathf.Max(0.0f, animation_time - dt);
-            selector_lever.transform.localPosition = Vector3.Lerp(starting_pos, dest_pos, 1.0f - (animation_time / MOVE_TIME));
+            selector_lever.transform.localPosition = Vector3.Lerp(starting_lever_pos, dest_lever_pos, 1.0f - (animation_time / MOVE_TIME));
+            selector_display.transform.GetChild(0).GetChild(0).localPosition = Vector3.Lerp(starting_marker_pos, dest_marker_pos, 1.0f - (animation_time / MOVE_TIME));
 
             yield return null;
         }
 
-        selector_display.transform.GetChild(0).GetChild(current_bay * 2).gameObject.SetActive(true);
-        for (int x = 0; x < 2; x++)
+
+        selector_display.transform.GetChild(1).GetChild(current_bay).GetChild(0).gameObject.SetActive(true);
+
+        for (int i = 0; i < 4; i++)
         {
-            Color c = selector_display.transform.GetChild(1).GetChild(x + (current_bay * 2)).GetComponent<UnityEngine.UI.RawImage>().color;
-            c.a = 1.0f;
-            selector_display.transform.GetChild(1).GetChild(x + (current_bay * 2)).GetComponent<UnityEngine.UI.RawImage>().color = c;
+            if (i == current_bay)
+            {
+                for (int t = 0; t < 5; t++)
+                {
+                    Color c = selector_display.transform.GetChild(2).GetChild(i).GetChild(t).GetComponent<UnityEngine.UI.RawImage>().color;
+                    if (c.a > 0.05f)
+                    {
+                        c.a = 1.0f;
+                        selector_display.transform.GetChild(2).GetChild(i).GetChild(t).GetComponent<UnityEngine.UI.RawImage>().color = c;
+                    }
+                }
+            }
         }
 
         BUTTONS[0].updateInteractable(current_bay > 0 && is_powered == true);
@@ -176,10 +199,10 @@ public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, I
     {
         current_bay = 0;
         selector_lever.transform.localPosition = initial_pos;
-        selector_display.transform.GetChild(0).GetChild(0).gameObject.SetActive(true);
-        for (int i = 1; i < 4; i++)
+        selector_display.transform.GetChild(0).GetChild(0).transform.localPosition = new Vector3(0.0f, -0.04f, 0.0f);
+        for (int i = 0; i < 4; i++)
         {
-            selector_display.transform.GetChild(0).GetChild(i * 2).gameObject.SetActive(false);
+            selector_display.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(i == 0);
         }
     }
 

@@ -2,7 +2,7 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 5/10/2026
+    Last Updated: 7/21/2026
 */
 
 using System.Collections;
@@ -38,8 +38,8 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     private ShipInventory ship_inventory;
 
     private bool is_powered = false;
-    private int[] torpedo_bay_slots = new int[4] { -1, -1, -1, -1 };
-    private string[] torpedo_serial_nums = new string[4];
+    private List<int>[] torpedo_bay_slots = new List<int>[4] { new List<int>(), new List<int>(), new List<int>(), new List<int>() };
+    private List<string>[] torpedo_serial_nums = new List<string>[4] { new List<string>(), new List<string>(), new List<string>(), new List<string>() };
     private int current_torpedo_selection = 0;
     private int current_torpedo_bay = 0;
     private float selection_dial_rotation = 0.0f;
@@ -145,8 +145,11 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     public void unloadTorpedo(int bay)
     {
-        torpedo_bay_slots[bay] = -1;
-        torpedo_serial_nums[bay] = "";
+        torpedo_bay_slots[bay].RemoveAt(0);
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            torpedo_serial_nums[bay].RemoveAt(0);
+        }
         displayShipOverviewAdjustment(bay);
         onInventoryChange();
     }
@@ -162,12 +165,12 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
         }
         for (int i = 0; i < 4; i++)
         {
-            if (torpedo_bay_slots[i] >= 0)
+            while (torpedo_bay_slots[i].Count > 0)
             {
-                torpedoes_to_unload[torpedo_bay_slots[i]] += 1;
-                unloaded_serial_nums[torpedo_bay_slots[i]].Push(torpedo_serial_nums[i]);
+                torpedoes_to_unload[torpedo_bay_slots[i][0]] += 1;
+                unloaded_serial_nums[torpedo_bay_slots[i][0]].Push(torpedo_serial_nums[i][0]);
+                unloadTorpedo(i);
             }
-            unloadTorpedo(i);
         }
         if (NetworkManager.Singleton.IsHost == true)
         {
@@ -184,26 +187,48 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     //updates ship overview screen as well as tactician torpedo bay selector screen
     private void displayShipOverviewAdjustment(int bay)
     {
-        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(0).gameObject.SetActive(torpedo_bay_slots[bay] == -1);
-        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(1).gameObject.SetActive(torpedo_bay_slots[bay] >= 0);
-        torpedo_bay_selector_display.transform.GetChild(1).GetChild((bay * 2) + 1).gameObject.SetActive(torpedo_bay_slots[bay] == -1);
-        torpedo_bay_selector_display.transform.GetChild(1).GetChild(bay * 2).gameObject.SetActive(torpedo_bay_slots[bay] >= 0);
-
-        if (torpedo_bay_slots[bay] < 0)
+        //update torpedo order to match current bay selection
+        for (int i = 0; i < 5; i++)
         {
-            return;
+            ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().enabled = (torpedo_bay_slots[bay].Count > i);
+            ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetChild(0).gameObject.SetActive(torpedo_bay_slots[bay].Count <= i);
+
+            if (i != 0)
+            {
+                ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 0.1f);
+                torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.02f);
+            }
+            else
+            {
+                torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().enabled = (torpedo_bay_slots[bay].Count > 0);
+                torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(0).GetChild(0).gameObject.SetActive(torpedo_bay_slots[bay].Count == 0);
+            }
+
+            if (torpedo_bay_slots[bay].Count > i)
+            {
+                Color torpedo_color = ship_inventory.getItemColor(1, torpedo_bay_slots[bay][i]);
+                torpedo_color.a = 1.0f;
+                Texture torpedo_icon = ship_inventory.getItemTexture(1, torpedo_bay_slots[bay][i]);
+
+                ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
+                ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
+
+                torpedo_color.a = torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color.a;
+
+                if (i != 0)
+                {
+                    torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
+                    torpedo_color.a = 1.0f;
+                    ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = torpedo_color;
+                }
+                else
+                {
+
+                    torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(0).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
+                    torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(0).gameObject.GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
+                }
+            }
         }
-
-        Texture torpedo_icon = ship_inventory.getItemTexture(1, torpedo_bay_slots[bay]);
-        Color torpedo_color = ship_inventory.getItemColor(1, torpedo_bay_slots[bay]);
-        torpedo_color = new Color(torpedo_color.r, torpedo_color.g, torpedo_color.b, 1.0f);
-
-        //update icon and color
-        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
-        ship_overview_torpedo_information.transform.GetChild(bay).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
-        torpedo_color.a = torpedo_bay_selector_display.transform.GetChild(1).GetChild((bay * 2) + 1).GetComponent<UnityEngine.UI.RawImage>().color.a;
-        torpedo_bay_selector_display.transform.GetChild(1).GetChild(bay * 2).GetComponent<UnityEngine.UI.RawImage>().texture = torpedo_icon;
-        torpedo_bay_selector_display.transform.GetChild(1).GetChild(bay * 2).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
     }
 
     private void displayTorpedoSelectionAdjustment()
@@ -265,20 +290,24 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
         //switch top label/arrow to current bay
         for (int i = 0; i < 4; i++)
         {
-            torpedo_loader_display.transform.GetChild(8).GetChild(i).gameObject.SetActive(i == current_torpedo_bay);
+            torpedo_loader_display.transform.GetChild(6).GetChild(i).gameObject.SetActive(i == current_torpedo_bay);
         }
 
-        //adjust torpedo in current bay
-        torpedo_loader_display.transform.GetChild(6).gameObject.SetActive(torpedo_bay_slots[current_torpedo_bay] == -1);
-        torpedo_loader_display.transform.GetChild(7).gameObject.SetActive(torpedo_bay_slots[current_torpedo_bay] != -1);
-        if (torpedo_bay_slots[current_torpedo_bay] == -1)
+        //update torpedo order to match current bay selection
+        for (int i = 0; i < 5; i++)
         {
-            return;
+            torpedo_loader_display.transform.GetChild(7).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().enabled = (torpedo_bay_slots[current_torpedo_bay].Count > i);
+            torpedo_loader_display.transform.GetChild(7).GetChild(i).GetChild(0).gameObject.SetActive(torpedo_bay_slots[current_torpedo_bay].Count <= i);
+            torpedo_loader_display.transform.GetChild(7).GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.1f);
+            if (torpedo_bay_slots[current_torpedo_bay].Count > i)
+            {
+                Color item_color = ship_inventory.getItemColor(1, torpedo_bay_slots[current_torpedo_bay][i]);
+                item_color.a = 1.0f;
+                torpedo_loader_display.transform.GetChild(7).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
+                torpedo_loader_display.transform.GetChild(7).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().texture = ship_inventory.getItemTexture(1, torpedo_bay_slots[current_torpedo_bay][i]);
+                torpedo_loader_display.transform.GetChild(7).GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
+            }
         }
-        Color item_color = ship_inventory.getItemColor(1, torpedo_bay_slots[current_torpedo_bay]);
-        item_color.a = 1.0f;
-        torpedo_loader_display.transform.GetChild(7).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
-        torpedo_loader_display.transform.GetChild(7).GetComponent<UnityEngine.UI.RawImage>().texture = ship_inventory.getItemTexture(1, torpedo_bay_slots[current_torpedo_bay]);
     }
 
     private void updateCurrentlyLoadableIndicators()
@@ -314,7 +343,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
             return false;
         }
 
-        if (torpedo_bay_slots[current_torpedo_bay] >= 0)
+        if (torpedo_bay_slots[current_torpedo_bay].Count >= 5)
         {
             return false;
         }
@@ -330,7 +359,11 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     //returns -1 if unloaded or 0-5 depending on torpedo index
     public int getBayOccupant(int bay)
     {
-        return torpedo_bay_slots[bay];
+        if (torpedo_bay_slots[bay].Count == 0)
+        {
+            return -1;
+        }
+        return torpedo_bay_slots[bay][0];
     }
 
     //handles the push-in buttons that select which bay to load the torpedo in
@@ -569,11 +602,11 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     [Rpc(SendTo.Everyone)]
     private void transmitTorpedoLoadConfirmationRPC(int torpedo_bay, int torpedo_selection)
     {
-        torpedo_bay_slots[torpedo_bay] = torpedo_selection;
+        torpedo_bay_slots[torpedo_bay].Add(torpedo_selection);
 
         if (NetworkManager.Singleton.IsHost == true)
         {
-            ship_inventory.removeItem(1, torpedo_selection);
+            torpedo_serial_nums[torpedo_bay].Add(ship_inventory.removeItem(1, torpedo_selection));
         }
 
         if (torpedo_confirmation_coroutine != null)

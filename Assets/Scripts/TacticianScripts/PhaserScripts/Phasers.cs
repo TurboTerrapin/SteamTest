@@ -12,7 +12,7 @@ using UnityEngine;
 
 public class Phasers : NetworkBehaviour
 {
-    private static float[] BEAM_RANGES = new float[] { 1000.0f, 500.0f };
+    private static float[] BEAM_RANGES = new float[] { 1100.0f, 650.0f };
     private static float[] BEAM_DIAMETERS = new float[] { 2.0f, 1.5f };
     private static float[] MAX_TRACKING_ANGLES = new float[] { 10.0f, 15.0f };
     private static Vector2[] FIRE_TIMES = new Vector2[] { new Vector2(0.4f, 1.4f), new Vector2(0.2f, 1.2f) }; // fire length

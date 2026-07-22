@@ -3,7 +3,7 @@
     - Used to detect incoming phaser fire or torpedoes
     - Call adjustTorpedoWarning(true) or adjustPhaserWarning(true) if targeting torpedoes or phasers
     Contributor(s): Jake Schott
-    Last Updated: 6/25/2026
+    Last Updated: 7/21/2026
 */
 
 using System.Collections;
@@ -155,8 +155,8 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
 
             normal_elapsed_time += (Time.deltaTime * FLASH_ANIMATION_SPEED);
             alert_elapsed_time += (Time.deltaTime * FLASH_ANIMATION_SPEED * 6.0f);
-            normal_alpha = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(normal_elapsed_time, 1.0f));
-            alert_alpha = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(alert_elapsed_time, 1.0f));
+            normal_alpha = Mathf.Lerp(0.1f, 1.0f, Mathf.PingPong(normal_elapsed_time, 1.0f));
+            alert_alpha = Mathf.Lerp(0.1f, 1.0f, Mathf.PingPong(alert_elapsed_time, 1.0f));
 
             alert_in_effect = false;
             for (int i = 0; i < 2; i++)
