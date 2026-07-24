@@ -3,7 +3,7 @@
     - Handles shifting between forward and reverse
     - Moves shift lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 7/23/2026
 */
 
 using System.Collections;
@@ -14,7 +14,7 @@ using UnityEngine;
 public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float MOVE_SPEED = 0.6f;
+    private static float MOVE_SPEED = 1.2f;
     private static float DELAY_TIME = 1.0f;
     private static Vector3 REVERSE_POS = new Vector3(0.2816f, -1.3416f, 19.1194f);
 
@@ -52,7 +52,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);
 
-        spaceship = GameObject.FindGameObjectWithTag("Spaceship");
+        spaceship = ReferenceAssistor.Instance.spaceship;
 
         forward_pos = lever.transform.localPosition;
     }
@@ -65,30 +65,37 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
         }
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     private void displayAdjustment()
     {
         float percent_to_top = Mathf.Min(1.0f, Mathf.Max(0.0f, (shift_percentage - 0.4f) / 0.2f));
@@ -97,7 +104,7 @@ public class DirectionalShifter : NetworkBehaviour, IControllable, IPowerable, I
         {
             percent_to_center = (((shift_percentage - 0.6f) / 0.4f) * 0.5f) + 0.5f;
         }
-        else if(shift_percentage > 0.4)
+        else if (shift_percentage > 0.4)
         {
             percent_to_center = 0.5f;
         }

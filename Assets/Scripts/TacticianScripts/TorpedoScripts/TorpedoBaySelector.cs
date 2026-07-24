@@ -95,8 +95,27 @@ public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, I
         return current_bay;
     }
 
+    private void changeShiftMarkerColor(Color c)
+    {
+        selector_display.transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        selector_display.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        selector_display.transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+    }
+
+    public void updateShiftMarker()
+    {
+        Color c = ReferenceAssistor.COLOR_OPTIONS[0];
+        if (torpedo_shift_coroutine != null || ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>().getBayOccupant(current_bay) == -1)
+        {
+            c = new Color(0.2f, 0.2f, 0.2f, 1.0f);
+        }
+        changeShiftMarkerColor(c);
+    }
+
     IEnumerator selectorShift()
     {
+        //update markers and arrows
+        changeShiftMarkerColor(new Color(0.2f, 0.2f, 0.2f, 1.0f));
         for (int i = 0; i < 4; i++)
         {
             selector_display.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(false);
@@ -111,15 +130,14 @@ public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, I
             }
         }
 
-        float animation_time = MOVE_TIME;
-
+        //move slider and marker
         Vector3 starting_lever_pos = selector_lever.transform.localPosition;
         Vector3 dest_lever_pos = Vector3.Lerp(initial_pos, FINAL_POS, current_bay / 3.0f);
 
         Vector3 starting_marker_pos = selector_display.transform.GetChild(0).GetChild(0).transform.localPosition;
         Vector3 dest_marker_pos = Vector3.Lerp(new Vector3(0.0f, -0.04f, 0.0f), new Vector3(0.0f, 0.04f, 0.0f), current_bay / 3.0f);
 
-        //move slider and marker
+        float animation_time = MOVE_TIME;
         while (animation_time > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
@@ -155,6 +173,7 @@ public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, I
         BUTTONS[1].untoggle();
 
         torpedo_shift_coroutine = null;
+        updateShiftMarker();
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -204,6 +223,7 @@ public class TorpedoBaySelector : NetworkBehaviour, IControllable, IPowerable, I
         {
             selector_display.transform.GetChild(1).GetChild(i).GetChild(0).gameObject.SetActive(i == 0);
         }
+        updateShiftMarker();
     }
 
     public void powerOn(int position)

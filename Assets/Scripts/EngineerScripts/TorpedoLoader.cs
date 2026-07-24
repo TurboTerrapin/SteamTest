@@ -187,6 +187,21 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     //updates ship overview screen as well as tactician torpedo bay selector screen
     private void displayShipOverviewAdjustment(int bay)
     {
+        //update arrow colors
+        if (torpedo_bay_slots[bay].Count > 0)
+        {
+            ship_overview_torpedo_information.transform.GetChild(bay).GetChild(5).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f);
+            torpedo_bay_selector_display.transform.GetChild(1).GetChild(bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f);
+            torpedo_bay_selector_display.transform.GetChild(1).GetChild(bay).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.1f);
+        }
+        else
+        {
+            ship_overview_torpedo_information.transform.GetChild(bay).GetChild(5).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.05f);
+            torpedo_bay_selector_display.transform.GetChild(1).GetChild(bay).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.05f);
+            torpedo_bay_selector_display.transform.GetChild(1).GetChild(bay).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.004f);
+        }
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TorpedoBaySelector>().updateShiftMarker();
+
         //update torpedo order to match current bay selection
         for (int i = 0; i < 5; i++)
         {
@@ -195,7 +210,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
             if (i != 0)
             {
-                ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 0.1f);
+                ship_overview_torpedo_information.transform.GetChild(bay).GetChild(i).GetChild(1).GetComponent<TMP_Text>().color = new Color(1.0f, 1.0f, 1.0f, 0.02f);
                 torpedo_bay_selector_display.transform.GetChild(2).GetChild(bay).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.02f);
             }
             else
@@ -298,7 +313,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
         {
             torpedo_loader_display.transform.GetChild(7).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().enabled = (torpedo_bay_slots[current_torpedo_bay].Count > i);
             torpedo_loader_display.transform.GetChild(7).GetChild(i).GetChild(0).gameObject.SetActive(torpedo_bay_slots[current_torpedo_bay].Count <= i);
-            torpedo_loader_display.transform.GetChild(7).GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.1f);
+            torpedo_loader_display.transform.GetChild(7).GetChild(i).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 1.0f, 1.0f, 0.02f);
             if (torpedo_bay_slots[current_torpedo_bay].Count > i)
             {
                 Color item_color = ship_inventory.getItemColor(1, torpedo_bay_slots[current_torpedo_bay][i]);

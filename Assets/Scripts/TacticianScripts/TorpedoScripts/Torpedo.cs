@@ -3,7 +3,7 @@
     - Handles torpedo movement and heatseeking
     - Manages stats based on type
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 6/29/2026
+    Last Updated: 7/23/2026
 */
 
 using System.Collections;
@@ -46,16 +46,12 @@ public class Torpedo : NetworkBehaviour
 
     private Transform current_target = null;
 
-    public void Initialize(float power_percent)
+    public void Initialize()
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
             return;
         }
-
-        // Power from TorpedoPowers.cs affects damage capability
-        float power_multiplier = 1.0f + power_percent;
-        damage *= power_multiplier;
 
         // Give it initial forward momentum based on the launcher's orientation
         current_velocity = transform.forward * speed;

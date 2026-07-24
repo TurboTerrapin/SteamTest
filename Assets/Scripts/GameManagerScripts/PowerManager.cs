@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 6/6/2026
+    Last Updated: 7/23/2026
 */
 
 using System.Collections;
@@ -699,7 +699,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private void addTacticianModules()
     {
         List<Component> tactician_modules = new List<Component>();
-        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoPowers")); //1
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("EncryptionKeys")); //1
         tactician_modules.Add(this); //2
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("CloakDetector")); //3
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //4
