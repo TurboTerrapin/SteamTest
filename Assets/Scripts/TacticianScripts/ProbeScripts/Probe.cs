@@ -42,7 +42,7 @@ public class Probe : MonoBehaviour, IDamageable
         //runs until destroyed
         while (true) 
         {
-            for (int i = 1; i <= 3; i++)
+            for (int i = 1; i < 4; i++)
             {
                 transform.GetChild(i).GetComponent<Renderer>().material = lit_orange;
             }
@@ -53,7 +53,7 @@ public class Probe : MonoBehaviour, IDamageable
             }
             yield return new WaitForSeconds(0.1f);
             
-            for (int i = 1; i <= 3; i++)
+            for (int i = 1; i < 4; i++)
             {
                 transform.GetChild(i).GetComponent<Renderer>().material = pure_black;
             }

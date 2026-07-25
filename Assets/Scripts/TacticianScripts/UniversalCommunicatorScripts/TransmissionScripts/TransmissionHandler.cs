@@ -5,7 +5,7 @@
     - Updates frequency text
     - Handles the actual receiving/broadcasting of UniversalCommunicator messages
     Contributor(s): Jake Schott
-    Last Updated: 6/29/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
@@ -133,7 +133,7 @@ public class TransmissionHandler : NetworkBehaviour
             }
             if (index == 1) //broadcast, remove circles
             {
-                universal_communicator.message_preview_display.transform.GetChild(7 - k).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
+                universal_communicator.message_preview_display.transform.GetChild(7 - k).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.08f);
             }
             else //receive, add circles
             {
@@ -192,7 +192,7 @@ public class TransmissionHandler : NetworkBehaviour
         failure_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
 
         //reset glass next to dial
-        displayTransmissionStatus(index, 0.2f);
+        displayTransmissionStatus(index, 0.08f);
 
         activate();
         if (index == 1)
@@ -219,8 +219,8 @@ public class TransmissionHandler : NetworkBehaviour
     {
         input_option_display.SetActive(false);
         output_option_display.SetActive(false);
-        displayTransmissionStatus(0, 0.2f);
-        displayTransmissionStatus(1, 0.2f);
+        displayTransmissionStatus(0, 0.08f);
+        displayTransmissionStatus(1, 0.08f);
         signal_options.deactivate();
         frequency_adjuster.deactivate(false);
 

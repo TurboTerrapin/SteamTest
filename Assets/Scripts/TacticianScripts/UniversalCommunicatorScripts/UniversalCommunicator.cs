@@ -3,7 +3,7 @@
     - Handles inputs for communicator keyboard
     - Displays to code screen
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2026
+    Last Updated: 7/24/2026
 */
 
 using UnityEngine;
@@ -288,9 +288,9 @@ public class UniversalCommunicator : NetworkBehaviour, IPowerable
     public void clearMessagePreview()
     {
         //fade icons
-        for (int i = 0; i <= 7; i++)
+        for (int i = 0; i < 8; i++)
         {
-            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
+            message_preview_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.08f);
         }
     }
 

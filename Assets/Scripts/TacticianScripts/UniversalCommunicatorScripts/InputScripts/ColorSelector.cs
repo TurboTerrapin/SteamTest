@@ -3,7 +3,7 @@
     - Handles color slider
     - Updates characters
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
@@ -124,7 +124,7 @@ public class ColorSelector : NetworkBehaviour, IControllable, IIKTargetable
         for (int i = 0; i < 4; i++)
         {
             Color diamond_color = color_selector_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color;
-            diamond_color.a = 0.2f;
+            diamond_color.a = 0.08f;
             if (i == curr_color)
             {
                 diamond_color.a = 1.0f;

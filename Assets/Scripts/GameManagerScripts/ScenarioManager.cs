@@ -464,28 +464,27 @@ public class ScenarioManager : NetworkBehaviour
         }
     }
 
-    //only run by host, called by PlayerManager.startScenarioRPC()
+    //called by PlayerManager.startScenarioRPC()
     public void startScenario()
     {
-        //general player stuff
+        //host-only stuff
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            enableScenarioTimer();
+            ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().UnlockMovement();
+            ReferenceAssistor.Instance.power_manager.GetComponent<PowerRegulator>().initializePowerRegulator();
+            ReferenceAssistor.Instance.module_handlers[1].GetComponent<EncryptionKeys>().initializeEncryptionKeys();
+            ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
+            ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
+            ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
+        }
+
+        //all players stuff
         IScenario scenario_script = getScenarioScript();
         if (scenario_script != null)
         {
             scenario_script.initiateScenario();
         }
-
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            return;
-        }
-
-        //host-only stuff
-        enableScenarioTimer();
-        ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().UnlockMovement();
-        ReferenceAssistor.Instance.power_manager.GetComponent<PowerRegulator>().initializePowerRegulator();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
-        ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
     }
 
     //called by SignalJammer.cs

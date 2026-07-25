@@ -50,7 +50,7 @@ public class RLGLVisualSpectacle : MonoBehaviour
 
         if (other.gameObject.layer == 9) //Stun ship
         {
-            RedLightGreenLight.shipEnteredSpectacle();
+            RedLightGreenLight.ShipEnteredSpectacle();
         }
         else if (other.GetComponent<CollectibleItem>() != null) //Destroy collectible items
         {

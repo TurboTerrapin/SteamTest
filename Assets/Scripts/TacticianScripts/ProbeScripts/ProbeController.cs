@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
@@ -141,7 +141,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         }
         if (current_probe != null)
         {
-            Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+            Transform world_root = ReferenceAssistor.Instance.world_root.transform;
             current_probe.GetComponent<NetworkObject>().TrySetParent(world_root, true);
             current_probe.GetComponent<SphereCollider>().excludeLayers = LayerMask.GetMask("None");
         }
@@ -158,7 +158,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             {
                 current_probe.GetComponent<NetworkObject>().Despawn(true);
             }
-            Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
+            Transform spaceship = ReferenceAssistor.Instance.spaceship.transform;
             current_probe = GameObject.Instantiate(probe_actual_prefab, spaceship);
             current_probe.transform.localPosition = new Vector3(0.0f, 5.0f, 55.0f);
             current_probe.transform.rotation = spaceship.rotation;
@@ -495,8 +495,8 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             }
             else
             {
-                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 2, 0.2f);
-                probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 2, 0.2f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 2, 0.08f);
+                probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 2, 0.08f);
             }
         }
         else
@@ -507,9 +507,9 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             }
             else
             {
-                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 0.2f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 0.08f);
             }
-            probe_dial_displays[1].SetActive(false);
+            probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 1, 0.08f);
         }
 
         //if not powered, hide both

@@ -2,7 +2,7 @@
     InputOutputToggle.cs
     - Switch that switches between input/output mode
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
@@ -103,8 +103,8 @@ public class InputOutputToggle : NetworkBehaviour, IControllable, IIKTargetable
     {
         for (int i = 0; i < 2; i++)
         {
-            input_output_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
-            input_output_display.transform.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.2f);
+            input_output_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.08f);
+            input_output_display.transform.GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.08f);
         }
 
         input_output_display.transform.GetChild(arrow_to_highlight).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);

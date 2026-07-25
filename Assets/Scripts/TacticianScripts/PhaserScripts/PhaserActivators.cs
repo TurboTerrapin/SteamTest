@@ -2,7 +2,7 @@
     PhaserActivators.cs
     - Determines whether phasers are enabled or not
     Contributor(s): Jake Schott
-    Last Updated: 5/29/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
@@ -24,7 +24,6 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     private List<Button>[] BUTTON_LISTS = new List<Button>[3] { new List<Button>(), new List<Button>(), new List<Button>() };
 
     public List<GameObject> phaser_switches = null;
-    public List<GameObject> phaser_coverups = null;
     public GameObject phaser_activator_display;
 
     private PhaserIntensities phaser_intensities;
@@ -64,6 +63,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
         hud_info.setButtons(BUTTON_LISTS[0], 6);
         hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
@@ -77,19 +77,23 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
         hud_info.setPowerConsumption(power_consumption);
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
@@ -99,6 +103,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -129,20 +134,11 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
         //disable phasers
         if (phaser_is_enabled[index] == true)
         {
-            phaser_coverups[index].SetActive(true);
             phaser_is_enabled[index] = false;
             phasers.updatePhasers();
             handlePowerConsumptionChange();
             increasing = false;
-
-            if (index == 0)
-            {
-                phaser_intensities.changeInPower(0, false);
-            }
-            else
-            {
-                phaser_intensities.changeInPower(index, phaser_is_enabled[1] == true || phaser_is_enabled[2] == true);
-            }
+            phaser_intensities.onPhaserActivationChange();
         }
 
         float switch_time = SWITCH_TIME;
@@ -177,18 +173,10 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
         //enable phasers
         if (increasing == true)
         {
-            phaser_coverups[index].SetActive(false);
             phaser_is_enabled[index] = true;
             phasers.updatePhasers();
             handlePowerConsumptionChange();
-            if (index == 0)
-            {
-                phaser_intensities.changeInPower(0, true);
-            }
-            else
-            {
-                phaser_intensities.changeInPower(1, true);
-            }
+            phaser_intensities.onPhaserActivationChange();
             BUTTON_LISTS[index][0].updateDesc(CONTROL_DESCS[1]);
         }
         else

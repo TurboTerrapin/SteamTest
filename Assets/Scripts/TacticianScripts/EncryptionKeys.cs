@@ -17,7 +17,7 @@ public class EncryptionKeys : NetworkBehaviour, IControllable, IPowerable, IIKTa
     private static float MOVE_SPEED = 0.15f;
     private static Vector3 FINAL_LEVER_DIRECTION = new Vector3(0.074f, 0.027f, 0.0f); //key 99
 
-    private string[] CONTROL_NAMES = new string[] { "BLUE ENCRYPTION KEY", "PURPLE ENCRYPTION KEY", "ORANGE ENCRYPTION KEY", "GREEN ENCRYPTION KEY" };
+    private string[] CONTROL_NAMES = new string[] { "ENCRYPTION KEY BLUE", "ENCRYPTION KEY PURPLE", "ENCRYPTION KEY ORANGE", "ENCRYPTION KEY GREEN" };
     private static string INFO_MESSAGE = "Handles adjustment of two-digit encryption keys used for computer procedures.";
     private List<string> CONTROL_DESCS = new List<string> { "DECREASE", "INCREASE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
@@ -28,7 +28,6 @@ public class EncryptionKeys : NetworkBehaviour, IControllable, IPowerable, IIKTa
 
     private bool is_powered = false;
     private float[] handle_percentages = new float[] { 0.0f, 0.0f, 0.0f, 0.0f };
-    private int[] encryption_keys = new int[] { 0, 0, 0, 0 };
     private Vector3[] final_positions = new Vector3[4]; //handle starting position (key 00)
 
     private List<string> ray_targets = new List<string> { "encryption_key_blue", "encryption_key_purple", "encryption_key_orange", "encryption_key_green" };
@@ -102,9 +101,19 @@ public class EncryptionKeys : NetworkBehaviour, IControllable, IPowerable, IIKTa
         return lerp_speed;
     }
 
+    public void initializeEncryptionKeys()
+    {
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
+
+        transmitEncryptionKeysInitializationRPC(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f));
+    }
+
     public int getEncryptionKey(int index)
     {
-        return encryption_keys[index];
+        return Mathf.FloorToInt(99.0f * handle_percentages[index]);
     }
 
     private void displayAdjustment(int index)
@@ -128,7 +137,7 @@ public class EncryptionKeys : NetworkBehaviour, IControllable, IPowerable, IIKTa
         }
 
         //update text
-        string encryption_number = encryption_keys[index].ToString();
+        string encryption_number = getEncryptionKey(index).ToString();
         if (encryption_number.Length == 1)
         {
             encryption_number = "0" + encryption_number;
@@ -164,12 +173,11 @@ public class EncryptionKeys : NetworkBehaviour, IControllable, IPowerable, IIKTa
             {
                 handle_percentages[index] = Mathf.Max(0.0f, handle_percentages[index] - dt * MOVE_SPEED);
             }
-            encryption_keys[index] = Mathf.FloorToInt(99.0f * handle_percentages[index]);
 
             BUTTON_LISTS[index][0].updateInteractable(handle_percentages[index] > 0.0f);
             BUTTON_LISTS[index][1].updateInteractable(handle_percentages[index] < 1.0f);
 
-            transmitEncryptionKeyAdjustmentRPC(index, handle_percentages[index], encryption_keys[index]);
+            transmitEncryptionKeyAdjustmentRPC(index, handle_percentages[index]);
         }
     }
 
@@ -206,10 +214,22 @@ public class EncryptionKeys : NetworkBehaviour, IControllable, IPowerable, IIKTa
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitEncryptionKeyAdjustmentRPC(int index, float handle_prcnt, int encryption_key)
+    private void transmitEncryptionKeysInitializationRPC(float handle_prcnt_blue, float handle_prcnt_purple, float handle_prcnt_orange, float handle_prcnt_green)
+    {
+        handle_percentages[0] = handle_prcnt_blue;
+        handle_percentages[1] = handle_prcnt_purple;
+        handle_percentages[2] = handle_prcnt_orange;
+        handle_percentages[3] = handle_prcnt_green;
+        for (int i = 0; i < 4; i++)
+        {
+            displayAdjustment(i);
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void transmitEncryptionKeyAdjustmentRPC(int index, float handle_prcnt)
     {
         handle_percentages[index] = handle_prcnt;
-        encryption_keys[index] = encryption_key;
         displayAdjustment(index);
     }
 }

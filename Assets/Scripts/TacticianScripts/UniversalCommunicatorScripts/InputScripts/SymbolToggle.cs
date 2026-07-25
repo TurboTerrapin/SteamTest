@@ -2,7 +2,7 @@
     SymbolToggle.cs
     - Slider that switches UniversalCommunicator input mode between symbols and numbers
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
@@ -111,7 +111,7 @@ public class SymbolToggle : NetworkBehaviour, IControllable, IIKTargetable
         //update symbol toggle glass
         for (int i = 0; i < 2; i++)
         {
-            float a = 0.2f;
+            float a = 0.08f;
             if (symbol_mode == true && i == 1)
             {
                 a = 1.0f;

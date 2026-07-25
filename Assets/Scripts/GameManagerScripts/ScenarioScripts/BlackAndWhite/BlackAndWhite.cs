@@ -410,7 +410,10 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         emitter_shields[index].SetActive(false);
         for (int i = 0; i < 3; i++)
         {
-            radiation_emitters[i + (index * 3)].GetComponent<BWEmitter>().onProtectiveShieldsDiabled();
+            if (radiation_emitters[i + (index * 3)] != null)
+            {
+                radiation_emitters[i + (index * 3)].GetComponent<BWEmitter>().onProtectiveShieldsDiabled();
+            }
         }
         StartCoroutine(shieldDisableFlash(index));
     }

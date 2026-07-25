@@ -106,10 +106,10 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         screenSpaceLensFlare.samples.Override(1);
         screenSpaceLensFlare.vignetteEffect.Override(1.0f);
         screenSpaceLensFlare.streaksIntensity.Override(0.1f);
-        displayWarningEffectAdjustment();
+        DisplayWarningEffectAdjustment();
     }
 
-    private void displayWarningEffectAdjustment()
+    private void DisplayWarningEffectAdjustment()
     {
         rlglSound.pitch = rlglWarningEffectIntensity * 2.0f;
         ReferenceAssistor.Instance.audio_manager.AdjustDistortion(0.92f * rlglWarningEffectIntensity);
@@ -119,23 +119,28 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         colorAdjustments.saturation.Override(rlglWarningEffectIntensity * 75.0f);
     }
 
-    private void Update()
+    IEnumerator EffectAdjuster()
     {
-        float updatedIntensity = 0.0f;
-        if (currentlyRedLight == true)
+        while (true)
         {
-            updatedIntensity = impulseThrottle.getCurrentImpulse();
-        }
-        updatedIntensity = Mathf.MoveTowards(rlglWarningEffectIntensity, updatedIntensity,  WARNING_EFFECT_UPDATE_SPEED * Time.deltaTime);
-        if (updatedIntensity != rlglWarningEffectIntensity)
-        {
-            rlglWarningEffectIntensity = updatedIntensity;
-            displayWarningEffectAdjustment();
+            float updatedIntensity = 0.0f;
+            if (currentlyRedLight == true)
+            {
+                updatedIntensity = impulseThrottle.getCurrentImpulse();
+            }
+            updatedIntensity = Mathf.MoveTowards(rlglWarningEffectIntensity, updatedIntensity, WARNING_EFFECT_UPDATE_SPEED * Time.deltaTime);
+            if (updatedIntensity != rlglWarningEffectIntensity)
+            {
+                rlglWarningEffectIntensity = updatedIntensity;
+                DisplayWarningEffectAdjustment();
+            }
+
+            yield return null;
         }
     }
 
     //called when ship runs into the visual spectacle
-    public void shipEnteredSpectacle()
+    public void ShipEnteredSpectacle()
     {
         if (stunSound.isPlaying == false)
         {
@@ -163,6 +168,8 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
 
     public void initiateScenario()
     {
+        StartCoroutine(EffectAdjuster());
+
         if (NetworkManager.Singleton.IsHost == false)
         {
             return;
@@ -196,6 +203,7 @@ public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommuni
         patternInitializationRPC(centerIndex, cc, rt, rid);
         enterRedLightStateRPC();
     }
+
     IEnumerator GreenLightState()
     {
         //contract energy pattern
