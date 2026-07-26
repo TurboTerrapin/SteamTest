@@ -50,6 +50,16 @@ public class CustomizeCharacterMenu : MonoBehaviour
     public UIButton LeftClothingButton;
     public UIButton RightClothingButton;
     private int CurrentClothingOptionIndex = 0;
+
+    [SerializeField]
+    private List<GameObject> shirtOptions = new List<GameObject>();
+    [SerializeField]
+    private List<Material> shirtMaterials = new List<Material>();
+    [SerializeField]
+    private List<GameObject> pantsOptions = new List<GameObject>();
+    [SerializeField]
+    private List<Material> pantsMaterials = new List<Material>();
+
     private string[] ClothingOptions = { "Blue Uniform", "Purple Uniform", "Orange Uniform", "Green Uniform" };
 
     public TMP_Text HairOptionText;
