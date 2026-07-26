@@ -39208,6 +39208,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetMeshRenderer: {fileID: 1935365250}
+--- !u!137 &817933089 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5919100220734724927, guid: 5e3ca7565bf25b443a401aea50550e7c, type: 3}
+  m_PrefabInstance: {fileID: 817933084}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &819841865
 GameObject:
   m_ObjectHideFlags: 0
@@ -39560,6 +39565,11 @@ MonoBehaviour:
   pantsMaterials:
   - {fileID: -6478536213147159724, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
   - {fileID: 2100000, guid: 1f16ea9e32e548b42bd5fc717e7599b1, type: 2}
+  ClothingOptions:
+  - Blue Uniform
+  - Purple Uniform
+  - Orange Uniform
+  - Green Uniform
   HairOptionText: {fileID: 1083222452}
   LeftHairButton: {fileID: 634561621}
   RightHairButton: {fileID: 1129507294}
@@ -39571,6 +39581,8 @@ MonoBehaviour:
   LeftEyeRenderer: {fileID: 1560365211}
   RightEyeRenderer: {fileID: 1855128313}
   DummyRenderer: {fileID: 1935365250}
+  ShirtRenderer: {fileID: 817933089}
+  PantsRenderer: {fileID: 1808501949}
 --- !u!114 &820769107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -132165,6 +132177,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetMeshRenderer: {fileID: 1935365250}
+--- !u!137 &1808501949 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -5291407736170811975, guid: b49636fadec42f4439fff0967ef8db42, type: 3}
+  m_PrefabInstance: {fileID: 1808501944}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1809969256
 GameObject:
   m_ObjectHideFlags: 0

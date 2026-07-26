@@ -3,7 +3,6 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Splines;
-using static UnityEditor.PlayerSettings;
 
 public class ProbeFollowSpline : MonoBehaviour
 {
