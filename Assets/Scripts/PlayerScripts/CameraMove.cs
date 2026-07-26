@@ -39,6 +39,9 @@ public class CameraMove : MonoBehaviour
     private List<Vector2> cameraShakeEffects = new List<Vector2>(); //Any current camera shake effects (X = time remaining, Y = intensity)
     private float cameraShakeIntensity = 0.0f; //Ranges from 0-1, 1 being full shake
 
+    [SerializeField]
+    private AnimationCurve chestIKLookAtCurve = new AnimationCurve();
+
     private void Start()
     {
         if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //Not owner, kill the camera
@@ -297,7 +300,10 @@ public class CameraMove : MonoBehaviour
             }
             else
             {
-                animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
+                //animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
+
+                Debug.Log(prevPos.x + " and " + (prevPos.x / 120) + " and " + chestIKLookAtCurve.Evaluate(prevPos.x / 120));
+                animatorHandler.chestlookat = chestIKLookAtCurve.Evaluate(prevPos.x / 120);
             }
 
                 animatorHandler.chestlookat *= (prevPos.y + 10) / 100;

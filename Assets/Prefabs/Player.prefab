@@ -270,7 +270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 4033476747
+  GlobalObjectIdHash: 2290305919
   InScenePlacedSourceGlobalObjectIdHash: 2049436854
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -401,6 +401,57 @@ MonoBehaviour:
   cameraHolder: {fileID: 682683335958875487}
   headTransform: {fileID: 9205947212310833813}
   parentRotationLock: 0
+  chestIKLookAtCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -0.9999894
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: -0.5005435
+      value: 0.0011469126
+      inSlope: -0.005698866
+      outSlope: -0.005698866
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.4538292
+    - serializedVersion: 3
+      time: 0.0000003507448
+      value: -0.0031728745
+      inSlope: 0.00000017880612
+      outSlope: 0.00000017880612
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.5009877
+      value: 0.00060003996
+      inSlope: 0.052196156
+      outSlope: 0.052196156
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.7060227
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1.0000025
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &5259488574847259791
 GameObject:
   m_ObjectHideFlags: 0
