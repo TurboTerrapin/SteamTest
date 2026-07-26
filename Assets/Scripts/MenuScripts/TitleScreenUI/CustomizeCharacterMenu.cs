@@ -75,6 +75,8 @@ public class CustomizeCharacterMenu : MonoBehaviour
     public MeshRenderer LeftEyeRenderer;
     public MeshRenderer RightEyeRenderer;
     public SkinnedMeshRenderer DummyRenderer;
+    public SkinnedMeshRenderer ShirtRenderer;
+    public SkinnedMeshRenderer PantsRenderer;
 
 
     void Start()
@@ -292,6 +294,16 @@ public class CustomizeCharacterMenu : MonoBehaviour
     private void UpdateClothingOptionText()
     {
         ClothingOptionText.text = ClothingOptions[CurrentClothingOptionIndex];
+
+
+        //Destroy(ShirtRenderer.transform.GetChild(0).gameObject);
+        //Destroy(PantsRenderer.transform.GetChild(0).gameObject);
+        //ShirtRenderer = Instantiate(shirtOptions[CurrentClothingOptionIndex], ShirtRenderer.transform);
+        //PantsRenderer = Instantiate(pantsOptions[CurrentClothingOptionIndex], PantsRenderer.transform);
+        ShirtRenderer.sharedMesh = shirtOptions[CurrentClothingOptionIndex].GetComponent<SkinnedMeshRenderer>().sharedMesh;
+        ShirtRenderer.material = shirtMaterials[CurrentClothingOptionIndex];
+        PantsRenderer.sharedMesh = pantsOptions[CurrentClothingOptionIndex].GetComponent<SkinnedMeshRenderer>().sharedMesh;
+        PantsRenderer.material = pantsMaterials[CurrentClothingOptionIndex];
     }
 
 
