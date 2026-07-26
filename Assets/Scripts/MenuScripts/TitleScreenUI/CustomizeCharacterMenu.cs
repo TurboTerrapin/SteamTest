@@ -60,6 +60,7 @@ public class CustomizeCharacterMenu : MonoBehaviour
     [SerializeField]
     private List<Material> pantsMaterials = new List<Material>();
 
+    [SerializeField]
     private string[] ClothingOptions = { "Blue Uniform", "Purple Uniform", "Orange Uniform", "Green Uniform" };
 
     public TMP_Text HairOptionText;
