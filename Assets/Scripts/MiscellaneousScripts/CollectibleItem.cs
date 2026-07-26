@@ -63,19 +63,19 @@ public class CollectibleItem : MonoBehaviour, ITractorBeamable, IDamageable
         is_probe = (transform.GetComponent<Probe>() != null);
     }
 
-    public void damage(float dam)
+    public void damage(float damage, IDamageable.DamageType damage_type)
     {
         if (NetworkManager.Singleton.IsHost == false || is_probe == true || item_health <= 0.0f) //probe damage handled by Probe.cs
         {
             return;
         }
 
-        item_health = Mathf.Max(0.0f, item_health - dam);
+        item_health = Mathf.Max(0.0f, item_health - damage);
 
         //handle destruction
         if (item_health <= 0.0f)
         {
-            GameObject.Find("EffectsHandler").GetComponent<EffectsHandler>().createExplosion(transform.position, explosion_size, explosion_color);
+            ReferenceAssistor.Instance.effects_handler.createExplosion(transform.position, explosion_size, false, explosion_color);
             GetComponent<NetworkObject>().Despawn(true);
         }
     }
@@ -120,14 +120,19 @@ public class CollectibleItem : MonoBehaviour, ITractorBeamable, IDamageable
         }
     }
 
+    public bool getTractorBeamable()
+    {
+        return true;
+    }
+
     public Texture getItemTexture()
     {
-        return GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>().getItemTexture(item_category, item_index);
+        return ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>().getItemTexture(item_category, item_index);
     }
 
     public Color getItemColor()
     {
-        return GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>().getItemColor(item_category, item_index);
+        return ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>().getItemColor(item_category, item_index);
     }
 
     public int getItemCategory()

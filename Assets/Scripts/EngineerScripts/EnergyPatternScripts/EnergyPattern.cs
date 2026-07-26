@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 3/2/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -30,6 +30,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public GameObject energy_pattern_display;
     public GameObject energy_pattern_signal_display;
     public GameObject enabled_indicator;
+    public AudioClip energy_pattern_notification;
 
     public List<Texture> center_options;
     public List<Texture> ring_options;
@@ -131,6 +132,9 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         energy_pattern_display.GetComponent<PatternVisualizer>().displayPattern(corresponding_pattern_data);
         updateSignalIndicator();
         energy_pattern_display.transform.GetChild(0).gameObject.SetActive(display_enabled);
+
+        //play notification
+        ReferenceAssistor.Instance.audio_manager.AddNotification(0, energy_pattern_notification);
 
         //handle orange blinker
         if (display_enabled == false && alert_flasher_coroutine == null)
@@ -252,7 +256,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         {
             elapsed_time += Time.deltaTime * ENABLED_BLINKER_REFRESH;
             float a = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(elapsed_time, 1.0f));
-            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.47f, 0.0f, a);
+            enabled_indicator.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.47f, 0.0f, a);
 
             yield return null;
         }
@@ -268,7 +272,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
                 StopCoroutine(alert_flasher_coroutine);
                 alert_flasher_coroutine = null;
             }
-            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            enabled_indicator.GetComponent<SpriteRenderer>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
         }
         else if (is_powered == true && display_enabled == false && corresponding_pattern_data != null)
         {
@@ -284,7 +288,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
                 StopCoroutine(alert_flasher_coroutine);
                 alert_flasher_coroutine = null;
             }
-            enabled_indicator.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, 0.0f);
+            enabled_indicator.GetComponent<SpriteRenderer>().color = new Color(0.0f, 0.84f, 1.0f, 0.0f);
         }
     }
 

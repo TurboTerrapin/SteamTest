@@ -2,7 +2,7 @@
     InitRedLightGreenLight
     - Used for initializing permanent information on RedLightGreenLight (code options)
     Contributor(s): Jake Schott
-    Last Updated: 2/24/2026
+    Last Updated: 7/17/2026
 */
 
 using Unity.Netcode;
@@ -19,7 +19,7 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
     private int[] centerColors = new int[8];
 
     public List<UnityEngine.UI.Image> manual_options;
-    public TMP_Text manual_result_text;
+    public TMP_Text manual_desc_text;
 
     private void Awake()
     {
@@ -28,7 +28,7 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
 
     private void Start()
     {
-        manual_result_text.SetText(manual_result_text.text + RedLightGreenLight.GREEN_LIGHT_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
+        manual_desc_text.SetText(manual_desc_text.text + RedLightGreenLight.GREEN_LIGHT_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
     }
 
     public void initializeDatabaseInformation()
@@ -73,6 +73,7 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
     {
         centerColors[index] = centerColor;
         Color c = ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().color_options[centerColor];
+        manual_options[index].GetComponent<ManualTextureLinker>().setColor(c);
         c.a = 0.2f;
         manual_options[index].color = c;
         manual_options[index].transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = c;
@@ -87,7 +88,7 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
             cin[i] = false;
             cc[i] = 0;
         }
-        scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeIndices(ci);
+        scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeIndexes(ci);
         scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeIsNumeric(cin);
         scenarioDatabaseRLGL.transform.GetChild(index).GetComponent<UniversalCommunicatorCodeData>().setCodeColors(cc);
     }

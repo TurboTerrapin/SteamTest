@@ -12,7 +12,7 @@ public class ComputerArray : NetworkBehaviour, IPowerable
 {
     public GameObject computer_array_display;
 
-    private bool is_powered = false;
+    //private bool is_powered = false;
 
     private void Start()
     {
@@ -31,13 +31,13 @@ public class ComputerArray : NetworkBehaviour, IPowerable
 
     public void powerOn(int position)
     {
-        is_powered = true;
+        //is_powered = true;
         computer_array_display.SetActive(true);
     }
 
     public void powerOff(int position, float time)
     {
-        is_powered = false;
+        //is_powered = false;
         computer_array_display.SetActive(false);
     }
 }

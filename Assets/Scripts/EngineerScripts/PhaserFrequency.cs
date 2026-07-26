@@ -2,14 +2,13 @@
     PhaserFrequency.cs
     - Handles inputs for engineer phaser frequency adjustment
     Contributor(s): Jake Schott
-    Last Updated: 2/17/2026
+    Last Updated: 6/27/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 using static AnimatorHandler;
 
@@ -20,8 +19,8 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable, IIKT
     private static float FREQUENCY_SWITCH_SPEED = 10.0f;
     private Vector3 PHASER_FREQ_SLIDER_FINAL_POS = new Vector3(7.7154f, -0.1597f, -8.3744f);
     private static float SWITCH_TIME = 0.5f;
-    private static int[] MIN_FREQUENCIES = { 40, 20 }; //long-range, short-range
-    private static int[] MAX_FREQUENCIES = { 70, 90 }; //long-range, short-range
+    public static int[] MIN_FREQUENCIES = { 40, 20 }; //long-range, short-range
+    public static int[] MAX_FREQUENCIES = { 70, 90 }; //long-range, short-range
 
     private string CONTROL_NAME = "PHASER FREQUENCIES";
     private static string INFO_MESSAGE = "Adjusts phaser frequency for either long-range or short-range phasers to improve efficiency.";
@@ -34,7 +33,6 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable, IIKT
     public GameObject phaser_frequency_dial;
 
     private Vector3 phaser_freq_slider_initial_pos; //slider starting position (long-range phaser)
-
 
     private bool is_powered = false;
     private int phaser_to_adjust = 0; //0 is long-range, 1 is short-range
@@ -69,10 +67,12 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable, IIKT
         hud_info.setButtons(BUTTONS, 5);
         hud_info.setInfo(INFO_MESSAGE);
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         if (button_index == 0)
@@ -85,7 +85,6 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable, IIKT
             int shortestIndex = 1;
             if (increasing)
             {
-                
                 shortestDistance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[shortestIndex].transform.position);
                 for (int i = 2; i < IK_targets.Count; i++)
                 {
@@ -113,25 +112,35 @@ public class PhaserFrequency : NetworkBehaviour, IControllable, IPowerable, IIKT
             return IK_targets[shortestIndex].transform;
         }
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_types[button_index];
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
+    }
+
+    public int getCurrentPhaserFrequency(int index)
+    {
+        return phaser_frequencies[index];
     }
 
     private void displayFrequencyAdjustment()

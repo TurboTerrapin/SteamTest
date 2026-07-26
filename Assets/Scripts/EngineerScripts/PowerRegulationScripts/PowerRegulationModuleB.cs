@@ -2,7 +2,7 @@
     PowerRegulationModuleB.cs
     - Handles the lever pushing mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -26,6 +26,8 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
     public GameObject prsb_display;
     public List<GameObject> prsb_sliders = null;
 
+    private PowerRegulator power_regulator;
+
     private bool currently_active = false;
 
     private Vector3[] initial_positions = new Vector3[3];
@@ -48,6 +50,8 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
 
     private void Start()
     {
+        power_regulator = GameObject.Find("PowerHandler").GetComponent<PowerRegulator>();
+
         for (int i = 0; i < 3; i++)
         {
             initial_positions[i] = prsb_sliders[i].transform.localPosition;
@@ -68,27 +72,33 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -236,6 +246,10 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
     {
         float old_percentage = slide_percentages[index];
         slide_percentages[index] = new_percentage;
+        if (slide_percentages[index] >= 1.0f)
+        {
+            power_regulator.playCorrectSound();
+        }
         displayAdjustment();
         
         if (new_percentage < old_percentage) //means an automatic decrease
@@ -284,6 +298,6 @@ public class PowerRegulationModuleB : NetworkBehaviour, IControllable, IPowerReg
             }
         }
 
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().moduleCompleted(this.GetType().Name);
+        power_regulator.moduleCompleted(this.GetType().Name);
     }
 }

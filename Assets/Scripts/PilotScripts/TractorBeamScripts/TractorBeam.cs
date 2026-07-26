@@ -4,7 +4,7 @@
     - Communicates with TractorBeamOptions once item collected
     - Driven by TractorBeamPower.cs by power
     Contributor(s): Henryk Musial
-    Last Updated: 4/11/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -17,6 +17,7 @@ public class TractorBeam : NetworkBehaviour
     // REFERENCES
     public Transform beamOriginPoint;
     public Material tractorBeamMaterial;
+    public AudioClip tractor_beam_capture_notification;
     private EffectsHandler effectsHandler;
     private TractorBeamPower tractorBeamPower;
     private TractorBeamOptions tractorBeamOptions;
@@ -94,7 +95,7 @@ public class TractorBeam : NetworkBehaviour
 
         foreach (Collider collider in potentialTargets)
         {
-            if (collider.GetComponent<ITractorBeamable>() != null)
+            if (collider.GetComponent<ITractorBeamable>() != null && collider.GetComponent<ITractorBeamable>().getTractorBeamable() == true)
             {
                 Vector3 toTarget = collider.transform.position - beamOriginPoint.transform.position;
                 float distance = toTarget.magnitude;
@@ -146,7 +147,11 @@ public class TractorBeam : NetworkBehaviour
 
                 if (distance <= captureDistance)
                 {
-                    string serialNumber = targetXform.GetComponent<CollectibleItem>().getSerialNumber();
+                    string serialNumber = "";
+                    if (targetXform.GetComponent<CollectibleItem>() != null)
+                    {
+                        serialNumber = targetXform.GetComponent<CollectibleItem>().getSerialNumber();
+                    }
                     OnTargetCapturedRPC(targetXform.GetComponent<NetworkObject>().NetworkObjectId, serialNumber);
                     return; // Stop attracting, target found
                 }
@@ -178,6 +183,7 @@ public class TractorBeam : NetworkBehaviour
     public void ClearCapturedItem()
     {
         itemCurrentlyCaptured = false;
+        currentlyAttracting = false;
         capturedItem = null;
         capturedItemSerialNumber = "";
         itemCaptureAdjustmentCoroutine = null;
@@ -228,6 +234,8 @@ public class TractorBeam : NetworkBehaviour
         
         tractorBeamOptions.activate(capturedItem, capturedItemSerialNumber);
         tractorBeamPower.onItemCapturedChange();
+
+        ReferenceAssistor.Instance.audio_manager.AddNotification(0, tractor_beam_capture_notification);
 
         if (NetworkManager.Singleton.IsHost == true)
         {

@@ -1,8 +1,8 @@
 /*
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
-    Contributor(s): John Aylward, Jake Schott
-    Last Updated: 3/22/2026
+    Contributor(s): John Aylward, Jake Schott, Henryk Musial
+    Last Updated: 7/19/2026
 */
 
 using System.Collections;
@@ -11,54 +11,52 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//contains info for an off-limits spawn location (ex. RLGL spectacle) at the start of a scenario
+public struct OffLimitsSpawnLocation
+{
+    public Vector3 position;
+    public float radius;
+
+    public OffLimitsSpawnLocation(Vector3 position, float radius)
+    {
+        this.position = position;
+        this.radius = radius;
+    }
+}
+
 public class ScenarioManager : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure
+    private static int[] COUNTDOWN_TIME = new int[] { 900, 720, 600, 360 }; //how long each round lasts before scenario failure based on difficulty
+    private static int[][] SCENARIO_SEQUENCE = new int[][] //denotes number of scenarios and scenario tier (1-3) to reach Deep Space Five
+    {
+        new int[]{ 1, 1, 2, 2, 3 }, //easy
+        new int[]{ 1, 2, 2, 3, 2, 3}, //medium
+        new int[]{ 2, 2, 1, 2, 1, 2, 3, 3}, //hard
+        new int[]{ 2, 2, 3, 2, 2, 3, 2, 3, 2, 3} //expert
+    };
+    private static string[][] SCENARIO_POSSIBILITIES = new string[][]
+    {
+        new string[]{ "RedLightGreenLight", "Minefield", "BlackAndWhite", "Historian", "SinisterSymphony", "PartyMode", "GuardiansOfPeace" }, //tier 1 scenarios
+        new string[]{ "Indestructibles", "Wreckage", "IntergalacticZoo", "PurpleAlert" }, //tier 2 scenarios
+        new string[]{ "Temple", "BlackHole", "InvisibleEnemy", "MiserableMeevils", "ZybokProtocol" } //tier 3 scenarios
+    };
+    private static int[] OBTAINABLE_COLLECTIBLE_ITEMS = new int[] { 8, 6, 4, 2 }; //how many random collectibles spawn inside the boundary per scenario based on difficulty
     public const int BOUNDARY_SIZE = 5000; //diamater of boundary circle, referenced by PilotingSystem, NavigationMap, ProximityMap
-    public const int BOUNDARY_ALTITUDE = 100; //how high/low the ship can go in either direction
-    public const int START_DIST_OFFSET = 500; //how far back the ship starts in the entrance path
+    public const int BOUNDARY_ALTITUDE = 130; //how high/low the ship can go in either direction
+    public const int START_DIST_OFFSET = 600; //how far back the ship starts in the entrance path
     public const int DIST_TO_ENDPOINT = 200; //how far into the exit path until endpoint reached
     public const float PATH_SIZE = 10.0f; //for entrance/exit paths, degrees of the boundary, does not reflect on NavigationMap so be careful!
+    private static int MAX_SPAWN_LOCATION_SEARCH_ATTEMPTS = 30;
 
     //different reasons for why a scenario ended
     public enum EndCondition
     {
-        ReachedEndpoint = 0,
-        LeftBoundary = 1,
-        ShipDestroyed = 2,
-        TimeRanOut = 3,
-        SelfDestructed = 4
-    }
-
-    //contains info for a spawn location at the start of a scenario
-    private struct OccupiedSpawnLocation
-    {
-        private Vector3 spawn_position;
-        private float spawn_radius;
-        private bool infinitely_tall;
-
-        public OccupiedSpawnLocation(Vector3 p, float r, bool it)
-        {
-            spawn_position = p;
-            spawn_radius = r;
-            infinitely_tall = it;
-        }
-
-        public Vector3 getSpawnPosition()
-        {
-            return spawn_position;
-        }
-
-        public float getSpawnRadius()
-        {
-            return spawn_radius;
-        }
-
-        public bool getInfinitelyTall()
-        {
-            return infinitely_tall;
-        }
+        ReachedEndpoint,
+        LeftBoundary,
+        ShipDestroyed,
+        TimeRanOut,
+        SelfDestructed
     }
 
     public GameObject player_manager; 
@@ -76,10 +74,19 @@ public class ScenarioManager : NetworkBehaviour
     private BackgroundAnimator background_animator;
     private Coroutine countdown_coroutine = null;
 
-    private List<OccupiedSpawnLocation> occupied_spawn_locations = new List<OccupiedSpawnLocation>();
+    private List<Vector3> spawn_locations = new List<Vector3>();
     private bool endpoint_reached = false;
     private bool game_over = false;
-    private int scenario_number = 0;
+    private List<string>[] already_defeated_scenarios = new List<string>[]
+    {
+        new List<string>(), //tier 1 scenarios
+        new List<string>(), //tier 2 scenarios
+        new List<string>() //tier 3 scenarios
+    };
+    private List<string> implemented_scenarios = new List<string>();
+    private int num_scenarios_defeated = 0;
+    private int current_scenario_index = -1;
+    private int countdown_time_to_add = 0; //for controls/scenarios that want to add countdown time
     private int game_difficulty = -1; //assigned by LobbyHandler, goes easy, medium, hard, expert (0-3)
 
     //entrance/exit channel info
@@ -91,7 +98,7 @@ public class ScenarioManager : NetworkBehaviour
     private void Awake()
     {
         lobby_handler = GameObject.Find("LobbyHandler").GetComponent<LobbyHandler>();
-        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
+        ship_inventory = ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>();
         scenario_countdown = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioCountdown>();
         scenario_map = ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>();
         power_manager = ReferenceAssistor.Instance.power_manager;
@@ -99,6 +106,21 @@ public class ScenarioManager : NetworkBehaviour
         lights_manager = GameObject.Find("LightsManager").GetComponent<LightsManager>();
         background_animator = GameObject.Find("BackgroundAnimator").GetComponent<BackgroundAnimator>();
         game_difficulty = lobby_handler.getDifficulty();
+
+        for (int tier = 0; tier < 3; tier++)
+        {
+            for (int scenario = 0; scenario < SCENARIO_POSSIBILITIES[tier].Length; scenario++)
+            {
+                for (int scene = 0; scene < SceneManager.sceneCountInBuildSettings; scene++)
+                {
+                    if (SceneUtility.GetScenePathByBuildIndex(scene).Contains(SCENARIO_POSSIBILITIES[tier][scenario]) == true)
+                    {
+                        implemented_scenarios.Add(SCENARIO_POSSIBILITIES[tier][scenario]);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     public int getDifficulty()
@@ -106,53 +128,161 @@ public class ScenarioManager : NetworkBehaviour
         return game_difficulty;
     }
 
-    public void forceSpawnLocation(Vector3 location, float radius, bool infinitely_tall)
+    public int getCurrentScenarioIndex()
     {
-        occupied_spawn_locations.Add(new OccupiedSpawnLocation(location, radius, infinitely_tall));
+        return current_scenario_index;
     }
 
-    public Vector3 getSpawnLocation(float radius, bool infinitely_tall)
+    public bool getGameOver()
     {
-        Vector3 location_to_insert = Vector3.zero;
-        bool successful_insertion = false;
+        return game_over;
+    }
 
-        while (successful_insertion == false)
+    //returns a list of coordinates of length num_points that is of at least min_distance from each other and not intersecting with off-limits locations
+    public List<Vector3> generateSpawnLocations(float min_distance, int num_points, List<OffLimitsSpawnLocation> off_limits_locations)
+    {
+        float spawn_area_radius = BOUNDARY_SIZE * 0.45f;
+        float spawn_area_height = BOUNDARY_ALTITUDE * 2.0f;
+        Vector3 world_root_center = new Vector3(0.0f, 0.0f, ScenarioManager.BOUNDARY_SIZE * 0.5f);
+
+        //reset spawn_locations to new list that includes the number of collectible items to be spawned as well
+        num_points += OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty];
+        spawn_locations = new List<Vector3>(num_points);
+
+        float cell_size = min_distance / Mathf.Sqrt(3.0f); //grid cell size = minDistance / sqrt(3)
+
+        //any two points in adjacent cells are within minDistance
+        int grid_width = Mathf.CeilToInt((2.0f * spawn_area_radius) / cell_size);
+        int grid_height = Mathf.CeilToInt(spawn_area_height / cell_size);
+
+        //initialize 3D grid array to store indices of points and populate (-1 for empty cell)
+        int[,,] grid = new int[grid_width, grid_height, grid_width];
+        for (int i = 0; i < grid_width; i++)
         {
-            Vector2 x_and_z = Random.insideUnitCircle * ((ScenarioManager.BOUNDARY_SIZE - 200.0f) * 0.5f);
-
-            float x_coordinate = x_and_z.x;
-            float y_coordinate = Random.Range(-(ScenarioManager.BOUNDARY_ALTITUDE + 20.0f), ScenarioManager.BOUNDARY_ALTITUDE + 20.0f);
-            float z_coordinate = x_and_z.y + ScenarioManager.BOUNDARY_SIZE * 0.5f;
-
-            location_to_insert =
-                new Vector3(x_coordinate, y_coordinate, z_coordinate);
-
-            successful_insertion = true;
-
-            foreach (OccupiedSpawnLocation existing_location in occupied_spawn_locations)
+            for (int j = 0; j < grid_height; j++)
             {
-                float necessary_buffer = existing_location.getSpawnRadius() + radius;
-                if (existing_location.getInfinitelyTall() == true || infinitely_tall == true)
+                for (int k = 0; k < grid_width; k++)
                 {
-                    if (Vector2.Distance(new Vector2(existing_location.getSpawnPosition().x, existing_location.getSpawnPosition().z), new Vector2(location_to_insert.x, location_to_insert.z)) < necessary_buffer)
-                    {
-                        successful_insertion = false;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (Vector3.Distance(existing_location.getSpawnPosition(), location_to_insert) < necessary_buffer)
-                    {
-                        successful_insertion = false;
-                        break;
-                    }
+                    grid[i, j, k] = -1;
                 }
             }
         }
 
-        occupied_spawn_locations.Add(new OccupiedSpawnLocation(location_to_insert, radius, infinitely_tall));
-        return location_to_insert;
+        //helper to get grid cell coordinates for a point
+        Vector3Int getGridCoordinate(Vector3 point) 
+        {
+            //convert from world coordinates (centered at 0) to grid indices
+            float x = point.x + spawn_area_radius; //shift so min is 0
+            float y = point.y + spawn_area_height / 2.0f;
+            float z = point.z + spawn_area_radius;
+
+            int xi = Mathf.FloorToInt(x / cell_size);
+            int yi = Mathf.FloorToInt(y / cell_size);
+            int zi = Mathf.FloorToInt(z / cell_size);
+            return new Vector3Int(Mathf.Clamp(xi, 0, grid_width - 1), Mathf.Clamp(yi, 0, grid_height - 1), Mathf.Clamp(zi, 0, grid_width - 1));
+        }
+
+        //helper to test if point is too close to any existing point
+        bool isValid(Vector3 point) 
+        {
+            Vector3Int coordinate = getGridCoordinate(point);
+
+            //check cells in a 3 x 3 x 3 neighborhood
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    for (int dz = -1; dz <= 1; dz++)
+                    {
+                        int nx = coordinate.x + dx;
+                        int ny = coordinate.y + dy;
+                        int nz = coordinate.z + dz;
+
+                        if (nx < 0 || nx >= grid_width || ny < 0 || ny >= grid_height || nz < 0 || nz >= grid_width) //neighbor index is outside of grid bounds
+                        {
+                            continue; //skip
+                        }
+
+                        int idx = grid[nx, ny, nz];
+
+                        if (idx != -1 && Vector3.Distance(point, spawn_locations[idx]) < min_distance) //cell is occupied and fails euclidean distance check
+                        {
+                            return false; //point is invalid
+                        }
+                    }
+                }
+            }
+
+            if (off_limits_locations != null)
+            {
+                for (int i = 0; i < off_limits_locations.Count; i++)
+                {
+                    float required_distance = off_limits_locations[i].radius + min_distance;
+                    if (Vector3.Distance(point, off_limits_locations[i].position) < required_distance)
+                    {
+                        return false; //point is invalid
+                    }
+                }
+            }
+
+            return true; //valid point
+        }
+
+        //generate spawn points
+        for (int i = 0; i < num_points; i++)
+        {
+            bool found = false;
+
+            for (int attempt = 0; attempt < MAX_SPAWN_LOCATION_SEARCH_ATTEMPTS; attempt++)
+            {
+                //calculate a random point within the volume of a cylinder 
+                float angle = Random.Range(0f, 2.0f * Mathf.PI); //random angle between 0 & 360 deg
+                float r = spawn_area_radius * Mathf.Sqrt(Random.Range(0f, 1.0f)); //random radius sqrt for uniform distribution on circle 
+
+                //convert polar xz coords to cartesian
+                float x = r * Mathf.Cos(angle);
+                float z = r * Mathf.Sin(angle);
+
+                float y = Random.Range(-spawn_area_height / 2.0f, spawn_area_height / 2.0f); //random height 
+
+                Vector3 candidate_point = new Vector3(x, y, z);
+
+                if (isValid(candidate_point))
+                {
+                    spawn_locations.Add(candidate_point);
+                    Vector3Int coord = getGridCoordinate(candidate_point);
+                    grid[coord.x, coord.y, coord.z] = spawn_locations.Count - 1; //store point index
+                    found = true;
+                    break;
+                }
+            }
+
+            //fallback just in case
+            if (!found)
+            {
+                //generate a point without a min distance check
+                float angle = Random.Range(0f, 2.0f * Mathf.PI);
+                float r = spawn_area_radius * Mathf.Sqrt(Random.Range(0f, 1.0f));
+                float x = r * Mathf.Cos(angle);
+                float z = r * Mathf.Sin(angle);
+                float y = Random.Range(-spawn_area_height / 2.0f, spawn_area_height / 2.0f);
+                spawn_locations.Add(new Vector3(x, y, z));
+            }
+        }
+
+        //add world_root_center
+        for (int i = 0; i < spawn_locations.Count; i++)
+        {
+            spawn_locations[i] += world_root_center;
+        }
+
+        //return the locations that are not occupied by the collectibles (0-OBTAINBLE_COLLECTIBLE_ITEMS[game_difficulty]) to be spawned
+        List<Vector3> free_locations = new List<Vector3>(num_points);
+        for (int i = OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty]; i < num_points; i++)
+        {
+            free_locations.Add(spawn_locations[i]);
+        }
+        return free_locations;
     }
 
     //called by generatePathLocation() and PilotingSystem.CalculatePoint()
@@ -180,9 +310,9 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     //called by prepScenario()
-    private void spawnCollectibleItem(bool utility)
+    private void spawnCollectibleItem(int location_index, bool utility)
     {
-        Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+        Transform world_root = ReferenceAssistor.Instance.world_root.transform;
 
         int item_index = 0;
         if (utility == true)
@@ -195,8 +325,8 @@ public class ScenarioManager : NetworkBehaviour
         }
 
         GameObject collectible_item = GameObject.Instantiate(ReferenceAssistor.Instance.collectible_items[item_index], world_root);
-        collectible_item.transform.localRotation = Random.rotation; 
-        Vector3 spawn_location = getSpawnLocation(5.0f, false);
+        collectible_item.transform.localRotation = Random.rotation;
+        Vector3 spawn_location = spawn_locations[location_index];
         collectible_item.transform.localPosition = spawn_location;
         collectible_item.GetComponent<CollectibleItem>().setSerialNumber(ship_inventory.generateSerialNumber());
         collectible_item.GetComponent<Collider>().excludeLayers = LayerMask.GetMask("None");
@@ -230,21 +360,68 @@ public class ScenarioManager : NetworkBehaviour
         }
     }
 
+    //returns scenario name (ex. "RedLightGreenLight") of a randomly-selected eligible scenario in given tier (SCENARIO_POSSIBILITIES)
+    private string identifyNextScenario(int tier)
+    {
+        List<string> possible_scenarios = new List<string>();
+        for (int i = 0; i < SCENARIO_POSSIBILITIES[tier].Length; i++)
+        {
+            if (already_defeated_scenarios[tier].Contains(SCENARIO_POSSIBILITIES[tier][i]) == false && implemented_scenarios.Contains(SCENARIO_POSSIBILITIES[tier][i]) == true)
+            {
+                possible_scenarios.Add(SCENARIO_POSSIBILITIES[tier][i]);
+            }
+        }
+        if (possible_scenarios.Count == 0)
+        {
+            return "";
+        }
+        return possible_scenarios[Random.Range(0, possible_scenarios.Count)];
+    }
+
+    //gets scenario index from name
+    private int getScenarioIndexFromName(string name)
+    {
+        int scenario_index = -1;
+        for (int tier = 0; tier < 3; tier++)
+        {
+            for (int index = 0; index < SCENARIO_POSSIBILITIES[tier].Length; index++)
+            {
+                scenario_index++;
+                if (SCENARIO_POSSIBILITIES[tier][index].CompareTo(name) == 0)
+                {
+                    return scenario_index;
+                }
+            }
+        }
+        return -1;
+    }
+
     //called when start of scenario transition
-    public string loadNewScenario()
+    public void loadNewScenario()
     {
         endpoint_reached = false;
-        scenario_number += 1;
-        if (SceneManager.GetActiveScene().name != "RedLightGreenLight") 
+        ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().LockMovement();
+
+        string next_scenario = ""; //used for override for testing (blank means obey sequence and random)
+
+        if (next_scenario.CompareTo("") == 0)
         {
-            SceneSwapper.Instance.ChangeScene("RedLightGreenLight", scenario_number);
-            return "RedLightGreenLight";
+            int tier_to_select = SCENARIO_SEQUENCE[game_difficulty][num_scenarios_defeated] - 1; //-1 to make it index nicely 0-2 instead of 1-3
+            if (already_defeated_scenarios[tier_to_select].Count == SCENARIO_POSSIBILITIES[tier_to_select].Length)
+            {
+                already_defeated_scenarios[tier_to_select].Clear();
+            }
+            next_scenario = identifyNextScenario(tier_to_select);
         }
-        else
+
+        current_scenario_index = getScenarioIndexFromName(next_scenario);
+        if (current_scenario_index == -1)
         {
-            SceneSwapper.Instance.ChangeScene("CollectibleTest", scenario_number);
-            return "CollectibleTest";
+            next_scenario = SCENARIO_POSSIBILITIES[0][0]; //default to RLGL
+            current_scenario_index = 0; //default to RLGL
         }
+
+        NetworkManager.Singleton.SceneManager.LoadScene(next_scenario, LoadSceneMode.Single);
     }
 
     //called by PlayerManager.scenarioLoadedRPC() when all players have loaded the scenario scene
@@ -259,38 +436,61 @@ public class ScenarioManager : NetworkBehaviour
         powerAllStationsRPC();
 
         //clear spawn locations
-        occupied_spawn_locations.Clear();
-
-        //assign the piloting system the new WorldRoot
-        GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipController>().assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+        spawn_locations.Clear();
         
         //generate new entrance/exit path locations and angles
         generatePaths();
 
         //reset transmission frequencies
-        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<FrequencyAdjuster>().resetFrequencies();
 
         //check for a scenario script and handle any sort of scenario prep (ex. starting an energy pattern, spawning cheeseballs)
-        scenario_handler = GameObject.FindWithTag("ScenarioHandler");
+        IScenario scenario_script = getScenarioScript();
+        if (scenario_script != null)
+        {
+            scenario_script.prepScenario();
+        }
+
+        //ensure spawn locations created for obtainable collectibles
+        if (spawn_locations.Count == 0)
+        {
+            generateSpawnLocations(25.0f, 0, null);
+        }
+
+        //spawn collectibles
+        for (int i = 0; i < OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty]; i++) 
+        {
+            spawnCollectibleItem(i, i >= OBTAINABLE_COLLECTIBLE_ITEMS[game_difficulty] / 2);
+        }
+    }
+
+    //called by PlayerManager.startScenarioRPC()
+    public void startScenario()
+    {
+        //host-only stuff
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            enableScenarioTimer();
+            ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().UnlockMovement();
+            ReferenceAssistor.Instance.power_manager.GetComponent<PowerRegulator>().initializePowerRegulator();
+            ReferenceAssistor.Instance.module_handlers[1].GetComponent<EncryptionKeys>().initializeEncryptionKeys();
+            ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
+            ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
+            ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
+        }
+
+        //all players stuff
         IScenario scenario_script = getScenarioScript();
         if (scenario_script != null)
         {
             scenario_script.initiateScenario();
         }
-
-        //spawn collectibles
-        spawnCollectibleItem(true);
-        spawnCollectibleItem(false);
     }
 
-    //only run by host, called by PlayerManager.startScenarioRPC()
-    public void startScenario()
+    //called by SignalJammer.cs
+    public void addCountdownTime(int time_to_add)
     {
-        enableScenarioTimer();
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().initializePowerRegulator();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
-        ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
+        countdown_time_to_add += time_to_add;
     }
 
     IEnumerator scenarioCountdown()
@@ -300,6 +500,8 @@ public class ScenarioManager : NetworkBehaviour
         while (time_remaining > 0)
         {
             yield return new WaitForSeconds(1.0f);
+            time_remaining += countdown_time_to_add;
+            countdown_time_to_add = 0;
             time_remaining--;
             countdownUpdateRPC(time_remaining);
         }
@@ -329,16 +531,12 @@ public class ScenarioManager : NetworkBehaviour
     //returns the IScenario script component attached to ScenarioHandler as the first component beneath NetworkObject (if it exists)
     private IScenario getScenarioScript()
     {
+        scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
         if (scenario_handler != null)
         {
-            Component scenario_script_component = scenario_handler.GetComponentAtIndex(2);
-            if (scenario_script_component != null)
+            if (scenario_handler.GetComponent<IScenario>() != null)
             {
-                IScenario scenario_script = (IScenario)scenario_script_component;
-                if (scenario_script != null)
-                {
-                    return scenario_script;
-                }
+                return scenario_handler.GetComponent<IScenario>();
             }
         }
         return null;
@@ -364,7 +562,8 @@ public class ScenarioManager : NetworkBehaviour
         if (reason == EndCondition.ReachedEndpoint) //only success condition is to reach endpoint
         {
             endpoint_reached = true;
-            handleTransitionRPC(scenario_number);
+            num_scenarios_defeated++;
+            handleTransitionRPC(current_scenario_index, scenario_transitioner.GetComponent<TransitionHandler>().GetTransitionOption(), num_scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length));
             return;
         }
 
@@ -374,11 +573,12 @@ public class ScenarioManager : NetworkBehaviour
         //failure conditions
         if (reason == EndCondition.TimeRanOut)
         {
-            failure_report_message = "Stolen ship designated SEACC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic 6-minute reset window.";
+            failure_report_message = "Stolen ship designated SEACC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic " + (COUNTDOWN_TIME[getDifficulty()] / 60).ToString() + "-minute reset window.";
         }
         else if (reason == EndCondition.LeftBoundary)
         {
-            failure_report_message = "Stolen ship designated SEACC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. Four crew members were found alive and have been arrested.";
+            string[] crew_members = new string[4] { "One crew member was found alive and has been", "Two crew members were found alive and have been",  "Three crew members were found alive and have been", "Four crew members were found alive and have been" };
+            failure_report_message = "Stolen ship designated SEACC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. " + crew_members[lobby_handler.getNumberOfPlayersInNetworkManagerLobby() - 1] + " arrested.";
         }
         else if (reason == EndCondition.SelfDestructed)
         {
@@ -404,7 +604,10 @@ public class ScenarioManager : NetworkBehaviour
         //destroy seats
         GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().destroySeats();
 
-        handleFailureRPC(scenario_number, failure_report_message);
+        //turn off power
+        ReferenceAssistor.Instance.power_manager.totalShutdown(false);
+
+        handleFailureRPC(num_scenarios_defeated / (1.0f * SCENARIO_SEQUENCE[game_difficulty].Length), failure_report_message, (reason == EndCondition.TimeRanOut || reason == EndCondition.LeftBoundary));
     }
 
     //ensures every player has the same entrance/exit path locations and rotations
@@ -417,12 +620,12 @@ public class ScenarioManager : NetworkBehaviour
         exit_rotation = exit_rot;
 
         scenario_map.updatePathLocations(entrance_position, entrance_rotation, exit_position, exit_rotation);
+        ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
 
         //if host, position the ship to entrance position and let the network sync the transform
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().SetPaths(entrance_position, entrance_rotation, exit_position, exit_rotation);
-            GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().PlaceShip(entrance_position, ent_rot);
+            ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().PlaceShip(entrance_position, ent_rot);
         }
     }
 
@@ -451,10 +654,11 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<ThreatDetectors>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<ProximityMapOptions>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<LongRangeDirection>().resetToDefault();
-        ReferenceAssistor.Instance.module_handlers[1].GetComponent<TransmissionHandler>().resetFrequencies();
+        ReferenceAssistor.Instance.module_handlers[1].GetComponent<FrequencyAdjuster>().resetFrequencies();
         ReferenceAssistor.Instance.module_handlers[1].GetComponent<TorpedoBaySelector>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserFrequency>().resetToDefault();
+        ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserHeat>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>().resetAuxiliaryPower();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().resetToDefault();
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>().resetToDefault();
@@ -466,22 +670,34 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void handleTransitionRPC(int sn)
+    private void handleTransitionRPC(int defeated_scenario_index, int transition_option, float percent_to_DSF)
     {
+        //update logs
+        LogMenuController.OnScenarioBeaten(defeated_scenario_index);
+
         //prepare to load next scenario
-        GameObject.FindGameObjectWithTag("PlayerManager").GetComponent<PlayerManager>().resetReadyPlayers();
+        ReferenceAssistor.Instance.player_manager.resetReadyPlayers();
 
         //power down all stations and reset certain controls (power will be restored later)
         controlResetHelper();
 
-        //mute audio during scene transition
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+        //reset and mute audio
+        ReferenceAssistor.Instance.audio_manager.DeactivateComputerVoice();
+        ReferenceAssistor.Instance.audio_manager.MuteAudio();
+        ReferenceAssistor.Instance.audio_manager.ResetToDefault();
+
+        //reset scenario light layer
+        ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(false);
 
         //stop checking for controls/seats
         PrimaryScript.Instance.deactivate(true, false);
+        ReferenceAssistor.Instance.player_manager.getLocalPlayer().GetComponent<CameraMove>().ResetCameraEffects();
 
         //show transition
-        scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(sn);
+        scenario_transitioner.GetComponent<TransitionHandler>().ShowTransition(transition_option, OverviewTracker.getStarDate(percent_to_DSF), OverviewTracker.getDistanceToDSF(percent_to_DSF));
+
+        //update overview screen in back of bridge
+        ReferenceAssistor.Instance.module_handlers[4].GetComponent<OverviewTracker>().updateOverviewDisplay(percent_to_DSF);
 
         //if host, begin to load the next scenario
         if (NetworkManager.Singleton.IsHost == true)
@@ -501,16 +717,19 @@ public class ScenarioManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void handleFailureRPC(int sn, string frm)
+    private void handleFailureRPC(float percent_to_DSF, string failure_message, bool caught)
     {
+        //set game over to true
+        game_over = true;
+
         //mute audio
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().MuteAudio();
+        ReferenceAssistor.Instance.audio_manager.MuteAudio();
 
         //stop checking for controls/seats
         PrimaryScript.Instance.deactivate(false, true);
 
         //display death screen using scenario number sn and death message frm
-        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), sn, frm);
+        failure_handler.GetComponent<FailureHandler>().displayDeathScreen(lobby_handler.getPlayerNamesInLobby(), lobby_handler.getPlayerSteamIDsInLobby(), OverviewTracker.getStarDate(percent_to_DSF), failure_message, caught);
     }
 
     //used to update the boundary expiration timer in engineer position

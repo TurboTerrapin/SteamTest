@@ -182,7 +182,6 @@ public class AnimatorHandler : MonoBehaviour
                 myAnimator.StopPlayback();
 
                 Vector3 char_position = transform.position;
-                //transform.parent.position = char_position + new Vector3(0.0f, -0.12f, 0.0f);
                 transform.position = char_position;
             }
 
@@ -207,20 +206,6 @@ public class AnimatorHandler : MonoBehaviour
         myAnimator.SetBool("GettingUp", false);
         myAnimator.SetBool("SittingDown", false);
         PrimaryScript.Instance.relinquishPosition();
-    }
-
-    void Update()
-    {
-        //Move the character forward in their seat, for debugging
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            if (myAnimator.GetInteger("Seat") == 3)
-            {
-                transform.localPosition += new Vector3(0, 0, -0.4f);
-                return;
-            }
-            transform.localPosition += new Vector3(0, 0, 0.33f);
-        }
     }
 
     public float totallookat = 1;

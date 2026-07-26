@@ -2,11 +2,12 @@
     ReferenceAssistor.cs
     - Used to streamline referencing for certain commonly-used things
     Contributor(s): Jake Schott
-    Last Updated: 4/11/2026
+    Last Updated: 7/6/2026
 */
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class ReferenceAssistor : MonoBehaviour
 {
@@ -29,14 +30,26 @@ public class ReferenceAssistor : MonoBehaviour
     public Material lit_dark_blue;
     public Material unlit_dark_blue;
     public Material lit_off_white;
+    public Material lit_white;
+    public Material unlit_white;
     public Material pure_black;
+
+    public GameObject light_layer_one;
+    public GameObject light_layer_two;
 
     public List<GameObject> module_handlers;
 
     public List<GameObject> collectible_items;
 
-    public PowerManager power_manager;
+    public GameObject world_root;
+    public GameObject spaceship;
+    public Volume camera_settings;
+    public AudioManager audio_manager;
     public EffectsHandler effects_handler;
+    public FailureHandler failure_handler;
+    public PlayerManager player_manager;
+    public PowerManager power_manager;
+    public ScenarioManager scenario_manager;
 
     public static ReferenceAssistor Instance { get; private set; }
 
@@ -48,5 +61,10 @@ public class ReferenceAssistor : MonoBehaviour
             Destroy(this);
         }
         Instance = this;
+    }
+
+    public void assignWorldRoot(GameObject wr)
+    {
+        world_root = wr;
     }
 }

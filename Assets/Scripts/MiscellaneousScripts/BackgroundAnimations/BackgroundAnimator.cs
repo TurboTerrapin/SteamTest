@@ -2,7 +2,7 @@
     BackgroundAnimator.cs
     - Handles screen animations in the background of the ship
     Contributor(s): Jake Schott
-    Last Updated: 3/16/2026
+    Last Updated: 5/5/2026
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class BackgroundAnimator : MonoBehaviour
 {
-    public GameObject background_screens;
+    public GameObject background_displays;
     public List<GameObject> alternate_screens = null;
     public List<GameObject> energy_circles = null;
 
@@ -23,31 +23,34 @@ public class BackgroundAnimator : MonoBehaviour
 
     private Coroutine screen_enable_coroutine = null;
 
+    private void checkTransform(Transform obj)
+    {
+        foreach (Component c in obj.GetComponents<Component>())
+        {
+            IAnimable anim_component = c as IAnimable;
+            if (anim_component != null)
+            {
+                animable_components.Add(anim_component);
+            }
+        }
+    }
+
     private void checkScreen(Transform screen)
     {
-        foreach (Transform group in screen.transform.GetChild(0))
+        checkTransform(screen);
+        foreach (Transform obj in screen)
         {
-            foreach (Component c in group.GetComponents<Component>())
-            {
-                IAnimable anim_component = c as IAnimable;
-                if (anim_component != null)
-                {
-                    animable_components.Add(anim_component);
-                }
-            }
+            checkTransform(obj);
         }
     }
 
     //collect all animable components
     private void Start()
     {
-        foreach (Transform screen in background_screens.transform)
+        foreach (Transform screen in background_displays.transform)
         {
-            if (screen.transform.GetChild(0).childCount > 1)
-            {
-                screen_displays.Add(screen.transform.GetChild(0).GetChild(1).gameObject);
-                checkScreen(screen);
-            }
+            screen_displays.Add(screen.transform.gameObject);
+            checkScreen(screen);
         }
 
         foreach (GameObject screen in alternate_screens)
@@ -139,9 +142,9 @@ public class BackgroundAnimator : MonoBehaviour
             wall_energy_percentage %= 1.0f;
         }
         ceiling_energy_percentage += dt;
-        if (ceiling_energy_percentage > 2.0f)
+        if (ceiling_energy_percentage > 1.8f)
         {
-            ceiling_energy_percentage %= 2.0f;
+            ceiling_energy_percentage %= 1.8f;
         }
         float positional_adjustment = (1.0f - wall_energy_percentage) * 0.45f;
         energy_circles[0].transform.localPosition = new Vector3(0.0f, -positional_adjustment, 0.0f);

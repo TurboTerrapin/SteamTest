@@ -2,7 +2,7 @@
     EffectsHandler.cs
     - Handles various game effects
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 3/21/2026
+    Last Updated: 5/19/2026
 */
 
 using Unity.Netcode;
@@ -141,7 +141,7 @@ public class EffectsHandler : MonoBehaviour
         return e;
     }
 
-    public void createExplosion(Vector3 location)
+    public void createExplosion(Vector3 location, bool visual_only)
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
@@ -151,11 +151,11 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC();
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC(visual_only);
         }
     }
 
-    public void createExplosion(Vector3 location, float size)
+    public void createExplosion(Vector3 location, float size, bool visual_only)
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
@@ -165,11 +165,11 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC(size);
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC(size, visual_only);
         }
     }
 
-    public void createExplosion(Vector3 location, float size, Color explosion_color)
+    public void createExplosion(Vector3 location, float size, bool visual_only, Color explosion_color)
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
@@ -179,11 +179,11 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC(size, explosion_color);
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC(size, visual_only, explosion_color);
         }
     }
 
-    public void createExplosion(Vector3 location, float size, Color base_color, Color accent_color)
+    public void createExplosion(Vector3 location, float size, bool visual_only, Color base_color, Color accent_color)
     {
         if (NetworkManager.Singleton.IsHost == false)
         {
@@ -193,7 +193,7 @@ public class EffectsHandler : MonoBehaviour
         GameObject e = spawnExplosion(location);
         if (e != null)
         {
-            e.GetComponent<Explosion>().transmitExplosionRPC(size, base_color, accent_color);
+            e.GetComponent<ExplosionTransmitter>().transmitExplosionRPC(size, visual_only, base_color, accent_color);
         }
     }
 }

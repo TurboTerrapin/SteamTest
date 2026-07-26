@@ -3,7 +3,7 @@
     - Handles allocating shield battery to each of the four ship sections
     - Flips the switches
     Contributor(s): Jake Schott
-    Last Updated: 3/8/2026
+    Last Updated: 5/15/2026
 */
 
 using System.Collections;
@@ -30,6 +30,8 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
     public GameObject shield_dots; //on the ship overview screen
     public GameObject shield_protections; //on the ship overview screen
     public List<GameObject> shield_strength_switches;
+    public AudioSource shield_strength_boop_sound;
+    public List<AudioClip> shield_strength_notifications;
     private ShipInventory ship_inventory;
     private ScenarioManager scenario_manager;
 
@@ -78,27 +80,33 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         hud_info.setPowerConsumption(getShieldStrength(index) * (MAX_POWER_CONSUMPTION / 20.0f));
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -231,7 +239,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         }
 
         float anim_time = ADJUST_TIME;
-        for (int i = 0; i <= 1; i++)
+        for (int i = 0; i < 2; i++)
         {
             float half_time = ADJUST_TIME * 0.5f;
             float curr_time = half_time;
@@ -249,6 +257,11 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
                 shield_strength_switches[index].transform.localRotation = Quaternion.Euler(Mathf.Lerp(-54.0f, destination_rotation, switch_percentage), 315.0f, 0.0f);
 
                 yield return null;
+            }
+
+            if (i == 0)
+            {
+                shield_strength_boop_sound.Play();
             }
         }
 
@@ -284,7 +297,14 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         {
             for (int i = 0; i < 4; i++)
             {
-                shield_effect_times[i] = Mathf.Max(0.0f, shield_effect_times[i] - Time.deltaTime);
+                if (shield_effect_times[i] > 0.0f)
+                {
+                    shield_effect_times[i] = Mathf.Max(0.0f, shield_effect_times[i] - Time.deltaTime);
+                    if (shield_effect_times[i] == 0.0f && shield_strengths[i] == 0)
+                    {
+                        ReferenceAssistor.Instance.audio_manager.AddNotification(0, shield_strength_notifications[i]);
+                    }
+                }
             }
             displayShieldProtectionsAdjustment();
 

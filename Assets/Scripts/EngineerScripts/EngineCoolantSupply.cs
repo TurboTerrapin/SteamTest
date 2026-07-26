@@ -4,12 +4,11 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 3/8/2026
+    Last Updated: 6/11/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using static AnimatorHandler;
@@ -31,10 +30,11 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
 
     public GameObject engine_coolant_supply_display;
     public GameObject coolant_wheel;
+    public List<AudioClip> engine_capacity_notifications = null;
     private GameObject coolant_circle; //the UI section that shows the engine coolant flow
     private GameObject temperature; //the UI section that shows the engine temperature
 
-    private PilotingSystem piloting_system;
+    private ShipMovement ship_movement;
     private EngineMonitoring engine_monitoring;
 
     private bool is_powered = false;
@@ -59,7 +59,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
 
     private void Start()
     {
-        piloting_system = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>();
+        ship_movement = ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>();
         engine_monitoring = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EngineMonitoring>();
 
         coolant_circle = engine_coolant_supply_display.transform.GetChild(0).gameObject;
@@ -183,14 +183,13 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
             float difference = ENGINE_TEMPERATURE_INCREASE_SPEED - (coolant_flow * (ENGINE_TEMPERATURE_INCREASE_SPEED * (1.5f + coolant_flow_booster)));
             if (difference > 0.0f)
             {
-                engine_temperature = Mathf.Min(1.0f, engine_temperature + (difference * Time.deltaTime));
+                transmitEngineTemperatureChangeRPC(Mathf.Min(1.0f, engine_temperature + (difference * Time.deltaTime)));
             }
             else
             {
-                engine_temperature = Mathf.Max(0.0f, engine_temperature + (difference * Time.deltaTime));
+                transmitEngineTemperatureChangeRPC(Mathf.Max(0.0f, engine_temperature + (difference * Time.deltaTime)));
             }
-            transmitEngineTemperatureChangeRPC(engine_temperature);
-            piloting_system.AdjustMaxImpulseSpeed(getMaxImpulseSpeedBasedOnEngineTemperature());
+
             yield return null;
         }
     }
@@ -309,10 +308,32 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
     [Rpc(SendTo.Everyone)]
     private void transmitEngineTemperatureChangeRPC(float et)
     {
+        //handle notifications
+        if (coolant_flow < 0.5f)
+        {
+            if (engine_temperature < 0.5f && et >= 0.5f)
+            {
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[0]);
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[2]);
+            }
+            else if (engine_temperature < 1.0f && et >= 1.0f)
+            {
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[1]);
+                ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[2]);
+            }
+        }
+
+        //set new engine temperature and display
         engine_temperature = et;
         if (is_powered == true)
         {
             displayEngineTemperatureAdjustment();
+        }
+
+        //if host, adjust maximum impulse speed
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            ship_movement.AdjustMaxImpulseSpeed(getMaxImpulseSpeedBasedOnEngineTemperature());
         }
 
         //update pilot position

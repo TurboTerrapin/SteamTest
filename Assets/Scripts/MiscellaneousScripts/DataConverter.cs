@@ -2,7 +2,7 @@
     DataConverter.cs
     - Used for sending strings and arrays across RPCs
     Contributor(s): Jake Schott
-    Last Updated: 7/30/2025
+    Last Updated: 6/29/2026
 */
 
 using System.Collections.Generic;
@@ -15,6 +15,22 @@ public class DataConverter
         for (int i = 0; i < to_convert.Length; i++)
         {
             to_return += (char)to_convert[i];
+        }
+        return to_return;
+    }
+    public static string arrayToString(bool[] to_convert)
+    {
+        string to_return = "";
+        for (int i = 0; i < to_convert.Length; i++)
+        {
+            if (to_convert[i] == true)
+            {
+                to_return += "1";
+            }
+            else
+            {
+                to_return += "0";
+            }
         }
         return to_return;
     }

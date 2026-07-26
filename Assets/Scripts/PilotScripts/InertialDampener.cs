@@ -3,7 +3,7 @@
     - Handles inertial dampener
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     Contributor(s): Jake Schott
-    Last Updated: 3/10/2026
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -101,14 +101,14 @@ public class InertialDampener : NetworkBehaviour, IControllable, IPowerable, IIK
     IEnumerator switchDampener(bool to_switch_to)
     {
         float starting_switch_rotation = dampener_switch.transform.localRotation.eulerAngles.z;
-        float desired_switch_rotation = 180.0f;
+        float desired_switch_rotation = 90.0f;
 
         dampener_is_enabled = to_switch_to;
 
 
         if (to_switch_to == true)
         {
-            desired_switch_rotation = 90.0f;
+            desired_switch_rotation = 180.0f;
             ReferenceAssistor.Instance.power_manager.controlPowerChange(0, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
@@ -133,8 +133,9 @@ public class InertialDampener : NetworkBehaviour, IControllable, IPowerable, IIK
             dampener_switch.transform.localRotation =
                 Quaternion.Euler(-113.0f, 0.0f, Mathf.Lerp(starting_switch_rotation, desired_switch_rotation, 1.0f - (anim_time / SWITCH_TIME)));
 
-            //adjust fill bar
+            //adjust fill bars
             dampener_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = dampener_enabled_percentage;
+            dampener_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = dampener_enabled_percentage;
 
             yield return null;
         }
@@ -171,7 +172,7 @@ public class InertialDampener : NetworkBehaviour, IControllable, IPowerable, IIK
     //used by powerOff
     IEnumerator returnToZero(float power_off_time)
     {
-        float starting_rotation = Mathf.Lerp(90.0f, 180.0f, dampener_enabled_percentage);
+        float starting_rotation = Mathf.Lerp(180.0f, 90.0f, dampener_enabled_percentage);
 
         float anim_time = power_off_time;
         while (anim_time > 0.0f)
@@ -179,7 +180,7 @@ public class InertialDampener : NetworkBehaviour, IControllable, IPowerable, IIK
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
             dampener_switch.transform.localRotation =
-                Quaternion.Euler(-113.0f, 0.0f, Mathf.Lerp(starting_rotation, 180.0f, 1.0f - (anim_time / power_off_time)));
+                Quaternion.Euler(-113.0f, 0.0f, Mathf.Lerp(starting_rotation, 90.0f, 1.0f - (anim_time / power_off_time)));
 
             yield return null;
         }
@@ -208,6 +209,7 @@ public class InertialDampener : NetworkBehaviour, IControllable, IPowerable, IIK
             dampener_switch_coroutine = null;
         }
         dampener_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
+        dampener_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
         dampener_is_enabled = false;
         dampener_enabled_percentage = 0.0f;
         BUTTONS[0].updateDesc(CONTROL_DESCS[0]);

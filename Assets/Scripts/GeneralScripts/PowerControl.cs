@@ -4,7 +4,7 @@
     - Handles indicator flashing in all four positions if a player is seated, power is available, but they are not activating the power dial
     - Moves power dials, enables power indicators
     Contributor(s): Jake Schott
-    Last Updated: 2/7/2026
+    Last Updated: 5/7/2026
 */
 
 using System.Collections;
@@ -26,7 +26,7 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
 
     public PowerManager power_manager;
     public List<GameObject> dials = null;
-    public GameObject dial_sounds;
+    public List<AudioSource> dial_sounds = null;
     public List<GameObject> light_indicator_groups = null;
 
     private bool[] active_dials = new bool[4] { true, true, true, true };
@@ -66,28 +66,34 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         hud_info.setButtons(BUTTON_LISTS[index]);
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         my_control_index = index;
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_types[my_control_index]; 
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -96,12 +102,12 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
     //updates knob light, adjacent circle lights (for all positions)
     private void changeIndicator(int index, bool active)
     {
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(active);
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[index];
+        dials[index].transform.GetChild(0).GetChild(0).GetChild(1).gameObject.SetActive(active);
+        dials[index].transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         for (int i = 0; i < light_indicator_groups.Count; i++)
         {
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).gameObject.SetActive(active);
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[index];
+            light_indicator_groups[i].transform.GetChild(index).gameObject.SetActive(active);
+            light_indicator_groups[i].transform.GetChild(index).GetComponent<SpriteRenderer>().color = ReferenceAssistor.COLOR_OPTIONS[index];
         }
     }
 
@@ -198,13 +204,13 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         //handle starting/stopping beep sound
         if (power_manager.getPowerEnabled(updated_position) == true || occupied_seats[updated_position] == false || power_manager.getShipHasPower() == false)
         {
-            dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().Stop();
+            dial_sounds[updated_position].Stop();
         }
         else if (occupied_seats[updated_position] == true && power_manager.getShipHasPower() == true)
         {
-            if (dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().isPlaying == false)
+            if (dial_sounds[updated_position].isPlaying == false)
             {
-                dial_sounds.transform.GetChild(updated_position).GetComponent<AudioSource>().Play();
+                dial_sounds[updated_position].Play();
             }
         }
 
@@ -268,20 +274,20 @@ public class PowerControl : NetworkBehaviour, IControllable, IIKTargetable
         //show/hide the indicator
         for (int i = 0; i < 4; i++)
         {
-            dials[index].transform.GetChild(1).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
-            light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
+            dials[index].transform.GetChild(0).GetChild(0).GetChild(1).gameObject.SetActive(current_seats[index]);
+            light_indicator_groups[i].transform.GetChild(index).gameObject.SetActive(current_seats[index]);
         }
 
         Color c = ReferenceAssistor.COLOR_OPTIONS[index];
         c.a = a;
-        dials[index].transform.GetChild(1).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+        dials[index].transform.GetChild(0).GetChild(0).GetChild(1).GetComponent<SpriteRenderer>().color = c;
 
         //update the position color for every power control module
         if (current_seats[index] == true)
         {
             for (int i = 0; i < 4; i++)
             {
-                light_indicator_groups[i].transform.GetChild(index).GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = c;
+                light_indicator_groups[i].transform.GetChild(index).GetComponent<SpriteRenderer>().color = c;
             }
         }
     }

@@ -53,27 +53,33 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         //int index = ray_targets.IndexOf(current_target.name);
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -87,7 +93,7 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
     private void displayAdjustment()
     {
         //update physical turret
-        ship_long_range_phaser.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, long_range_angle);
+        ship_long_range_phaser.transform.localRotation = Quaternion.Euler(-90.0f, 0.0f, long_range_angle);
 
         //update the circular screen
         long_range_direction_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, long_range_angle);

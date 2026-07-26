@@ -4,6 +4,7 @@ using Steamworks;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CampaignLobbyController : MonoBehaviour
 {
@@ -137,7 +138,7 @@ public class CampaignLobbyController : MonoBehaviour
         }
 
         //Activate/deactive engage button
-        if (NetworkManager.Singleton.IsHost == true && GameNetworkManager.Instance.currentLobby.Value.MemberCount == NetworkManager.Singleton.ConnectedClientsIds.Count)
+        if (NetworkManager.Singleton.IsHost == true && LobbyHandler.getNumberOfPlayersInSteamLobby() == LobbyHandler.getNumberOfPlayersInNetworkManagerLobby())
         {
             ActivateEngageButton();
             ActivateDifficultyGroup();
@@ -212,17 +213,7 @@ public class CampaignLobbyController : MonoBehaviour
     {
         //Do not listen for future updates to the lobby
         SteamFriends.OnPersonaStateChange -= OnFriendChange();
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            GameNetworkManager.Instance.Disconnect();
-        }
-        else
-        {
-            if (NetworkManager.Singleton.ConnectedClientsIds.Count > 1 || (GameNetworkManager.Instance.currentLobby.HasValue == true && GameNetworkManager.Instance.currentLobby.Value.MemberCount > 1))
-            {
-                GameNetworkManager.Instance.Disconnect();
-            }
-        }
+        GameNetworkManager.Instance.Disconnect();
         SwitchTo(CampaignOptions);
     }
 
@@ -264,7 +255,7 @@ public class CampaignLobbyController : MonoBehaviour
         {
             c.SyncCustomizationRPC();
         }
-        SceneSwapper.Instance.ChangeScene("BridgeEnvironment", 0);
+        NetworkManager.Singleton.SceneManager.LoadScene("BridgeEnvironment", LoadSceneMode.Single);
     }
 
     private void SwitchTo(GameObject target)

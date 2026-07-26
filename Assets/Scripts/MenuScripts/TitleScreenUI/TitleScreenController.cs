@@ -7,7 +7,11 @@ public class TitleScreenController : MonoBehaviour
     //TitleScreen
     public TextMeshProUGUI PressStartText;
     public float FadeDuration = 1.5f; // Time for a full fade in/out
-    public GameObject TitleScreen;
+    public GameObject TitleScreenContents;
+
+    //Audio
+    [SerializeField] AudioSource MusicSource;
+    public AudioClip TitleScreenAudio;
 
     // Rings
     public GameObject SpinCircle;
@@ -17,31 +21,28 @@ public class TitleScreenController : MonoBehaviour
     //MainMenu
     public GameObject MainMenu;
 
-    void Start()
+    //LoadHandler.cs handles hiding/showing TitleScreenContents
+    private void Start()
     {
-        TitleScreen.SetActive(true);
-        SpriteMask.SetActive(true);
-        SpinCircle.SetActive(true);
-        MainMenu.SetActive(false);
-
+        PlayTitleAudio();
         StartCoroutine(FadeText());
-
-        if (SceneData.targetUI == "MainMenu")
-        {
-            SwitchToMainMenu();
-            SceneData.targetUI = null; 
-        }
     }
 
     // Call SwitchCanvas() if any key is pressed
-    void Update()
+    private void Update()
     {
         spinRings();
 
-        if (Input.anyKeyDown && TitleScreen.activeSelf)
+        if (Input.anyKeyDown && TitleScreenContents.activeSelf)
         {
             SwitchToMainMenu();
         }
+    }
+
+    public void PlayTitleAudio()
+    {
+        MusicSource.clip = TitleScreenAudio;
+        MusicSource.Play();
     }
 
     IEnumerator FadeText()
@@ -81,9 +82,7 @@ public class TitleScreenController : MonoBehaviour
 
     private void SwitchToMainMenu()
     {
-        TitleScreen.SetActive(false);
-        SpinCircle.SetActive(false);
-        SpriteMask.SetActive(false);  
+        TitleScreenContents.SetActive(false);
         MainMenu.SetActive(true);
     }
 }

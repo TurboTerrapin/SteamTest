@@ -3,7 +3,7 @@
     - Used to detect incoming phaser fire or torpedoes
     - Call adjustTorpedoWarning(true) or adjustPhaserWarning(true) if targeting torpedoes or phasers
     Contributor(s): Jake Schott
-    Last Updated: 3/10/2026
+    Last Updated: 7/21/2026
 */
 
 using System.Collections;
@@ -26,7 +26,8 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
     public GameObject lit_indicators;
     public AudioSource threat_detector_alert_sound;
 
-    private bool[] threat_detected = new bool[2] { false, false };
+    private bool[] threat_detection_override = new bool[2] { false, false };
+    private float[] threat_detection_times = new float[2] { 0.0f, 0.0f };
     private Coroutine flashing_animation_coroutine = null;
 
     private List<string> ray_targets = new List<string> { "torpedo_detector", "phaser_detector" };
@@ -52,21 +53,36 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
     {
         for (int i = 0; i < 2; i++)
         {
-            threat_detected[i] = false;
+            threat_detection_override[i] = false;
+            threat_detection_times[i] = 0.0f;
         }
     }
 
     //used when a torpedo is imminently being fired on the ship or no longer targeted
-    public void adjustTorpedoWarning(bool alert)
+    public void adjustTorpedoWarningOverride(bool alert)
     {
-        threat_detected[0] = alert;
+        threat_detection_override[0] = alert;
         startThreatAlertSound();
     }
 
-    //used when phasers are imminently being fired on the ship or no longer targeted
-    public void adjustPhaserWarning(bool alert)
+    //used when phaser(s) are imminently being fired on the ship or no longer targeted
+    public void adjustPhaserWarningOverride(bool alert)
     {
-        threat_detected[1] = alert;
+        threat_detection_override[1] = alert;
+        startThreatAlertSound();
+    }
+
+    //used when a torpedo is imminently being fired on the ship or no longer targeted
+    public void adjustTorpedoWarningTime(float time)
+    {
+        threat_detection_times[0] = Mathf.Max(threat_detection_times[0], time);
+        startThreatAlertSound();
+    }
+
+    //used when phaser(s) are imminently being fired on the ship or no longer targeted
+    public void adjustPhaserWarningTime(float time)
+    {
+        threat_detection_times[1] = Mathf.Max(threat_detection_times[1], time);
         startThreatAlertSound();
     }
 
@@ -81,7 +97,7 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
         for (int i = 0; i < 2; i++)
         {
             //start sound if active threat detection
-            if (threat_detected[i] == true)
+            if (threat_detection_override[i] == true || threat_detection_times[i] > 0.0f)
             {
                 threat_detector_alert_sound.Play();
                 return;
@@ -90,9 +106,9 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
     }
 
     //helper method for screen animation
-    private void displayFlashAnimationAdjustment(int index, float norm_a, float alert_a)
+    private bool displayFlashAnimationAdjustment(int index, float norm_a, float alert_a)
     {
-        bool alert = threat_detected[index];
+        bool alert = (threat_detection_override[index] || threat_detection_times[index] > 0.0f);
 
         if (alert == true)
         {
@@ -118,6 +134,8 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
                 t.GetComponent<UnityEngine.UI.RawImage>().color = c;
             }
         }
+
+        return alert;
     }
 
     //handles flashing animation on screen
@@ -127,16 +145,28 @@ public class ThreatDetectors : NetworkBehaviour, IDescribable, IPowerable
         float alert_alpha = 0.0f;
         float normal_elapsed_time = 0.0f;
         float alert_elapsed_time = 0.0f;
+        bool alert_in_effect;
         while (true)
         {
-            normal_elapsed_time += (Time.deltaTime * FLASH_ANIMATION_SPEED);
-            alert_elapsed_time += (Time.deltaTime * FLASH_ANIMATION_SPEED * 6.0f);
-            normal_alpha = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(normal_elapsed_time, 1.0f));
-            alert_alpha = Mathf.Lerp(0.2f, 1.0f, Mathf.PingPong(alert_elapsed_time, 1.0f));
-
             for (int i = 0; i < 2; i++)
             {
-                displayFlashAnimationAdjustment(i, normal_alpha, alert_alpha);
+                threat_detection_times[i] = Mathf.Max(0.0f, threat_detection_times[i] - Time.deltaTime);
+            }
+
+            normal_elapsed_time += (Time.deltaTime * FLASH_ANIMATION_SPEED);
+            alert_elapsed_time += (Time.deltaTime * FLASH_ANIMATION_SPEED * 6.0f);
+            normal_alpha = Mathf.Lerp(0.1f, 1.0f, Mathf.PingPong(normal_elapsed_time, 1.0f));
+            alert_alpha = Mathf.Lerp(0.1f, 1.0f, Mathf.PingPong(alert_elapsed_time, 1.0f));
+
+            alert_in_effect = false;
+            for (int i = 0; i < 2; i++)
+            {
+                alert_in_effect = (alert_in_effect || displayFlashAnimationAdjustment(i, normal_alpha, alert_alpha));
+            }
+
+            if (alert_in_effect == false) 
+            {
+                threat_detector_alert_sound.Stop();
             }
 
             yield return null;

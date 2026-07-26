@@ -6,7 +6,7 @@
     - Handles camera shaking
     - Handles displaying hints if hints enabled (ex. MISSION OBJECTIVE, POWER MONITORING)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 4/26/2026
+    Last Updated: 6/25/2026
 */
 
 using System.Collections;
@@ -141,6 +141,14 @@ public class CameraMove : MonoBehaviour
         }
     }
 
+    public void ResetCameraEffects()
+    {
+        foreach (UnityEngine.Rendering.VolumeComponent effect in ReferenceAssistor.Instance.camera_settings.profile.components)
+        {
+            effect.active = false;
+        }
+    }
+
     //Faces window if standing
     private void FaceWindow()
     {
@@ -241,7 +249,7 @@ public class CameraMove : MonoBehaviour
         if (!PrimaryScript.Instance.isPaused())
         {
             //Check for info overlay toggling (hints)
-            if (PrimaryScript.Instance.hintsEnabled() && PrimaryScript.Instance.isActive())
+            if (PrimaryScript.Instance.getHUD() < 2 && PrimaryScript.Instance.infoVisibilityEnabled() && PrimaryScript.Instance.isActive())
             {
                 PrimaryScript.Instance.GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
             }

@@ -1,6 +1,5 @@
 // Universal Settings Controller
 
-using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -38,10 +37,11 @@ public class UniversalSettingsController : MonoBehaviour
 
     // HUD Visibility
     public TMP_Dropdown HUDVisibilityDropdown;
-    public GameObject control_script_holder;
 
-    // Hints
-    public Toggle HintsToggle;
+    // Info Visibility
+    public Toggle InfoVisibilityToggle;
+    public TMP_Text InfoVisibilityLabel;
+    public CanvasGroup InfoVisibilityGroup;
 
     void Start()
     {
@@ -115,11 +115,11 @@ public class UniversalSettingsController : MonoBehaviour
         HandleHUDDropdownClicked(HUDIndex);
 
         // Loads player hints toggle preference (default is true if nothing is saved)
-        bool isHintsOn = PlayerPrefs.GetInt("Hints", 0) == 1;
+        bool isInfoVisibilityOn = PlayerPrefs.GetInt("InfoVisibility", 0) == 1;
         // Sets dropdown UI to display option corresponding to selected index
-        HintsToggle.isOn = isHintsOn;
-        // Applies hints
-        HandleHintsToggleClicked(isHintsOn);
+        InfoVisibilityToggle.isOn = isInfoVisibilityOn;
+        // Applies info invisibility
+        HandleInfoVisibilityToggleClicked(isInfoVisibilityOn);
 
         // Listens for changes
         FullScreenToggle.onValueChanged.AddListener(HandleFullScreenToggleClicked);
@@ -129,7 +129,7 @@ public class UniversalSettingsController : MonoBehaviour
         MasterVolumeSlider.onValueChanged.AddListener(HandleMasterVolumeDragged);
         CameraSensitivitySlider.onValueChanged.AddListener(HandleCameraSensitivityDragged);
         HUDVisibilityDropdown.onValueChanged.AddListener(HandleHUDDropdownClicked);
-        HintsToggle.onValueChanged.AddListener(HandleHintsToggleClicked);
+        InfoVisibilityToggle.onValueChanged.AddListener(HandleInfoVisibilityToggleClicked);
     }
 
     // For testing FPS
@@ -212,7 +212,6 @@ public class UniversalSettingsController : MonoBehaviour
 
         FrameRateGroup.alpha = isOn ? 0.2f : 1f;
         FrameRateLabel.alpha = isOn ? 0.2f : 1f;
-        
     }
 
     public void HandleMaxFrameRateDropDownClicked(int index)
@@ -292,30 +291,19 @@ public class UniversalSettingsController : MonoBehaviour
         int percent = Mathf.RoundToInt(mouseSensitivity * 100f);
         ActualCameraSensitivityLabel.text = percent.ToString();
 
-        if (control_script_holder != null)
+        if (PrimaryScript.Instance != null)
         {
-            PrimaryScript x = PrimaryScript.Instance;
-
-            if (x != null)
-            {
-                // Sends the sensitivity to PrimaryScript
-                x.setCameraSensitivity(GetCameraSensitivity());
-            }
+            // Sends the sensitivity to PrimaryScript
+            PrimaryScript.Instance.setCameraSensitivity(GetCameraSensitivity());
         }
     }
 
     public void HandleHUDDropdownClicked(int index)
     {
-        if (control_script_holder != null)
+        if (PrimaryScript.Instance != null)
         {
-            // Gets the PrimaryScript component
-            PrimaryScript x = PrimaryScript.Instance;
-
-            if (x != null)
-            {
-                // Sends the index to PrimaryScript
-                x.setHUD(index);
-            }
+            // Sends the index to PrimaryScript
+            PrimaryScript.Instance.setHUD(index);
         }
 
         // Saves player preferences
@@ -323,24 +311,22 @@ public class UniversalSettingsController : MonoBehaviour
 
         // Writes changes to disk
         PlayerPrefs.Save();
+
+        InfoVisibilityToggle.interactable = index < 2;
+        InfoVisibilityLabel.alpha = index < 2 ? 1f : 0.2f;
+        InfoVisibilityGroup.alpha = index < 2 ? 1f : 0.2f;
     }
 
-    public void HandleHintsToggleClicked(bool isOn)
+    public void HandleInfoVisibilityToggleClicked(bool isOn)
     {
-        if (control_script_holder != null)
+        if (PrimaryScript.Instance != null)
         {
-            // Gets the PrimaryScript component
-            PrimaryScript x = PrimaryScript.Instance;
-
-            if (x != null)
-            {
-                // Sends the bool to PrimaryScript
-                x.setHintsEnabled(isOn);
-            }
+            // Sends the bool to PrimaryScript
+            PrimaryScript.Instance.setInfoVisibilityEnabled(isOn);
         }
 
         // Saves players preferece (1 = true, 0 = false)
-        PlayerPrefs.SetInt("Hints", isOn ? 1 : 0);
+        PlayerPrefs.SetInt("InfoVisibility", isOn ? 1 : 0);
 
         // Writes changes to disk
         PlayerPrefs.Save();

@@ -2,7 +2,7 @@
     PowerRegulationModuleC.cs
     - Handles the turn pattern mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 2/13/2026
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -24,6 +24,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
 
     public GameObject prsc_display;
     public GameObject prsc_crank;
+    private PowerRegulator power_regulator;
 
     private bool currently_active = false;
     private int stage = 0;
@@ -45,8 +46,10 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
 
     private void Start()
     {
-        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
-        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
+        power_regulator = GameObject.Find("PowerHandler").GetComponent<PowerRegulator>();
+
+        BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
+        BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
 
         hud_info = new HUDInfo(CONTROL_NAME);
         hud_info.setButtons(BUTTONS, 7);
@@ -57,26 +60,32 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -209,6 +218,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
 
         if ((to_turn_to % 4) == (sequence_code[stage] % 4))
         {
+            power_regulator.playCorrectSound();
             displayAdjustment(stage, true);
 
             if (stage == 4)
@@ -227,6 +237,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
         }
         else
         {
+            power_regulator.playIncorrectSound();
             stage = 0;
             for (int i = 0; i < 5; i++)
             {
@@ -317,6 +328,7 @@ public class PowerRegulationModuleC : NetworkBehaviour, IControllable, IPowerReg
     [Rpc(SendTo.Everyone)]
     private void transmitModuleCompletionRPC()
     {
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().moduleCompleted(this.GetType().Name);
+        power_regulator.playCorrectSound();
+        power_regulator.moduleCompleted(this.GetType().Name);
     }
 }

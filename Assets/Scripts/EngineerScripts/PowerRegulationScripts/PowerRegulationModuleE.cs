@@ -2,7 +2,7 @@
     PowerRegulationModuleE.cs
     - Handles the memorization switch minigame in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 10/23/2025
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -18,7 +18,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
     private string[] CONTROL_NAMES = new string[5] { "SECURITY CODE OPTION A", "SECURITY CODE OPTION B", "SECURITY CODE OPTION C", "SECURITY CODE OPTION D", "SECURITY CODE OPTION E" };
     private static string INFO_MESSAGE = "Analyze the code and enter the five corresponding color symbols (in order) to complete the module.";
     private List<string> CONTROL_DESCS = new List<string> { "GREEN", "BLUE" };
-    private List<int> CONTROL_INDEXES = new List<int>() { 2, 0 };
+    private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[5] { new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>(), new List<Button>() };
 
     private List<string> ray_targets = new List<string> { "prse_switch_a", "prse_switch_b", "prse_switch_c", "prse_switch_d", "prse_switch_e" };
@@ -27,12 +27,13 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
     public List<GameObject> prse_code_displays = null;
     public List<GameObject> prse_switches = null;
 
+    private PowerRegulator power_regulator;
     private UnityEngine.UI.RawImage symbol_icon;
     private GameObject code_progress;
 
     private bool currently_active = false;
     private int stage = 0;
-    private int[] correct_code = new int[5]{ 0, 0, 0, 0, 0 };
+    private int[] correct_code = new int[4]{ 0, 0, 0, 0 };
     private Coroutine code_sequence_coroutine = null;
     private Coroutine code_input_coroutine = null;
 
@@ -50,6 +51,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
 
     private void Start()
     {
+        power_regulator = GameObject.Find("PowerHandler").GetComponent<PowerRegulator>();
         symbol_icon = prse_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>();
         code_progress = prse_display.transform.GetChild(1).gameObject;
 
@@ -72,31 +74,38 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public void resetToDefault()
     {
         if (currently_active == false)
@@ -130,7 +139,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
         {
             int first_symbol = Random.Range(0, 10);
             correct_code[0] = first_symbol;
-            for (int i = 1; i < 5; i++)
+            for (int i = 1; i < 4; i++)
             {
                 List<int> possible_options = new List<int>();
                 for (int x = 0; x < 10; x++)
@@ -142,13 +151,13 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
                 }
                 correct_code[i] = possible_options[Random.Range(0, possible_options.Count)];
             }
-            transmitNewCodeSequenceRPC(correct_code[0], correct_code[1], correct_code[2], correct_code[3], correct_code[4]);
+            transmitNewCodeSequenceRPC(correct_code[0], correct_code[1], correct_code[2], correct_code[3]);
         }
     }
 
     private void displayAdjustment()
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (i < stage)
             {
@@ -166,7 +175,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
     {
         while (true)
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
                 UnityEngine.UI.RawImage matching_symbol = null;
                 if (correct_code[i] > 4) //green
@@ -206,7 +215,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
         }
 
         float anim_time = SWITCH_TIME;
-        for (int i = 0; i <= 1; i++)
+        for (int i = 0; i < 2; i++)
         {
             float half_time = SWITCH_TIME * 0.5f;
             float curr_time = half_time;
@@ -232,7 +241,8 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
                 {
                     if (correct_code[stage] == to_switch) //right code
                     {
-                        if (stage >= 4) //last digit
+                        power_regulator.playCorrectSound();
+                        if (stage >= 3) //last digit
                         {
                             if (NetworkManager.Singleton.IsHost == true)
                             {
@@ -250,6 +260,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
                     }
                     else //wrong code
                     {
+                        power_regulator.playIncorrectSound();
                         stage = 0;
                         if (NetworkManager.Singleton.IsHost == true)
                         {
@@ -303,13 +314,12 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
     }
 
     [Rpc(SendTo.Everyone)]
-    private void transmitNewCodeSequenceRPC(int code_a, int code_b, int code_c, int code_d, int code_e)
+    private void transmitNewCodeSequenceRPC(int code_a, int code_b, int code_c, int code_d)
     {
         correct_code[0] = code_a;
         correct_code[1] = code_b;
         correct_code[2] = code_c;
         correct_code[3] = code_d;
-        correct_code[4] = code_e;
         stage = 0;
         displayAdjustment();
         
@@ -337,6 +347,7 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
     private void codeInputRPC(int switch_config, int new_stage)
     {
         stage = new_stage;
+
         if (code_input_coroutine != null)
         {
             StopCoroutine(code_input_coroutine);
@@ -349,6 +360,6 @@ public class PowerRegulationModuleE : NetworkBehaviour, IControllable, IPowerReg
     [Rpc(SendTo.Everyone)]
     private void transmitModuleCompletionRPC()
     {
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().moduleCompleted(this.GetType().Name);
+        power_regulator.moduleCompleted(this.GetType().Name);
     }
 }

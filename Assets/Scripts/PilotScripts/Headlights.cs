@@ -4,7 +4,7 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 2/24/2026
+    Last Updated: 5/10/2026
 */
 
 using System.Collections;
@@ -15,8 +15,8 @@ using UnityEngine;
 public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float MOVE_TIME = 0.25f;
-    private static float DELAY_TIME = 0.1f;
+    private static float MOVE_TIME = 0.1f;
+    private static float DELAY_TIME = 0.05f;
     private static float MAX_RANGE = 500.0f;
     private static float MAX_INTENSITY = 500.0f;
     private static float CONE_HALF_ANGLE = 4.0f;

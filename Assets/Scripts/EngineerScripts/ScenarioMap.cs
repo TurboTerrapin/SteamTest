@@ -2,7 +2,7 @@
     ScenarioMap.cs
     - Handles engineer map
     Contributor(s): Jake Schott
-    Last Updated: 3/13/2026
+    Last Updated: 5/17/2026
 */
 
 using System.Collections;
@@ -13,6 +13,7 @@ using UnityEngine;
 public class ScenarioMap : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
+    private static string[] ALTITUDE_WARNING_OPTIONS = new string[] { "DECREASE", "INCREASE" };
     private static float FLASH_SPEED = 0.5f;
     private static Color TMP_RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
     private static Color SPRITE_RED = new Color(0.96f, 0.25f, 0.28f, 1.0f); //sprite renderer shows color differently
@@ -24,6 +25,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     public GameObject navigation_information;
     public GameObject altitude_label;
     public List<Sprite> item_of_interest_sprites = null;
+    public List<AudioClip> boundary_notifications = null;
 
     private GameObject entrance_path;
     private GameObject exit_path;
@@ -34,7 +36,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     private Coroutine red_flash_coroutine = null;
 
-    void Start()
+    private void Start()
     {
         ITEM_LOCATION_CONVERSION_FACTOR = (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
         INTEREST_ITEM_SIZE_CONVERSION_FACTOR = (0.115f / ScenarioManager.BOUNDARY_SIZE);
@@ -163,25 +165,25 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         }
     }
 
-    public void updateAltitudeWarning(bool active, string msg)
+    public void updateShipBoundaryStatus(bool inside_boundary, bool within_altitude)
     {
-        //! INCREASE ALTITUDE ! or ! DECREASE ALTITUDE !
-        navigation_display.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>().SetText("! " + msg + " ALTITUDE !");
-        navigation_display.transform.GetChild(2).GetChild(0).gameObject.SetActive(active);
-
-        //ALTITUDE: 0m
-        if (active == true)
+        //update altitude warning
+        navigation_display.transform.GetChild(1).GetChild(0).gameObject.SetActive(within_altitude == false);
+        if (within_altitude == false)
         {
             altitude_label.GetComponent<TMP_Text>().color = TMP_RED;
+            string msg = ALTITUDE_WARNING_OPTIONS[0];
+            if (GameObject.FindGameObjectWithTag("WorldRoot").transform.position.y > 0)
+            {
+                msg = ALTITUDE_WARNING_OPTIONS[1];
+            }
+            navigation_display.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText("! " + msg + " ALTITUDE !");
         }
         else
         {
-            altitude_label.GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            altitude_label.GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f);
         }
-    }
 
-    public void updateShipBoundaryStatus(bool inside_boundary)
-    {
         if (inside_boundary == true)
         {
             if (red_flash_coroutine != null)
@@ -195,15 +197,13 @@ public class ScenarioMap : MonoBehaviour, IPowerable
             ship_icon.transform.GetChild(0).localScale = new Vector3(0.01f, 0.01f, 1.0f);
             //color navigation label
             navigation_display.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-            //color navigation bar
-            navigation_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
             //altitude/impulse bars
-            navigation_display.transform.GetChild(4).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
-            navigation_display.transform.GetChild(4).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            navigation_display.transform.GetChild(3).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
+            navigation_display.transform.GetChild(3).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(0.0f, 0.84f, 1.0f, 1.0f);
             //hide countdown
             countdown.SetActive(false);
             //detection warnings
-            navigation_display.transform.GetChild(2).gameObject.SetActive(false);
+            navigation_display.transform.GetChild(1).gameObject.SetActive(false);
         }
         else
         {
@@ -211,28 +211,42 @@ public class ScenarioMap : MonoBehaviour, IPowerable
             {
                 red_flash_coroutine = StartCoroutine(redLightFlasher());
             }
+            //play notification sound(s)
+            ReferenceAssistor.Instance.audio_manager.AddNotification(2, boundary_notifications[0]);
+            if (within_altitude == true)
+            {
+                ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[1]);
+            }
+            else
+            {
+                if (GameObject.FindGameObjectWithTag("WorldRoot").transform.position.y > 0)
+                {
+                    ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[2]);
+                }
+                else
+                {
+                    ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[3]);
+                }
+            }
             //resize ship pointer
             ship_icon.transform.GetChild(0).localScale = new Vector3(0.02f, 0.02f, 1.0f);
             //color navigation label
             navigation_display.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
-            //color navigation bar
-            navigation_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = new Color(TMP_RED.r, TMP_RED.g, TMP_RED.b, 1.0f);
             //altitude/impulse bars
-            navigation_display.transform.GetChild(4).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
-            navigation_display.transform.GetChild(4).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
+            navigation_display.transform.GetChild(3).transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
+            navigation_display.transform.GetChild(3).transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = TMP_RED;
             //show countdown
             countdown.SetActive(true);
             //detection warnings
-            navigation_display.transform.GetChild(2).gameObject.SetActive(true);
+            navigation_display.transform.GetChild(1).gameObject.SetActive(true);
         }
     }
 
     public void updateShipBoundaryCountdownStatus(int countdown_value)
     {
-        countdown.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
-        if (countdown_value >= 10 && countdown_value < 20)
+        if (countdown_value <= 10 && countdown_value > 0)
         {
-            countdown.transform.localPosition = new Vector3(0.0f, -0.34f, 0.0f);
+            ReferenceAssistor.Instance.audio_manager.AddNotification(2, boundary_notifications[3 + countdown_value]);
         }
         countdown.SetActive(true);
         countdown.GetComponent<TMP_Text>().text = countdown_value.ToString();
@@ -254,10 +268,10 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         ship_icon.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, ship_rotation);
 
         ship_rotation += 90.0f;
-        heading_display.transform.GetChild(2).GetChild(0).transform.localRotation = Quaternion.Euler(0.0f, 180.0f, ship_rotation);
+        heading_display.transform.GetChild(1).GetChild(0).transform.localRotation = Quaternion.Euler(0.0f, 180.0f, ship_rotation);
 
-        heading_display.transform.GetChild(3).GetChild(0).GetComponent<TMP_Text>().SetText(current_heading);
-        heading_display.transform.GetChild(4).GetChild(0).GetComponent<TMP_Text>().SetText(target_heading);
+        heading_display.transform.GetChild(2).GetChild(1).GetComponent<TMP_Text>().SetText(current_heading);
+        heading_display.transform.GetChild(3).GetChild(1).GetComponent<TMP_Text>().SetText(target_heading);
     }
 
     public void updateShipLocation()

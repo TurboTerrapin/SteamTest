@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 3/26/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
@@ -31,8 +31,9 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     public List<GameObject> probe_dial_displays = null;
     public GameObject probe_controller_display;
     public GameObject probe_actual_prefab;
+    public GameObject physical_ship; //ship is only active when probe is launched
+    public AudioSource probe_charge_sound;
     public AudioSource probe_launch_sound;
-    public EffectsHandler effects_handler;
 
     private Transform ship = null;
     private GameObject current_probe = null;
@@ -87,27 +88,33 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         hud_info.setButtons(BUTTON_LISTS[index]);
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -134,7 +141,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         }
         if (current_probe != null)
         {
-            Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+            Transform world_root = ReferenceAssistor.Instance.world_root.transform;
             current_probe.GetComponent<NetworkObject>().TrySetParent(world_root, true);
             current_probe.GetComponent<SphereCollider>().excludeLayers = LayerMask.GetMask("None");
         }
@@ -151,7 +158,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             {
                 current_probe.GetComponent<NetworkObject>().Despawn(true);
             }
-            Transform spaceship = GameObject.FindGameObjectWithTag("Spaceship").transform;
+            Transform spaceship = ReferenceAssistor.Instance.spaceship.transform;
             current_probe = GameObject.Instantiate(probe_actual_prefab, spaceship);
             current_probe.transform.localPosition = new Vector3(0.0f, 5.0f, 55.0f);
             current_probe.transform.rotation = spaceship.rotation;
@@ -261,6 +268,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         BUTTON_LISTS[1][0].updateInteractable(true);
         activateProbeControlSwitches();
+        physical_ship.SetActive(true);
         probe_info.onProbeLinked();
         onProbeDistanceChange();
         probe_info.displayProbeAltitude(current_probe.transform.position.y);
@@ -279,6 +287,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         BUTTON_LISTS[1][0].updateInteractable(false);
         deactivateProbeControlSwitches();
+        physical_ship.SetActive(false);
         probe_info.onProbeUnlinked();
 
         if (current_probe == null && is_powered == true)
@@ -302,6 +311,8 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             serial_num = ship_inventory.removeItem("Probe");
         }
 
+        probe_charge_sound.Play();
+
         float anim_time = FUNCTION_TIME;
         while (anim_time > 0.0f)
         {
@@ -313,6 +324,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             yield return null;
         }
 
+        probe_charge_sound.Stop();
         probe_launch_sound.Play();
         spawnProbe(serial_num);
         updateDialDisplays();
@@ -389,7 +401,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             //handle destruction
             if (probe_health <= 0.0f) 
             {
-                effects_handler.createExplosion(current_probe.transform.position, 3.0f);
+                ReferenceAssistor.Instance.effects_handler.createExplosion(current_probe.transform.position, 3.0f, false);
                 current_probe.GetComponent<NetworkObject>().Despawn(true);
                 transmitProbeConnectionChangeRPC(false, false);
             }
@@ -483,8 +495,8 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             }
             else
             {
-                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 2, 0.2f);
-                probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 2, 0.2f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 2, 0.08f);
+                probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 2, 0.08f);
             }
         }
         else
@@ -495,9 +507,9 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             }
             else
             {
-                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 0.2f);
+                probe_info.setDialDisplayColor(probe_dial_displays[0].transform, 0, 0.08f);
             }
-            probe_dial_displays[1].SetActive(false);
+            probe_info.setDialDisplayColor(probe_dial_displays[1].transform, 1, 0.08f);
         }
 
         //if not powered, hide both

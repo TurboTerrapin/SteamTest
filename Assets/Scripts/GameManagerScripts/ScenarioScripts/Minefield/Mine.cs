@@ -3,230 +3,250 @@
     Contributor(s): Henryk Musial
 */
 
-
-/*
 using Unity.Netcode;
 using UnityEngine;
+using System.Collections;
 
-public class Mine : NetworkBehaviour
+public class Mine : NetworkBehaviour, IDamageable, ITorpedoTargetable, IPhaserTargetable
 {
-    private float ROTATION_SPEED = 1.5f;
-    private float DETONATION_RANGE = 100.0f;
-    private float DETECTION_RANGE = 1000.0f;
+    protected static float DISABLED_BLINK_INTERVAL = 0.2f;
+    protected static float BLINK_INTERVAL = 0.05f;
+    protected static float DEFAULT_SHIELD_FLASH_TIME = 1.0f;
 
-    private Transform target_ship;
+    public AudioSource shield_sound;
+    public GameObject mine_shield;
+    public GameObject mine_light;
+    protected Material mine_light_material;
+    protected Material mine_shield_material;
 
+    protected Transform target_ship;
+    protected Minefield mine_field;
 
-    void Start()
+    protected bool currently_disabled = false;
+    protected bool currently_resetting = false;
+    protected bool permanently_disabled = false;
+    protected Color explosion_color;
+    protected float move_speed;
+    protected float rotation_speed;
+    protected float health = 5.0f;
+    protected Coroutine disable_flash_coroutine = null;
+    protected Coroutine shield_change_coroutine = null;
+
+    protected IEnumerator ShieldFlash(Color c, float time, bool play_sound)
     {
-        // If not the host, strip the collider so clients don't calculate local physics
-        if (NetworkManager.Singleton.IsHost == false)
+        Color shield_color = ReferenceAssistor.COLOR_OPTIONS[0];
+        mine_shield.SetActive(true);
+        if (play_sound == true)
         {
-            Component.Destroy(transform.GetComponent<Collider>());
+            shield_sound.Play();
         }
 
-        // Find & ref the spaceship in scene
-        GameObject spaceship_obj = GameObject.FindGameObjectWithTag("Spaceship");
-        if (spaceship_obj != null)
+        float anim_time = time;
+        float half_time = time * 0.5f;
+        while (anim_time > 0.0f)
         {
-            target_ship = spaceship_obj.transform;
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            float animation_progress = Mathf.PingPong(anim_time, half_time) / half_time;
+            mine_shield_material.SetColor("_EmissionColor", Color.Lerp(Color.black, c, animation_progress));
+            shield_color.a = Mathf.Lerp(0.0f, 0.5f, animation_progress);
+            mine_shield_material.color = shield_color;
+
+            yield return null;
+        }
+
+        shield_change_coroutine = null;
+    }
+
+    protected IEnumerator DisabledFlash(Material active_material, float interval_time)
+    {
+        mine_light.transform.GetChild(0).GetComponent<Light>().color = active_material.color;
+        while (true)
+        {
+            mine_light.transform.GetChild(0).gameObject.SetActive(false);
+            mine_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.pure_black;
+            yield return new WaitForSeconds(interval_time);
+            mine_light.transform.GetChild(0).gameObject.SetActive(true);
+            mine_light.GetComponent<Renderer>().material = active_material;
+            yield return new WaitForSeconds(interval_time);
         }
     }
 
-    void Update()
-    {
-        // Movement and rotation logic should only run on the Host
-        if (!IsHost || target_ship == null)
-        {
-            return;
-        }
-
-        float distance_to_ship = Vector3.Distance(transform.position, target_ship.position);
-
-        if (distance_to_ship <= DETECTION_RANGE)
-        {
-            float dynamic_detection_range = CalculateDetectionRange();
-
-            if(distance_to_ship < dynamic_detection_range)
-            {
-                LookAtShip();
-            }
-        }
-    }
-
-    private float CalculateDetectionRange()
-    {
-        EmissionReducers reducers = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EmissionReducers>();
-        if (reducers == null)
-        {
-            return DETECTION_RANGE;
-        }
-        int active_count = 0;
-
-        // Check port and starboard reducers
-        if (reducers.enabled_reducers[0]) active_count++;
-        if (reducers.enabled_reducers[1]) active_count++;
-
-        if(active_count == 0)
-        {
-            return DETECTION_RANGE;
-        }
-        else
-        {
-            return DETECTION_RANGE - (active_count * 200.0f);
-        }
-    }
-
-    private void LookAtShip()
+    protected void LookAtShip()
     {
         // Determine direction to ship
         Vector3 target_direction = (target_ship.position - transform.position).normalized;
 
+        // Face the ship over time
         Quaternion target_rotation = Quaternion.LookRotation(target_direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.deltaTime * ROTATION_SPEED);
-
+        transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.deltaTime * rotation_speed);
     }
 
-    private void Detonate()
+    protected void MoveTowardShip()
     {
-
-    }
-}
-
-*/
-
-/*
-    Mine.cs
-    Contributor(s): Henryk Musial
-*/
-
-using Unity.Netcode;
-using UnityEngine;
-
-public class Mine : NetworkBehaviour
-{
-    private float ROTATION_SPEED = 1.5f;
-    private float DETONATION_RANGE = 100.0f;
-    private float LASER_RANGE = 500.0f; // Distance threshold to fire the laser
-    private float DETECTION_RANGE = 1000.0f;
-
-    public Transform laser_aperture;
-    public LineRenderer line_renderer;
-
-    private Transform target_ship;
-
-    void Start()
-    {
-        // If not the host, strip the collider so clients don't calculate local physics
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            Component.Destroy(transform.GetComponent<Collider>());
-        }
-
-        // Find & ref the spaceship in scene
-        GameObject spaceship_obj = GameObject.FindGameObjectWithTag("Spaceship");
-        if (spaceship_obj != null)
-        {
-            target_ship = spaceship_obj.transform;
-        }
-
-        // Initialize the laser to off
-        if (line_renderer != null)
-        {
-            line_renderer.positionCount = 2;
-            line_renderer.enabled = false;
-        }
+        // Move forward based on the current rotation
+        transform.position += transform.forward * move_speed * Time.deltaTime;
     }
 
-    void Update()
+    public void damage(float damage, IDamageable.DamageType damage_type)
     {
-        if (target_ship == null)
+        // Check if need to flash shields and abort damage
+        if (permanently_disabled == false && mine_field.damageTypeBypassesMineShields(damage_type) == false)
         {
+            ShieldFlashRPC();
             return;
         }
 
-        float distance_to_ship = Vector3.Distance(transform.position, target_ship.position);
-
-        // Visual logic (Laser) runs on Host AND Clients so everyone sees it
-        if (distance_to_ship <= LASER_RANGE)
+        // If hit by ion torpedo, permanently disable the mine 
+        if (damage_type == IDamageable.DamageType.IonTorpedo)
         {
-            //FireLaser();
-        }
-        else
-        {
-            //StopLaser();
-        }
-
-        if (!IsHost)
-        {
-            return;
-        }
-
-        if (distance_to_ship <= DETECTION_RANGE)
-        {
-            float dynamic_detection_range = CalculateDetectionRange();
-
-            if (distance_to_ship < dynamic_detection_range)
+            if (permanently_disabled == false)
             {
-                LookAtShip();
+                PermanentlyDisableRPC();
+            }
+            return;
+        }
+
+        // Else, damage the mine
+        if (health > 0.0f)
+        {
+            health -= damage;
+            if (health <= 0.0f)
+            {
+                Explode();
             }
         }
     }
 
-    private float CalculateDetectionRange()
+    public bool getTorpedoTargetable(IDamageable.DamageType torpedo_type)
     {
-        EmissionReducers reducers = ReferenceAssistor.Instance.module_handlers[0].GetComponent<EmissionReducers>();
-        if (reducers == null)
+        return (mine_field.torpedoTracksMine(torpedo_type) && !(torpedo_type != IDamageable.DamageType.IonTorpedo && permanently_disabled == true));
+    }
+
+    public bool getPhaserTargetable(IDamageable.DamageType phaser_type)
+    {
+        return true;
+    }
+
+    public void UpdateResettingStatus(bool reset)
+    {
+        // Only reset if not permanentlycurrently_disabled
+        if (permanently_disabled == true)
         {
-            return DETECTION_RANGE;
+            return;
         }
-        int active_count = 0;
 
-        // Check port and starboard reducers
-        if (reducers.enabled_reducers[0]) active_count++;
-        if (reducers.enabled_reducers[1]) active_count++;
-
-        if (active_count == 0)
+        if (reset == true)
         {
-            return DETECTION_RANGE;
+            // Flash shields
+            if (shield_change_coroutine != null)
+            {
+                StopCoroutine(shield_change_coroutine);
+            }
+            shield_change_coroutine = StartCoroutine(ShieldFlash(new Color(0.0f, 0.1f, 0.2f), Minefield.MINE_RESET_TIMES[ReferenceAssistor.Instance.scenario_manager.getDifficulty()], false));
+
+            // Flicker blue
+            if (disable_flash_coroutine != null)
+            {
+                StopCoroutine(disable_flash_coroutine);
+            }
+            disable_flash_coroutine = StartCoroutine(DisabledFlash(mine_field.mineLitBlue, BLINK_INTERVAL));
+
+            // Disable
+            currently_resetting = true;
         }
         else
         {
-            return DETECTION_RANGE - (active_count * 200.0f);
+            // Stop flicker effect
+            if (disable_flash_coroutine != null)
+            {
+                StopCoroutine(disable_flash_coroutine);
+                disable_flash_coroutine = null;
+            }
+            mine_light.GetComponent<Renderer>().material = mine_light_material;
+            mine_light.transform.GetChild(0).GetComponent<Light>().color = mine_light_material.color;
+
+            // Set to previous configuration
+            currently_resetting = false;
+            UpdateDisabledStatus(currently_disabled);
         }
     }
 
-    private void LookAtShip()
+    public void UpdateDisabledStatus(bool disable)
     {
-        // Determine direction to ship
-        Vector3 target_direction = (target_ship.position - transform.position).normalized;
-
-        Quaternion target_rotation = Quaternion.LookRotation(target_direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, target_rotation, Time.deltaTime * ROTATION_SPEED);
-
-    }
-
-    private void FireLaser()
-    {
-        if (line_renderer == null || laser_aperture == null) return;
-
-        if (!line_renderer.enabled) line_renderer.enabled = true;
-
-        // Update beam positions
-        line_renderer.SetPosition(0, laser_aperture.position);
-        line_renderer.SetPosition(1, target_ship.position);
-    }
-
-    private void StopLaser()
-    {
-        if (line_renderer != null && line_renderer.enabled)
+        // Disable or not
+        if (permanently_disabled == false)
         {
-            line_renderer.enabled = false;
+           currently_disabled = disable;
+        }
+        else
+        {
+           currently_disabled = true;
+        }
+
+        // Stop flashing, turn back to default
+        if (currently_resetting == false && currently_disabled == false && permanently_disabled == false)
+        {
+            if (disable_flash_coroutine != null)
+            {
+                StopCoroutine(disable_flash_coroutine);
+                disable_flash_coroutine = null;
+            }
+            mine_light.GetComponent<Renderer>().material = mine_light_material;
+            mine_light.transform.GetChild(0).gameObject.SetActive(true);
+            return;
+        }
+
+        // Turn green and reset if permanently disabled
+        if (permanently_disabled == true)
+        {
+            if (disable_flash_coroutine != null)
+            {
+                StopCoroutine(disable_flash_coroutine);
+                disable_flash_coroutine = null;
+            }
+            mine_light.GetComponent<Renderer>().material = mine_field.mineLitGreen;
+        }
+        else
+        {
+            mine_light.GetComponent<Renderer>().material = mine_light_material;
+        }
+
+        // Start flash animation
+        if (disable_flash_coroutine == null)
+        {
+            disable_flash_coroutine = StartCoroutine(DisabledFlash(mine_light.GetComponent<Renderer>().material, DISABLED_BLINK_INTERVAL));
         }
     }
 
-    private void Detonate()
+    protected void Explode()
     {
+        if (GetComponent<NetworkObject>() != null && GetComponent<NetworkObject>().IsSpawned == true)
+        {
+            GetComponent<NetworkObject>().Despawn(true);
+        }
+        ReferenceAssistor.Instance.effects_handler.createExplosion(transform.position, 75.0f, false, explosion_color);
+        Destroy(this);
+    }
 
+    [Rpc(SendTo.Everyone)]
+    protected void ShieldFlashRPC()
+    {
+        if (shield_change_coroutine == null)
+        {
+            shield_change_coroutine = StartCoroutine(ShieldFlash(new Color(0.0f, 0.1f, 0.2f), DEFAULT_SHIELD_FLASH_TIME, true));
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    protected void PermanentlyDisableRPC()
+    {
+        permanently_disabled = true;
+        UpdateDisabledStatus(true);
+        if (shield_change_coroutine != null)
+        {
+            StopCoroutine(shield_change_coroutine);
+        }
+        shield_change_coroutine = StartCoroutine(ShieldFlash(new Color(0.0f, 0.15f, 0.0f), DEFAULT_SHIELD_FLASH_TIME, true));
     }
 }

@@ -1,14 +1,16 @@
 /*
     EngineMonitoring.cs
     - Updates speed and engine capacity temperature screens (next to Spatial Composition Analyzer)
+    - Also adjusts the two bars to the side of the impulse throttle
     - Adjusts engine sound
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 5/12/2026
 */
 
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class EngineMonitoring : MonoBehaviour, IPowerable, IDescribable
 {
@@ -39,6 +41,7 @@ public class EngineMonitoring : MonoBehaviour, IPowerable, IDescribable
 
     public GameObject engine_speed_display;
     public GameObject engine_capacity_display;
+    public GameObject impulse_engine_capacity_bars;
     public TMP_Text engineer_speed_text;
     public AudioSource ambient_ship_noise;
 
@@ -104,38 +107,42 @@ public class EngineMonitoring : MonoBehaviour, IPowerable, IDescribable
 
         //update colors
         Color status_color = COLOR_OPTIONS[current_state];
-        engine_speed_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        engine_speed_display.transform.GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        engine_speed_display.transform.GetChild(1).GetComponent<SpriteRenderer>().color = status_color;
         engine_capacity_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = status_color;
         engine_capacity_display.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().color = status_color;
         engine_capacity_display.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().color = status_color;
         engine_capacity_display.transform.GetChild(4).GetComponent<TMP_Text>().color = status_color;
+        impulse_engine_capacity_bars.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = status_color;
+        impulse_engine_capacity_bars.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = status_color;
 
         status_color.a = 0.2f;
 
-        engine_speed_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        engine_speed_display.transform.GetChild(0).GetComponent<SpriteRenderer>().color = status_color;
         engine_capacity_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
         engine_capacity_display.transform.GetChild(2).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
         engine_capacity_display.transform.GetChild(3).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        for (int i = 0; i < engine_capacity_display.transform.GetChild(0).childCount; i++)
-        {
-            engine_capacity_display.transform.GetChild(0).GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-            engine_capacity_display.transform.GetChild(0).GetChild(i).GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
-        }
+
+        status_color.a = 0.1f;
+
+        impulse_engine_capacity_bars.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
+        impulse_engine_capacity_bars.transform.GetChild(3).GetComponent<UnityEngine.UI.RawImage>().color = status_color;
     }
 
     public void temperatureAdjustment()
     {
-        float temp = engine_coolant_supply.getEngineTemperature();
+        float fill_amount = 1.0f - engine_coolant_supply.getEngineTemperature();
         adjustSpeed();
 
-        engine_capacity_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = temp;
+        engine_capacity_display.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = fill_amount;
+        impulse_engine_capacity_bars.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = fill_amount;
+        impulse_engine_capacity_bars.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().fillAmount = fill_amount;
+
         int new_state = 0;
-        if (temp >= 1.0f)
+        if (fill_amount <= 0.0f)
         {
             new_state = 2;
         }
-        else if (temp >= 0.5f)
+        else if (fill_amount <= 0.5f)
         {
             new_state = 1;
         }

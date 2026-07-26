@@ -148,10 +148,15 @@ public class Manual : MonoBehaviour, IPowerable
     {
         if (curr_button.GetComponent<ManualButton>().select_panel != null)
         {
+            GameObject prev_screen = curr_screen;
             curr_button.GetComponent<IManualButton>().deselect();
             curr_screen.SetActive(false);
             curr_screen = curr_button.GetComponent<ManualButton>().select_panel;
             curr_screen.SetActive(true);
+            foreach (IManualLinker ml in curr_button.GetComponents<IManualLinker>())
+            {
+                ml.link();
+            }
             if (curr_button.GetComponent<ManualCodeLinker>() != null)
             {
                 curr_button.GetComponent<ManualCodeLinker>().link();
@@ -159,6 +164,19 @@ public class Manual : MonoBehaviour, IPowerable
             if (curr_screen.GetComponent<PanelInfo>().default_button != null)
             {
                 curr_button = curr_screen.GetComponent<PanelInfo>().default_button;
+
+                //page button quirk (if previously hit back, default button should be back, not next)
+                if (curr_button.GetComponent<PageButton>() != null) 
+                {
+                    if (curr_button.GetComponent<PageButton>().left != null && curr_button.GetComponent<PageButton>().left.GetComponent<PageButton>() != null)
+                    {
+                        if (curr_button.GetComponent<PageButton>().select_panel == prev_screen)
+                        {
+                            curr_button = curr_button.GetComponent<PageButton>().left;
+                        }
+                    }
+                }
+
                 curr_button.GetComponent<IManualButton>().select();
                 curr_screen.GetComponent<PanelInfo>().last_pressed_button = curr_button;
             }

@@ -2,7 +2,7 @@
     PowerRegulationModuleA.cs
     - Handles the knob-turning mini-game in the engineer position
     Contributor(s): Jake Schott
-    Last Updated: 3/3/2026
+    Last Updated: 5/9/2026
 */
 
 using System.Collections;
@@ -27,6 +27,7 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
     public List<GameObject> prsa_color_identifiers = null;
     public List<GameObject> prsa_knobs = null;
 
+    private PowerRegulator power_regulator;
     private List<GameObject> color_dots = new List<GameObject>();
     private List<GameObject> color_arcs = new List<GameObject>();
 
@@ -52,6 +53,7 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
 
     private void Start()
     {
+        power_regulator = GameObject.Find("PowerHandler").GetComponent<PowerRegulator>();
         for (int i = 0; i < 3; i++)
         {
             color_dots.Add(prsa_display.transform.GetChild(i).GetChild(1).gameObject);
@@ -295,6 +297,12 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
     {
         dot_rotations[dot] = new_rotation;
         displayAdjustment(dot);
+
+        if (checkDotWithinArc(dot) == true)
+        {
+            power_regulator.playCorrectSound();
+        }
+
         if (NetworkManager.Singleton.IsHost == true)
         {
             bool stage_completed = true;
@@ -325,6 +333,6 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
     [Rpc(SendTo.Everyone)]
     private void transmitModuleCompletionRPC()
     {
-        GameObject.Find("PowerHandler").GetComponent<PowerRegulator>().moduleCompleted(this.GetType().Name);
+        power_regulator.moduleCompleted(this.GetType().Name);
     }
 }

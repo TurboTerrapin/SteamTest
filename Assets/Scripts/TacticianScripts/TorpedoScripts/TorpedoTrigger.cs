@@ -3,7 +3,7 @@
     - Handles arming and firing of torpedoes
     - Moves base and lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 3/26/2026
+    Last Updated: 7/23/2026
 */
 
 using System.Collections;
@@ -34,7 +34,6 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     private TorpedoLauncher torpedo_launcher;
     private TorpedoLoader torpedo_loader;
     private TorpedoBaySelector torpedo_bay_selector;
-    private TorpedoPowers torpedo_powers;
 
     private bool is_powered = false;
     private float trigger_percentage = 0.0f;
@@ -60,7 +59,6 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     {
         torpedo_loader = ReferenceAssistor.Instance.module_handlers[2].GetComponent<TorpedoLoader>();
         torpedo_bay_selector = GetComponent<TorpedoBaySelector>();
-        torpedo_powers = GetComponent<TorpedoPowers>();
         torpedo_launcher = GetComponent<TorpedoLauncher>();
 
         hud_info = new HUDInfo(CONTROL_NAME);
@@ -281,7 +279,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         int current_bay = torpedo_bay_selector.getDirectionIndex();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            torpedo_launcher.fireTorpedo(current_bay, torpedo_loader.getBayOccupant(current_bay), torpedo_powers.getPowerLevel(current_bay));
+            torpedo_launcher.fireTorpedo(current_bay, torpedo_loader.getBayOccupant(current_bay));
         }
 
         //handle unload

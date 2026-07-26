@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 3/26/2026
+    Last Updated: 6/16/2026
 */
 
 using System.Collections;
@@ -11,19 +11,20 @@ using UnityEngine;
 
 public class LightsManager : MonoBehaviour
 {
-    //CLASS CONSTANTS (0 IS DEFAULT, 1 IS EMERGENCY LIGHTS)
+    //CLASS CONSTANTS (0 IS DEFAULT, 1 IS EMERGENCY LIGHTS, 2 IS DOOR LIGHTS)
     private static float LIGHT_CHANGE_TIME = 0.5f;
-    private static float[] DEFAULT_LIGHT_INTENSITIES = new float[2] { 5.0f, 10.0f };
-    private static Color[] DEFAULT_LIGHT_COLORS = new Color[] { new Color(0.66f, 0.92f, 1.0f), new Color(0.87f, 0.96f, 1.0f) };
-    private static float[] RED_ALERT_LIGHT_INTENSITIES = new float[2] { 10.0f, 10.0f };
-    private static Color[] RED_ALERT_LIGHT_COLORS = new Color[] { new Color(1.0f, 0.0f, 0.0f), new Color(0.8f, 0.02f, 0.0f) };
+    private static float[] DEFAULT_LIGHT_INTENSITIES = new float[3] { 5.0f, 10.0f, 20.0f };
+    private static Color[] DEFAULT_LIGHT_COLORS = new Color[3] { new Color(0.66f, 0.92f, 1.0f), new Color(0.87f, 0.96f, 1.0f), new Color(0.0f, 0.84f, 1.0f) };
+    private static float[] RED_ALERT_LIGHT_INTENSITIES = new float[3] { 10.0f, 10.0f, 20.0f };
+    private static Color[] RED_ALERT_LIGHT_COLORS = new Color[2] { new Color(1.0f, 0.0f, 0.0f), new Color(0.8f, 0.02f, 0.0f) };
     //order of lights in default lights hierarchy (ex. transform.GetChild(11) would get an aft light)
     private static int[][] DEFAULT_DIRECTIONAL_INDEXES = new int[][]
     {
         new int[]{ 0, 1, 2, 3, 4 }, //forward lights
         new int[]{ 5, 6, 7 }, //port lights
         new int[]{ 8, 9, 10 }, //starboard lights
-        new int[]{ 11, 12, 13 } //aft lights
+        new int[]{ 11, 12, }, //aft lights
+        new int[]{ 13, 14 } //door lights
     };
     //order of secondary lit objects in lit elements hierarchy
     private static int[][] LIT_DIRECTIONAL_INDEXES = new int[][]
@@ -31,7 +32,8 @@ public class LightsManager : MonoBehaviour
         new int[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8 }, //forward lit elements
         new int[]{ 9 }, //port lit elements
         new int[]{ 10 }, //starboard lit elements
-        new int[]{ 11 } //aft lit elements
+        new int[]{ 11 }, //aft lit elements
+        new int[]{ } //door lit elements
     };
 
     public GameObject default_light_group;
@@ -39,35 +41,35 @@ public class LightsManager : MonoBehaviour
     public GameObject lit_element_group;
     public AudioSource light_flicker_sound;
 
-    private List<Light>[] default_lights = new List<Light>[4];
-    private List<Renderer>[] default_renderers = new List<Renderer>[4];
-    private List<Renderer>[] lit_renderers = new List<Renderer>[4];
+    private List<Light>[] default_lights = new List<Light>[5];
+    private List<Renderer>[] default_renderers = new List<Renderer>[5];
+    private List<Renderer>[] lit_renderers = new List<Renderer>[5];
     private List<Light> emergency_lights = new List<Light>();
     private List<Renderer> emergency_renderers = new List<Renderer>();
     private ShipStatus ship_status;
 
-    private bool[] enabled_lights = new bool[2] { true, false }; //default, emergency
-    private float[] light_intensities = new float[] { DEFAULT_LIGHT_INTENSITIES[0], 0.0f }; //default, emergency
+    private bool[] enabled_lights = new bool[2] { true, false }; //default includes door lights
+    private float[] light_intensities = new float[] { DEFAULT_LIGHT_INTENSITIES[0], 0.0f, DEFAULT_LIGHT_INTENSITIES[2] }; //default, emergency, door
 
-    //below correspond to forward, port, starboard, aft
-    private Color[] current_default_colors = new Color[4];
-    private Material[] current_default_materials = new Material[4];
-    private Color[] normal_default_colors = new Color[4];
-    private Material[] normal_default_materials = new Material[4];
+    //below correspond to forward, port, starboard, aft, door
+    private Color[] current_default_colors = new Color[5];
+    private Material[] current_default_materials = new Material[5];
+    private Color[] normal_default_colors = new Color[5];
+    private Material[] normal_default_materials = new Material[5];
     private Color emergency_color;
     private Material emergency_material;
 
     //below correspond to forward, port, starboard, aft
     private float[] flicker_times = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f };
-    private Material[] flicker_materials = new Material[4];
+    private Material[] flicker_materials = new Material[5];
     private Coroutine[] flicker_coroutines = new Coroutine[4] { null, null, null, null };
 
     private Coroutine[] light_change_coroutines = new Coroutine[2] { null, null }; //default, emergency
 
     private void Start()
     {
-        //add forward, port, starboard, and aft lights and lit elements
-        for (int i = 0; i < 4; i++)
+        //add forward, port, starboard, aft and door lights and lit elements
+        for (int i = 0; i < 5; i++)
         {
             default_lights[i] = new List<Light>();
             default_renderers[i] = new List<Renderer>();
@@ -91,7 +93,7 @@ public class LightsManager : MonoBehaviour
             emergency_lights.Add(emergency_light_group.transform.GetChild(i).GetComponent<Light>());
             emergency_renderers.Add(emergency_light_group.transform.GetChild(i).GetChild(0).GetComponent<Renderer>());
         }
-        emergency_material = ReferenceAssistor.Instance.unlit_neon;
+        emergency_material = ReferenceAssistor.Instance.pure_black;
 
         ship_status = ReferenceAssistor.Instance.module_handlers[3].GetComponent<ShipStatus>();
 
@@ -101,7 +103,7 @@ public class LightsManager : MonoBehaviour
     //cleanup runtime materials
     private void OnDestroy()
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             Destroy(flicker_materials[i]);
         }
@@ -124,7 +126,7 @@ public class LightsManager : MonoBehaviour
     {
         if (index == 0) //default
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 for (int k = 0; k < default_renderers[i].Count; k++)
                 {
@@ -134,7 +136,7 @@ public class LightsManager : MonoBehaviour
                     }
                     else
                     {
-                        default_renderers[i][k].material = ReferenceAssistor.Instance.unlit_neon;
+                        default_renderers[i][k].material = ReferenceAssistor.Instance.pure_black;
                     }
                 }
                 for (int k = 0; k < lit_renderers[i].Count; k++)
@@ -160,7 +162,7 @@ public class LightsManager : MonoBehaviour
                 }
                 else
                 {
-                    emergency_renderers[i].material = ReferenceAssistor.Instance.unlit_neon;
+                    emergency_renderers[i].material = ReferenceAssistor.Instance.pure_black;
                 }
             }
         }
@@ -182,6 +184,10 @@ public class LightsManager : MonoBehaviour
                     default_lights[i][k].intensity = light_intensities[index];
                 }
             }
+            for (int i = 0; i < default_lights[4].Count; i++)
+            {
+                default_lights[4][i].intensity = light_intensities[2];
+            }
         }
         else //emergency
         {
@@ -196,7 +202,7 @@ public class LightsManager : MonoBehaviour
     {
         if (index == 0) //default
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 for (int k = 0; k < default_lights[i].Count; k++)
                 {
@@ -233,19 +239,22 @@ public class LightsManager : MonoBehaviour
         light_intensities[0] = DEFAULT_LIGHT_INTENSITIES[0];
         enabled_lights[1] = false;
         light_intensities[1] = 0.0f;
+        light_intensities[2] = DEFAULT_LIGHT_INTENSITIES[2];
 
         //enable default lights
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             current_default_colors[i] = DEFAULT_LIGHT_COLORS[0];
             normal_default_colors[i] = DEFAULT_LIGHT_COLORS[0];
             current_default_materials[i] = ReferenceAssistor.Instance.lit_neon;
             normal_default_materials[i] = ReferenceAssistor.Instance.lit_neon;
         }
+        current_default_colors[4] = DEFAULT_LIGHT_COLORS[2];
+        normal_default_colors[4] = DEFAULT_LIGHT_COLORS[2];
 
         //disable emergency lights
         emergency_color = DEFAULT_LIGHT_COLORS[1];
-        emergency_material = ReferenceAssistor.Instance.unlit_neon;
+        emergency_material = ReferenceAssistor.Instance.pure_black;
 
         //push updates
         for (int i = 0; i < 2; i++)
@@ -264,7 +273,7 @@ public class LightsManager : MonoBehaviour
         List<Light> lights_to_adjust = new List<Light>();
         if (index == 0) //default
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 for (int k = 0; k < default_lights[i].Count; k++)
                 {
@@ -287,23 +296,40 @@ public class LightsManager : MonoBehaviour
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            for (int i = 0; i < lights_to_adjust.Count; i++)
+            if (index != 0 || to_change_to == 0.0f)
             {
-                lights_to_adjust[i].intensity = Mathf.Lerp(starting_intensities[i], to_change_to, 1.0f - (anim_time / time));
+                for (int i = 0; i < lights_to_adjust.Count; i++)
+                {
+                    lights_to_adjust[i].intensity = Mathf.Lerp(starting_intensities[i], to_change_to, 1.0f - (anim_time / time));
+                }
+            }
+            else
+            {
+                for (int i = 0; i < lights_to_adjust.Count; i++)
+                {
+                    if (i < DEFAULT_DIRECTIONAL_INDEXES[4][0])
+                    {
+                        lights_to_adjust[i].intensity = Mathf.Lerp(starting_intensities[i], to_change_to, 1.0f - (anim_time / time));
+                    }
+                    else
+                    {
+                        lights_to_adjust[i].intensity = Mathf.Lerp(starting_intensities[i], DEFAULT_LIGHT_INTENSITIES[2], 1.0f - (anim_time / time));
+                    }
+                }
             }
 
             yield return null;
         }
     }
 
-    //used to enable/disable a set of lights (calls lightIntensityChange() and changeMaterials()
+    //used to enable/disable a set of lights (calls lightIntensityChange() and changeMaterials())
     IEnumerator lightsChange(int index, float desired_intensity)
     {
         if (desired_intensity > 0.0f) //turning on
         {
             if (index == 0) //default
             {
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 5; i++)
                 {
                     current_default_materials[i] = normal_default_materials[i];
                 }
@@ -328,14 +354,14 @@ public class LightsManager : MonoBehaviour
         {
             if (index == 0) //default
             {
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 5; i++)
                 {
-                    current_default_materials[i] = ReferenceAssistor.Instance.unlit_neon;
+                    current_default_materials[i] = ReferenceAssistor.Instance.pure_black;
                 }
             }
             else //emergency
             {
-                emergency_material = ReferenceAssistor.Instance.unlit_neon;
+                emergency_material = ReferenceAssistor.Instance.pure_black;
             }
         }
         displayLightMaterials(index);
@@ -374,6 +400,7 @@ public class LightsManager : MonoBehaviour
         if (active == false)
         {
             intensity_to_change_to = 0.0f;
+            light_flicker_sound.Stop();
         }
         light_change_coroutines[0] = StartCoroutine(lightsChange(0, intensity_to_change_to));
     }
@@ -398,7 +425,7 @@ public class LightsManager : MonoBehaviour
             light_intensities[i] = RED_ALERT_LIGHT_INTENSITIES[i];
             if (i == 0) //default
             {
-                for (int k = 0; k < 4; k++)
+                for (int k = 0; k < 5; k++)
                 {
                     current_default_colors[k] = RED_ALERT_LIGHT_COLORS[0];
                     current_default_materials[k] = ReferenceAssistor.Instance.lit_red;
@@ -423,7 +450,7 @@ public class LightsManager : MonoBehaviour
             light_intensities[i] = DEFAULT_LIGHT_INTENSITIES[i];
             if (i == 0) //default
             {
-                for (int k = 0; k < 4; k++)
+                for (int k = 0; k < 5; k++)
                 {
                     current_default_colors[k] = normal_default_colors[k];
                     current_default_materials[k] = normal_default_materials[k];
@@ -475,7 +502,14 @@ public class LightsManager : MonoBehaviour
         for (int i = 0; i < default_renderers[section].Count; i++)
         {
             default_renderers[section][i].material = flicker_materials[section];
-            default_lights[section][i].intensity = Mathf.Lerp(1.0f, light_intensities[0], dim_factor);
+            if (section < 4) //default
+            {
+                default_lights[section][i].intensity = Mathf.Lerp(1.0f, light_intensities[0], dim_factor);
+            }
+            else //doors
+            {
+                default_lights[section][i].intensity = Mathf.Lerp(1.0f, light_intensities[2], dim_factor);
+            }
         }
         for (int i = 0; i < lit_renderers[section].Count; i++)
         {
@@ -490,6 +524,10 @@ public class LightsManager : MonoBehaviour
         {
             dim_factor = Random.Range(0.0f, 0.75f);
             adjustSectionFlicker(section, dim_factor);
+            if (section == 3) //doors
+            {
+                adjustSectionFlicker(4, dim_factor);
+            }
 
             float delay = Random.Range(0.06f, 0.1f);
             flicker_times[section] = Mathf.Max(0.0f, flicker_times[section] - delay);
@@ -503,6 +541,11 @@ public class LightsManager : MonoBehaviour
         {
             reset_time = Mathf.Max(0.0f, reset_time - Time.deltaTime);
             adjustSectionFlicker(section, Mathf.Lerp(1.0f, dim_factor, reset_time / 0.5f));
+            if (section == 3)
+            {
+                adjustSectionFlicker(4, Mathf.Lerp(1.0f, dim_factor, reset_time / 0.5f));
+            }
+
             yield return null;
         }
 

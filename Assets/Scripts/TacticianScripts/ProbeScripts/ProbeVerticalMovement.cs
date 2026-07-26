@@ -4,7 +4,7 @@
     - Affects probe if host
     - Tells ProbeInfo to update altimeter
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 7/4/2026
 */
 
 using System.Collections;
@@ -17,7 +17,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
 {
     //CLASS CONSTANTS
     private static float LEVER_SPEED = 200.0f;
-    private static float PROBE_SPEED = 0.2f;
+    private static float PROBE_SPEED = 0.5f;
 
     private string CONTROL_NAME = "PROBE VERTICAL MOVEMENT";
     private static string INFO_MESSAGE = "Handles the up and down movement of an active probe.";
@@ -31,6 +31,8 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
     private bool is_active = false;
     private GameObject probe;
     private float vertical_lever_angle = 0.0f;
+    private float altimeter_update_time_remaining = 0.0f; //needed to account for the delay in positional updates driven by host
+    private Coroutine altimeter_update_coroutine = null;
     private Coroutine vertical_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -62,26 +64,32 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -98,7 +106,11 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
         //update altimeter
         if (probe != null)
         {
-            probe_info.displayProbeAltitude(probe.transform.position.y);
+            altimeter_update_time_remaining = 1.0f;
+            if (altimeter_update_coroutine == null)
+            {
+                altimeter_update_coroutine = StartCoroutine(altimeterUpdater());
+            }
         }
     }
 
@@ -187,6 +199,20 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
         }
 
         vertical_adjustment_coroutine = null;
+    }
+
+    IEnumerator altimeterUpdater()
+    {
+        while (probe != null && altimeter_update_time_remaining > 0.0f)
+        {
+            altimeter_update_time_remaining = Mathf.Max(0.0f, altimeter_update_time_remaining - Time.deltaTime);
+
+            probe_info.displayProbeAltitude(probe.transform.position.y);
+
+            yield return null;
+        }
+
+        altimeter_update_coroutine = null;
     }
 
     public void activate()

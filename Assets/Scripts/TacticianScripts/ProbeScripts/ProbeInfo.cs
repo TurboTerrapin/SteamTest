@@ -103,7 +103,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         for (int i = 1; i <= 4; i++)
         {
             probe_controller_display.transform.GetChild(i).gameObject.SetActive(true);
-            probe_controller_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.2f);
+            probe_controller_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
         }
 
         //hide load circle
@@ -127,7 +127,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_range_display.transform.GetChild(0).gameObject.SetActive(true);
         probe_in_range.color = BLUE;
         probe_in_range.SetText("IN RANGE");
-        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.1f);
+        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
         probe_range_display.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = BLUE;
 
         //show altimeter
@@ -140,37 +140,48 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_render_texture_image.gameObject.SetActive(false);
 
         //update center icon
-        probe_icon.color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.2f);
+        probe_icon.color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
         probe_disconnected_icon.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
 
         //update probe controller screen
-        probe_controller_display.transform.GetChild(0).GetComponent<RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.2f);
+        probe_controller_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
 
-        //hide directional arcs
-        for (int i = 1; i <= 4; i++)
+        //fade directional arcs
+        for (int i = 1; i < 5; i++)
         {
-            probe_controller_display.transform.GetChild(i).gameObject.SetActive(false);
+            probe_controller_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
         }
 
         //hide load circle
         probe_load_outer_circle.gameObject.SetActive(false);
 
         //update overlay
-        probe_overlay.color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.2f);
+        probe_overlay.color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
 
         //hide health bar
         probe_health_display.transform.GetChild(0).gameObject.SetActive(false);
-        probe_health_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.2f);
+        probe_health_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
 
-        //hide signal
-        probe_signal_display.transform.GetChild(0).gameObject.SetActive(false);
-        probe_signal_display.transform.GetChild(0).GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.2f);
+        //fade signals
+        foreach (Transform t in probe_signal_display.transform.GetChild(0))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
+        }
 
-        //hide range
-        probe_range_display.transform.GetChild(0).gameObject.SetActive(false);
+        //fade range bar
+        probe_range_display.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().SetText("INACTIVE");
+        probe_range_display.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
+        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
+        probe_range_display.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = BLUE;
+        probe_range_display.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 0.0f;
 
-        //hide altimeter
+        //hide altimeter, show blank one
         probe_altimeter_display.transform.GetChild(0).gameObject.SetActive(false);
+        probe_altimeter_display.transform.GetChild(1).gameObject.SetActive(true);
+        foreach (Transform t in probe_altimeter_display.transform.GetChild(1))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
+        }
     }
 
     public void enableProbeOutOfRangeWarning()
@@ -178,7 +189,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         //update signal screen
         foreach (Transform child in probe_signal_display.transform.GetChild(0))
         {
-            child.GetComponent<UnityEngine.UI.RawImage>().color = new Color(RED.r, RED.g, RED.b, 0.2f);
+            child.GetComponent<UnityEngine.UI.RawImage>().color = new Color(RED.r, RED.g, RED.b, 0.08f);
         }
         probe_signal_display.transform.GetChild(0).GetChild(12).GetComponent<UnityEngine.UI.RawImage>().color = RED;
         probe_signal_display.transform.GetChild(0).gameObject.SetActive(true);
@@ -186,7 +197,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         //update range text
         probe_in_range.SetText("OUT OF RANGE");
         probe_in_range.color = RED;
-        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(RED.r, RED.g, RED.b, 0.1f);
+        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(RED.r, RED.g, RED.b, 0.08f);
         probe_range_display.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = RED;
         probe_range_display.transform.GetChild(0).gameObject.SetActive(true);
     }
@@ -202,7 +213,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         //update range text
         probe_in_range.SetText("IN RANGE");
         probe_in_range.color = BLUE;
-        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.1f);
+        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
         probe_range_display.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = BLUE;
     }
 
@@ -216,7 +227,11 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_disconnected_icon.color = RED;
 
         //update probe controller screen
-        probe_controller_display.transform.GetChild(0).GetComponent<RawImage>().color = RED;
+        probe_controller_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = RED;
+        for (int i = 1; i < 5; i++)
+        {
+            probe_controller_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(RED.r, RED.g, RED.b, 0.08f);
+        }
 
         //hide load circle
         probe_load_outer_circle.gameObject.SetActive(false);
@@ -232,7 +247,13 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         enableProbeOutOfRangeWarning();
 
         //hide altimeter
+        //hide altimeter, show blank one as orange
         probe_altimeter_display.transform.GetChild(0).gameObject.SetActive(false);
+        probe_altimeter_display.transform.GetChild(1).gameObject.SetActive(true);
+        foreach (Transform t in probe_altimeter_display.transform.GetChild(1))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = new Color(RED.r, RED.g, RED.b, 0.08f);
+        }
     }
 
     public void displayProbeLaunchProgress(float percent_loaded)
@@ -242,7 +263,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
 
         //update probe controller screen
         probe_controller_display.transform.GetChild(0).localRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f * percent_loaded);
-        probe_controller_display.transform.GetChild(0).GetComponent<RawImage>().color = BLUE;
+        probe_controller_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = BLUE;
 
         //update/spin center icon
         probe_icon.color = BLUE;
@@ -253,12 +274,14 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_load_outer_circle.gameObject.SetActive(percent_loaded < 1.0f);
         probe_load_outer_circle.color = BLUE;
         probe_load_fill_circle.fillAmount = percent_loaded;
-        probe_load_fill_circle.color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.2f);
+        probe_load_fill_circle.color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
 
         //update overlay
         probe_overlay.color = BLUE;
 
         //highlight the different scan waves for the probe distance screen
+        probe_range_display.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().SetText("LAUNCHING");
+        probe_range_display.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().color = BLUE;
         probe_signal_display.transform.GetChild(0).gameObject.SetActive(true);
         displayProbeRange(percent_loaded);
 
@@ -278,10 +301,10 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_controller_display.transform.GetChild(0).GetComponent<RawImage>().color = ORANGE;
         float tmp_percent = percent_to_destruct;
         int[] adjusted_indexes = new int[] { 0, 2, 1, 3 };
-        for (int i = 0; i <= 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             tmp_percent = percent_to_destruct - (0.25f * i);
-            float a = Mathf.Max(0.2f, tmp_percent / 0.25f);
+            float a = Mathf.Max(0.08f, tmp_percent / 0.25f);
             probe_controller_display.transform.GetChild(adjusted_indexes[i] + 1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(ORANGE.r, ORANGE.g, ORANGE.b, a);
         }
 
@@ -294,7 +317,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_load_outer_circle.gameObject.SetActive(percent_to_destruct < 1.0f);
         probe_load_outer_circle.color = ORANGE;
         probe_load_fill_circle.fillAmount = 1.0f - percent_to_destruct;
-        probe_load_fill_circle.color = new Color(ORANGE.r, ORANGE.g, ORANGE.b, 0.2f);
+        probe_load_fill_circle.color = new Color(ORANGE.r, ORANGE.g, ORANGE.b, 0.08f);
 
         //update overlay
         probe_overlay.color = ORANGE;
@@ -310,11 +333,20 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_health_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = ORANGE;
         probe_health_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = ORANGE;
 
-        //hide range
-        probe_range_display.transform.GetChild(0).gameObject.SetActive(false);
+        //update range as destruction progress
+        probe_range_display.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().SetText("DESTRUCTING");
+        probe_range_display.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().color = ORANGE;
+        probe_range_display.transform.GetChild(0).GetChild(1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(ORANGE.r, ORANGE.g, ORANGE.b, 0.08f);
+        probe_range_display.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = ORANGE;
+        probe_range_display.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = 1.0f - percent_to_destruct;
 
-        //hide altimeter
+        //hide altimeter, show blank one as orange
         probe_altimeter_display.transform.GetChild(0).gameObject.SetActive(false);
+        probe_altimeter_display.transform.GetChild(1).gameObject.SetActive(true);
+        foreach (Transform t in probe_altimeter_display.transform.GetChild(1))
+        {
+            t.GetComponent<UnityEngine.UI.RawImage>().color = ORANGE;
+        }
     }
 
     public void setDialDisplayColor(Transform dial_display, int state, float a)
@@ -357,10 +389,10 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         //update signal visualization
         GameObject signal_visualization = probe_signal_display.transform.GetChild(0).gameObject;
         float tmp_dist = percent;
-        for (int i = 0; i <= 10; i++)
+        for (int i = 0; i < 11; i++)
         {
             tmp_dist = percent - (0.091f * i);
-            float a = Mathf.Max(0.2f, tmp_dist / 0.091f);
+            float a = Mathf.Max(0.08f, tmp_dist / 0.091f);
             signal_visualization.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, a);
         }
         signal_visualization.transform.GetChild(11).GetComponent<UnityEngine.UI.RawImage>().color = BLUE;
@@ -372,7 +404,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
 
     public void displayProbeHealth(float health)
     {
-        Color probe_color = ShipHealth.getDesiredColor(health * 100.0f);
+        Color probe_color = ShipHealth.getHealthColor(health * 100.0f);
         probe_health_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = probe_color;
         probe_health_display.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().fillAmount = health;
     }

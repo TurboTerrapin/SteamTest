@@ -5,15 +5,15 @@
     - Handles flashing of circle
     - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+using static AnimatorHandler;
+
+    Last Updated: 6/30/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
-
 public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
@@ -56,22 +56,27 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
         displayAdjustment();
     }
+
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return ik_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
@@ -80,6 +85,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -88,6 +94,15 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     public bool getBeaconEnabled()
     {
         return beacon_enabled;
+    }
+
+    private void onBeaconChange()
+    {
+        GameObject scenario_handler = GameObject.FindGameObjectWithTag("ScenarioHandler");
+        if (scenario_handler != null && scenario_handler.GetComponent<IShipBeaconCommunicable>() != null)
+        {
+            scenario_handler.GetComponent<IShipBeaconCommunicable>().onShipBeaconChange();
+        }
     }
 
     private void displayAdjustment()
@@ -123,23 +138,18 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
     private void displayCollectiblesLightChange(float intensity)
     {
-        //update items in space
-        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
-        if (world_root == null)
+        if (ReferenceAssistor.Instance.world_root == null)
         {
             return;
         }
 
-        foreach (Transform i in world_root.transform)
+        //update items in space
+        foreach (Transform t in ReferenceAssistor.Instance.world_root.transform)
         {
-            Component[] item_components = i.GetComponents<Component>();
-            for (int c = 0; c < item_components.Length; c++)
+            CollectibleItem ci = t.GetComponent<CollectibleItem>();
+            if (ci != null && ci.getItemCategory() < 2)
             {
-                CollectibleItem test_collectible_item = item_components[c] as CollectibleItem;
-                if (test_collectible_item != null)
-                {
-                    test_collectible_item.setIlluminationIntensity(intensity);
-                }
+                ci.setIlluminationIntensity(intensity);
             }
         }
     }
@@ -186,6 +196,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, 0.0f);
             hud_info.setPowerConsumption(0.0f);
             displayAdjustment();
+            onBeaconChange();
         }
 
         float anim_time = SWITCH_TIME;
@@ -203,7 +214,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             ship_beacon_dial.transform.localRotation =
                 Quaternion.Euler(ship_beacon_dial.transform.localEulerAngles.x, 
                                  ship_beacon_dial.transform.localEulerAngles.y, 
-                                 Mathf.Lerp(0.0f, 90.0f, switch_percentage));
+                                 Mathf.Lerp(180.0f, 90.0f, switch_percentage));
 
             yield return null;
         }
@@ -213,8 +224,9 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             beacon_enabled = true;
             ReferenceAssistor.Instance.power_manager.controlPowerChange(3, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
-            displayAdjustment();
             BUTTONS[0].updateDesc(CONTROL_DESCS[1]);
+            displayAdjustment();
+            onBeaconChange();
         }
         else
         {
@@ -255,7 +267,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
             ship_beacon_dial.transform.localRotation =
                 Quaternion.Euler(ship_beacon_dial.transform.localEulerAngles.x, 
                                  ship_beacon_dial.transform.localEulerAngles.y, 
-                                 Mathf.Lerp(starting_rotation, 0.0f, 1.0f - (anim_time / power_off_time)));
+                                 Mathf.Lerp(starting_rotation, 180.0f, 1.0f - (anim_time / power_off_time)));
 
             yield return null;
         }
@@ -279,6 +291,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         BUTTONS[0].untoggle();
         BUTTONS[0].updateDesc(CONTROL_DESCS[0]);
         displayAdjustment();
+        onBeaconChange();
         hud_info.setPowerConsumption(0.0f);
 
         if (beacon_flash_coroutine != null)

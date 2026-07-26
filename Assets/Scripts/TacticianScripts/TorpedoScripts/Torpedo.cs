@@ -1,24 +1,14 @@
 /*
     Torpedo.cs
     - Handles torpedo movement and heatseeking
-    - Manages collision and stats based on type
+    - Manages stats based on type
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 3/25/2026
+    Last Updated: 7/23/2026
 */
 
-using UnityEngine;
-using Unity.Netcode;
 using System.Collections;
-
-public enum TorpedoType
-{
-    Photon,         // Default, damage
-    Proton,         // Shield bonus
-    Ion,            // Disable movement
-    Quantum,        // Disable weapons
-    Superluminal,   // Anti-cloak
-    Chroniton       // Instakill
-}
+using Unity.Netcode;
+using UnityEngine;
 
 public class Torpedo : NetworkBehaviour
 {
@@ -30,10 +20,10 @@ public class Torpedo : NetworkBehaviour
     private static float BASE_LIFETIME = 100.0f;
     private static float NAVIGATION_CONSTANT = 4.0f;
     private static float TRACKING_DELAY = 0.25f; // Time in seconds before tracking begins
+    private static float MIN_HIT_DISTANCE = 5.0f; // Distance threshold to trigger damage
 
-    [Header("TorpedoSettings")]
     [SerializeField]
-    private TorpedoType torpedo_type;
+    private IDamageable.DamageType damage_type;
     [SerializeField]
     private float speed = BASE_SPEED;
     [SerializeField]
@@ -43,33 +33,31 @@ public class Torpedo : NetworkBehaviour
     [SerializeField]
     private float max_angle_delta = BASE_ANGLE_DELTA;
     [SerializeField]
-    private float detection_radius = 5000.0f;
+    private float detection_radius = 1000.0f;
     [SerializeField]
     private LayerMask target_layer; // Bitwise collision layer
-    [SerializeField]
-    private string target_tag = "StaticObstacle"; // Filter by tag
 
+    private bool detonated = false;
     private Vector3 current_velocity; // Tracks actual momentum
     private float alive_time = 0.0f; // Tracks time since launch
 
     private Vector3 last_los; // Tracks the Line of Sight history
     private bool has_los = false; // Ensures we have a baseline to measure rotation
 
-    private Coroutine target_finder_coroutine = null;
-
     private Transform current_target = null;
 
-    public void Initialize(float power_percent)
+    public void Initialize()
     {
-        // Power from TorpedoPowers.cs affects damage capability
-        float power_multiplier = 1.0f + power_percent;
-        damage *= power_multiplier;
+        if (NetworkManager.Singleton.IsHost == false)
+        {
+            return;
+        }
 
         // Give it initial forward momentum based on the launcher's orientation
         current_velocity = transform.forward * speed;
 
         // Call this HERE instead of Start() to ensure max_angle_delta is ready
-        target_finder_coroutine = StartCoroutine(targetFinder());
+        StartCoroutine(targetFinder());
 
         // Destroy self after lifetime if no hit
         Destroy(gameObject, BASE_LIFETIME);
@@ -77,13 +65,12 @@ public class Torpedo : NetworkBehaviour
 
     IEnumerator targetFinder()
     {
-        while (current_target == null)
+        while (true)
         {
+            current_target = null;
             findClosestTarget();
-
             yield return new WaitForSeconds(1.0f);
         }
-        target_finder_coroutine = null;
     }
 
     private void findClosestTarget()
@@ -101,23 +88,15 @@ public class Torpedo : NetworkBehaviour
 
         foreach (var hit in hits)
         {
-            // Filter by tag
-            if (hit.CompareTag(target_tag))
+            // Is a candidate if has an IDamageable script and ITorpedoTargetable that includes this torpedo type
+            if (hit.GetComponent<IDamageable>() != null && hit.GetComponent<ITorpedoTargetable>() != null && hit.GetComponent<ITorpedoTargetable>().getTorpedoTargetable(damage_type))
             {
                 // NEW: Ensure the target is actually inside our forward seek cone
-                Vector3 direction_to_target = (hit.transform.position - transform.position).normalized;
-                float angle_to_target = Vector3.Angle(transform.forward, direction_to_target);
-
-                if (angle_to_target <= max_angle_delta)
+                float dist = Vector3.Distance(transform.position, hit.transform.position);
+                if (dist < closest_dist)
                 {
-                    // Specifically for Superluminal: Target cloaked ships (logic assumption)
-                    // For now, standard distance check
-                    float dist = Vector3.Distance(transform.position, hit.transform.position);
-                    if (dist < closest_dist)
-                    {
-                        closest_dist = dist;
-                        best_candidate = hit.transform;
-                    }
+                    closest_dist = dist;
+                    best_candidate = hit.transform;
                 }
             }
         }
@@ -143,6 +122,37 @@ public class Torpedo : NetworkBehaviour
         }
     }
 
+    private void onTargetCollision()
+    {
+        // Ensure only detonates once
+        if (detonated == true)
+        {
+            return;
+        }
+        detonated = false;
+
+        // Hit detected - apply damage and destroy
+        applyDamageEffect(current_target);
+
+        // Create the explosion
+        EffectsHandler effects_handler = ReferenceAssistor.Instance.effects_handler;
+        effects_handler.createExplosion(transform.position, 4.0f, true, GetComponent<MapItem>().getColor());
+
+        // Deactivate torpedo
+        current_target = null;
+
+        // Safely despawn and destroy across the network
+        NetworkObject net_obj = GetComponent<NetworkObject>();
+        if (net_obj != null && net_obj.IsSpawned)
+        {
+            net_obj.Despawn(true); // 'true' tells the server to also Destroy the GameObject
+        }
+        else
+        {
+            Destroy(gameObject); // Fallback just in case
+        }
+    }
+
     private void moveTorpedo()
     {
         if (NetworkManager.Singleton.IsHost == false)
@@ -151,6 +161,17 @@ public class Torpedo : NetworkBehaviour
         }
 
         alive_time += Time.deltaTime;
+
+        // Check if we've hit the target via distance check
+        if (current_target != null)
+        {
+            float distance_to_target = Vector3.Distance(transform.position, current_target.position);
+            if (distance_to_target < MIN_HIT_DISTANCE)
+            {
+                onTargetCollision();
+                return;
+            }
+        }
 
         // Default desire is to keep drifting in our current direction
         Vector3 desired_velocity = current_velocity;
@@ -184,13 +205,6 @@ public class Torpedo : NetworkBehaviour
 
             last_los = current_los; // Save for next frame's comparison
         }
-        else
-        {
-            if (current_target == null && target_finder_coroutine == null)
-            {
-                target_finder_coroutine = StartCoroutine(targetFinder());
-            }
-        }
 
         // Smoothly steer our momentum toward the desired ProNav trajectory, respecting our physical turn_rate limit
         current_velocity = Vector3.RotateTowards(current_velocity, desired_velocity, turn_rate * Mathf.Deg2Rad * Time.deltaTime, 0.0f);
@@ -204,67 +218,26 @@ public class Torpedo : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (NetworkManager.Singleton.IsHost == false)
+        // If spontaneously collides with something, detonate the torpedo if damageable and in target layer
+        if (other.GetComponent<IDamageable>() != null && (target_layer.value & (1 << other.gameObject.layer)) != 0)
         {
-            return;
-        }
-
-        // Basic hit logic - would integrate with a Health/Shield script here
-        if (((1 << other.gameObject.layer) & target_layer) != 0)
-        {
-            if (target_tag == "" || other.CompareTag(target_tag))
-            {
-                // Damage the target
-                applyDamageEffect(other.gameObject);
-
-                // Create the explosion
-                EffectsHandler effects_handler = ReferenceAssistor.Instance.effects_handler;
-                effects_handler.createExplosion(transform.position, 4.0f, GetComponent<MapItem>().getColor());
-
-                // Safely despawn and destroy across the network
-                NetworkObject net_obj = GetComponent<NetworkObject>();
-                if (net_obj != null && net_obj.IsSpawned)
-                {
-                    net_obj.Despawn(true); // 'true' tells the server to also Destroy the GameObject
-                }
-                else
-                {
-                    Destroy(gameObject); // Fallback just in case
-                }
-            }
+            current_target = other.transform;
+            onTargetCollision();
         }
     }
 
-    private void applyDamageEffect(GameObject hit_obj)
+    private void applyDamageEffect(Transform hit_obj)
     {
-        // Placeholder for damage application based on Type
-        switch (torpedo_type)
+        if (hit_obj == null)
         {
-            case TorpedoType.Photon:
-                // Standard Damage
-                break;
-            case TorpedoType.Proton:
-                // Extra Shield Damage
-                break;
-            case TorpedoType.Ion:
-                // Disable Movement
-                break;
-            case TorpedoType.Quantum:
-                // Disable Weapons
-                break;
-            case TorpedoType.Superluminal:
-                // Reveal Cloak
-                break;
-            case TorpedoType.Chroniton:
-                // Instakill
-                break;
+            return;
         }
 
         // Apply damage to IDamageable
         IDamageable[] damage_targets = hit_obj.GetComponents<IDamageable>();
         foreach (IDamageable damage_target in damage_targets)
         {
-            damage_target.damage(BASE_DAMAGE);
+            damage_target.damage(damage, damage_type);
         }
     }
 }

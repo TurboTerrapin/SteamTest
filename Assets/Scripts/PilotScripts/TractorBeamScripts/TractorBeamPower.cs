@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 3/27/2026
+    Last Updated: 7/20/2026
 */
 
 using System.Collections;
@@ -11,11 +11,12 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float MOVE_SPEED = 75.0f;
+    private static float MOVE_SPEED = 200.0f;
     public static float TRACTOR_BEAM_RANGE = 50.0f;
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
@@ -70,30 +71,37 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     private void displayAdjustment()
     {
         //update cargo door
@@ -121,6 +129,17 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
 
         //update handle rotation
         tractor_beam_handle.transform.localRotation = Quaternion.Euler(-150.0f + (80.0f * power), 0.0f, 0.0f);
+
+        //update lit indicator
+        if (item_captured_display.activeSelf == false && power > 0.0f && tractor_beam_active_indicator.GetComponent<MeshRenderer>().material.name.Contains("Unlit Dark Blue") == true)
+        {
+            tractor_beam_inactive_indicator.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.lit_red;
+        }
+        else if (power == 0.0f)
+        {
+            tractor_beam_active_indicator.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.unlit_dark_blue;
+            tractor_beam_inactive_indicator.GetComponent<MeshRenderer>().material = ReferenceAssistor.Instance.unlit_red;
+        }
 
         //update either range or item captured screen
         range_display.SetActive(tractor_beam.GetCapturedItem() == null);
@@ -162,23 +181,33 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
         displayAdjustment();
         if (tractor_beam.GetCapturedItem() != null)
         {
-            //update item captured
+            //update item icon
             Color c = tractor_beam_options.getCapturedItemColor();
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().texture = tractor_beam_options.getCapturedItemTexture();
-            c.a = 1.0f;
             item_captured_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = c;
-            setTractorBeamStatusIndicators(false);
+
+            //update as COLLECT ITEM? or DESTROY ITEM? if not collectible
+            string option_message = "COLLECT\nITEM?";
+            Color option_color = new Color(0.0f, 0.09f, 0.75f);
+            float collect_a = 1.0f;
+            if (tractor_beam.GetCapturedItem().GetComponent<CollectibleItem>() == null)
+            {
+                option_message = "DESTROY\nITEM?";
+                option_color = ReferenceAssistor.COLOR_OPTIONS[2];
+                collect_a = 0.2f;
+            }
+            item_captured_display.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText(option_message);
+            item_captured_display.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().color = option_color;
+            item_captured_display.transform.GetChild(1).GetChild(1).GetComponent<RawImage>().color = new Color(0.0f, 0.09f, 0.75f, collect_a);
+            item_captured_display.transform.GetChild(1).GetChild(1).GetChild(1).GetComponent<Image>().color = new Color(0.0f, 0.09f, 0.75f, collect_a);
         }
-        else
-        {
-            tractor_beam.UpdateBeam(power);
-        }
+        setTractorBeamStatusIndicators(false);
     }
 
     //called by TractorBeam
     public void setTractorBeamStatusIndicators(bool active)
     {
-        if (is_powered == false || tractor_beam.GetCapturedItem() != null)
+        if (power == 0.0f || is_powered == false || tractor_beam.GetCapturedItem() != null)
         {
             tractor_beam_active_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_dark_blue;
             tractor_beam_inactive_indicator.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;

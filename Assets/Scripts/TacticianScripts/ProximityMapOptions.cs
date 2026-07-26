@@ -3,7 +3,7 @@
     - Handles inputs for map zoom, map configuration
     - Zooms the lines for the map, tells ProximityMap to zoom the objects accordingly
     Contributor(s): Jake Schott
-    Last Updated: 3/7/2026
+    Last Updated: 7/24/2026
 */
 
 using Unity.Netcode;
@@ -13,8 +13,8 @@ using System.Collections.Generic;
 public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float ZOOM_SPEED = 1.0f;
-    private Vector3 SLIDER_FINAL_POS = new Vector3(0.0f, -0.0394f, -0.0934f);
+    private static float ZOOM_SPEED = 0.75f;
+    private Vector3 SLIDER_FINAL_POS = new Vector3(0.0f, -0.027f, -0.065f);
 
     private string CONTROL_NAME = "PROXIMITY MAP";
     private List<string> CONTROL_DESCS = new List<string> { "ZOOM OUT", "ZOOM IN" };
@@ -55,30 +55,37 @@ public class ProximityMapOptions : NetworkBehaviour, IControllable, IPowerable, 
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public float getZoom()
     {
         return zoom;

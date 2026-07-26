@@ -294,7 +294,6 @@ public class CustomizeCharacterMenu : MonoBehaviour
         PantsRenderer.material = pantsMaterials[CurrentClothingOptionIndex];
     }
 
-
     private void PreviousHairOption()
     {
         CurrentHairOptionIndex--;
@@ -592,5 +591,4 @@ public class CustomizeCharacterMenu : MonoBehaviour
         CustomizationMenu.SetActive(false);
         MainMenu.SetActive(true);
     }
-
 }

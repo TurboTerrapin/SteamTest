@@ -2,10 +2,9 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 2/19/2026
+    Last Updated: 6/6/2026
 */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -17,20 +16,20 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
     private static float SWITCH_TIME = 0.5f;
     private static float MAX_POWER_CONSUMPTION = 0.4f; //6 circles, 2 per manual
 
-    private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATIONS MANUAL" };
-    public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on situation analysis and response.", "Information resource on ship operations and station controls." };
+    private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATING MANUAL" };
+    public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on situation analysis and response.", "Information resource on ship features and station functions." };
     private List<string> CONTROL_DESCS = new List<string> { "TURN ON", "TURN OFF" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
-    public List<GameObject> target_colliders = null; //goes procedure_manual_on_off, procedure_manual_selector, operations_manual_on_off, operations_manual_selector
+    public List<GameObject> target_colliders = null; //goes procedure_manual_on_off, procedure_manual_selector, operating_manual_on_off, operating_manual_selector
     public List<GameObject> power_switches = null;
     private float[] power_switch_angles = new float[2] { 295.0f, 295.0f };
     private Component[] manuals = new Component[2];
 
     private Coroutine[] power_change_coroutine = new Coroutine[] { null, null };
 
-    private List<string> ray_targets = new List<string> { "procedure_manual_on_off", "operations_manual_on_off" };
+    private List<string> ray_targets = new List<string> { "procedure_manual_on_off", "operating_manual_on_off" };
 
     private static HUDInfo hud_info = null;
 
@@ -46,7 +45,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
     private void Start()
     {
         manuals[0] = GetComponent<ProcedureManual>();
-        manuals[1] = GetComponent<OperationsManual>();
+        manuals[1] = GetComponent<OperatingManual>();
 
         hud_info = new HUDInfo(CONTROL_NAMES[0], true);
 
@@ -136,7 +135,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
         curr_manual.manual_logo.GetComponent<UnityEngine.UI.RawImage>().color = c;
     }
 
-    //called by ProcedureManual, OperationsManual
+    //called by ProcedureManual, OperatingManual
     public void disableManual(int index, float time)
     {
         if (power_change_coroutine[index] != null)
@@ -160,7 +159,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
         }
         else
         {
-            GetComponent<OperationsManual>().powerSwitch(false);
+            GetComponent<OperatingManual>().powerSwitch(false);
             target_colliders[2].SetActive(true);
             target_colliders[3].SetActive(false);
         }
@@ -230,9 +229,9 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
             target_colliders[0].SetActive(!to_switch_to);
             target_colliders[1].SetActive(to_switch_to);
         }
-        else //OperationsManual
+        else //OperatingManual
         {
-            GetComponent<OperationsManual>().powerSwitch(to_switch_to);
+            GetComponent<OperatingManual>().powerSwitch(to_switch_to);
             target_colliders[2].SetActive(!to_switch_to);
             target_colliders[3].SetActive(to_switch_to);
         }

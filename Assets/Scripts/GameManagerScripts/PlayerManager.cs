@@ -3,7 +3,7 @@
     - Handles loading and managing of players/scenes
     - Handles when a player quits to take them back to the TitleScreen
     Contributor(s): Jake Schott
-    Last Updated: 4/27/2026
+    Last Updated: 5/24/2026
 */
 
 using System.Collections;
@@ -140,12 +140,15 @@ public class PlayerManager : NetworkBehaviour
         //position local player
         local_player.transform.localPosition = spawn_points.transform.GetChild(lobby_handler.getPlayerIndex(lobby_handler.getPlayerSteamID(NetworkManager.Singleton.LocalClientId))).localPosition;
 
+        //inform crew manifest of player name
+        ReferenceAssistor.Instance.module_handlers[4].GetComponent<CrewManifest>().reportAsReady();
+
         //reset ready player counter to 0 to prepare for scenario load instead of BridgeEnvironment load
         resetReadyPlayers();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().intializeScenarioDatabase();
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().loadNewScenario();
+            ReferenceAssistor.Instance.scenario_manager.intializeScenarioDatabase();
+            ReferenceAssistor.Instance.scenario_manager.loadNewScenario();
         }
     }
 
@@ -165,7 +168,7 @@ public class PlayerManager : NetworkBehaviour
         audio_manager.GetComponent<AudioManager>().InitializeAudio();
         if (NetworkManager.Singleton.IsHost == true)
         {
-            startScenarioRPC();
+            startScenarioRPC(ReferenceAssistor.Instance.scenario_manager.getCurrentScenarioIndex());
         }
         handleShipRepositioning();
     }
@@ -260,15 +263,19 @@ public class PlayerManager : NetworkBehaviour
     //called by LoadHandler.cs
     public void signifyScenarioLoaded()
     {
+        //assign ReferenceAssistor the new WorldRoot
+        ReferenceAssistor.Instance.assignWorldRoot(GameObject.FindGameObjectWithTag("WorldRoot"));
+
+        //let others know you have loaded the scenario
         scenarioLoadedRPC(SteamClient.SteamId);
     }
 
     //when paths are generated, ship is relocated into entrance path, thus requiring an update to ship screens
     public void handleShipRepositioning()
     {
-        float ship_rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation.eulerAngles.y;
+        float ship_rotation = ReferenceAssistor.Instance.spaceship.transform.rotation.eulerAngles.y;
         string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
-        string target_heading = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<PilotingSystem>().GetTargetHeading();
+        string target_heading = ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().GetTargetHeading();
 
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateAltimeterScreen();
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateCourseHeadingScreen(ship_rotation, current_heading);
@@ -278,13 +285,13 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void startScenarioRPC()
+    private void startScenarioRPC(int current_scenario_index)
     {
-        //if host, begin the scenario
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().startScenario();
-        }
+        //begin the scenario
+        ReferenceAssistor.Instance.scenario_manager.startScenario();
+
+        //update logs
+        LogMenuController.OnScenarioEncountered(current_scenario_index);
 
         //end transition (whether looking at the cinematic shot or load screen)
         scenario_transitioner.GetComponent<TransitionHandler>().EndTransition();
@@ -301,8 +308,9 @@ public class PlayerManager : NetworkBehaviour
         //update screens to account for ship's new location/rotation in newly-generated entrance path
         handleShipRepositioning();
 
-        //unmute audio that was muted during scenario transition
-        GameObject.Find("AudioManager").GetComponent<AudioManager>().UnmuteAudio();
+        //unmute audio and activate computer voice that was muted/deactivated during scenario transition
+        ReferenceAssistor.Instance.audio_manager.ActivateComputerVoice();
+        ReferenceAssistor.Instance.audio_manager.UnmuteAudio();
     }
 
     //fired when a client's AsyncOperation for loading a scenario (not BridgeEnvironment) is complete
@@ -314,10 +322,10 @@ public class PlayerManager : NetworkBehaviour
         //if host, check if all players are ready
         if (NetworkManager.Singleton.IsHost == true)
         {
-            if (getNumReadyPlayers() >= NetworkManager.Singleton.ConnectedClientsIds.Count)
+            if (getNumReadyPlayers() >= lobby_handler.getNumberOfPlayersInNetworkManagerLobby())
             {
                 resetReadyPlayers();
-                GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>().prepScenario(!game_initialized);
+                ReferenceAssistor.Instance.scenario_manager.prepScenario(!game_initialized);
                 if (game_initialized == false)
                 {
                     //wait LOAD_IN_DELAY
@@ -348,7 +356,7 @@ public class PlayerManager : NetworkBehaviour
             {
                 yield return null;
             }
-            startScenarioRPC();
+            startScenarioRPC(ReferenceAssistor.Instance.scenario_manager.getCurrentScenarioIndex());
         }
     }
 }

@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 7/23/2026
 */
 
 using System.Collections;
@@ -30,10 +30,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
     public BackgroundAnimator background_animator;
 
     //sounds
-    public AudioSource overconsumption_warning_sound;
+    public List<AudioSource> overconsumption_warning_sounds = null;
     public AudioSource ship_beeps_sound;
     public AudioSource power_off_sound;
     public AudioSource power_on_sound;
+    public List<AudioClip> power_notifications = null;
 
     private PowerAllocation power_allocation;
     private PowerControl power_control;
@@ -97,7 +98,10 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
 
         //stop power loss/restart sounds
-        overconsumption_warning_sound.Stop();
+        foreach (AudioSource overconsumption_warning_sound in overconsumption_warning_sounds)
+        {
+            overconsumption_warning_sound.Stop();
+        }
         power_on_sound.Stop();
         power_off_sound.Stop();
 
@@ -376,10 +380,16 @@ public class PowerManager : NetworkBehaviour, IPowerable
     //used when a position's power consumption exceeds their allocation
     IEnumerator imminentPowerLoss(int index)
     {
-        //play warning sound if not playing already
-        if (overconsumption_warning_sound.isPlaying == false)
+        //play engineer warning sound if not playing already
+        if (overconsumption_warning_sounds[2].isPlaying == false)
         {
-            overconsumption_warning_sound.Play();
+            overconsumption_warning_sounds[2].Play();
+        }
+
+        //play corresponding warning sound
+        if (overconsumption_warning_sounds[index].isPlaying == false)
+        {
+            overconsumption_warning_sounds[index].Play();
         }
 
         //show red warning bar
@@ -416,18 +426,24 @@ public class PowerManager : NetworkBehaviour, IPowerable
         //if time runs out, then power shutdown (if host)
         if (NetworkManager.Singleton.IsHost == true)
         {
-            totalShutdownRPC();
+            totalShutdownRPC(index);
         }
     }
 
-    IEnumerator shutdownProcess()
+    IEnumerator shutdownProcess(int reason)
     {
+        //cache auxiliary power availability
+        bool auxiliary_power_available = ReferenceAssistor.Instance.module_handlers[2].GetComponent<AuxiliaryPower>().canUseAuxiliaryPower();
+
         //handle shutdown effects (lights, sounds)
         lights_manager.setDefaultLights(false);
         lights_manager.setEmergencyLights(false);
         power_off_sound.Play();
         ship_beeps_sound.Stop();
-        overconsumption_warning_sound.Stop();
+        foreach (AudioSource overconsumption_warning_sound in overconsumption_warning_sounds)
+        {
+            overconsumption_warning_sound.Stop();
+        }
         background_animator.disableAllScreens();
         background_animator.disableEnergyCircles();
 
@@ -463,18 +479,33 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         yield return new WaitForSeconds(2.0f);
 
+        //play notification sounds
+        ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[6]);
+        ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[reason]);
+        if (auxiliary_power_available == true)
+        {
+            ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[8]);
+        }
+
         lights_manager.disableRedAlert();
         lights_manager.setEmergencyLights(true);
 
         shutdown_coroutine = null;
     }
 
-    //called by PowerRegulator.terminateDepletionRPC()
-    public void totalShutdown()
+    //called by PowerRegulator.terminateDepletionRPC() and PilotingSystem.cs
+    public void totalShutdown(bool energy_surge)
     {
         if (ship_has_power == true)
         {
-            totalShutdownRPC();
+            if (energy_surge == true)
+            {
+                totalShutdownRPC(5);
+            }
+            else
+            {
+                totalShutdownRPC(4);
+            }
         }
     }
 
@@ -526,7 +557,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     }
 
     [Rpc(SendTo.Everyone)]
-    private void totalShutdownRPC()
+    private void totalShutdownRPC(int reason)
     {
         //kill power
         ship_has_power = false;
@@ -539,7 +570,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         if (shutdown_coroutine == null)
         {
-            shutdown_coroutine = StartCoroutine(shutdownProcess());
+            shutdown_coroutine = StartCoroutine(shutdownProcess(reason));
         }
     }
 
@@ -552,6 +583,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
         GetComponent<PowerRegulator>().displayPowerRestoration();
 
         yield return new WaitForSeconds(3.0f);
+
+        //play power restoration notification
+        ReferenceAssistor.Instance.audio_manager.AddNotification(0, power_notifications[7]);
 
         //bring back power
         ship_has_power = true;
@@ -610,10 +644,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
             StopCoroutine(overconsumption_coroutines[index]);
         }
         overconsumption_coroutines[index] = null;
-        
-        if (overconsumption_warning_sound.isPlaying == true && checkIfOverconsuming() == false)
+
+        overconsumption_warning_sounds[index].Stop();
+        if (overconsumption_warning_sounds[2].isPlaying == true && checkIfOverconsuming() == false)
         {
-            overconsumption_warning_sound.Stop();
+            overconsumption_warning_sounds[2].Stop();
         }
 
         if (index != 2)
@@ -664,7 +699,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private void addTacticianModules()
     {
         List<Component> tactician_modules = new List<Component>();
-        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoPowers")); //1
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("EncryptionKeys")); //1
         tactician_modules.Add(this); //2
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("CloakDetector")); //3
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("PrefixCodeManager")); //4
@@ -695,12 +730,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //6
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PowerAllocation")); //7
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("PhaserHeat")); //8
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //9
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipHealth")); //10
+        engineer_modules.Add(ReferenceAssistor.Instance.spaceship.GetComponent("ShipHealth")); //9
+        engineer_modules.Add(ReferenceAssistor.Instance.spaceship.GetComponent("ShipHealth")); //10
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ShieldStrength")); //11
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("TorpedoLoader")); //12
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("EngineCoolantSupply")); //13
-        engineer_modules.Add(GameObject.FindGameObjectWithTag("Spaceship").GetComponent("ShipInventory")); //14
+        engineer_modules.Add(ReferenceAssistor.Instance.spaceship.GetComponent("ShipInventory")); //14
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("CargoEject")); //15
         engineer_modules.Add(ReferenceAssistor.Instance.module_handlers[2].GetComponent("ComputerRegulator")); //16
         engineer_modules.Add(this); //17
@@ -717,11 +752,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("SelfDestruct")); //4
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipStatus")); //5
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerArray")); //6
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ComputerOverride")); //7
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OverrideSwitches")); //7
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("EmergencyLights")); //8
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("ShipBeacon")); //9
         captain_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //10
-        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperationsManual")); //11
+        captain_modules.Add(ReferenceAssistor.Instance.module_handlers[3].GetComponent("OperatingManual")); //11
         positional_modules[3] = captain_modules;
     }
 }

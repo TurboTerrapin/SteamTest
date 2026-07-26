@@ -3,12 +3,11 @@
     - Handles warp throttle
     - Does nothing
     Contributor(s): Jake Schott
-    Last Updated: 10/21/2025
+    Last Updated: 5/2/2026
 */
 
 using System.Collections.Generic;
 using UnityEngine;
-using static AnimatorHandler;
 
 public class Warp : MonoBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -18,8 +17,7 @@ public class Warp : MonoBehaviour, IControllable, IPowerable, IIKTargetable
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5, 6 };
     private List<Button> BUTTONS = new List<Button>();
 
-    public GameObject warp_factor_display;
-    public GameObject warp_power_display;
+    public GameObject warp_display;
 
     //private bool is_powered = false;
     
@@ -48,30 +46,37 @@ public class Warp : MonoBehaviour, IControllable, IPowerable, IIKTargetable
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
     {
         //does nothing
@@ -79,13 +84,11 @@ public class Warp : MonoBehaviour, IControllable, IPowerable, IIKTargetable
 
     public void powerOn(int position)
     {
-        warp_factor_display.SetActive(true);
-        warp_power_display.SetActive(true);
+        warp_display.SetActive(true);
     }
 
     public void powerOff(int position, float time)
     {
-        warp_factor_display.SetActive(false);
-        warp_power_display.SetActive(false);
+        warp_display.SetActive(false);
     }
 }

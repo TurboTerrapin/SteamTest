@@ -2,7 +2,7 @@
     SignalOptions.cs
     - Handles the controls that send/receive transmissions
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 7/24/2026
 */
 
 using System.Collections;
