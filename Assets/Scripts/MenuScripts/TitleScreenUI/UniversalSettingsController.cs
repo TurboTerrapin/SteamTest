@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 
 public class UniversalSettingsController : MonoBehaviour
@@ -10,6 +11,11 @@ public class UniversalSettingsController : MonoBehaviour
     public GameObject SettingsMenu;
     public GameObject MainMenu;
     public GameObject PauseMenu;
+
+    // Tabs
+    public GameObject VideoTab;
+    public GameObject AudioTab;
+    public GameObject GameTab;
 
     // Fullscreen
     public Toggle FullScreenToggle;
@@ -25,11 +31,23 @@ public class UniversalSettingsController : MonoBehaviour
     public TMP_Text FrameRateLabel;
     public CanvasGroup FrameRateGroup;
 
+    public AudioMixer MasterMixer;
+
     // Master Volume
     public Slider MasterVolumeSlider;
     public Image MasterVolumeFillBar;
-    public TMP_Text ActualVolumeLabel;
-   
+    public TMP_Text ActualMasterVolumeLabel;
+
+    // Music Volume
+    public Slider MusicVolumeSlider;
+    public Image MusicVolumeFillBar;
+    public TMP_Text ActualMusicVolumeLabel;
+
+    // SFX Volume
+    public Slider SFXVolumeSlider;
+    public Image SFXVolumeFillBar;
+    public TMP_Text ActualSFXVolumeLabel;
+
     // Camera Sensitivity
     public Slider CameraSensitivitySlider;
     public Image CameraSensitivityFillBar;
@@ -81,9 +99,19 @@ public class UniversalSettingsController : MonoBehaviour
         HandleResolutionDropdownClicked(ResIndex);
 
         // Loads player volume preferece (default is 50%)
-        float volume = PlayerPrefs.GetFloat("MasterVolume", 0.5f);
-        MasterVolumeSlider.value = volume;
-        HandleMasterVolumeDragged(volume);
+        float masterVolume = PlayerPrefs.GetFloat("MasterVolume", 0.5f);
+        MasterVolumeSlider.value = masterVolume;
+        HandleMasterVolumeDragged(masterVolume);
+
+        // Loads player volume preferece (default is 50%)
+        float musicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
+        MusicVolumeSlider.value = musicVolume;
+        HandleMusicVolumeDragged(musicVolume);
+
+        // Loads player volume preferece (default is 50%)
+        float SFXVolume = PlayerPrefs.GetFloat("SFXVolume", 0.5f);
+        SFXVolumeSlider.value = musicVolume;
+        HandleSFXVolumeDragged(musicVolume);
 
         // Loads player VSync preference (default is true if nothing is saved)
         bool isVSyncOn = PlayerPrefs.GetInt("VSync", 0) == 1;
@@ -127,6 +155,8 @@ public class UniversalSettingsController : MonoBehaviour
         VSyncToggle.onValueChanged.AddListener(HandleVSyncToggleClicked);
         FrameRateDropdown.onValueChanged.AddListener(HandleMaxFrameRateDropDownClicked);
         MasterVolumeSlider.onValueChanged.AddListener(HandleMasterVolumeDragged);
+        MusicVolumeSlider.onValueChanged.AddListener(HandleMusicVolumeDragged);
+        SFXVolumeSlider.onValueChanged.AddListener(HandleSFXVolumeDragged);
         CameraSensitivitySlider.onValueChanged.AddListener(HandleCameraSensitivityDragged);
         HUDVisibilityDropdown.onValueChanged.AddListener(HandleHUDDropdownClicked);
         InfoVisibilityToggle.onValueChanged.AddListener(HandleInfoVisibilityToggleClicked);
@@ -255,15 +285,45 @@ public class UniversalSettingsController : MonoBehaviour
 
     public void HandleMasterVolumeDragged(float volume)
     {
-        // Sets master volume
-        AudioListener.volume = volume;
+        MasterMixer.SetFloat("Master", Mathf.Log10(volume) * 20);
 
         // Updates volume text
         int percent = Mathf.RoundToInt(volume * 100);
-        ActualVolumeLabel.text = percent.ToString();
+        ActualMasterVolumeLabel.text = percent.ToString();
 
         // Saves player preference
         PlayerPrefs.SetFloat("MasterVolume", volume);
+
+        // Writes to disk
+        PlayerPrefs.Save();
+    }
+
+
+    public void HandleMusicVolumeDragged(float volume)
+    {
+        MasterMixer.SetFloat("Music", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
+
+        // Updates volume text
+        int percent = Mathf.RoundToInt(volume * 100);
+        ActualMusicVolumeLabel.text = percent.ToString();
+
+        // Saves player preference
+        PlayerPrefs.SetFloat("MusicVolume", volume);
+
+        // Writes to disk
+        PlayerPrefs.Save();
+    }
+
+    public void HandleSFXVolumeDragged(float volume)
+    {
+        MasterMixer.SetFloat("SFX", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
+
+        // Updates volume text
+        int percent = Mathf.RoundToInt(volume * 100);
+        ActualSFXVolumeLabel.text = percent.ToString();
+
+        // Saves player preference
+        PlayerPrefs.SetFloat("SFXVolume", volume);
 
         // Writes to disk
         PlayerPrefs.Save();
@@ -332,6 +392,21 @@ public class UniversalSettingsController : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    public void HandleVideoTabClicked()
+    {
+        SwitchTabs(VideoTab);
+    }
+
+    public void HandleAudioTabClicked()
+    {
+        SwitchTabs(AudioTab);
+    }
+
+    public void HandleGameTabClicked()
+    {
+        SwitchTabs(GameTab);
+    }
+
     public void HandleXButtonClick()
     {
         // Closes settings menu
@@ -348,5 +423,14 @@ public class UniversalSettingsController : MonoBehaviour
             // Opens main menu
             PauseMenu.SetActive(true);
         }
+    }
+
+    public void SwitchTabs(GameObject target)
+    {
+        VideoTab.SetActive(false);
+        AudioTab.SetActive(false);
+        GameTab.SetActive(false);
+
+        target.SetActive(true);
     }
 }

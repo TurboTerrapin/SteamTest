@@ -43,20 +43,14 @@ public class CustomizeCharacterMenu : MonoBehaviour
 
     public TMP_InputField FirstNameInput;
     public TMP_InputField LastNameInput;
+    private string[] FirstNames = { "Morgan", "Charlie", "Taylor", "Cameron" };
+    private string[] LastNames = { "Gregory", "Parsons", "Brannon" };
 
     public TMP_Text ClothingOptionText;
     public UIButton LeftClothingButton;
     public UIButton RightClothingButton;
     private int CurrentClothingOptionIndex = 0;
-    private string[] ClothingOptions = { "Option 1", "Option 2"};
-    [SerializeField]
-    private List<GameObject> shirtOptions = new List<GameObject>();
-    [SerializeField]
-    private List<Material> shirtMaterials = new List<Material>();
-    [SerializeField]
-    private List<GameObject> pantsOptions = new List<GameObject>();
-    [SerializeField]
-    private List<Material> pantsMaterials = new List<Material>();
+    private string[] ClothingOptions = { "Blue Uniform", "Purple Uniform", "Orange Uniform", "Green Uniform" };
 
     public TMP_Text HairOptionText;
     public UIButton LeftHairButton;
@@ -70,12 +64,11 @@ public class CustomizeCharacterMenu : MonoBehaviour
     public MeshRenderer LeftEyeRenderer;
     public MeshRenderer RightEyeRenderer;
     public SkinnedMeshRenderer DummyRenderer;
-    public SkinnedMeshRenderer ShirtRenderer;
-    public SkinnedMeshRenderer PantsRenderer;
 
 
     void Start()
     {
+        DeleteCharacterSaveData();
         // Input checks
         HairHexInput.characterLimit = 6;
         HairHexInput.onValidateInput = CheckHexValue;
@@ -255,6 +248,12 @@ public class CustomizeCharacterMenu : MonoBehaviour
         Debug.Log("Player Last Name: " + LastName);
     }
 
+    private void SetDefaultName()
+    {
+        FirstNameInput.text = FirstNames[Random.Range(0, FirstNames.Length)];
+        LastNameInput.text = LastNames[Random.Range(0, LastNames.Length)];
+    }
+
     // ------ CHANGE HAIR/CLOTHING OPTIONS ------
 
     private void PreviousClothingOption()
@@ -282,17 +281,8 @@ public class CustomizeCharacterMenu : MonoBehaviour
     private void UpdateClothingOptionText()
     {
         ClothingOptionText.text = ClothingOptions[CurrentClothingOptionIndex];
-
-
-        //Destroy(ShirtRenderer.transform.GetChild(0).gameObject);
-        //Destroy(PantsRenderer.transform.GetChild(0).gameObject);
-        //ShirtRenderer = Instantiate(shirtOptions[CurrentClothingOptionIndex], ShirtRenderer.transform);
-        //PantsRenderer = Instantiate(pantsOptions[CurrentClothingOptionIndex], PantsRenderer.transform);
-        ShirtRenderer.sharedMesh = shirtOptions[CurrentClothingOptionIndex].GetComponent<SkinnedMeshRenderer>().sharedMesh;
-        ShirtRenderer.material = shirtMaterials[CurrentClothingOptionIndex];
-        PantsRenderer.sharedMesh = pantsOptions[CurrentClothingOptionIndex].GetComponent<SkinnedMeshRenderer>().sharedMesh;
-        PantsRenderer.material = pantsMaterials[CurrentClothingOptionIndex];
     }
+
 
     private void PreviousHairOption()
     {
@@ -312,7 +302,7 @@ public class CustomizeCharacterMenu : MonoBehaviour
         {
             // wrap around
             CurrentHairOptionIndex = 0;
-            
+
         }
         UpdateHairOptionText();
     }
@@ -435,6 +425,11 @@ public class CustomizeCharacterMenu : MonoBehaviour
             data.CustomSkinToneSwatchHexValues[i] = ColorUtility.ToHtmlStringRGBA(CustomSkinToneSwatchButtons[i].image.color);
         }
 
+        if (string.IsNullOrEmpty(FirstNameInput.text) || string.IsNullOrEmpty(LastNameInput.text))
+        {
+            SetDefaultName();
+        }
+
         // Save player name
         data.FirstName = FirstNameInput.text;
         data.LastName = LastNameInput.text;
@@ -455,6 +450,9 @@ public class CustomizeCharacterMenu : MonoBehaviour
 
     public void LoadCharacterData()
     {
+
+        Debug.Log("Is there a save? " + PlayerPrefs.HasKey("CustomizeCharacterData"));
+
         if (PlayerPrefs.HasKey("CustomizeCharacterData"))
         {
             // Get the JSON string we stored in PlayerPrefs
@@ -583,6 +581,10 @@ public class CustomizeCharacterMenu : MonoBehaviour
             UpdateHairOptionText();
             UpdateClothingOptionText();
         }
+        else
+        {
+            SetDefaultName();
+        }
     }
 
     public void HandleXButtonClick()
@@ -591,4 +593,14 @@ public class CustomizeCharacterMenu : MonoBehaviour
         CustomizationMenu.SetActive(false);
         MainMenu.SetActive(true);
     }
+
+    // TEST METHOD TO ERASE CHARACTER SAVE DATA
+    private void DeleteCharacterSaveData()
+    {
+        PlayerPrefs.DeleteKey("CustomizeCharacterData");
+        PlayerPrefs.Save();
+
+        Debug.Log("Character Save Data Deleted");
+    }
+
 }
