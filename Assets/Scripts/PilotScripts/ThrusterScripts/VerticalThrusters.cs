@@ -3,7 +3,7 @@
     - Handles inputs for vertical thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 1/31/2026
+    Last Updated: 7/25/2026
 */
 
 using System.Collections;
@@ -15,8 +15,8 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
 {
     private string CONTROL_NAME = "VERTICAL THRUSTERS";
     private static string INFO_MESSAGE = "Controls the altitude of the ship through upward and downward movement.";
-    private List<string> CONTROL_DESCS = new List<string>{"DESCEND", "ASCEND"};
-    private List<int> CONTROL_INDEXES = new List<int>(){2, 0};
+    private List<string> CONTROL_DESCS = new List<string> { "DESCEND", "ASCEND" };
+    private List<int> CONTROL_INDEXES = new List<int>() { 2, 0 };
     private List<Button> BUTTONS = new List<Button>();
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -47,35 +47,42 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         finger_position = 0;
-        for(int i = 0; i < button_push_percentage.Length; i++)
+        for (int i = 0; i < button_push_percentage.Length; i++)
         {
             if (button_push_percentage[i] > 0) finger_position = i + 1;
         }
         return IK_targets[finger_position].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public float getVerticalThrusterState()
     {
         return (thruster_percentage[1] - thruster_percentage[0]);
@@ -115,8 +122,8 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
     }
     private void displayAdjustment()
     {
-        //adjust thruster sound
-        GetComponent<HorizontalThrusters>().adjustThrusterSound();
+        //adjust thruster sounds
+        adjustThrusterSounds();
 
         //adjust physical buttons
         adjustButton(thruster_buttons[0], 0);

@@ -1,10 +1,9 @@
 /*
     HorizontalThrusters.cs
     - Handles inputs for horizontal thrusters
-    - HANDLES THRUSTERS AUDIO FOR HORIZONTAL AND VERTICAL THRUSTERS
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 3/26/2026
+    Last Updated: 7/25/2026
 */
 
 using System.Collections;
@@ -17,11 +16,10 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
     private string CONTROL_NAME = "HORIZONTAL THRUSTERS";
     private static string INFO_MESSAGE = "Controls lateral movement through leftward and rightward movements. Useful for evasive maneuvers.";
     private List<string> CONTROL_DESCS = new List<string> { "MOVE LEFT", "MOVE RIGHT" };
-    private List<int> CONTROL_INDEXES = new List<int>() {1, 3};
+    private List<int> CONTROL_INDEXES = new List<int>() { 1, 3 };
     private List<Button> BUTTONS = new List<Button>();
 
     private List<KeyCode> keys_down = new List<KeyCode>();
-    public AudioSource thrusters_sound;
 
     private bool is_powered = false;
 
@@ -48,6 +46,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         finger_position = 0;
@@ -57,30 +56,37 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
         }
         return IK_targets[finger_position].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public float getVerticalThrusterState()
     {
         return (thruster_percentage[1] - thruster_percentage[0]);
     }
+
     public float getHorizontalThrusterState()
     {
         return (thruster_percentage[0] - thruster_percentage[1]);
@@ -115,28 +121,10 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
         thruster_coroutine = null;
     }
 
-    public void adjustThrusterSound()
-    {
-        float thruster_volume = Mathf.Max(thruster_percentage[0], thruster_percentage[1]);
-        thruster_volume = Mathf.Max(thruster_volume, GetComponent<VerticalThrusters>().getMaxThrusterValue());
-        if (thruster_volume > 0.0f)
-        {
-            thrusters_sound.volume = 0.2f * thruster_volume;
-            if (thrusters_sound.isPlaying == false)
-            {
-                thrusters_sound.Play();
-            }
-        }
-        else
-        {
-            thrusters_sound.Stop();
-        }
-    }
-
     private void displayAdjustment()
     {
-        //adjust thruster sound
-        adjustThrusterSound();
+        //adjust thruster sounds
+        adjustThrusterSounds();
 
         //adjust physical buttons
         adjustButton(thruster_buttons[0], 0);

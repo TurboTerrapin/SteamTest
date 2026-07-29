@@ -285,7 +285,7 @@ public class UniversalSettingsController : MonoBehaviour
 
     public void HandleMasterVolumeDragged(float volume)
     {
-        MasterMixer.SetFloat("Master", Mathf.Log10(volume) * 20);
+        MasterMixer.SetFloat("MasterVolume", Mathf.Log10(volume) * 20);
 
         // Updates volume text
         int percent = Mathf.RoundToInt(volume * 100);
@@ -301,7 +301,7 @@ public class UniversalSettingsController : MonoBehaviour
 
     public void HandleMusicVolumeDragged(float volume)
     {
-        MasterMixer.SetFloat("Music", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
+        MasterMixer.SetFloat("MusicVolume", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
 
         // Updates volume text
         int percent = Mathf.RoundToInt(volume * 100);
@@ -316,7 +316,7 @@ public class UniversalSettingsController : MonoBehaviour
 
     public void HandleSFXVolumeDragged(float volume)
     {
-        MasterMixer.SetFloat("SFX", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
+        MasterMixer.SetFloat("SFXVolume", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
 
         // Updates volume text
         int percent = Mathf.RoundToInt(volume * 100);

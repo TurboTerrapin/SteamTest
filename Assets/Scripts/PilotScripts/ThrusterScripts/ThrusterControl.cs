@@ -4,7 +4,7 @@
     - Handles physical buttons
     - Meant to be extended
     Contributor(s): Jake Schott
-    Last Updated: 7/20/2026
+    Last Updated: 7/25/2026
 */
 
 using System.Collections.Generic;
@@ -17,14 +17,14 @@ public class ThrusterControl : NetworkBehaviour
     protected static float PUSH_SPEED = 20.0f; //how fast the physical button takes to be pushed relative to the bars
     protected static float MOVE_SPEED = 0.1f;
     protected static float MAX_POWER_CONSUMPTION = 0.1f; //equates to 1 circle
-    protected static Vector3 BUTTON_INITIAL_POS = new Vector3(0.0f, 0.0f, 0.0f);
     protected static Vector3 BUTTON_FINAL_POS = new Vector3(0.0f, -0.006f, 0.0025f);
 
     public List<Transform> thruster_buttons;
+    public List<AudioSource> thruster_sounds;
     public GameObject thruster_display;
 
-    protected float[] thruster_percentage = new float[2]{0.0f, 0.0f};
-    protected float[] button_push_percentage = new float[2]{0.0f, 0.0f};
+    protected float[] thruster_percentage = new float[2] { 0.0f, 0.0f };
+    protected float[] button_push_percentage = new float[2] { 0.0f, 0.0f };
     protected float inertial_dampener_modifier = 0.0f;
     protected float thrust_direction = 0;
     protected Coroutine thruster_coroutine;
@@ -64,10 +64,26 @@ public class ThrusterControl : NetworkBehaviour
         return neutral_state;
     }
 
+    protected void adjustThrusterSounds()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            if (thruster_percentage[i] > 0.0f && thruster_sounds[i].isPlaying == false)
+            {
+                thruster_sounds[i].Play();
+            }
+            else if (thruster_percentage[i] == 0.0f && thruster_sounds[i].isPlaying == true)
+            {
+                thruster_sounds[i].Stop();
+            }
+            thruster_sounds[i].volume = thruster_percentage[i] * 0.5f;
+        }
+    }
+
     protected void adjustButton(Transform thruster_button, int button_index)
     {
         //push the physical button in
-        thruster_button.transform.localPosition = Vector3.Lerp(BUTTON_INITIAL_POS, BUTTON_FINAL_POS, button_push_percentage[button_index]);
+        thruster_button.transform.localPosition = Vector3.Lerp(Vector3.zero, BUTTON_FINAL_POS, button_push_percentage[button_index]);
 
         //handle thruster bars
         int starting_bar = 11 - (button_index * 10);

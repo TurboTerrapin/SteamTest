@@ -310,7 +310,7 @@ public class CameraMove : MonoBehaviour
             {
                 //animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
 
-                Debug.Log(prevPos.x + " and " + (prevPos.x / 120) + " and " + chestIKLookAtCurve.Evaluate(prevPos.x / 120));
+                //Debug.Log(prevPos.x + " and " + (prevPos.x / 120) + " and " + chestIKLookAtCurve.Evaluate(prevPos.x / 120));
                 animatorHandler.chestlookat = chestIKLookAtCurve.Evaluate(prevPos.x / 120);
             }
 
