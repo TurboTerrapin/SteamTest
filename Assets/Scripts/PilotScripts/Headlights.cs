@@ -4,7 +4,7 @@
     - Moves physical slider
     - Updates corresponding screen
     Contributor(s): Jake Schott
-    Last Updated: 5/10/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -58,7 +58,7 @@ public class Headlights : NetworkBehaviour, IControllable, IPowerable, IIKTarget
     {
         effects_handler = ReferenceAssistor.Instance.effects_handler;
 
-        hud_info = new HUDInfo(CONTROL_NAME, true);
+        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);

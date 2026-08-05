@@ -51,7 +51,7 @@ public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
         manuals[0] = GetComponent<ProcedureManual>();
         manuals[1] = GetComponent<OperatingManual>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true, (ManualOnOff.MAX_POWER_CONSUMPTION / 2.0f));
         for (int i = 0; i < 2; i++)
         {
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -81,7 +81,7 @@ public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 4);
         hud_info.setInfo(ManualOnOff.INFO_MESSAGES[index]);
-        hud_info.setPowerConsumption(transform.GetComponent<ManualOnOff>().getManualPowerConsumption(index));
+        hud_info.setPowerConsumption(GetComponent<ManualOnOff>().getManualPowerConsumption(index));
 
         return hud_info;
     }

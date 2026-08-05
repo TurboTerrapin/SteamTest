@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 7/23/2026
+    Last Updated: 7/31/2026
 */
 
 using System.Collections;
@@ -446,6 +446,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         }
         background_animator.disableAllScreens();
         background_animator.disableEnergyCircles();
+        ReferenceAssistor.Instance.seat_manager.reflectPowerChange();
 
         //stop orange flashing at positions where a player is sitting but power dial is not active
         power_control.updatePlayerNotifiers();
@@ -596,6 +597,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         ship_beeps_sound.Play();
         background_animator.enableAllScreens(1.5f);
         background_animator.enableEnergyCircles();
+        ReferenceAssistor.Instance.seat_manager.reflectPowerChange();
 
         //start updating power consumption
         if (power_updater_coroutine == null)

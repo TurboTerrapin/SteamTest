@@ -2,7 +2,7 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 6/6/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -14,7 +14,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
-    private static float MAX_POWER_CONSUMPTION = 0.4f; //6 circles, 2 per manual
+    public static float MAX_POWER_CONSUMPTION = 0.4f; //6 circles, 2 per manual
 
     private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATING MANUAL" };
     public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on situation analysis and response.", "Information resource on ship features and station functions." };
@@ -47,7 +47,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
         manuals[0] = GetComponent<ProcedureManual>();
         manuals[1] = GetComponent<OperatingManual>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true, (MAX_POWER_CONSUMPTION / 2.0f));
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
@@ -96,7 +96,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
         Manual m = (Manual)manuals[index];
         if (m.getCurrentlyEnabled() == true || m.getCurrentlyAnimating() == true)
         {
-            consumed_power += (MAX_POWER_CONSUMPTION / 2);
+            consumed_power += (MAX_POWER_CONSUMPTION / 2.0f);
         }
         return consumed_power;
     }

@@ -56,10 +56,10 @@ public class UniversalSettingsController : MonoBehaviour
     // HUD Visibility
     public TMP_Dropdown HUDVisibilityDropdown;
 
-    // Info Visibility
-    public Toggle InfoVisibilityToggle;
-    public TMP_Text InfoVisibilityLabel;
-    public CanvasGroup InfoVisibilityGroup;
+    // Hints
+    public Toggle HintsToggle;
+    public TMP_Text HintsLabel;
+    public CanvasGroup HintsGroup;
 
     void Start()
     {
@@ -143,11 +143,11 @@ public class UniversalSettingsController : MonoBehaviour
         HandleHUDDropdownClicked(HUDIndex);
 
         // Loads player hints toggle preference (default is true if nothing is saved)
-        bool isInfoVisibilityOn = PlayerPrefs.GetInt("InfoVisibility", 0) == 1;
-        // Sets dropdown UI to display option corresponding to selected index
-        InfoVisibilityToggle.isOn = isInfoVisibilityOn;
-        // Applies info invisibility
-        HandleInfoVisibilityToggleClicked(isInfoVisibilityOn);
+        bool isHintsOn = PlayerPrefs.GetInt("Hints", 0) == 1;
+        // Enables/disables checkmark
+        HintsToggle.isOn = isHintsOn;
+        // Applies hints visibility
+        HandleHintsToggleClicked(isHintsOn);
 
         // Listens for changes
         FullScreenToggle.onValueChanged.AddListener(HandleFullScreenToggleClicked);
@@ -159,7 +159,7 @@ public class UniversalSettingsController : MonoBehaviour
         SFXVolumeSlider.onValueChanged.AddListener(HandleSFXVolumeDragged);
         CameraSensitivitySlider.onValueChanged.AddListener(HandleCameraSensitivityDragged);
         HUDVisibilityDropdown.onValueChanged.AddListener(HandleHUDDropdownClicked);
-        InfoVisibilityToggle.onValueChanged.AddListener(HandleInfoVisibilityToggleClicked);
+        HintsToggle.onValueChanged.AddListener(HandleHintsToggleClicked);
     }
 
     // For testing FPS
@@ -298,7 +298,6 @@ public class UniversalSettingsController : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-
     public void HandleMusicVolumeDragged(float volume)
     {
         MasterMixer.SetFloat("MusicVolume", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
@@ -372,21 +371,21 @@ public class UniversalSettingsController : MonoBehaviour
         // Writes changes to disk
         PlayerPrefs.Save();
 
-        InfoVisibilityToggle.interactable = index < 2;
-        InfoVisibilityLabel.alpha = index < 2 ? 1f : 0.2f;
-        InfoVisibilityGroup.alpha = index < 2 ? 1f : 0.2f;
+        HintsToggle.interactable = index < 2;
+        HintsLabel.alpha = index < 2 ? 1f : 0.2f;
+        HintsGroup.alpha = index < 2 ? 1f : 0.2f;
     }
 
-    public void HandleInfoVisibilityToggleClicked(bool isOn)
+    public void HandleHintsToggleClicked(bool isOn)
     {
         if (PrimaryScript.Instance != null)
         {
             // Sends the bool to PrimaryScript
-            PrimaryScript.Instance.setInfoVisibilityEnabled(isOn);
+            PrimaryScript.Instance.setHintsEnabled(isOn);
         }
 
         // Saves players preferece (1 = true, 0 = false)
-        PlayerPrefs.SetInt("InfoVisibility", isOn ? 1 : 0);
+        PlayerPrefs.SetInt("Hints", isOn ? 1 : 0);
 
         // Writes changes to disk
         PlayerPrefs.Save();

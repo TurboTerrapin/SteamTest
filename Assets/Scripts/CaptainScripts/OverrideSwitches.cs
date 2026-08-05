@@ -2,7 +2,7 @@
     OverrideSwitches.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 6/30/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -48,7 +48,7 @@ public class OverrideSwitches : NetworkBehaviour, IControllable, IPowerable, IIK
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], true, MAX_POWER_CONSUMPTION);
 
         for (int i = 0; i < 6; i++)
         {

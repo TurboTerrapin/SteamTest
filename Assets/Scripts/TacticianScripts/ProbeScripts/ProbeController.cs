@@ -35,7 +35,6 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     public AudioSource probe_charge_sound;
     public AudioSource probe_launch_sound;
 
-    private Transform ship = null;
     private GameObject current_probe = null;
     private ShipInventory ship_inventory = null;
     private ProbeInfo probe_info = null;
@@ -67,11 +66,10 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private void Start()
     {
-        ship = GameObject.FindGameObjectWithTag("Spaceship").transform;
         probe_info = GetComponent<ProbeInfo>();
-        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
+        ship_inventory = ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true, MAX_POWER_CONSUMPTION);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
@@ -424,14 +422,14 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         {
             return false;
         }
-        return (Mathf.Min(RANGE, Vector3.Distance(current_probe.transform.position, ship.transform.position)) < RANGE);
+        return (Mathf.Min(RANGE, Vector3.Distance(current_probe.transform.position, ReferenceAssistor.Instance.spaceship.transform.position)) < RANGE);
     }
 
     //only run by host
     IEnumerator outOfRangeHelper()
     {
         yield return new WaitForSeconds(5.0f);
-        if (Mathf.Min(RANGE, Vector3.Distance(current_probe.transform.position, ship.position)) >= RANGE)
+        if (Mathf.Min(RANGE, Vector3.Distance(current_probe.transform.position, ReferenceAssistor.Instance.spaceship.transform.position)) >= RANGE)
         {
             transmitProbeConnectionChangeRPC(false, true);
         }
@@ -446,7 +444,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             return;
         }
 
-        float bounded_distance = Mathf.Min(RANGE, Vector3.Distance(current_probe.transform.position, ship.transform.position));
+        float bounded_distance = Mathf.Min(RANGE, Vector3.Distance(current_probe.transform.position, ReferenceAssistor.Instance.spaceship.transform.position));
         if (probe_connected == true)
         {
             if (probeInRange() == true)

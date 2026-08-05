@@ -3,7 +3,7 @@
     - Handles inputs for impulse throttle
     - Moves throttle lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 5/8/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -55,7 +55,7 @@ public class ImpulseThrottle : NetworkBehaviour, IControllable, IPowerable, IIKT
     {
         engine_monitoring = GetComponent<EngineMonitoring>();
 
-        hud_info = new HUDInfo(CONTROL_NAME, true);
+        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
         hud_info.setButtons(BUTTONS);

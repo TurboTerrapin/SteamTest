@@ -245,13 +245,13 @@ public class CameraMove : MonoBehaviour
             MouseMove();
         }
 
-        //Check for pausing/hints toggling
+        //Check for pausing/station info toggling
         if (!PrimaryScript.Instance.isPaused())
         {
-            //Check for info overlay toggling (hints)
-            if (PrimaryScript.Instance.getHUD() < 2 && PrimaryScript.Instance.infoVisibilityEnabled() && PrimaryScript.Instance.isActive())
+            //Check for station functions toggle
+            if (PrimaryScript.Instance.getHUD() == 0 && PrimaryScript.Instance.isActive())
             {
-                PrimaryScript.Instance.GetComponent<SecondaryScript>().checkInfoOverlayInputs(false);
+                PrimaryScript.Instance.GetComponent<SecondaryScript>().checkStationFunctionsInput(false);
             }
 
             if (cameraLocked == false)

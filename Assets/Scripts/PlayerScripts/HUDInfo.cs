@@ -36,6 +36,7 @@
 */
 
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class HUDInfo
@@ -141,10 +142,21 @@ public class HUDInfo
         new Vector2[] {new Vector2(-629f, -65f), new Vector2(629f, -65f)}
     };
 
+    public static List<int[]> POWER_CIRCLE_POSITIONS = new List<int[]>
+    {
+        new int[] {0, 0, 0, 0, 0, 0},
+        new int[] {-50, 0, 0, 0, 0, 0},
+        new int[] {-72, -22, 23, 0, 0, 0},
+        new int[] {-95, -45, 0, 45, 0, 0},
+        new int[] {-117, -67, -22, 23, 68, 0},
+        new int[] { -140, -90, -45, 0, 45, 90}
+    };
+
     private string control_name; //ex. "IMPULSE THROTTLE"
     private int layout = -1;
     private bool consumes_power = false;
     private float power_consumption = 0.0f;
+    private float maximum_consumption = 0.0f;
     private string info_msg = "";
     private List<Button> buttons = null;
 
@@ -153,10 +165,11 @@ public class HUDInfo
         control_name = title;
     }
 
-    public HUDInfo(string title, bool is_powerable)
+    public HUDInfo(string title, bool is_powerable, float max_possible_consumption)
     {
         control_name = title;
         consumes_power = is_powerable;
+        maximum_consumption = max_possible_consumption;
     }
 
     public void initializeDefaultFrame(Transform frame)
@@ -164,6 +177,7 @@ public class HUDInfo
         float frame_width = 50f + (control_name.Length * 50f);
         float frame_height = FRAME_HEIGHT_OPTIONS[0];
         float header_offset = -80f;
+        float extension_offset = 0f;
         float title_size = frame_width;
         int height_index = 0;
 
@@ -171,7 +185,8 @@ public class HUDInfo
         {
             frame_width = HUDInfo.FRAME_WIDTHS[layout];
             frame_height = HUDInfo.FRAME_HEIGHT_OPTIONS[HUDInfo.FRAME_HEIGHT_INDEXES[layout]];
-            header_offset = -70f;
+            header_offset = -45f;
+            extension_offset = 40f;
             title_size = TITLE_SIZES[layout];
             height_index = HUDInfo.FRAME_HEIGHT_INDEXES[layout];
 
@@ -181,13 +196,26 @@ public class HUDInfo
                 for (int i = 0; i < HUDInfo.DIVIDER_POSITIONS[layout].Length; i++)
                 {
                     //copy divider
-                    GameObject divider = UnityEngine.Object.Instantiate(frame.transform.GetChild(3).GetChild(1).gameObject, frame.transform.GetChild(3).transform);
+                    GameObject divider = UnityEngine.Object.Instantiate(frame.transform.GetChild(4).GetChild(1).gameObject, frame.transform.GetChild(4).transform);
                     divider.name = "DIVIDER" + i;
                     divider.SetActive(true);
 
                     //position
                     divider.GetComponent<RectTransform>().anchoredPosition = new Vector3(HUDInfo.DIVIDER_POSITIONS[layout][i].x, HUDInfo.DIVIDER_POSITIONS[layout][i].y, 0f);
                 }
+            }
+        }
+
+        //adjust power circles
+        frame.transform.GetChild(3).GetChild(1).gameObject.SetActive(consumes_power);
+        if (consumes_power == true)
+        {
+            header_offset = -25f;
+            int circles_visible = Mathf.CeilToInt(maximum_consumption * 10.0f);
+            for (int i = 0; i < 6; i++)
+            {
+                frame.transform.GetChild(3).GetChild(1).GetChild(i).gameObject.SetActive(i <= circles_visible);
+                frame.transform.GetChild(3).GetChild(1).GetChild(i).GetComponent<RectTransform>().anchoredPosition = new Vector2(POWER_CIRCLE_POSITIONS[circles_visible][i], 0);
             }
         }
 
@@ -212,10 +240,21 @@ public class HUDInfo
         frame.transform.GetChild(1).GetChild(1).GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(55f, 0f);
         frame.transform.GetChild(1).GetChild(1).GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(frame_width - 150f, 10f);
         frame.transform.GetChild(1).GetChild(2).GetChild(height_index).GetComponent<RectTransform>().anchoredPosition = new Vector2((frame_width / 2 + (frame_height / 2)) + 5f, 5f);
+        //handle extension
+        frame.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(0, extension_offset);
+        frame.transform.GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(0, extension_offset);
+        frame.transform.GetChild(2).gameObject.SetActive(numOptions() > 0);
+        if (numOptions() > 0)
+        {
+            frame.transform.GetChild(2).GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(frame_width + (frame_height * 2), 50f);
+            frame.transform.GetChild(2).GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(-1f * ((frame_width / 2) + frame_height + 5f), -155f);
+            frame.transform.GetChild(2).GetChild(1).GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2((frame_width / 2) + frame_height + 5f, -155f);
+            frame.transform.GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -1f * ((frame_height - 260f) / 2));
+        }
         //position header
-        frame.transform.GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (frame_height / 2) + header_offset);
+        frame.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (frame_height / 2) + header_offset);
         //handle title size
-        frame.transform.GetChild(2).GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(title_size, 80f);
+        frame.transform.GetChild(3).GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(title_size, 80f);
     }
 
     public void setButtons(List<Button> buttons)
@@ -256,6 +295,11 @@ public class HUDInfo
     public void setPowerConsumption(float pwr_consumption)
     {
         power_consumption = pwr_consumption;
+    }
+
+    public void setMaxPowerConsumption(float max_pwr_consumption)
+    {
+        maximum_consumption = max_pwr_consumption;
     }
 
     public List<Button> getButtons()

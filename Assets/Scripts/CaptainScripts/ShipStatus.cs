@@ -3,7 +3,7 @@
     - Handles slider
     - Enables/disables red alert
     Contributor(s): Jake Schott
-    Last Updated: 4/24/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -50,7 +50,7 @@ public class ShipStatus: NetworkBehaviour, IControllable, IPowerable, IIKTargeta
     private void Start()
     {
         selector_indicator = selector_stick.transform.GetChild(0).GetChild(1).GetChild(0).gameObject;
-        hud_info = new HUDInfo(CONTROL_NAME, true);
+        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, true));
         hud_info.setButtons(BUTTONS);

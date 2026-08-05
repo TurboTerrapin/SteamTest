@@ -5,15 +5,14 @@
     - Handles flashing of circle
     - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
-using static AnimatorHandler;
-
-    Last Updated: 6/30/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+
 public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
@@ -49,7 +48,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
    
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME, true);
+        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true)); //enable button
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);

@@ -16,7 +16,7 @@ using UnityEngine;
 public class TransmissionHandler : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles (power consumption during signal transmission)
+    public static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles (power consumption during signal transmission)
 
     public GameObject input_option_display;
     public GameObject output_option_display;

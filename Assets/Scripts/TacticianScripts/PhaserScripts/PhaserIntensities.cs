@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser intensity screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 7/24/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.35f;
     private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 circle per phaser)
+    private static float[] MAX_POWER_CONSUMPTION_BY_INDEX = new float[] { 0.1f, 0.2f };
     private static Vector3 PHASER_SLIDE_DIRECTION = new Vector3(0.0f, 0.031f, 0.082f);
 
     private string[] CONTROL_NAMES = new string[] { "LONG-RANGE INTENSITY", "SHORT-RANGE INTENSITY" };
@@ -49,7 +50,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     {
         phaser_activators = GetComponent<PhaserActivators>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true, (MAX_POWER_CONSUMPTION / 3.0f));
 
         for (int i = 0; i < 2; i++)
         {
@@ -67,6 +68,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 7);
         hud_info.setInfo(INFO_MESSAGE);
+        hud_info.setMaxPowerConsumption(MAX_POWER_CONSUMPTION_BY_INDEX[index]);
         updateDisplayedPowerConsumption(index);
 
         return hud_info;

@@ -4,7 +4,7 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 6/11/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -65,7 +65,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
         coolant_circle = engine_coolant_supply_display.transform.GetChild(0).gameObject;
         temperature = engine_coolant_supply_display.transform.GetChild(1).gameObject;
 
-        hud_info = new HUDInfo(CONTROL_NAME, true);
+        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
         hud_info.setButtons(BUTTONS, 7);

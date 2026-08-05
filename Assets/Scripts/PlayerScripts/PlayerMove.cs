@@ -6,7 +6,7 @@
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 4/30/2026
+    Last Updated: 7/31/2026
 */
 
 using System.Collections;
@@ -17,7 +17,8 @@ using UnityEngine;
 public class PlayerMove : NetworkBehaviour
 {
     //CLASS CONSTANTS
-    private static float SHIFT_SPEED = 1.5f;
+    private static float SHIFT_SPEED = 2.5f;
+    private static float PUSH_TIME = 0.2f; //How long the seat push in or out takes in seconds
     private static float MOVE_SPEED = 5.0f;
     private static Vector2[] SEAT_PUSH_IN_ADJUSTMENTS = new Vector2[] { new Vector2(0.0f, 0.33f), new Vector2(0.0f, 0.33f), new Vector2(0.23f, -0.23f), Vector2.zero }; //pilot, tactician, engineer, captain 
 
@@ -101,15 +102,15 @@ public class PlayerMove : NetworkBehaviour
     //Used to move the bean during a sit or get up animation, timed to match the in place animation to simulate movement
     IEnumerator PlayerAnimationTransformationAdjustment(Vector3 movePosition)
     {
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(0.75f);
 
-        float animTime = 1.0f;
+        float animTime = 0.75f;
         Vector3 startPos = transform.localPosition;
         while (animTime > 0.0f)
         {
             animTime = Mathf.Max(animTime - Time.deltaTime, 0.0f);
 
-            transform.localPosition = Vector3.Lerp(movePosition, startPos, animTime / 1.0f);
+            transform.localPosition = Vector3.Lerp(movePosition, startPos, animTime / 0.75f);
 
             yield return null;
         }
@@ -282,15 +283,15 @@ public class PlayerMove : NetworkBehaviour
             seatEndPos = new Vector3(seatStartPos.x - SEAT_PUSH_IN_ADJUSTMENTS[pos].x, seatStartPos.y, seatStartPos.z - SEAT_PUSH_IN_ADJUSTMENTS[pos].y);
         }
 
-        float animTime = 0.5f;
+        float animTime = PUSH_TIME;
         while (animTime > 0.0f)
         {
             animTime = Mathf.Max(0.0f, animTime - Time.deltaTime);
 
-            transform.localPosition = Vector3.Lerp(personEndPos, personStartPos, animTime / 0.5f);
+            transform.localPosition = Vector3.Lerp(personEndPos, personStartPos, animTime / PUSH_TIME);
             if (physicalSeat != null)
             {
-                physicalSeat.transform.localPosition = Vector3.Lerp(seatEndPos, seatStartPos, animTime / 0.5f);
+                physicalSeat.transform.localPosition = Vector3.Lerp(seatEndPos, seatStartPos, animTime / PUSH_TIME);
             }
 
             yield return null;

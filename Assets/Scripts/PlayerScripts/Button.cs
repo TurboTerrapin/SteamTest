@@ -157,7 +157,7 @@ public class Button
         if (HUD_setting < 2)
         {
             //define buttons panel
-            GameObject buttons_panel = frame.transform.GetChild(3).gameObject;
+            GameObject buttons_panel = frame.transform.GetChild(4).gameObject;
 
             //copy button
             visual_button = UnityEngine.Object.Instantiate(buttons_panel.transform.GetChild(0).gameObject, buttons_panel.transform);

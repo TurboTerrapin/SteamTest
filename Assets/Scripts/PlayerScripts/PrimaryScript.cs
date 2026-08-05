@@ -6,7 +6,7 @@
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     - Handles transmitting IK targets for hand movement animations
     Contributor(s): Jake Schott, John Aylward
-    Last Updated: 5/26/2026
+    Last Updated: 8/1/2026
 */
 
 using UnityEngine;
@@ -17,7 +17,7 @@ using TMPro;
 public class PrimaryScript : MonoBehaviour
 {
     //CLASS CONSTANTS
-    private static float RAYCAST_RANGE = 1.5f;
+    private static float RAYCAST_RANGE = 0.85f;
 
     //GAME OBJECTS
     private GameObject player_UI_canvas;
@@ -37,7 +37,6 @@ public class PrimaryScript : MonoBehaviour
     private GameObject player_prefab; //corresponding "bean"
 
     private AnimationController my_animation_controller = null;
-    private SeatManager seat_manager; //empty GameObject that contains the seat script manager
 
     //CLASS VARIABLES
     private HUDInfo current_info;
@@ -51,36 +50,49 @@ public class PrimaryScript : MonoBehaviour
     private Coroutine ray_target_check_coroutine = null;
 
     //SETTINGS
-    private int HUD_setting = 0; //0 is Default, 1 is Trapezoid Only, 2 is Minimized, 3 is Cursor Only, 4 is None
-    private bool info_visibility_setting = false; //only applies for HUD_setting 0 and 1 (top left/right elements)
+    private int HUD_setting = 0; //0 is Default, 1 is Essential, 2 is Minimized, 3 is Cursor Only, 4 is None
+    private bool hints_setting = false; //only applies for HUD_setting 0 and 1 (top left/right elements)
     private bool can_pause = false;
     private bool paused = false;
     private bool is_active = false;
 
     //INPUT INFO
     public static List<KeyCode[]> input_options = new List<KeyCode[]>{
-        new KeyCode[] {KeyCode.W, KeyCode.UpArrow}, //first argument is displayed, others are not
-        new KeyCode[] {KeyCode.A, KeyCode.LeftArrow},
-        new KeyCode[] {KeyCode.S, KeyCode.DownArrow},
-        new KeyCode[] {KeyCode.D, KeyCode.RightArrow},
-        new KeyCode[] {KeyCode.Q, KeyCode.LeftArrow},
-        new KeyCode[] {KeyCode.E, KeyCode.RightArrow},
-        new KeyCode[] {KeyCode.Mouse0, KeyCode.KeypadEnter, KeyCode.Return},
-        new KeyCode[] {KeyCode.Alpha1, KeyCode.Keypad1},
-        new KeyCode[] {KeyCode.Alpha2, KeyCode.Keypad2},
-        new KeyCode[] {KeyCode.Alpha3, KeyCode.Keypad3},
-        new KeyCode[] {KeyCode.Alpha4, KeyCode.Keypad4},
-        new KeyCode[] {KeyCode.F},
-        new KeyCode[] {KeyCode.Z},
-        new KeyCode[] {KeyCode.Space},
-        new KeyCode[] {KeyCode.LeftShift, KeyCode.RightShift},
+        new KeyCode[] {KeyCode.W, KeyCode.UpArrow}, //0 (first argument is displayed, others are not(
+        new KeyCode[] {KeyCode.A, KeyCode.LeftArrow}, //1
+        new KeyCode[] {KeyCode.S, KeyCode.DownArrow}, //2
+        new KeyCode[] {KeyCode.D, KeyCode.RightArrow}, //3
+        new KeyCode[] {KeyCode.Q, KeyCode.LeftArrow}, //4
+        new KeyCode[] {KeyCode.E, KeyCode.RightArrow}, //5
+        new KeyCode[] {KeyCode.Mouse0, KeyCode.KeypadEnter, KeyCode.Return}, //6
+        new KeyCode[] {KeyCode.Alpha1, KeyCode.Keypad1}, //7
+        new KeyCode[] {KeyCode.Alpha2, KeyCode.Keypad2}, //8
+        new KeyCode[] {KeyCode.Alpha3, KeyCode.Keypad3}, //9
+        new KeyCode[] {KeyCode.Alpha4, KeyCode.Keypad4}, //10
+        new KeyCode[] {KeyCode.F}, //11
+        new KeyCode[] {KeyCode.Z}, //12
+        new KeyCode[] {KeyCode.Space}, //13
+        new KeyCode[] {KeyCode.LeftShift, KeyCode.RightShift}, //14
+        new KeyCode[] {KeyCode.V} //15
     };
 
     public static bool checkInputIndex(int input_index, List<KeyCode> inputs_to_check)
     {
         for (int i = 0; i < input_options[input_index].Length; i++)
         {
-            if (inputs_to_check.Contains(input_options[input_index][i]))
+            if (inputs_to_check.Contains(input_options[input_index][i]) == true)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static bool checkInputIndexDown(int input_index)
+    {
+        for (int i = 0; i < input_options[input_index].Length; i++)
+        {
+            if (Input.GetKeyDown(input_options[input_index][i]) == true)
             {
                 return true;
             }
@@ -98,11 +110,11 @@ public class PrimaryScript : MonoBehaviour
         trapezoidal_frame = primary_info.transform.GetChild(0).gameObject;
         minimized_list_frame = primary_info.transform.GetChild(1).gameObject;
         sit_frame = primary_info.transform.GetChild(2).gameObject;
-        control_title = trapezoidal_frame.transform.GetChild(2).GetChild(0).GetComponent<TMP_Text>();
-        pause_default_menu = player_UI_canvas.transform.GetChild(3).GetChild(0).gameObject;
-        pause_settings_menu = player_UI_canvas.transform.GetChild(3).GetChild(1).gameObject;
-        pause_controls_menu = player_UI_canvas.transform.GetChild(3).GetChild(2).gameObject;
-        pause_confirm_quit_menu = player_UI_canvas.transform.GetChild(3).GetChild(3).gameObject;
+        control_title = trapezoidal_frame.transform.GetChild(3).GetChild(0).GetComponent<TMP_Text>();
+        pause_default_menu = player_UI_canvas.transform.GetChild(4).GetChild(0).gameObject;
+        pause_settings_menu = player_UI_canvas.transform.GetChild(4).GetChild(1).gameObject;
+        pause_controls_menu = player_UI_canvas.transform.GetChild(4).GetChild(2).gameObject;
+        pause_confirm_quit_menu = player_UI_canvas.transform.GetChild(4).GetChild(3).gameObject;
 
         //make an instance so can be referenced
         if (Instance != null)
@@ -124,14 +136,13 @@ public class PrimaryScript : MonoBehaviour
 
         //begin control interfacing
         primary_info.SetActive(false);
-        seat_manager = GameObject.FindWithTag("SeatHandler").GetComponent<SeatManager>();
 
         //free player movement, start checking to sit down, begin the scenario
         can_pause = true;
         player_prefab.GetComponent<PlayerMove>().Initialize();
-        if (info_visibility_setting == true && HUD_setting < 2)
+        if (hints_setting == true && HUD_setting < 2)
         {
-            GetComponent<SecondaryScript>().displayIntroGraphic(1.0f);
+            GetComponent<SecondaryScript>().displayMissionObjective(1.0f);
             intro_yield_coroutine = StartCoroutine(introYield());
         }
         else
@@ -144,8 +155,8 @@ public class PrimaryScript : MonoBehaviour
     //called after intro 
     private void onIntroComplete()
     {
-        GetComponent<SecondaryScript>().endIntroGraphicReveal();
-        GetComponent<SecondaryScript>().toggleStationIndicatorVisibility(info_visibility_setting && HUD_setting < 2);
+        GetComponent<SecondaryScript>().endMissionObjectiveReveal();
+        GetComponent<SecondaryScript>().setPermanentOverlayVisibility(hints_setting && HUD_setting < 2);
         activate();
         seat_check_coroutine = StartCoroutine(seatCheck());
     }
@@ -156,7 +167,7 @@ public class PrimaryScript : MonoBehaviour
         {
             yield return null;
         }
-        while (GetComponent<SecondaryScript>().isDisplayingIntroGraphic() == true);
+        while (GetComponent<SecondaryScript>().isDisplayingIntro() == true);
 
         while (Input.GetKeyDown(KeyCode.Space) == false)
         {
@@ -169,13 +180,13 @@ public class PrimaryScript : MonoBehaviour
         unpause();
     }
 
-    //used to clear trapezoid buttons and minimized list entries
+    //used to clear default buttons and minimized list entries
     private void clearButtons()
     {
-        //clear trapezoid buttons
-        for (int i = trapezoidal_frame.transform.GetChild(3).childCount - 1; i >= 2; i--)
+        //clear default buttons
+        for (int i = trapezoidal_frame.transform.GetChild(4).childCount - 1; i >= 2; i--)
         {
-            GameObject to_destroy = trapezoidal_frame.transform.GetChild(3).GetChild(i).gameObject;
+            GameObject to_destroy = trapezoidal_frame.transform.GetChild(4).GetChild(i).gameObject;
             UnityEngine.Object.Destroy(to_destroy);
         }
 
@@ -209,8 +220,8 @@ public class PrimaryScript : MonoBehaviour
             {
                 title_offset = 0f;
             }
-            trapezoidal_frame.transform.GetChild(2).GetChild(0).transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, title_offset);
-            trapezoidal_frame.transform.GetChild(2).GetChild(1).gameObject.SetActive(current_info.getConsumesPower());
+            trapezoidal_frame.transform.GetChild(3).GetChild(0).transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, title_offset);
+            trapezoidal_frame.transform.GetChild(3).GetChild(1).gameObject.SetActive(current_info.getConsumesPower());
 
             GameObject frame = trapezoidal_frame;
             if (HUD_setting == 2) //if minimized list
@@ -253,8 +264,8 @@ public class PrimaryScript : MonoBehaviour
             trapezoidal_frame.SetActive(HUD_setting < 2 && is_sitting == true); //trapezoid
             minimized_list_frame.gameObject.SetActive(HUD_setting == 2); //minimized list
             sit_frame.SetActive(HUD_setting < 2 && is_sitting == false); //rounded seat indicator
-            setInfoVisibilityEnabled(info_visibility_setting);
             control_update_flag = true; //forces an update
+            GetComponent<SecondaryScript>().setPermanentOverlayVisibility(HUD_setting == 0);
         }
     }
 
@@ -268,11 +279,9 @@ public class PrimaryScript : MonoBehaviour
     }
 
     //used by settings
-    public void setInfoVisibilityEnabled(bool enabled)
+    public void setHintsEnabled(bool enabled)
     {
-        info_visibility_setting = enabled;
-        GetComponent<SecondaryScript>().toggleInfoOverlaysVisibility(enabled && HUD_setting < 2);
-        GetComponent<SecondaryScript>().toggleStationIndicatorVisibility(enabled && HUD_setting < 2 && player_prefab != null);
+        hints_setting = enabled;
     }
 
     public void setCursorVisibility(bool visibility)
@@ -315,15 +324,15 @@ public class PrimaryScript : MonoBehaviour
         pause_default_menu.SetActive(true);
         pause_settings_menu.SetActive(false);
         pause_controls_menu.SetActive(false);
-        GetComponent<SecondaryScript>().checkInfoOverlayInputs(true);
-        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(false);
+        GetComponent<SecondaryScript>().checkStationFunctionsInput(true);
+        GetComponent<SecondaryScript>().setSecondaryInfoVisibility(false);
         paused = true;
         cursor.SetActive(false);
         if (intro_yield_coroutine != null)
         {
             StopCoroutine(intro_yield_coroutine);
             intro_yield_coroutine = null;
-            GetComponent<SecondaryScript>().endIntroGraphicReveal();
+            GetComponent<SecondaryScript>().endMissionObjectiveReveal();
             onIntroComplete();
         }
     }
@@ -336,8 +345,9 @@ public class PrimaryScript : MonoBehaviour
         pause_settings_menu.SetActive(false);
         pause_controls_menu.SetActive(false);
         pause_confirm_quit_menu.SetActive(false);
-        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(is_active && (info_visibility_setting || HUD_setting == 0));
-        GetComponent<SecondaryScript>().toggleStationOverlayVisibility(is_active && is_sitting && HUD_setting == 0);
+        GetComponent<SecondaryScript>().setSecondaryInfoVisibility(is_active && HUD_setting == 0);
+        GetComponent<SecondaryScript>().setPermanentOverlayVisibility(is_active && HUD_setting == 0);
+        GetComponent<SecondaryScript>().setSittingOverlayVisibility(is_active && is_sitting && HUD_setting == 0);
         paused = false;
         if (is_active == true)
         {
@@ -366,7 +376,7 @@ public class PrimaryScript : MonoBehaviour
     {
         is_active = false;
         can_pause = allow_pausing;
-        GetComponent<SecondaryScript>().toggleSecondaryInfoVisibility(false);
+        GetComponent<SecondaryScript>().setSecondaryInfoVisibility(false);
         if (allow_pausing == false && paused == true)
         {
             unpause();
@@ -384,9 +394,9 @@ public class PrimaryScript : MonoBehaviour
         return HUD_setting;
     }
 
-    public bool infoVisibilityEnabled()
+    public bool hintsEnabled()
     {
-        return info_visibility_setting;
+        return hints_setting;
     }
 
     public bool isSitting()
@@ -401,7 +411,7 @@ public class PrimaryScript : MonoBehaviour
 
     public void onShiftChange()
     {
-        GetComponent<SecondaryScript>().updateShiftIndicators(player_prefab.GetComponent<PlayerMove>().IsShifting(), curr_pos, seat_manager);
+        GetComponent<SecondaryScript>().updateShiftIndicators(player_prefab.GetComponent<PlayerMove>().IsShifting(), curr_pos, ReferenceAssistor.Instance.seat_manager);
     }
 
     private void updateInfoOverlayOffset()
@@ -432,7 +442,7 @@ public class PrimaryScript : MonoBehaviour
     {
         if (!paused && is_active && player_prefab != null)
         {
-            int closest_seat = seat_manager.checkSeats(player_prefab.transform.position);
+            int closest_seat = ReferenceAssistor.Instance.seat_manager.checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
             {
                 sit_frame.SetActive(HUD_setting < 2);
@@ -453,7 +463,7 @@ public class PrimaryScript : MonoBehaviour
 
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to sit down
                 {
-                    is_sitting = seat_manager.sitDown(closest_seat);
+                    is_sitting = ReferenceAssistor.Instance.seat_manager.sitDown(closest_seat);
                     if (is_sitting == true)
                     {
                         curr_pos = closest_seat;
@@ -475,13 +485,13 @@ public class PrimaryScript : MonoBehaviour
         primary_info.SetActive(false);
     }
 
-    //called by AnimatorHandler when sit down animation is completed
+    //called by AnimatorHandler.cs when sit down animation is completed
     public void assumePosition()
     {
         //if captain, trigger the seat enclosure animaiton
         if (curr_pos == 3)
         {
-            seat_manager.encloseCaptainSeat();
+            ReferenceAssistor.Instance.seat_manager.encloseCaptainSeat();
         }
 
         player_prefab.GetComponent<CameraMove>().parentRotationLock = true;
@@ -494,7 +504,7 @@ public class PrimaryScript : MonoBehaviour
         onShiftChange();
 
         trapezoidal_frame.SetActive(HUD_setting < 2);
-        GetComponent<SecondaryScript>().toggleStationOverlayVisibility(HUD_setting == 0);
+        GetComponent<SecondaryScript>().setSittingOverlayVisibility(HUD_setting == 0);
         sit_frame.SetActive(false);
         minimized_list_frame.gameObject.SetActive(HUD_setting == 2);
         minimized_list_frame.transform.GetChild(0).gameObject.SetActive(false);
@@ -517,7 +527,7 @@ public class PrimaryScript : MonoBehaviour
 
         player_prefab.GetComponent<PlayerMove>().Initialize();
 
-        seat_manager.getUp(curr_pos);
+        ReferenceAssistor.Instance.seat_manager.getUp(curr_pos);
 
         curr_pos = -1;
         GetComponent<SecondaryScript>().onStationChange(curr_pos);
@@ -532,7 +542,7 @@ public class PrimaryScript : MonoBehaviour
         //if captain, trigger the seat free animation
         if (curr_pos == 3)
         {
-            seat_manager.releaseCaptainSeat();
+            ReferenceAssistor.Instance.seat_manager.releaseCaptainSeat();
         }
 
         my_animation_controller.setIKActive(false);
@@ -542,8 +552,8 @@ public class PrimaryScript : MonoBehaviour
         updateInfoOverlayOffset();
 
         primary_info.SetActive(false);
-        GetComponent<SecondaryScript>().toggleStationOverlayVisibility(false);
-        GetComponent<SecondaryScript>().toggleRightSideVisibility(false);
+        GetComponent<SecondaryScript>().setSittingOverlayVisibility(false);
+        GetComponent<SecondaryScript>().setSittingRightSideVisibility(false);
 
         trapezoidal_frame.SetActive(false);
         minimized_list_frame.SetActive(false);
@@ -799,7 +809,7 @@ public class PrimaryScript : MonoBehaviour
 
                         //-------------------------------------------FINAL ADJUSTMENTS--------------------------------------------------------------
                         primary_info.SetActive(true); //show UI indicator
-                        GetComponent<SecondaryScript>().toggleStationOverlayVisibility(HUD_setting == 0);
+                        GetComponent<SecondaryScript>().setSittingOverlayVisibility(HUD_setting == 0);
                         float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
                         if (target_control != null)
                         {
@@ -812,10 +822,10 @@ public class PrimaryScript : MonoBehaviour
             my_animation_controller.setIKRightArm(false);
             my_animation_controller.setIKLeftArm(false);
             my_animation_controller.resetLerpSpeed();
-            my_animation_controller.setAnimatorLayerWeight("RightHandLayer", 0f);
-            my_animation_controller.setAnimatorLayerWeight("LeftHandLayer", 0f);
+            my_animation_controller.setAnimatorLayerWeight("RightHandLayer", 0.0f);
+            my_animation_controller.setAnimatorLayerWeight("LeftHandLayer", 0.0f);
 
-            GetComponent<SecondaryScript>().toggleRightSideVisibility(false);
+            GetComponent<SecondaryScript>().setSittingRightSideVisibility(false);
             primary_info.SetActive(false); //hide UI indicator if not looking at a control
             updateCursorMode(true);
             updateInfoOverlayOffset();

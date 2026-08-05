@@ -2,7 +2,7 @@
     PhaserActivators.cs
     - Determines whether phasers are enabled or not
     Contributor(s): Jake Schott
-    Last Updated: 7/24/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -54,7 +54,7 @@ public class PhaserActivators : NetworkBehaviour, IControllable, IPowerable, IIK
         phaser_intensities = GetComponent<PhaserIntensities>();
         phasers = GetComponent<Phasers>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true, MAX_POWER_CONSUMPTION / 3.0f);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));

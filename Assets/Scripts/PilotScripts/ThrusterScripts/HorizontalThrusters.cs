@@ -3,7 +3,7 @@
     - Handles inputs for horizontal thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 7/25/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -35,7 +35,7 @@ public class HorizontalThrusters : ThrusterControl, IControllable, IPowerable, I
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME, true);
+        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);

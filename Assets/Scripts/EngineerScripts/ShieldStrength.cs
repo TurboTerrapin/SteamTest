@@ -3,7 +3,7 @@
     - Handles allocating shield battery to each of the four ship sections
     - Flips the switches
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -64,10 +64,10 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
             shield_strength_serial_nums[i] = new Stack<string>();
         }
 
-        ship_inventory = GameObject.FindGameObjectWithTag("Spaceship").GetComponent<ShipInventory>();
-        scenario_manager = GameObject.FindGameObjectWithTag("ScenarioManager").GetComponent<ScenarioManager>();
+        ship_inventory = ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>();
+        scenario_manager = ReferenceAssistor.Instance.scenario_manager.GetComponent<ScenarioManager>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0] + " SHIELD STRENGTH", true);
+        hud_info = new HUDInfo(CONTROL_NAMES[0] + " SHIELD STRENGTH", true, (MAX_POWER_CONSUMPTION / 4.0f));
         hud_info.setButtons(BUTTON_LISTS[0], 7);
         hud_info.setInfo(INFO_MESSAGE);
     }

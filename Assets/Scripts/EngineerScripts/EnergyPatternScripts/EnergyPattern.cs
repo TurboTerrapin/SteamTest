@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 5/15/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -60,8 +60,8 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     private void Start()
     {
-        hud_infos[0] = new HUDInfo(CONTROL_NAMES[0], true);
-        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1], true);
+        hud_infos[0] = new HUDInfo(CONTROL_NAMES[0], true, MAX_POWER_CONSUMPTION);
+        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1]);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_infos[0].setButtons(BUTTON_LISTS[0], 6);
@@ -73,43 +73,48 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         int index = ray_targets.IndexOf(current_target.name);
         return hud_infos[index];
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     private void handlePowerConsumptionChange()
     {
         if (display_enabled == true)
         {
             ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_infos[0].setPowerConsumption(MAX_POWER_CONSUMPTION);
-            hud_infos[1].setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
             ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
             hud_infos[0].setPowerConsumption(0.0f);
-            hud_infos[1].setPowerConsumption(0.0f);
         }
     }
 
@@ -417,7 +422,6 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
             energy_pattern_power_coroutine = null;
         }
         hud_infos[0].setPowerConsumption(0.0f);
-        hud_infos[1].setPowerConsumption(0.0f);
 
         //return energy pattern dial to off
         if (power_loss_coroutine != null)

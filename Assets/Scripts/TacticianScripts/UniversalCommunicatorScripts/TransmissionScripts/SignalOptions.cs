@@ -2,7 +2,7 @@
     SignalOptions.cs
     - Handles the controls that send/receive transmissions
     Contributor(s): Jake Schott
-    Last Updated: 7/24/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -51,8 +51,7 @@ public class SignalOptions : NetworkBehaviour, IControllable, IIKTargetable
         universal_communicator = GetComponent<UniversalCommunicator>();
         transmission_handler = GetComponent<TransmissionHandler>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true);
-
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true, TransmissionHandler.MAX_POWER_CONSUMPTION);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 
@@ -63,28 +62,34 @@ public class SignalOptions : NetworkBehaviour, IControllable, IIKTargetable
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         my_control_index = index;
         return IK_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_types[my_control_index];
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;

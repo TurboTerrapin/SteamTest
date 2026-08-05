@@ -248,6 +248,20 @@ public class SeatManager : NetworkBehaviour
         return false;
     }
 
+    public void reflectPowerChange()
+    {
+        bool ship_has_power = ReferenceAssistor.Instance.power_manager.getShipHasPower();
+
+        //update seat icons on chairs
+        for (int i = 0; i < 4; i++)
+        {
+            if (physical_seats[i] != null)
+            {
+                physical_seats[i].transform.GetChild(3).GetChild(0).GetChild(1).gameObject.SetActive(ship_has_power);
+            }    
+        }
+    }
+
     //used for pilot, tactician, and engineers seats
     private void replaceSeatPrefab(int seat) 
     {
@@ -279,6 +293,7 @@ public class SeatManager : NetworkBehaviour
         physical_seats[seat] = GetNetworkObject(seat_ids[seat]).gameObject;
         physical_seats[seat].GetComponent<ClientNetworkTransform>().Interpolate = true;
         physical_seats[seat].transform.GetChild(3).gameObject.SetActive(true);
+        reflectPowerChange();
     }
 
     public void beginShift(int seat) 

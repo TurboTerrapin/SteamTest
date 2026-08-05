@@ -3,7 +3,7 @@
     - Handles inputs for tractor beam power
     - Moves tractor beam lever accordingly
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 7/20/2026
+    Last Updated: 8/4/2026
 */
 
 using System.Collections;
@@ -60,7 +60,7 @@ public class TractorBeamPower : NetworkBehaviour, IControllable, IPowerable, IIK
         range_display = info_display.transform.GetChild(0).gameObject;
         item_captured_display = info_display.transform.GetChild(1).gameObject;
 
-        hud_info = new HUDInfo(CONTROL_NAME, true);
+        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);

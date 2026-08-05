@@ -4,7 +4,7 @@
     - Handles displaying disconnection and connecting (...) screens
     - Handles Steam checks
     Contributor(s): Jake Schott, Beata Musial
-    Last Updated: 5/24/2026
+    Last Updated: 8/2/2026
 */
 
 using System.Collections;
@@ -26,6 +26,8 @@ public class LoadHandler : MonoBehaviour
     private GameObject connection_lost;
     private GameObject steam_failure;
     private GameObject dummy_camera;
+
+    private static int last_tip = -1; //index of last tip as to avoid repeats
     private AsyncOperation load_operation = null;
     private Coroutine fade_black_coroutine = null;
     private Coroutine connecting_coroutine = null;
@@ -131,7 +133,7 @@ public class LoadHandler : MonoBehaviour
     public void startLoad()
     {
         resetAllCoroutines();
-        randomizeColors();
+        randomizeLoadScreen();
         load_coroutines.Add(StartCoroutine(loadLoop()));
         load_screen.SetActive(true);
     }
@@ -269,14 +271,16 @@ public class LoadHandler : MonoBehaviour
         }
     }
 
-    //randomizes the colors for the load circle
-    private void randomizeColors()
+    //randomizes the colors for the load circle and the tip at the bottom of the screen
+    private void randomizeLoadScreen()
     {
         //only randomize colors if load screen hasn't been shown yet
         if (load_screen.activeSelf == true)
         {
             return;
         }
+
+        //randomize ring colors
         List<int> possible_colors = new List<int> { 0, 1, 2, 3 };
         for (int i = 0; i < 3; i++)
         {
@@ -284,6 +288,18 @@ public class LoadHandler : MonoBehaviour
             load_ring.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = ReferenceAssistor.COLOR_OPTIONS[possible_colors[c]];
             possible_colors.RemoveAt(c);
         }
+
+        //randomize tip
+        int new_tip_index;
+        do
+        {
+            new_tip_index = Random.Range(0, load_screen.transform.GetChild(3).childCount);
+        } while (new_tip_index == last_tip);
+        for (int i = 0; i < load_screen.transform.GetChild(3).childCount; i++)
+        {
+            load_screen.transform.GetChild(3).GetChild(i).gameObject.SetActive(i == new_tip_index);
+        }
+        last_tip = new_tip_index;
     }
 
     //helper method used to spin the rings on a single frame (yield return null)
@@ -330,6 +346,7 @@ public class LoadHandler : MonoBehaviour
         load_screen.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.0f, 0.0f);
         load_screen.transform.GetChild(1).gameObject.SetActive(true);
         load_ring.SetActive(true);
+        load_screen.transform.GetChild(3).gameObject.SetActive(true);
         while (true)
         {
             spinRings();
@@ -351,7 +368,7 @@ public class LoadHandler : MonoBehaviour
         }
 
         //enable load screen
-        randomizeColors();
+        randomizeLoadScreen();
         load_screen.SetActive(true);
 
         //switch cameras
@@ -409,7 +426,7 @@ public class LoadHandler : MonoBehaviour
             if (transition_canvas.activeSelf == false && switched_to_load_screen == false)
             {
                 switched_to_load_screen = true;
-                randomizeColors();
+                randomizeLoadScreen();
                 load_screen.SetActive(true);
             }
             
@@ -428,6 +445,7 @@ public class LoadHandler : MonoBehaviour
         float anim_time = fade_time;
         load_screen.transform.GetChild(1).gameObject.SetActive(false);
         load_ring.SetActive(false);
+        load_screen.transform.GetChild(3).gameObject.SetActive(false);
 
         while (anim_time > 0.0f)
         {
