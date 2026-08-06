@@ -319,13 +319,12 @@ public class PowerManager : NetworkBehaviour, IPowerable
             for (int i = 0; i < 4; i++)
             {
                 power_levels[i] = (int)Mathf.Floor(power_consumptions[i] * 10.0f);
-                for (int k = 1; k <= 10; k++)
+                for (int k = 1; k < 11; k++)
                 {
-                    position_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
-                    position_power_displays[i].transform.GetChild(k).GetChild(1).gameObject.SetActive(k <= power_levels[i]);
+                    position_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(k > power_levels[i]);
                     powerIconHelper(position_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
 
-                    engineer_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
+                    engineer_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(k > power_levels[i]);
                     powerIconHelper(engineer_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
                 }
             }
@@ -336,10 +335,11 @@ public class PowerManager : NetworkBehaviour, IPowerable
             {
                 anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
+                float animation_progress = 1.0f - (anim_time / POWER_UPDATE_TIME);
                 for (int i = 0; i < 4; i++)
                 {
-                    animationProgressHelper(position_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME), 0.2f);
-                    animationProgressHelper(engineer_power_displays[i], power_levels[i], 1.0f - (anim_time / POWER_UPDATE_TIME), 0.5f);
+                    animationProgressHelper(position_power_displays[i], power_levels[i], animation_progress, 0.2f);
+                    animationProgressHelper(engineer_power_displays[i], power_levels[i], animation_progress, 0.5f);
                 }
 
                 yield return null;
