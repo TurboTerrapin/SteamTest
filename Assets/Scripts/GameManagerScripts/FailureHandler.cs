@@ -481,7 +481,7 @@ public class FailureHandler : NetworkBehaviour
         Component.Destroy(failureShip.GetComponent<ShipExteriorFeatures>());
 
         // cache materials for light changes
-        int[][] litElementIndices = new int[3][] { new int[] { 0, 6, 8, 9, 10, 13 }, new int[] { 0, 5, 8 }, new int[] { 2, 4, 7, 9 } };
+        int[][] litElementIndices = new int[3][] { new int[] { 0, 6, 8, 9, 10, 12 }, new int[] { 0, 5, 8 }, new int[] { 2, 4, 7, 9 } };
         for (int i = 0; i < 3; i++)
         {
             enabledShipMaterials[i] = failureShip.transform.GetChild(i).GetComponent<MeshRenderer>().materials;

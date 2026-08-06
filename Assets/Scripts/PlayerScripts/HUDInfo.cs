@@ -3,7 +3,7 @@
     - Stores information for the onscreen UI indicator that appears when facing a control
         - Includes control title and button information
     Contributor(s): Jake Schott
-    Last Updated: 3/2/2026
+    Last Updated: 8/5/2026
 */
 
 /*
@@ -36,7 +36,6 @@
 */
 
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class HUDInfo
@@ -185,8 +184,7 @@ public class HUDInfo
         {
             frame_width = HUDInfo.FRAME_WIDTHS[layout];
             frame_height = HUDInfo.FRAME_HEIGHT_OPTIONS[HUDInfo.FRAME_HEIGHT_INDEXES[layout]];
-            header_offset = -45f;
-            extension_offset = 40f;
+            header_offset = -65f;
             title_size = TITLE_SIZES[layout];
             height_index = HUDInfo.FRAME_HEIGHT_INDEXES[layout];
 
@@ -210,7 +208,16 @@ public class HUDInfo
         frame.transform.GetChild(3).GetChild(1).gameObject.SetActive(consumes_power);
         if (consumes_power == true)
         {
-            header_offset = -25f;
+            if (numOptions() > 0)
+            {
+                header_offset = -25f;
+            }
+            else
+            {
+                header_offset = -45f;
+            }
+
+            extension_offset = 40f;
             int circles_visible = Mathf.CeilToInt(maximum_consumption * 10.0f);
             for (int i = 0; i < 6; i++)
             {
@@ -221,14 +228,16 @@ public class HUDInfo
 
         //position frame
         frame.transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -1080f + (frame_height / 2));
-        //resize center and corners
+        //resize background center and corners
+        frame.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(0, extension_offset);
         frame.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(frame_height, frame_height);
         frame.transform.GetChild(0).GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(frame_width, frame_height);
         frame.transform.GetChild(0).GetChild(2).GetComponent<RectTransform>().sizeDelta = new Vector2(frame_height, frame_height);
-        //position corners
+        //position background corners
         frame.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(-1f * (frame_width / 2 + (frame_height / 2)), 0f);
         frame.transform.GetChild(0).GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(frame_width / 2 + (frame_height / 2), 0f);
         //handle border
+        frame.transform.GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(0, extension_offset);
         for (int i = 0; i < 3; i++)
         {
             frame.transform.GetChild(1).GetChild(0).GetChild(i).gameObject.SetActive(i == height_index);
@@ -241,10 +250,8 @@ public class HUDInfo
         frame.transform.GetChild(1).GetChild(1).GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(frame_width - 150f, 10f);
         frame.transform.GetChild(1).GetChild(2).GetChild(height_index).GetComponent<RectTransform>().anchoredPosition = new Vector2((frame_width / 2 + (frame_height / 2)) + 5f, 5f);
         //handle extension
-        frame.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(0, extension_offset);
-        frame.transform.GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(0, extension_offset);
-        frame.transform.GetChild(2).gameObject.SetActive(numOptions() > 0);
-        if (numOptions() > 0)
+        frame.transform.GetChild(2).gameObject.SetActive(consumes_power);
+        if (consumes_power == true)
         {
             frame.transform.GetChild(2).GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(frame_width + (frame_height * 2), 50f);
             frame.transform.GetChild(2).GetChild(1).GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(-1f * ((frame_width / 2) + frame_height + 5f), -155f);

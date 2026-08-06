@@ -248,12 +248,8 @@ public class SecondaryScript : MonoBehaviour
 
         bool hide = station_functions.activeSelf;
         station_functions.SetActive(!hide && !force_hide);
-        string button_desc = "SHOW (V)";
-        if (station_functions.activeSelf == true)
-        {
-            button_desc = "HIDE (V)";
-        }
-        stations_button.transform.GetChild(3).GetComponent<TMP_Text>().SetText(button_desc);
+        stations_button.transform.GetChild(2).gameObject.SetActive(hide || force_hide);
+        stations_button.transform.GetChild(3).gameObject.SetActive(!hide && !force_hide);
         GetComponent<PrimaryScript>().setCursorVisibility(hide && !force_hide);
     }
 

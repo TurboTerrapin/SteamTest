@@ -21,7 +21,7 @@ public class ShipHealth : NetworkBehaviour, IPowerable
     private static Color MAX_HEALTH = new Color(0.0f, 0.84f, 1.0f, 0.2f);
     private static Color HALF_HEALTH = new Color(0.68f, 0.35f, 0.3f, 0.2f);
     private static Color ZERO_HEALTH = new Color(1.0f, 0.0f, 0.0f, 0.2f);
-    private static bool INVINCIBLE_SHIP = true; //used for testing
+    private static bool INVINCIBLE_SHIP = false; //used for testing
 
     public GameObject hull_integrity_display;
     public GameObject ship_overview_display;

@@ -10,13 +10,12 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
 
 public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 1.0f; //how long it takes to turn on/off the energy pattern display
-    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
+    private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 3 circles
     private static float BAR_ANIMATION_TIME = 0.2f; //bars change every 0.2 seconds
     private static float ENABLED_BLINKER_REFRESH = 2.0f;
 
@@ -61,7 +60,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
     private void Start()
     {
         hud_infos[0] = new HUDInfo(CONTROL_NAMES[0], true, MAX_POWER_CONSUMPTION);
-        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1]);
+        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1], true, MAX_POWER_CONSUMPTION);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_infos[0].setButtons(BUTTON_LISTS[0], 6);
@@ -110,11 +109,13 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
         {
             ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, MAX_POWER_CONSUMPTION);
             hud_infos[0].setPowerConsumption(MAX_POWER_CONSUMPTION);
+            hud_infos[1].setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
             ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, 0.0f);
             hud_infos[0].setPowerConsumption(0.0f);
+            hud_infos[1].setPowerConsumption(0.0f);
         }
     }
 
@@ -422,6 +423,7 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
             energy_pattern_power_coroutine = null;
         }
         hud_infos[0].setPowerConsumption(0.0f);
+        hud_infos[0].setPowerConsumption(1.0f);
 
         //return energy pattern dial to off
         if (power_loss_coroutine != null)
