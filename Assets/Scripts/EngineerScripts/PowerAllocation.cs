@@ -3,7 +3,7 @@
     - Handles inputs for power allocation
     - Moves dials
     Contributor(s): Jake Schott
-    Last Updated: 5/10/2026
+    Last Updated: 8/5/2026
 */
 
 using System.Collections;
@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
 
 public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -56,7 +55,7 @@ public class PowerAllocation : NetworkBehaviour, IControllable, IPowerable, IIKT
     private void Start()
     {
         power_manager = ReferenceAssistor.Instance.power_manager;
-        units_counter = info_display.transform.GetChild(0).gameObject;
+        units_counter = info_display.transform.GetChild(0).GetChild(1).gameObject;
         units_circle_collection = info_display.transform.GetChild(1).gameObject;
 
         for (int i = 0; i < 4; i++)

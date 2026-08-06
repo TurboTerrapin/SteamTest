@@ -2,7 +2,7 @@
     SensorDescriptor.cs
     - Used to give UI indicators for non-controllable screens
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2026
+    Last Updated: 8/6/2026
 */
 
 using UnityEngine;
@@ -41,7 +41,7 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "DETECTION COUNTDOWN",
         "NAVIGATION HEADING",
         "POWER DISTRIBUTION",
-        "PHASER TEMPERATURES",
+        "PHASER HEAT",
         "POWER OVERVIEW",
         "SHIP OVERVIEW",
         "SHIP HEALTH",

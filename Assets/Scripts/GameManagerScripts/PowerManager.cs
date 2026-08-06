@@ -222,7 +222,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         power_change_coroutines[position] = null;
     }
 
-    //called by IControllables attached to ControlHandler
+    //called by IControllables attached to module handlers
     public void controlPowerChange(int position, string control_name, float power_level)
     {
         if (associated_controls[position].Contains(control_name) == false)
@@ -283,7 +283,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
             power_distributions[position][i] = 0.0f;
         }
         power_consumptions[position] = getPowerConsumption(position);
-        checkForOverConsumption(position, power_consumptions[position]);
+        checkForOverconsumption(position, power_consumptions[position]);
 
         List<Component> to_disable = positional_modules[position];
         
@@ -322,6 +322,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
                 for (int k = 1; k <= 10; k++)
                 {
                     position_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
+                    position_power_displays[i].transform.GetChild(k).GetChild(1).gameObject.SetActive(k <= power_levels[i]);
                     powerIconHelper(position_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
 
                     engineer_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(!(k <= power_levels[i]));
@@ -526,7 +527,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     }
 
     //calls overconsumptionRPC() or abortOverconsumptionRPC() if applicable
-    private void checkForOverConsumption(int position, float allocation)
+    private void checkForOverconsumption(int position, float allocation)
     {
         if (power_consumptions[position] > allocation && overconsumption_coroutines[position] == null)
         {
@@ -543,7 +544,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     {
         if (NetworkManager.Singleton.IsHost == true)
         {
-            checkForOverConsumption(position, allocation);
+            checkForOverconsumption(position, allocation);
         }
     }
 
@@ -664,10 +665,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private void powerConsumptionChangeRPC(int position, float consumption)
     {
         power_consumptions[position] = consumption;
-
         if (NetworkManager.Singleton.IsHost == true)
         {
-            checkForOverConsumption(position, power_allocation.getPowerAllocation(position));
+            checkForOverconsumption(position, power_allocation.getPowerAllocation(position));
         }
     }
 

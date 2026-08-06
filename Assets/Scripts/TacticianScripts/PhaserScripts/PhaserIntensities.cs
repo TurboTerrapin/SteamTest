@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser intensity screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/6/2026
 */
 
 using System.Collections;
@@ -15,7 +15,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.35f;
-    private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 circle per phaser)
+    //private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 circle per phaser)
     private static float[] MAX_POWER_CONSUMPTION_BY_INDEX = new float[] { 0.1f, 0.2f };
     private static Vector3 PHASER_SLIDE_DIRECTION = new Vector3(0.0f, 0.031f, 0.082f);
 
@@ -50,7 +50,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     {
         phaser_activators = GetComponent<PhaserActivators>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true, (MAX_POWER_CONSUMPTION / 3.0f));
+        hud_info = new HUDInfo(CONTROL_NAMES[0], true, 0.1f);
 
         for (int i = 0; i < 2; i++)
         {
@@ -68,8 +68,8 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 7);
         hud_info.setInfo(INFO_MESSAGE);
+        hud_info.setPowerConsumption(getPowerConsumptionByIndex(index));
         hud_info.setMaxPowerConsumption(MAX_POWER_CONSUMPTION_BY_INDEX[index]);
-        updateDisplayedPowerConsumption(index);
 
         return hud_info;
     }
@@ -115,7 +115,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         handlePowerConsumptionChange();
     }
 
-    private void updateDisplayedPowerConsumption(int index)
+    private float getPowerConsumptionByIndex(int index)
     {
         float power_consumption = 0.0f;
         bool[] active_phasers = GetComponent<PhaserActivators>().getActivePhasers();
@@ -123,7 +123,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         {
             if (active_phasers[0] == true)
             {
-                power_consumption = phaser_intensities[0] * (MAX_POWER_CONSUMPTION / 3.0f);
+                power_consumption += Mathf.Min(0.1f, (phaser_intensities[0] * 0.1f));
             }
         }
         else
@@ -132,24 +132,24 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
             {
                 if (active_phasers[i] == true)
                 {
-                    power_consumption += phaser_intensities[1] * (MAX_POWER_CONSUMPTION / 3.0f);
+                    power_consumption += Mathf.Min(0.1f, (phaser_intensities[1] * 0.1f));
                 }
             }
         }
-        hud_info.setPowerConsumption(power_consumption);
+        for (int i = 0; i < 3; i++)
+        {
+            if (Mathf.Abs(power_consumption - (i * 0.1f)) < 0.001f)
+            {
+                return (i * 0.1f);
+            }
+        }
+        return power_consumption;
     }
 
     private void handlePowerConsumptionChange()
     {
-        float consumed_power = 0.0f;
-        if (GetComponent<PhaserActivators>().getActivePhasers()[0] == true)
-        {
-            consumed_power += (phaser_intensities[0] * 0.5f * MAX_POWER_CONSUMPTION);
-        }
-        if (GetComponent<PhaserActivators>().getActivePhasers()[1] == true || GetComponent<PhaserActivators>().getActivePhasers()[2] == true)
-        {
-            consumed_power += (phaser_intensities[0] * 0.5f * MAX_POWER_CONSUMPTION);
-        }
+        float consumed_power = getPowerConsumptionByIndex(0);
+        consumed_power += getPowerConsumptionByIndex(1);
         ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
     }
 
@@ -266,6 +266,6 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         phaser_intensities[index] = phaser_prcnt;
         handlePowerConsumptionChange();
         displayAdjustment(index);
-        updateDisplayedPowerConsumption(index);
+        hud_info.setPowerConsumption(getPowerConsumptionByIndex(index));
     }
 }
