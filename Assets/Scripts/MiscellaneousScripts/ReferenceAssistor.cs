@@ -2,7 +2,7 @@
     ReferenceAssistor.cs
     - Used to streamline referencing for certain commonly-used things
     Contributor(s): Jake Schott
-    Last Updated: 7/31/2026
+    Last Updated: 8/7/2026
 */
 
 using System.Collections.Generic;
@@ -51,6 +51,7 @@ public class ReferenceAssistor : MonoBehaviour
     public PowerManager power_manager;
     public ScenarioManager scenario_manager;
     public SeatManager seat_manager;
+    public HintsManager hints_manager;
 
     public static ReferenceAssistor Instance { get; private set; }
 

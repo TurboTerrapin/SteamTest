@@ -73,7 +73,7 @@ public class PrimaryScript : MonoBehaviour
         new KeyCode[] {KeyCode.Z}, //12
         new KeyCode[] {KeyCode.Space}, //13
         new KeyCode[] {KeyCode.LeftShift, KeyCode.RightShift}, //14
-        new KeyCode[] {KeyCode.T} //15
+        new KeyCode[] {KeyCode.V} //15
     };
 
     public static bool checkInputIndex(int input_index, List<KeyCode> inputs_to_check)

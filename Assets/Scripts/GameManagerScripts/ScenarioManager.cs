@@ -686,6 +686,9 @@ public class ScenarioManager : NetworkBehaviour
         ReferenceAssistor.Instance.audio_manager.MuteAudio();
         ReferenceAssistor.Instance.audio_manager.ResetToDefault();
 
+        //reset hints
+        ReferenceAssistor.Instance.hints_manager.resetHints();
+
         //reset scenario light layer
         ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(false);
 
