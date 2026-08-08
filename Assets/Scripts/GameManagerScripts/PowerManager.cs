@@ -486,6 +486,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[reason]);
         if (auxiliary_power_available == true)
         {
+            ReferenceAssistor.Instance.hints_manager.addHint("USE AUXILIARY POWER", 2);
             ReferenceAssistor.Instance.audio_manager.AddNotification(1, power_notifications[8]);
         }
 
@@ -583,6 +584,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
 
         //show power enabled on power status screen in engineer position
         GetComponent<PowerRegulator>().displayPowerRestoration();
+
+        //remove hint if applicable
+        ReferenceAssistor.Instance.hints_manager.removeHint("USE AUXILIARY POWER", 2);
 
         yield return new WaitForSeconds(3.0f);
 

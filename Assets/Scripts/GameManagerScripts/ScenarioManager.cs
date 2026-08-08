@@ -476,6 +476,7 @@ public class ScenarioManager : NetworkBehaviour
             ReferenceAssistor.Instance.module_handlers[1].GetComponent<EncryptionKeys>().initializeEncryptionKeys();
             ReferenceAssistor.Instance.module_handlers[2].GetComponent<EngineCoolantSupply>().initializeEngineTemperatureIncreaser();
             ReferenceAssistor.Instance.module_handlers[2].GetComponent<ComputerRegulator>().initializeComputerRegulator();
+            ReferenceAssistor.Instance.module_handlers[3].GetComponent<ProcedureManual>().initiateProcedureManualHintDelay();
             ReferenceAssistor.Instance.module_handlers[4].GetComponent<PrefixCodeManager>().initiatePrefixCodeManager();
         }
 

@@ -223,6 +223,8 @@ public class EncryptionKeys : NetworkBehaviour, IControllable, IPowerable, IIKTa
         for (int i = 0; i < 4; i++)
         {
             displayAdjustment(i);
+            BUTTON_LISTS[i][0].updateInteractable(handle_percentages[0] > 0.0f);
+            BUTTON_LISTS[i][1].updateInteractable(handle_percentages[0] < 1.0f);
         }
     }
 

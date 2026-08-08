@@ -2,7 +2,7 @@
     ProcedureManual.cs
     - Handles enabling/disabling of procedure manual
     Contributor(s): Jake Schott
-    Last Updated: 2/19/2026
+    Last Updated: 8/7/2026
 */
 
 using UnityEngine;
@@ -20,9 +20,32 @@ public class ProcedureManual : Manual
     };
     private static float INTRO_TIME = 1.0f;
 
+    private Coroutine hint_coroutine = null;
+
     public void Start()
     {
         manual_index = 0;
+    }
+
+    public void initiateProcedureManualHintDelay()
+    {
+        hint_coroutine = StartCoroutine(hintDelivery());
+    }
+
+    IEnumerator hintDelivery()
+    {
+        yield return new WaitForSeconds(30.0f);
+        ReferenceAssistor.Instance.hints_manager.addHint("USE PROCEDURE MANUAL", 3);
+    }
+
+    public void endHintDelivery()
+    {
+        if (hint_coroutine != null)
+        {
+            StopCoroutine(hint_coroutine);
+            hint_coroutine = null;
+        }
+        ReferenceAssistor.Instance.hints_manager.removeHint("USE PROCEDURE MANUAL", 3);
     }
 
     public int pickWelcomeMessage()
@@ -32,6 +55,7 @@ public class ProcedureManual : Manual
 
     IEnumerator activateManual(int msg)
     {
+        endHintDelivery();
         welcome_screen.transform.GetChild(0).GetComponent<TMP_Text>().SetText("");
         welcome_screen.SetActive(true);
 

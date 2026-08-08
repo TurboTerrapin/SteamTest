@@ -6,7 +6,7 @@
     - Sends user inputs to control script if looking at said control and within RAYCAST_RANGE
     - Handles transmitting IK targets for hand movement animations
     Contributor(s): Jake Schott, John Aylward
-    Last Updated: 8/1/2026
+    Last Updated: 8/8/2026
 */
 
 using UnityEngine;
@@ -20,13 +20,12 @@ public class PrimaryScript : MonoBehaviour
     private static float RAYCAST_RANGE = 0.85f;
 
     //GAME OBJECTS
+    public Sprite button_rounded_edge;
     private GameObject player_UI_canvas;
     private GameObject cursor;
     private GameObject primary_info;
-    private GameObject trapezoidal_frame;
-    private GameObject minimized_list_frame;
-    private TMP_Text control_title;
-    private GameObject sit_frame;
+    private GameObject default_view;
+    private GameObject minimized_view;
 
     private GameObject pause_default_menu;
     private GameObject pause_controls_menu;
@@ -107,10 +106,8 @@ public class PrimaryScript : MonoBehaviour
         player_UI_canvas = gameObject;
         cursor = player_UI_canvas.transform.GetChild(0).gameObject;
         primary_info = player_UI_canvas.transform.GetChild(1).gameObject;
-        trapezoidal_frame = primary_info.transform.GetChild(0).gameObject;
-        minimized_list_frame = primary_info.transform.GetChild(1).gameObject;
-        sit_frame = primary_info.transform.GetChild(2).gameObject;
-        control_title = trapezoidal_frame.transform.GetChild(3).GetChild(0).GetComponent<TMP_Text>();
+        default_view = primary_info.transform.GetChild(0).gameObject;
+        minimized_view = primary_info.transform.GetChild(1).gameObject;
         pause_default_menu = player_UI_canvas.transform.GetChild(4).GetChild(0).gameObject;
         pause_settings_menu = player_UI_canvas.transform.GetChild(4).GetChild(1).gameObject;
         pause_controls_menu = player_UI_canvas.transform.GetChild(4).GetChild(2).gameObject;
@@ -181,55 +178,48 @@ public class PrimaryScript : MonoBehaviour
     }
 
     //used to clear default buttons and minimized list entries
-    private void clearButtons()
+    private void resetButtons()
     {
-        //clear default buttons
-        for (int i = trapezoidal_frame.transform.GetChild(4).childCount - 1; i >= 2; i--)
+        //hide default buttons
+        foreach (Transform t in default_view.transform.GetChild(1).GetChild(4).GetChild(0))
         {
-            GameObject to_destroy = trapezoidal_frame.transform.GetChild(4).GetChild(i).gameObject;
-            UnityEngine.Object.Destroy(to_destroy);
+            t.gameObject.SetActive(false);
+            t.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = button_rounded_edge;
+            t.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().sprite = button_rounded_edge;
         }
 
-        //clear minimized list entries
-        for (int i = minimized_list_frame.transform.childCount - 1; i >= 1; i--)
+        //hide default dividers
+        foreach (Transform t in default_view.transform.GetChild(1).GetChild(4).GetChild(1))
         {
-            GameObject to_destroy = minimized_list_frame.transform.GetChild(i).gameObject;
-            UnityEngine.Object.Destroy(to_destroy);
+            t.gameObject.SetActive(false);
+        }
+
+        //hide minimized list entries
+        foreach (Transform t in minimized_view.transform.GetChild(1))
+        {
+            t.gameObject.SetActive(false);
         }
     }
 
-    //used to instantiate buttons/list entries for either trapezoid or minimized list
+    //used to instantiate buttons/list entries for either default view or minimized list
     private void initializePrimaryInfo()
     {
-        //hide both UI indicators
-        trapezoidal_frame.SetActive(false); //make the trapezoid invisible
-        minimized_list_frame.SetActive(false); //make the list visible
+        //hide existing buttons and list entries
+        resetButtons();
 
-        //get rid of existing buttons and list entries
-        clearButtons();
-
-        //if trapezoid or minimized list, then create visual buttons/list entries
+        //if default or minimized view, then set visual buttons/list entries
         if (HUD_setting < 3)
         {
-            trapezoidal_frame.SetActive(HUD_setting < 2); //trapezoid
-            minimized_list_frame.SetActive(HUD_setting == 2); //minimized list
+            default_view.SetActive(HUD_setting < 2); //default
+            minimized_view.SetActive(HUD_setting == 2); //minimized
 
-            //handle power consumption on default frame
-            float title_offset = -15f;
-            if (current_info.getConsumesPower() == true)
-            {
-                title_offset = 0f;
-            }
-            trapezoidal_frame.transform.GetChild(3).GetChild(0).transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, title_offset);
-            trapezoidal_frame.transform.GetChild(3).GetChild(1).gameObject.SetActive(current_info.getConsumesPower());
-
-            GameObject frame = trapezoidal_frame;
+            GameObject frame = default_view.transform.GetChild(1).gameObject;
             if (HUD_setting == 2) //if minimized list
             {
-                frame = minimized_list_frame;
+                frame = minimized_view.transform.GetChild(1).gameObject;
             }
 
-            //initialize background/title/border visual
+            //initialize background/title/border visual if default or essential view
             if (HUD_setting < 2)
             {
                 current_info.initializeDefaultFrame(frame.transform);
@@ -238,6 +228,7 @@ public class PrimaryScript : MonoBehaviour
             //initialize button visuals
             for (int i = 0; i < current_info.numOptions(); i++)
             {
+                current_info.getButtons()[i].updateVisibility(true);
                 current_info.getButtons()[i].createVisual(HUD_setting, current_info.getLayout(), i, frame);
             }
         }
@@ -261,9 +252,8 @@ public class PrimaryScript : MonoBehaviour
             {
                 HUD_setting = new_hud;
             }
-            trapezoidal_frame.SetActive(HUD_setting < 2 && is_sitting == true); //trapezoid
-            minimized_list_frame.gameObject.SetActive(HUD_setting == 2); //minimized list
-            sit_frame.SetActive(HUD_setting < 2 && is_sitting == false); //rounded seat indicator
+            default_view.SetActive(HUD_setting < 2); //default
+            minimized_view.SetActive(HUD_setting == 2); //minimized
             control_update_flag = true; //forces an update
             GetComponent<SecondaryScript>().setPermanentOverlayVisibility(HUD_setting == 0);
         }
@@ -282,6 +272,7 @@ public class PrimaryScript : MonoBehaviour
     public void setHintsEnabled(bool enabled)
     {
         hints_setting = enabled;
+        ReferenceAssistor.Instance.hints_manager.hints_frame.SetActive(hints_setting);
     }
 
     public void setCursorVisibility(bool visibility)
@@ -409,6 +400,14 @@ public class PrimaryScript : MonoBehaviour
         return curr_pos;
     }
 
+    private void onSittingChange()
+    {
+        default_view.transform.GetChild(0).gameObject.SetActive(!is_sitting);
+        default_view.transform.GetChild(1).gameObject.SetActive(is_sitting);
+        minimized_view.transform.GetChild(0).gameObject.SetActive(!is_sitting);
+        minimized_view.transform.GetChild(1).gameObject.SetActive(is_sitting);
+    }
+
     public void onShiftChange()
     {
         GetComponent<SecondaryScript>().updateShiftIndicators(player_prefab.GetComponent<PlayerMove>().IsShifting(), curr_pos, ReferenceAssistor.Instance.seat_manager);
@@ -422,7 +421,7 @@ public class PrimaryScript : MonoBehaviour
         }
         else
         {
-            GetComponent<SecondaryScript>().updateInfoOverlayOffset(100.0f);
+            GetComponent<SecondaryScript>().updateInfoOverlayOffset(120.0f);
         }
     }
 
@@ -445,20 +444,17 @@ public class PrimaryScript : MonoBehaviour
             int closest_seat = ReferenceAssistor.Instance.seat_manager.checkSeats(player_prefab.transform.position);
             if (closest_seat >= 0) //can sit
             {
-                sit_frame.SetActive(HUD_setting < 2);
-
                 //update seat indicator color and information
                 Color c = ReferenceAssistor.COLOR_OPTIONS[closest_seat];
                 c.a = 0.84f;
-                foreach (Transform t in sit_frame.transform.GetChild(1))
+                foreach (Transform t in default_view.transform.GetChild(0).GetChild(1))
                 {
                     t.GetComponent<UnityEngine.UI.RawImage>().color = c;
                 }
                 c.a = 1.0f;
-                sit_frame.transform.GetChild(2).GetComponent<TMP_Text>().color = c;
-                sit_frame.transform.GetChild(2).GetComponent<TMP_Text>().SetText(ReferenceAssistor.STATION_NAMES[closest_seat] + " STATION");
+                default_view.transform.GetChild(0).GetChild(2).GetComponent<TMP_Text>().color = c;
+                default_view.transform.GetChild(0).GetChild(2).GetComponent<TMP_Text>().SetText(ReferenceAssistor.STATION_NAMES[closest_seat] + " STATION");
 
-                minimized_list_frame.SetActive(HUD_setting == 2);
                 primary_info.SetActive(true);
 
                 if (UnityEngine.Input.GetKeyDown(input_options[13][0])) //trying to sit down
@@ -467,6 +463,7 @@ public class PrimaryScript : MonoBehaviour
                     if (is_sitting == true)
                     {
                         curr_pos = closest_seat;
+                        onSittingChange();
                         GetComponent<SecondaryScript>().onStationChange(curr_pos);
                         primary_info.SetActive(false);
                         player_prefab.GetComponent<CameraMove>().LockCamera();
@@ -502,12 +499,7 @@ public class PrimaryScript : MonoBehaviour
         my_animation_controller.setIKHead(true);
 
         onShiftChange();
-
-        trapezoidal_frame.SetActive(HUD_setting < 2);
         GetComponent<SecondaryScript>().setSittingOverlayVisibility(HUD_setting == 0);
-        sit_frame.SetActive(false);
-        minimized_list_frame.gameObject.SetActive(HUD_setting == 2);
-        minimized_list_frame.transform.GetChild(0).gameObject.SetActive(false);
 
         ray_target_check_coroutine = StartCoroutine(rayCheck());
         control_check_coroutine = StartCoroutine(controlCheck());
@@ -555,10 +547,8 @@ public class PrimaryScript : MonoBehaviour
         GetComponent<SecondaryScript>().setSittingOverlayVisibility(false);
         GetComponent<SecondaryScript>().setSittingRightSideVisibility(false);
 
-        trapezoidal_frame.SetActive(false);
-        minimized_list_frame.SetActive(false);
-        minimized_list_frame.transform.GetChild(0).gameObject.SetActive(true);
-        clearButtons();
+        resetButtons();
+        onSittingChange();
 
         player_prefab.GetComponent<PlayerMove>().TriggerGetUpAnimation(curr_pos);
     }
@@ -669,9 +659,15 @@ public class PrimaryScript : MonoBehaviour
                         if (control_update_flag == true)
                         {
                             control_update_flag = false;
-                            control_title.GetComponent<TMP_Text>().SetText(temp_info.getName()); //set title of that control
+                            if (current_info != null && current_info.numOptions() > 0)
+                            {
+                                foreach (Button b in current_info.getButtons())
+                                {
+                                    b.updateVisibility(false); //disconnect old buttons from visual updates
+                                }
+                            }
                             current_info = temp_info;
-                            if (HUD_setting < 3) //trapezoid or minimized
+                            if (HUD_setting < 3) //default or minimized
                             {
                                 initializePrimaryInfo();
                             }
@@ -681,7 +677,7 @@ public class PrimaryScript : MonoBehaviour
                         }
                         else
                         {
-                            if (HUD_setting < 3) //trapezoid or minimized
+                            if (HUD_setting < 3) //default or minimized
                             {
                                 updateButtons(temp_info);
                             }

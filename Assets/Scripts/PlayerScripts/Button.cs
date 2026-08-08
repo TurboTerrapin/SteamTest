@@ -1,12 +1,10 @@
 /*
     Button.cs
     - Stores information for a button
-    - Handles button, divider GUI
+    - Handles button visualization
     Contributor(s): Jake Schott
-    Last Updated: 3/2/2026
+    Last Updated: 8/7/2026
 */
-
-
 
 using UnityEngine;
 using TMPro;
@@ -24,7 +22,8 @@ public class Button
     private bool interactable = true;
     private bool togglable = false;
     private bool currently_toggled = false; //used to stay blue during toggles
-    private GameObject visual_button;
+    private bool currently_visible = false; //used to determine whether to visually update
+    private GameObject visual_button = null;
     private float percent_blue = 0.0f;
     private float adjusted_font_size = -1.0f;
 
@@ -56,10 +55,15 @@ public class Button
         return currently_toggled;
     }
 
+    public void updateVisibility(bool visibility)
+    {
+        currently_visible = visibility;
+    }
+
     public void updateDesc(string new_desc)
     {
         button_desc = new_desc;
-        if (visual_button != null)
+        if (visual_button != null && currently_visible == true)
         {
             string key = PrimaryScript.input_options[control_index][0].ToString();
             if (key == "Mouse0")
@@ -70,22 +74,23 @@ public class Button
             {
                 key = key.Substring(5);
             }
-            if (visual_button.transform.childCount > 0) //trapezoid view
+            if (visual_button.transform.childCount > 2) //default view
             {
-                visual_button.transform.GetChild(2).gameObject.GetComponent<TMP_Text>().SetText(button_desc + " (" + key + ")"); 
+                visual_button.transform.GetChild(2).GetComponent<TMP_Text>().SetText(button_desc + " (" + key + ")"); 
             }
             else //list view
             {
-                visual_button.GetComponent<TMP_Text>().SetText(button_desc + " - " + key);
+                visual_button.transform.GetChild(0).GetComponent<TMP_Text>().SetText(button_desc);
             }
         }
     }
+
     public void updateInteractable(bool interactable)
     {
         this.interactable = interactable;
-        if (visual_button != null)
+        if (visual_button != null && currently_visible == true)
         {
-            if (visual_button.transform.childCount > 0) //trapezoid view
+            if (visual_button.transform.childCount > 2) //default view
             {
                 if (this.interactable == true)
                 {
@@ -117,9 +122,9 @@ public class Button
         percent_blue = 1.0f;
         updateColor(1.0f);
         updateInteractable(false);
-        if (visual_button != null)
+        if (visual_button != null && currently_visible == true)
         {
-            if (visual_button.transform.childCount > 0) //ensures trapezoid format
+            if (visual_button.transform.childCount > 0) //ensures default format
             {
                 PrimaryScript.Instance.transform.GetComponent<ButtonHelper>().toggleHelper(this, toggle_length);
             }
@@ -153,14 +158,11 @@ public class Button
             key = key.Substring(5);
         }
 
-        //Default: Trapezoidal format
+        //Default/Essential: Rounded format
         if (HUD_setting < 2)
         {
-            //define buttons panel
-            GameObject buttons_panel = frame.transform.GetChild(4).gameObject;
-
-            //copy button
-            visual_button = UnityEngine.Object.Instantiate(buttons_panel.transform.GetChild(0).gameObject, buttons_panel.transform);
+            //identify button
+            visual_button = frame.transform.GetChild(4).GetChild(0).GetChild(order_index).gameObject;
 
             //resize
             visual_button.GetComponent<RectTransform>().sizeDelta = HUDInfo.BUTTON_SIZES[layout][order_index];
@@ -203,18 +205,26 @@ public class Button
         //Minimized: List format
         else if (HUD_setting == 2)
         {
-            //copy button
-            visual_button = UnityEngine.Object.Instantiate(frame.transform.GetChild(0).gameObject, frame.transform);
+            //identify button
+            if (key.CompareTo("LMB") == 0)
+            {
+                visual_button = frame.transform.GetChild(0).gameObject;
+            }
+            else
+            {
+                visual_button = frame.transform.GetChild(order_index + 1).gameObject;
+                visual_button.transform.GetChild(1).GetComponent<TMP_Text>().SetText(key);
+            }
 
             //position button
-            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector3(-1655f, (40f * (HUDInfo.BUTTON_POSITIONS[layout].Length - order_index - 1)) - 1050f, 0f);
+            float horizontal_position = visual_button.GetComponent<RectTransform>().anchoredPosition.x;
+            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector2(horizontal_position, (85f * (HUDInfo.BUTTON_POSITIONS[layout].Length - order_index - 1)) - 1025f);
             
             //set text info
-            visual_button.GetComponent<TMP_Text>().SetText(button_desc + " - " + key);
+            visual_button.transform.GetChild(0).GetComponent<TMP_Text>().SetText(button_desc);
         }
         if (visual_button != null)
         {
-            visual_button.name = button_desc;
             visual_button.SetActive(true);
         }
     }
@@ -227,9 +237,9 @@ public class Button
     //helper method 
     private void updateColor(float transparency)
     {
-        if (visual_button != null)
+        if (visual_button != null && currently_visible == true)
         {
-            if (visual_button.transform.childCount > 0) //means trapezoid format
+            if (visual_button.transform.childCount > 2) //means default format
             {
                 Color temp_color =
                     new Color(DARK_GRAY.r * (1.0f - percent_blue),

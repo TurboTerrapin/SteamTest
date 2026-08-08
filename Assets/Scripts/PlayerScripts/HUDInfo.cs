@@ -3,7 +3,7 @@
     - Stores information for the onscreen UI indicator that appears when facing a control
         - Includes control title and button information
     Contributor(s): Jake Schott
-    Last Updated: 8/5/2026
+    Last Updated: 8/7/2026
 */
 
 /*
@@ -36,6 +36,7 @@
 */
 
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class HUDInfo
@@ -175,7 +176,7 @@ public class HUDInfo
     {
         float frame_width = 50f + (control_name.Length * 50f);
         float frame_height = FRAME_HEIGHT_OPTIONS[0];
-        float header_offset = -80f;
+        float header_offset = -95f;
         float extension_offset = 0f;
         float title_size = frame_width;
         int height_index = 0;
@@ -184,7 +185,7 @@ public class HUDInfo
         {
             frame_width = HUDInfo.FRAME_WIDTHS[layout];
             frame_height = HUDInfo.FRAME_HEIGHT_OPTIONS[HUDInfo.FRAME_HEIGHT_INDEXES[layout]];
-            header_offset = -65f;
+            header_offset = -80f;
             title_size = TITLE_SIZES[layout];
             height_index = HUDInfo.FRAME_HEIGHT_INDEXES[layout];
 
@@ -193,16 +194,16 @@ public class HUDInfo
             {
                 for (int i = 0; i < HUDInfo.DIVIDER_POSITIONS[layout].Length; i++)
                 {
-                    //copy divider
-                    GameObject divider = UnityEngine.Object.Instantiate(frame.transform.GetChild(4).GetChild(1).gameObject, frame.transform.GetChild(4).transform);
-                    divider.name = "DIVIDER" + i;
+                    //set divider
+                    GameObject divider = frame.transform.GetChild(4).GetChild(1).GetChild(i).gameObject;
+                    divider.GetComponent<RectTransform>().anchoredPosition = new Vector2(HUDInfo.DIVIDER_POSITIONS[layout][i].x, HUDInfo.DIVIDER_POSITIONS[layout][i].y);
                     divider.SetActive(true);
-
-                    //position
-                    divider.GetComponent<RectTransform>().anchoredPosition = new Vector3(HUDInfo.DIVIDER_POSITIONS[layout][i].x, HUDInfo.DIVIDER_POSITIONS[layout][i].y, 0f);
                 }
             }
         }
+
+        //set title
+        frame.transform.GetChild(3).GetChild(0).GetComponent<TMP_Text>().SetText(control_name);
 
         //adjust power circles
         frame.transform.GetChild(3).GetChild(1).gameObject.SetActive(consumes_power);

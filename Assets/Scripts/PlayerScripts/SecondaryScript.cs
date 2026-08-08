@@ -41,7 +41,7 @@ public class SecondaryScript : MonoBehaviour
         sitting_left_side = sitting_overlay.transform.GetChild(0).gameObject;
         shift_button = sitting_left_side.transform.GetChild(2).gameObject;
         sitting_right_side = sitting_overlay.transform.GetChild(1).gameObject;
-        primary_default_power_circles = transform.GetChild(1).GetChild(0).GetChild(3).GetChild(1).gameObject;
+        primary_default_power_circles = transform.GetChild(1).GetChild(0).GetChild(1).GetChild(3).GetChild(1).gameObject;
     }
 
     public void setSecondaryInfoVisibility(bool active)
@@ -103,7 +103,7 @@ public class SecondaryScript : MonoBehaviour
 
         //update sitting overlay if sitting
         Color c = ReferenceAssistor.COLOR_OPTIONS[pos];
-        foreach (Transform t in transform.GetChild(1).GetChild(0).GetChild(1))
+        foreach (Transform t in transform.GetChild(1).GetChild(0).GetChild(1).GetChild(1))
         {
             foreach (Transform b in t)
             {
@@ -120,7 +120,7 @@ public class SecondaryScript : MonoBehaviour
                 }
             }
         }
-        foreach (Transform t in transform.GetChild(1).GetChild(0).GetChild(2).GetChild(1))
+        foreach (Transform t in transform.GetChild(1).GetChild(0).GetChild(1).GetChild(2).GetChild(1))
         {
             t.GetComponent<UnityEngine.UI.Image>().color = c;
         }
