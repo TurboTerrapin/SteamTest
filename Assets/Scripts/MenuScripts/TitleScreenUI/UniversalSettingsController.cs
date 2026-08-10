@@ -313,9 +313,17 @@ public class UniversalSettingsController : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    public void UnmuteSFXVolume()
+    {
+        HandleSFXVolumeDragged(PlayerPrefs.GetFloat("SFXVolume", 0.5f));
+    }
+
     public void HandleSFXVolumeDragged(float volume)
     {
-        MasterMixer.SetFloat("SFXVolume", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
+        if (PrimaryScript.Instance == null || ReferenceAssistor.Instance.audio_manager.GetCurrentlyMuted() == false)
+        {
+            MasterMixer.SetFloat("SFXVolume", 20 * Mathf.Log10(Mathf.Max(volume, 0.0001f)));
+        }
 
         // Updates volume text
         int percent = Mathf.RoundToInt(volume * 100);
@@ -326,6 +334,11 @@ public class UniversalSettingsController : MonoBehaviour
 
         // Writes to disk
         PlayerPrefs.Save();
+    }
+
+    public float GetSFXVolume()
+    {
+        return PlayerPrefs.GetFloat("SFXVolume", 0.5f);
     }
 
     public float GetCameraSensitivity()

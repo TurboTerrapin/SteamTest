@@ -684,7 +684,7 @@ public class ScenarioManager : NetworkBehaviour
 
         //reset and mute audio
         ReferenceAssistor.Instance.audio_manager.DeactivateComputerVoice();
-        ReferenceAssistor.Instance.audio_manager.MuteAudio();
+        ReferenceAssistor.Instance.audio_manager.MuteSFX();
         ReferenceAssistor.Instance.audio_manager.ResetToDefault();
 
         //reset hints
@@ -727,7 +727,7 @@ public class ScenarioManager : NetworkBehaviour
         game_over = true;
 
         //mute audio
-        ReferenceAssistor.Instance.audio_manager.MuteAudio();
+        ReferenceAssistor.Instance.audio_manager.MuteSFX();
 
         //stop checking for controls/seats
         PrimaryScript.Instance.deactivate(false, true);

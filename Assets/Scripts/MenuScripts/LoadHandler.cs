@@ -235,7 +235,7 @@ public class LoadHandler : MonoBehaviour
             }
             PrimaryScript.Instance.unpause(); //forces unpause
             PrimaryScript.Instance.deactivate(false, true); //stops control interaction
-            ReferenceAssistor.Instance.audio_manager.GetComponent<AudioManager>().MuteAudio(); //mute SFX
+            ReferenceAssistor.Instance.audio_manager.GetComponent<AudioManager>().MuteSFX(); //mute SFX
             dummy_camera.SetActive(true);
         }
         hideTitleAndMainMenuElements();

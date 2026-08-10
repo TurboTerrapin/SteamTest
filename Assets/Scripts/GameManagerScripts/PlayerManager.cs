@@ -310,7 +310,7 @@ public class PlayerManager : NetworkBehaviour
 
         //unmute audio and activate computer voice that was muted/deactivated during scenario transition
         ReferenceAssistor.Instance.audio_manager.ActivateComputerVoice();
-        ReferenceAssistor.Instance.audio_manager.UnmuteAudio();
+        ReferenceAssistor.Instance.audio_manager.UnmuteSFX();
     }
 
     //fired when a client's AsyncOperation for loading a scenario (not BridgeEnvironment) is complete

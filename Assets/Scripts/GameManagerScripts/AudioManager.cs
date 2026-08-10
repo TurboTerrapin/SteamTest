@@ -19,13 +19,13 @@ public class AudioManager : MonoBehaviour
     };
 
     private bool computerVoiceActive = false;
+    private bool currentlyMuted = false;
     private int currentClipPriority = -1;
     private Coroutine computerVoicePlayerCoroutine = null;
 
     public void InitializeAudio()
     {
         ResetToDefault();
-        SetMasterVolume(0.75f);
 
         audioSources[0].GetComponent<AudioSource>().Play(); //play ambient noise
         audioSources[1].GetComponent<AudioSource>().Play(); //play ship beeps
@@ -68,14 +68,21 @@ public class AudioManager : MonoBehaviour
         masterMixer.SetFloat("MasterVolume", dB);
     }
 
-    public void MuteAudio()
+    public void MuteSFX()
     {
+        currentlyMuted = true;
         masterMixer.SetFloat("SFXVolume", -80.0f);
     }
 
-    public void UnmuteAudio()
+    public void UnmuteSFX()
     {
-        masterMixer.SetFloat("SFXVolume", 0.0f);
+        currentlyMuted = false;
+        PrimaryScript.Instance.GetComponent<UniversalSettingsController>().UnmuteSFXVolume();
+    }
+
+    public bool GetCurrentlyMuted()
+    {
+        return currentlyMuted;
     }
 
     private void ClearNotificationQueuesBelowPriority(int priority)
