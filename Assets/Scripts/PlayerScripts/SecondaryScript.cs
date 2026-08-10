@@ -154,20 +154,31 @@ public class SecondaryScript : MonoBehaviour
     public void toggleControlInformationVisibility(HUDInfo temp_info)
     {
         bool currently_visible = sitting_right_side.transform.GetChild(1).gameObject.activeSelf;
+        float a = 1.0f;
+        if (currently_visible == false)
+        {
+            a = 0.1f;
+        }
         sitting_right_side.transform.GetChild(0).GetChild(2).gameObject.SetActive(currently_visible);
         sitting_right_side.transform.GetChild(0).GetChild(3).gameObject.SetActive(!currently_visible);
+        sitting_right_side.transform.GetChild(0).GetChild(4).GetComponent<CanvasGroup>().alpha = a;
         sitting_right_side.transform.GetChild(1).gameObject.SetActive(!currently_visible);
     }
 
     //updates shift direction UI indicator and get up indicator
     public void updateShiftIndicators(bool is_shifting, int curr_pos, SeatManager seat_manager)
     {
+        float a = 1.0f;
+        if (is_shifting == true)
+        {
+            a = 0.1f;
+        }
         sitting_left_side.transform.GetChild(1).GetChild(2).GetChild(0).gameObject.SetActive(!is_shifting);
-        sitting_left_side.transform.GetChild(1).GetChild(3).GetChild(0).gameObject.SetActive(!is_shifting);
+        sitting_left_side.transform.GetChild(1).GetChild(3).GetComponent<CanvasGroup>().alpha = a;
         sitting_left_side.transform.GetChild(2).gameObject.SetActive(curr_pos != 3);
         sitting_left_side.transform.GetChild(2).GetChild(2).GetChild(0).gameObject.SetActive(seat_manager.canShiftLeft(curr_pos) && !is_shifting);
         sitting_left_side.transform.GetChild(2).GetChild(3).GetChild(0).gameObject.SetActive(seat_manager.canShiftRight(curr_pos) && !is_shifting);
-        sitting_left_side.transform.GetChild(2).GetChild(4).GetChild(0).gameObject.SetActive(!is_shifting);
+        sitting_left_side.transform.GetChild(2).GetChild(4).GetComponent<CanvasGroup>().alpha = a;
     }
 
     //helper method that estimates the length of a control description based on the length of the description of that control's description
@@ -248,8 +259,14 @@ public class SecondaryScript : MonoBehaviour
 
         bool hide = station_functions.activeSelf;
         station_functions.SetActive(!hide && !force_hide);
+        float a = 1.0f;
+        if (!hide && !force_hide)
+        {
+            a = 0.1f;
+        }
         stations_button.transform.GetChild(2).gameObject.SetActive(hide || force_hide);
         stations_button.transform.GetChild(3).gameObject.SetActive(!hide && !force_hide);
+        stations_button.transform.GetChild(4).GetComponent<CanvasGroup>().alpha = a;
         GetComponent<PrimaryScript>().setCursorVisibility(hide && !force_hide);
     }
 

@@ -76,7 +76,7 @@ public class Button
             }
             if (visual_button.transform.childCount > 2) //default view
             {
-                visual_button.transform.GetChild(2).GetComponent<TMP_Text>().SetText(button_desc + " (" + key + ")"); 
+                visual_button.transform.GetChild(4).GetComponent<TMP_Text>().SetText(button_desc); 
             }
             else //list view
             {
@@ -95,7 +95,7 @@ public class Button
                 if (this.interactable == true)
                 {
                     currently_toggled = false;
-                    visual_button.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(1f, 1f, 1f, 1f);
+                    visual_button.transform.GetChild(4).GetComponent<TMP_Text>().alpha = 1.0f;
                     updateColor(1.0f);
                 }
                 else
@@ -103,7 +103,7 @@ public class Button
                     if (currently_toggled == false)
                     {
                         percent_blue = 0.0f;
-                        visual_button.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(1f, 1f, 1f, 0.2f);
+                        visual_button.transform.GetChild(4).GetComponent<TMP_Text>().alpha = 0.2f;
                         updateColor(0.2f);
                     }
                     else
@@ -162,31 +162,35 @@ public class Button
         if (HUD_setting < 2)
         {
             //identify button
-            visual_button = frame.transform.GetChild(4).GetChild(0).GetChild(order_index).gameObject;
+            visual_button = frame.transform.GetChild(4).GetChild(order_index).gameObject;
 
             //resize
-            visual_button.GetComponent<RectTransform>().sizeDelta = HUDInfo.BUTTON_SIZES[layout][order_index];
-            visual_button.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector3(-1f * (HUDInfo.BUTTON_SIZES[layout][order_index].x / 2 + 17f), 0f, 0f);
-            visual_button.transform.GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector3(HUDInfo.BUTTON_SIZES[layout][order_index].x / 2 + 17f, 0f, 0f);
-            visual_button.transform.GetChild(2).GetComponent<RectTransform>().sizeDelta = HUDInfo.BUTTON_SIZES[layout][order_index];
+            visual_button.transform.GetChild(0).GetComponent<RectTransform>().sizeDelta = HUDInfo.BUTTON_SIZES[layout][order_index] + new Vector2(-100f, 0f);
+            float rounded_edge_position = (HUDInfo.BUTTON_SIZES[layout][order_index].x / 2) + 17f;
+            visual_button.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(((-1f * (rounded_edge_position - 17)) + (rounded_edge_position - 117f)) / 2, 0f);
+            visual_button.transform.GetChild(1).GetComponent<RectTransform>().anchoredPosition = new Vector2(rounded_edge_position - 67f, 0f);
+            visual_button.transform.GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(-1f * rounded_edge_position, 0f);
+            visual_button.transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(rounded_edge_position, 0f);
+            visual_button.transform.GetChild(4).GetComponent<RectTransform>().anchoredPosition = new Vector2(((-1f * rounded_edge_position) + (rounded_edge_position - 134f)) / 2, 0f);
+            visual_button.transform.GetChild(5).GetComponent<RectTransform>().anchoredPosition = new Vector2(rounded_edge_position - 52f, 0f);
 
             //handle rounded edges
             if (HUDInfo.BUTTON_TEMPLATES[layout][order_index] == 1) //left 
             {
-                visual_button.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().sprite = null;
+                visual_button.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().sprite = null;
             }
             else if (HUDInfo.BUTTON_TEMPLATES[layout][order_index] == 2) //right
             {
-                visual_button.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = null;
+                visual_button.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().sprite = null;
             }
             else if (HUDInfo.BUTTON_TEMPLATES[layout][order_index] == 3) //rectangle
             {
-                visual_button.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = null;
-                visual_button.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().sprite = null;
+                visual_button.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().sprite = null;
+                visual_button.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().sprite = null;
             }
 
             //position
-            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector3(HUDInfo.BUTTON_POSITIONS[layout][order_index].x, HUDInfo.BUTTON_POSITIONS[layout][order_index].y, 0f);
+            visual_button.GetComponent<RectTransform>().anchoredPosition = new Vector3(HUDInfo.BUTTON_POSITIONS[layout][order_index].x, HUDInfo.BUTTON_POSITIONS[layout][order_index].y);
 
             //make transparent if non-interactable
             if (interactable == false)
@@ -195,11 +199,14 @@ public class Button
             }
 
             //set text info
-            visual_button.transform.GetChild(2).GetComponent<TMP_Text>().SetText(button_desc + " (" + key + ")"); //set desc of that control
+            visual_button.transform.GetChild(4).GetComponent<TMP_Text>().SetText(button_desc); //set desc of that control
+            visual_button.transform.GetChild(5).GetChild(0).gameObject.SetActive(key.CompareTo("LMB") == 0);
+            visual_button.transform.GetChild(5).GetChild(1).gameObject.SetActive(key.CompareTo("LMB") != 0);
+            visual_button.transform.GetChild(5).GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText(key);
 
             if (adjusted_font_size > 0.0f)
             {
-                visual_button.transform.GetChild(2).GetComponent<TMP_Text>().fontSizeMax = adjusted_font_size;
+                visual_button.transform.GetChild(4).GetComponent<TMP_Text>().fontSizeMax = adjusted_font_size;
             }
         }
         //Minimized: List format
@@ -246,12 +253,12 @@ public class Button
                               DARK_GRAY.g + (LIGHT_BLUE.g - DARK_GRAY.g) * percent_blue,
                               DARK_GRAY.b + (LIGHT_BLUE.b - DARK_GRAY.b) * percent_blue,
                               transparency);
-                visual_button.GetComponent<UnityEngine.UI.Image>().color = temp_color;
                 visual_button.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = temp_color;
-                visual_button.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().color = temp_color;
+                visual_button.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().color = temp_color;
             }
         }
     }
+
     public void highlight(float delta_time)
     {
         if (interactable == true)
@@ -260,6 +267,7 @@ public class Button
             updateColor(1.0f);
         }
     }
+
     public void darken(float delta_time)
     {
         if (interactable == true)

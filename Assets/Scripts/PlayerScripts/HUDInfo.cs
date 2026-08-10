@@ -3,7 +3,7 @@
     - Stores information for the onscreen UI indicator that appears when facing a control
         - Includes control title and button information
     Contributor(s): Jake Schott
-    Last Updated: 8/7/2026
+    Last Updated: 8/9/2026
 */
 
 /*
@@ -103,29 +103,29 @@ public class HUDInfo
     public static List<int[]> BUTTON_TEMPLATES = new List<int[]>
     {
         new int[] {0},
-        new int[] {1, 2},
+        new int[] {2, 1},
         new int[] {0, 0, 0},
         new int[] {0, 0, 0, 0},
-        new int[] {0, 0, 1, 3, 3, 2},
-        new int[] {0, 1, 2},
+        new int[] {0, 0, 2, 3, 3, 1},
+        new int[] {0, 2, 1},
         new int[] {0},
-        new int[] {1, 2},
-        new int[] {1, 2, 1, 2},
-        new int[] {1, 2, 0, 1, 2}
+        new int[] {2, 1},
+        new int[] {2, 1, 2, 1},
+        new int[] {2, 1, 0, 2, 1}
     };
 
     public static List<Vector2[]> BUTTON_SIZES = new List<Vector2[]>
     {
-        new Vector2[] {new Vector2(600f, 68f)},
-        new Vector2[] {new Vector2(500f, 68f), new Vector2(500f, 68f) },
-        new Vector2[] {new Vector2(500f, 68f), new Vector2(500f, 68f), new Vector2(500f, 68f) },
-        new Vector2[] {new Vector2(450f, 68f), new Vector2(450f, 68f), new Vector2(450f, 68f), new Vector2(450f, 68f) },
-        new Vector2[] {new Vector2(500f, 68f), new Vector2(500f, 68f), new Vector2(300f, 68f), new Vector2(300f, 68f), new Vector2(300f, 68f), new Vector2(300f, 68f) },
-        new Vector2[] {new Vector2(560f, 68f), new Vector2(400f, 68f), new Vector2(400f, 68f) },
-        new Vector2[] {new Vector2(600f, 68f) },
-        new Vector2[] {new Vector2(500f, 68f), new Vector2(500f, 68f) },
-        new Vector2[] {new Vector2(400f, 68f), new Vector2(400f, 68f), new Vector2(400f, 68f), new Vector2(400f, 68f) },
-        new Vector2[] {new Vector2(250f, 68f), new Vector2(250f, 68f), new Vector2(400f, 68f), new Vector2(250f, 68f), new Vector2(250f, 68f) },
+        new Vector2[] {new Vector2(600f, 75f)},
+        new Vector2[] {new Vector2(500f, 75f), new Vector2(500f, 75f) },
+        new Vector2[] {new Vector2(500f, 75f), new Vector2(500f, 75f), new Vector2(500f, 75f) },
+        new Vector2[] {new Vector2(450f, 75f), new Vector2(450f, 75f), new Vector2(450f, 75f), new Vector2(450f, 75f) },
+        new Vector2[] {new Vector2(500f, 75f), new Vector2(500f, 75f), new Vector2(300f, 75f), new Vector2(300f, 75f), new Vector2(300f, 75f), new Vector2(300f, 75f) },
+        new Vector2[] {new Vector2(560f, 75f), new Vector2(400f, 75f), new Vector2(400f, 75f) },
+        new Vector2[] {new Vector2(600f, 75f) },
+        new Vector2[] {new Vector2(500f, 75f), new Vector2(500f, 75f) },
+        new Vector2[] {new Vector2(400f, 75f), new Vector2(400f, 75f), new Vector2(400f, 75f), new Vector2(400f, 75f) },
+        new Vector2[] {new Vector2(250f, 75f), new Vector2(250f, 75f), new Vector2(400f, 75f), new Vector2(250f, 75f), new Vector2(250f, 75f) },
     };
 
     public static List<Vector2[]> DIVIDER_POSITIONS = new List<Vector2[]>
@@ -195,7 +195,7 @@ public class HUDInfo
                 for (int i = 0; i < HUDInfo.DIVIDER_POSITIONS[layout].Length; i++)
                 {
                     //set divider
-                    GameObject divider = frame.transform.GetChild(4).GetChild(1).GetChild(i).gameObject;
+                    GameObject divider = frame.transform.GetChild(5).GetChild(i).gameObject;
                     divider.GetComponent<RectTransform>().anchoredPosition = new Vector2(HUDInfo.DIVIDER_POSITIONS[layout][i].x, HUDInfo.DIVIDER_POSITIONS[layout][i].y);
                     divider.SetActive(true);
                 }

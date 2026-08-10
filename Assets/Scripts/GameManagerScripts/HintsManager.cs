@@ -2,7 +2,7 @@
     HintsManager.cs
     - Handles displaying helpful hints on left side of screen
     Contributor(s): Jake Schott
-    Last Updated: 8/7/2026
+    Last Updated: 8/8/2026
 */
 
 using System.Collections;
@@ -20,7 +20,7 @@ public class HintsManager : NetworkBehaviour
     private static Texture[] HINT_ICON_OPTIONS = new Texture[] { null, null, null, null, null }; //pilot, tactician, engineer, captain, info
     private static Color[] HINT_ICON_COLOR_OPTIONS = new Color[] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[2], ReferenceAssistor.COLOR_OPTIONS[3], Color.red };
 
-    public GameObject hints_frame;
+    public GameObject hints_overlay;
     public Texture hint_icon;
 
     private bool[] hints_occupied = new bool[5] { false, false, false, false, false };
@@ -70,8 +70,8 @@ public class HintsManager : NetworkBehaviour
                 StopCoroutine(movement_coroutines[i]);
             }
             movement_coroutines[i] = null;
-            float vertical_position = hints_frame.transform.GetChild(i).GetComponent<RectTransform>().anchoredPosition.y;
-            hints_frame.transform.GetChild(i).GetComponent<RectTransform>().anchoredPosition = new Vector2(-2300f, vertical_position);
+            float vertical_position = hints_overlay.transform.GetChild(i).GetComponent<RectTransform>().anchoredPosition.y;
+            hints_overlay.transform.GetChild(i).GetComponent<RectTransform>().anchoredPosition = new Vector2(-2300f, vertical_position);
         }
 
         //stop flash coroutine
@@ -127,7 +127,7 @@ public class HintsManager : NetworkBehaviour
                 corresponding_hints[i] = hint_to_add;
 
                 //adjust hint appearance
-                GameObject new_hint = hints_frame.transform.GetChild(i).gameObject;
+                GameObject new_hint = hints_overlay.transform.GetChild(i).gameObject;
                 new_hint.transform.GetChild(2).GetComponent<TMP_Text>().SetText(hint_to_add.message);
                 foreach (Transform t in new_hint.transform.GetChild(1).GetChild(0))
                 {
@@ -172,12 +172,12 @@ public class HintsManager : NetworkBehaviour
         checkForFlashUpdate();
         float anim_time = HINT_SHOW_TIME;
         AnimationCurve animation_curve = AnimationCurve.EaseInOut(0.0f, 0.0f, HINT_SHOW_TIME, 1.0f);
-        float vertical_position = hints_frame.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition.y;
+        float vertical_position = hints_overlay.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition.y;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            hints_frame.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.Lerp(-1600f, -2300f, animation_curve.Evaluate(anim_time)), vertical_position);
+            hints_overlay.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.Lerp(-1600f, -2300f, animation_curve.Evaluate(anim_time)), vertical_position);
 
             yield return null;
         }
@@ -190,13 +190,13 @@ public class HintsManager : NetworkBehaviour
         corresponding_hints[hint_index] = new Hint();
 
         float anim_time = HINT_HIDE_TIME;
-        float starting_horizontal_position = hints_frame.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition.x;
-        float vertical_position = hints_frame.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition.y;
+        float starting_horizontal_position = hints_overlay.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition.x;
+        float vertical_position = hints_overlay.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition.y;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            hints_frame.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.Lerp(-2300f, starting_horizontal_position, anim_time / HINT_HIDE_TIME), vertical_position);
+            hints_overlay.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.Lerp(-2300f, starting_horizontal_position, anim_time / HINT_HIDE_TIME), vertical_position);
 
             yield return null;
         }
@@ -234,7 +234,7 @@ public class HintsManager : NetworkBehaviour
         {
             elapsed_time += Time.deltaTime;
             float a = Mathf.Lerp(0.1f, 1.0f, Mathf.PingPong(elapsed_time, HINT_FLASH_TIME) / HINT_FLASH_TIME);
-            foreach (Transform hint in hints_frame.transform)
+            foreach (Transform hint in hints_overlay.transform)
             {
                 hint.transform.GetComponent<CanvasGroup>().alpha = a;
             }

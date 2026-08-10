@@ -72,7 +72,7 @@ public class PrimaryScript : MonoBehaviour
         new KeyCode[] {KeyCode.Z}, //12
         new KeyCode[] {KeyCode.Space}, //13
         new KeyCode[] {KeyCode.LeftShift, KeyCode.RightShift}, //14
-        new KeyCode[] {KeyCode.V} //15
+        new KeyCode[] {KeyCode.T} //15
     };
 
     public static bool checkInputIndex(int input_index, List<KeyCode> inputs_to_check)
@@ -181,15 +181,15 @@ public class PrimaryScript : MonoBehaviour
     private void resetButtons()
     {
         //hide default buttons
-        foreach (Transform t in default_view.transform.GetChild(1).GetChild(4).GetChild(0))
+        foreach (Transform t in default_view.transform.GetChild(1).GetChild(4))
         {
             t.gameObject.SetActive(false);
-            t.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().sprite = button_rounded_edge;
-            t.transform.GetChild(1).GetComponent<UnityEngine.UI.Image>().sprite = button_rounded_edge;
+            t.transform.GetChild(2).GetComponent<UnityEngine.UI.Image>().sprite = button_rounded_edge;
+            t.transform.GetChild(3).GetComponent<UnityEngine.UI.Image>().sprite = button_rounded_edge;
         }
 
         //hide default dividers
-        foreach (Transform t in default_view.transform.GetChild(1).GetChild(4).GetChild(1))
+        foreach (Transform t in default_view.transform.GetChild(1).GetChild(5))
         {
             t.gameObject.SetActive(false);
         }
@@ -272,7 +272,7 @@ public class PrimaryScript : MonoBehaviour
     public void setHintsEnabled(bool enabled)
     {
         hints_setting = enabled;
-        ReferenceAssistor.Instance.hints_manager.hints_frame.SetActive(hints_setting);
+        ReferenceAssistor.Instance.hints_manager.hints_overlay.SetActive(hints_setting);
     }
 
     public void setCursorVisibility(bool visibility)
@@ -336,7 +336,7 @@ public class PrimaryScript : MonoBehaviour
         pause_settings_menu.SetActive(false);
         pause_controls_menu.SetActive(false);
         pause_confirm_quit_menu.SetActive(false);
-        GetComponent<SecondaryScript>().setSecondaryInfoVisibility(is_active && HUD_setting == 0);
+        GetComponent<SecondaryScript>().setSecondaryInfoVisibility(is_active && HUD_setting < 2);
         GetComponent<SecondaryScript>().setPermanentOverlayVisibility(is_active && HUD_setting == 0);
         GetComponent<SecondaryScript>().setSittingOverlayVisibility(is_active && is_sitting && HUD_setting == 0);
         paused = false;
