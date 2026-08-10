@@ -173,6 +173,7 @@ public class HintsManager : NetworkBehaviour
         float anim_time = HINT_SHOW_TIME;
         AnimationCurve animation_curve = AnimationCurve.EaseInOut(0.0f, 0.0f, HINT_SHOW_TIME, 1.0f);
         float vertical_position = hints_overlay.transform.GetChild(hint_index).GetComponent<RectTransform>().anchoredPosition.y;
+        hints_overlay.transform.GetChild(hint_index).gameObject.SetActive(true);
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
@@ -201,6 +202,7 @@ public class HintsManager : NetworkBehaviour
             yield return null;
         }
 
+        hints_overlay.transform.GetChild(hint_index).gameObject.SetActive(false);
         hints_occupied[hint_index] = false;
         movement_coroutines[hint_index] = null;
         checkForFlashUpdate();

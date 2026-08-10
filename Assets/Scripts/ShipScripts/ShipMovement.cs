@@ -142,7 +142,7 @@ public class ShipMovement : NetworkBehaviour
     //called by ScenarioManager.setNewPathsRPC()
     public void PlaceShip(Vector2 position, float rotation)
     {
-        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject worldRoot = ReferenceAssistor.Instance.world_root;
         //place at entrance path point
         worldRoot.transform.position = new Vector3(-position.y, worldRoot.transform.position.y, -position.x - (ScenarioManager.BOUNDARY_SIZE * 0.5f));
         //rotate to match entrance path channel
@@ -162,7 +162,7 @@ public class ShipMovement : NetworkBehaviour
     //called by PlayerManager and this
     public string GetTargetHeading()
     {
-        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject worldRoot = ReferenceAssistor.Instance.world_root;
         Vector2 shipPos = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
         if (shipPos.x > exitTarget.x)
         {
@@ -177,7 +177,7 @@ public class ShipMovement : NetworkBehaviour
     //returns true if within boundary (including entrance/exit channels)
     private bool ShipIsWithinBoundary()
     {
-        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject worldRoot = ReferenceAssistor.Instance.world_root;
         Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
 
         Vector2[] checkPoints = new Vector2[2]; //0 is lower, 1 is upper
@@ -424,6 +424,7 @@ public class ShipMovement : NetworkBehaviour
         {
             if (insideBoundary == false)
             {
+                ReferenceAssistor.Instance.hints_manager.removeHint("RETURN TO BOUNDARY", 0);
                 ShipBoundaryChangeRPC(true, true);
             }
         }
@@ -433,7 +434,7 @@ public class ShipMovement : NetworkBehaviour
     private void LateralMovementRPC()
     {
         //update map
-        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject worldRoot = ReferenceAssistor.Instance.world_root;
 
         scenarioMap.updateShipLocation();
 
@@ -495,6 +496,7 @@ public class ShipMovement : NetworkBehaviour
         {
             if (withinBoundary == false && withinBoundary != insideBoundary)
             {
+                ReferenceAssistor.Instance.hints_manager.addHint("RETURN TO BOUNDARY", 0);
                 if (boundaryCountdownCoroutine != null)
                 {
                     StopCoroutine(boundaryCountdownCoroutine);
@@ -534,7 +536,7 @@ public class ShipMovement : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void AltitudeChangeRPC()
     {
-        GameObject worldRoot = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject worldRoot = ReferenceAssistor.Instance.world_root;
         flyingInstruments.updateAltimeterScreen();
         scenarioMap.updateAltitude();
 

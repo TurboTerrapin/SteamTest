@@ -1,8 +1,9 @@
 /*
     ScenarioMap.cs
     - Handles engineer map
+    - Handles hints for boundary issues
     Contributor(s): Jake Schott
-    Last Updated: 5/17/2026
+    Last Updated: 8/10/2026
 */
 
 using System.Collections;
@@ -14,6 +15,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 {
     //CLASS CONSTANTS
     private static string[] ALTITUDE_WARNING_OPTIONS = new string[] { "DECREASE", "INCREASE" };
+    private static string[] ALTITUDE_HINT_OPTIONS = new string[] { "DECREASE ALTITUDE", "INCREASE ALTITUDE" };
     private static float FLASH_SPEED = 0.5f;
     private static Color TMP_RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
     private static Color SPRITE_RED = new Color(0.96f, 0.25f, 0.28f, 1.0f); //sprite renderer shows color differently
@@ -100,7 +102,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     {
         while (true)
         {
-            GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+            GameObject world_root = ReferenceAssistor.Instance.world_root;
             if (world_root != null)
             {
                 List<MapItem> map_items = new List<MapItem>();
@@ -173,14 +175,21 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         {
             altitude_label.GetComponent<TMP_Text>().color = TMP_RED;
             string msg = ALTITUDE_WARNING_OPTIONS[0];
-            if (GameObject.FindGameObjectWithTag("WorldRoot").transform.position.y > 0)
+            string hint = ALTITUDE_HINT_OPTIONS[0];
+            if (ReferenceAssistor.Instance.world_root.transform.position.y > 0)
             {
                 msg = ALTITUDE_WARNING_OPTIONS[1];
+                hint = ALTITUDE_HINT_OPTIONS[1];
             }
+            ReferenceAssistor.Instance.hints_manager.addHint(hint, 0);
             navigation_display.transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().SetText("! " + msg + " ALTITUDE !");
         }
         else
         {
+            for (int i = 0; i < 2; i++)
+            {
+                ReferenceAssistor.Instance.hints_manager.removeHint(ALTITUDE_HINT_OPTIONS[i], 0);
+            }
             altitude_label.GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f);
         }
 
@@ -191,6 +200,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
                 StopCoroutine(red_flash_coroutine);
                 red_flash_coroutine = null;
             }
+
             //color sprite renderers
             colorChange(new Color(0.0f, 0.84f, 1.0f));
             //resize ship pointer
@@ -210,22 +220,23 @@ public class ScenarioMap : MonoBehaviour, IPowerable
             if (red_flash_coroutine == null)
             {
                 red_flash_coroutine = StartCoroutine(redLightFlasher());
-            }
-            //play notification sound(s)
-            ReferenceAssistor.Instance.audio_manager.AddNotification(2, boundary_notifications[0]);
-            if (within_altitude == true)
-            {
-                ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[1]);
-            }
-            else
-            {
-                if (GameObject.FindGameObjectWithTag("WorldRoot").transform.position.y > 0)
+
+                //play notification sound(s)
+                ReferenceAssistor.Instance.audio_manager.AddNotification(2, boundary_notifications[0]);
+                if (within_altitude == true)
                 {
-                    ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[2]);
+                    ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[1]);
                 }
                 else
                 {
-                    ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[3]);
+                    if (ReferenceAssistor.Instance.world_root.transform.position.y > 0)
+                    {
+                        ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[2]);
+                    }
+                    else
+                    {
+                        ReferenceAssistor.Instance.audio_manager.AddNotification(1, boundary_notifications[3]);
+                    }
                 }
             }
             //resize ship pointer
@@ -276,7 +287,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     public void updateShipLocation()
     {
-        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject world_root = ReferenceAssistor.Instance.world_root;
         Vector2 ship_location = new Vector2(-world_root.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -world_root.transform.position.x);
         ship_location *= ITEM_LOCATION_CONVERSION_FACTOR;
         if (ship_location.y <= -0.285f)
@@ -292,7 +303,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     public void updateAltitude()
     {
-        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        GameObject world_root = ReferenceAssistor.Instance.world_root;
         float new_altitude = -world_root.transform.position.y;
         string rounded_altitude = (Mathf.Round(new_altitude * 10.0f) / 10.0f).ToString();
         if (rounded_altitude.Contains(".") == false)

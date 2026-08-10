@@ -53,7 +53,7 @@ public class HUDInfo
         1100f,
         1100f,
         1650f,
-        1700f
+        1800f
     };
 
     public static float[] FRAME_HEIGHT_OPTIONS = new float[] { 200f, 260f, 360f };
@@ -97,7 +97,7 @@ public class HUDInfo
         new Vector2[] {new Vector2(0f, -65f)},
         new Vector2[] {new Vector2(-294f, -65f), new Vector2(294f, -65f)},
         new Vector2[] {new Vector2(-748f, -65f), new Vector2(-260f, -65f), new Vector2(260f, -65f), new Vector2(748f, -65f)},
-        new Vector2[] {new Vector2(-798f, -65f), new Vector2(-460f, -65f), new Vector2(0f, -65f), new Vector2(460f, -65f), new Vector2(798f, -65f)}
+        new Vector2[] {new Vector2(-843f, -65f), new Vector2(-475f, -65f), new Vector2(0f, -65f), new Vector2(475f, -65f), new Vector2(843f, -65f)}
     };
 
     public static List<int[]> BUTTON_TEMPLATES = new List<int[]>
@@ -125,7 +125,7 @@ public class HUDInfo
         new Vector2[] {new Vector2(600f, 75f) },
         new Vector2[] {new Vector2(500f, 75f), new Vector2(500f, 75f) },
         new Vector2[] {new Vector2(400f, 75f), new Vector2(400f, 75f), new Vector2(400f, 75f), new Vector2(400f, 75f) },
-        new Vector2[] {new Vector2(250f, 75f), new Vector2(250f, 75f), new Vector2(400f, 75f), new Vector2(250f, 75f), new Vector2(250f, 75f) },
+        new Vector2[] {new Vector2(280f, 75f), new Vector2(280f, 75f), new Vector2(400f, 75f), new Vector2(280f, 75f), new Vector2(280f, 75f) },
     };
 
     public static List<Vector2[]> DIVIDER_POSITIONS = new List<Vector2[]>
@@ -139,7 +139,7 @@ public class HUDInfo
         new Vector2[] {},
         new Vector2[] {new Vector2(0f, -65f)},
         new Vector2[] {new Vector2(-504f, -65f), new Vector2(504f, -65f)},
-        new Vector2[] {new Vector2(-629f, -65f), new Vector2(629f, -65f)}
+        new Vector2[] {new Vector2(-659f, -65f), new Vector2(659f, -65f)}
     };
 
     public static List<int[]> POWER_CIRCLE_POSITIONS = new List<int[]>
