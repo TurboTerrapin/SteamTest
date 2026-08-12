@@ -2,7 +2,7 @@
     Phasers.cs
     - Handles short-and-long-range phaser targeting, firing, and rendering
     Contributor(s): Henryk Musial, Jake Schott
-    Last Updated: 7/19/2026
+    Last Updated: 8/11/2026
 */
 
 using System.Collections;
@@ -14,12 +14,14 @@ public class Phasers : NetworkBehaviour
 {
     private static float[] BEAM_RANGES = new float[] { 1100.0f, 650.0f };
     private static float[] BEAM_DIAMETERS = new float[] { 2.0f, 1.5f };
+    private static float HIT_POINT_LIGHT_INTENSITY = 10000.0f;
     private static float[] MAX_TRACKING_ANGLES = new float[] { 10.0f, 15.0f };
     private static Vector2[] FIRE_TIMES = new Vector2[] { new Vector2(0.4f, 1.4f), new Vector2(0.2f, 1.2f) }; // fire length
-    private static Vector2[] DELAY_TIMES = new Vector2[] { new Vector2(2.0f, 0.5f), new Vector2(1.5f, 0.2f) }; // after fire
+    private static Vector2[] DELAY_TIMES = new Vector2[] { new Vector2(2.5f, 0.75f), new Vector2(1.5f, 0.75f) }; // after fire
     private static Vector2[] DAMAGES = new Vector2[] { new Vector2(3.0f, 12.0f), new Vector2(5.0f, 20.0f) }; // per hit, min (intensity zero) to max (intensity one)
 
     public List<GameObject> phaserOrigins;
+    public GameObject phaserLights;
     public List<AudioSource> phaserSounds;
     private PhaserHeat phaserHeat;
     private LineRenderer[] phaserRenderers = new LineRenderer[3]; // long range, short-range left, short-range right
@@ -33,8 +35,6 @@ public class Phasers : NetworkBehaviour
         for (int p = 0; p < 3; p++)
         {
             phaserRenderers[p] = phaserOrigins[p].transform.GetChild(0).GetComponent<LineRenderer>();
-            phaserRenderers[p].useWorldSpace = true;
-            phaserRenderers[p].enabled = false;
         }
         phaserHeat = ReferenceAssistor.Instance.module_handlers[2].GetComponent<PhaserHeat>();
     }
@@ -69,12 +69,22 @@ public class Phasers : NetworkBehaviour
         }
     }
 
+    private Vector3 getLightPosition(int p)
+    {
+        float dist = Vector3.Distance(phaserOrigins[p].transform.position, phaserTargetLocations[p]);
+        float percentage = ((phaserLights.transform.GetChild(p).GetComponent<Light>().range * 0.5f) / dist);
+        return Vector3.Lerp(phaserOrigins[p].transform.position, phaserTargetLocations[p], 1.0f - percentage);
+    }
+
     IEnumerator longRangePhaserFire(float intensity)
     {
         phaserRenderers[0].enabled = true;
         phaserSounds[0].pitch = 1.8f - (1.0f * intensity);
         phaserSounds[0].Play();
         phaserRenderers[0].SetPosition(1, phaserTargetLocations[0]);
+        phaserLights.transform.GetChild(0).gameObject.SetActive(true);
+        Vector3 phaserLightPos = getLightPosition(0);
+        GetComponent<ProximityMap>().showPhaser(0, phaserOrigins[0].transform.position, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[0]));
 
         // play animation
         float activeTime = Mathf.Lerp(FIRE_TIMES[0].x, FIRE_TIMES[0].y, intensity);
@@ -84,17 +94,22 @@ public class Phasers : NetworkBehaviour
         {
             timeRemaining = Mathf.Max(0.0f, timeRemaining - Time.deltaTime);
 
-            float beamWidth = Mathf.Lerp(0.0f, BEAM_DIAMETERS[0], Mathf.Lerp(0.0f, 1.0f, Mathf.PingPong(timeRemaining, activeHalftime) / activeHalftime));
+            float visualProgress = Mathf.Lerp(0.0f, 1.0f, Mathf.PingPong(timeRemaining, activeHalftime) / activeHalftime);
+            float beamWidth = Mathf.Lerp(0.0f, BEAM_DIAMETERS[0], visualProgress);
             phaserRenderers[0].startWidth = beamWidth;
             phaserRenderers[0].endWidth = beamWidth;
             phaserRenderers[0].SetPosition(0, phaserOrigins[0].transform.position);
             phaserRenderers[0].SetPosition(1, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[0]));
+            phaserLights.transform.GetChild(0).position = ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserLightPos);
+            phaserLights.transform.GetChild(0).GetComponent<Light>().intensity = Mathf.Lerp(0.0f, HIT_POINT_LIGHT_INTENSITY, visualProgress);
 
             yield return null;
         }
 
         // disable phaser
         phaserRenderers[0].enabled = false;
+        phaserLights.transform.GetChild(0).gameObject.SetActive(false);
+        GetComponent<ProximityMap>().hidePhaser(0);
 
         // apply damage
         if (NetworkManager.Singleton.IsHost == true)
@@ -109,6 +124,7 @@ public class Phasers : NetworkBehaviour
     IEnumerator shortRangePhaserFire(bool[] activePhasers, float intensity)
     {
         // enable/disable the phasers and fire sounds
+        Vector3[] phaserLightsPos = new Vector3[2];
         for (int p = 0; p < 2; p++)
         {
             phaserRenderers[p + 1].enabled = activePhasers[p];
@@ -116,6 +132,9 @@ public class Phasers : NetworkBehaviour
             if (activePhasers[p] == true)
             {
                 phaserSounds[p + 1].Play();
+                phaserLightsPos[p] = getLightPosition(p + 1);
+                phaserLights.transform.GetChild(p + 1).gameObject.SetActive(true);
+                GetComponent<ProximityMap>().showPhaser(p + 1, phaserOrigins[p + 1].transform.position, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[p + 1]));
             }
         }
 
@@ -127,13 +146,16 @@ public class Phasers : NetworkBehaviour
         {
             timeRemaining = Mathf.Max(0.0f, timeRemaining - Time.deltaTime);
 
-            float beamWidth = Mathf.Lerp(0.0f, BEAM_DIAMETERS[1], Mathf.Lerp(0.0f, 1.0f, Mathf.PingPong(timeRemaining, activeHalftime) / activeHalftime));
+            float visualProgress = Mathf.Lerp(0.0f, 1.0f, Mathf.PingPong(timeRemaining, activeHalftime) / activeHalftime);
+            float beamWidth = Mathf.Lerp(0.0f, BEAM_DIAMETERS[1], visualProgress);
             for (int p = 0; p < 2; p++)
             {
                 phaserRenderers[p + 1].startWidth = beamWidth;
                 phaserRenderers[p + 1].endWidth = beamWidth;
                 phaserRenderers[p + 1].SetPosition(0, phaserOrigins[p + 1].transform.position);
                 phaserRenderers[p + 1].SetPosition(1, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[p + 1]));
+                phaserLights.transform.GetChild(p + 1).position = ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserLightsPos[p]);
+                phaserLights.transform.GetChild(p + 1).GetComponent<Light>().intensity = Mathf.Lerp(0.0f, HIT_POINT_LIGHT_INTENSITY, visualProgress);
             }
 
             yield return null;
@@ -143,6 +165,8 @@ public class Phasers : NetworkBehaviour
         for (int p = 0; p < 2; p++)
         {
             phaserRenderers[p + 1].enabled = false;
+            phaserLights.transform.GetChild(p + 1).gameObject.SetActive(false);
+            GetComponent<ProximityMap>().hidePhaser(p + 1);
         }
 
         // apply damage

@@ -2,7 +2,7 @@
     ProximityMap.cs
     - Handles tactician radar map
     Contributor(s): Jake Schott
-    Last Updated: 5/13/2026
+    Last Updated: 8/11/2026
 */
 
 using System.Collections;
@@ -16,6 +16,7 @@ public class ProximityMap : MonoBehaviour, IPowerable
     private static float MAP_CUTOFF = 0.138f;
     private static float MAP_SIZE_RELATIVE_TO_BOUNDARY = 0.5f; //50% the size of the boundary
     private static float MAP_CENTER_SIZE = 130.0f; //the triangle
+    private static float POS_CONVERSION_FACTOR = (MAP_CUTOFF) / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f);
 
     public GameObject proximity_map_display;
     public GameObject proximity_map_renderer;
@@ -30,13 +31,19 @@ public class ProximityMap : MonoBehaviour, IPowerable
     private GameObject[] corresponding_icons = new GameObject[0];
     private Color[] corresponding_colors = new Color[0];
     private Vector2[] corresponding_locations = new Vector2[0];
+    private Vector2[][] phaser_locations = new Vector2[][] 
+    { 
+        new Vector2[]{ new Vector2(), new Vector2() },
+        new Vector2[]{ new Vector2(), new Vector2() },
+        new Vector2[]{ new Vector2(), new Vector2() },
+    };
     private Coroutine map_updater_coroutine = null;
     private Coroutine item_flasher_coroutine = null;
 
     private void Start()
     {
-        this_ship = GameObject.FindGameObjectWithTag("Spaceship");
-        world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        this_ship = ReferenceAssistor.Instance.spaceship;
+        world_root = ReferenceAssistor.Instance.world_root;
         map_center_icon = proximity_map_display.transform.GetChild(1).GetChild(0).gameObject;
         proximity_map_options = GetComponent<ProximityMapOptions>();
     }
@@ -75,6 +82,16 @@ public class ProximityMap : MonoBehaviour, IPowerable
         }
     }
 
+    //returns Vector3 coordinate from world positions x and z
+    public Vector3 getProximityMapLocation(float zoom_percentage, Vector2 coordinate)
+    {
+        float x_coordinate = coordinate.x * POS_CONVERSION_FACTOR;
+        x_coordinate = x_coordinate + (zoom_percentage * x_coordinate);
+        float z_coordinate = coordinate.y * POS_CONVERSION_FACTOR;
+        z_coordinate = z_coordinate + (zoom_percentage * z_coordinate);
+        return new Vector3(x_coordinate, z_coordinate, 0.0f);
+    }
+
     public void zoomMap()
     {
         float zoom_percentage = proximity_map_options.getZoom(); //1.0 is full zoom; 0.0 is fully-zoomed out
@@ -99,18 +116,10 @@ public class ProximityMap : MonoBehaviour, IPowerable
         map_center_icon.GetComponent<RectTransform>().sizeDelta = new Vector2(center_size, center_size);
         map_center_icon.transform.GetChild(0).GetComponent<RectTransform>().sizeDelta = new Vector2(center_size, center_size);
 
-        float pos_conversion_factor = (MAP_CUTOFF) / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY * 0.5f);
-
         //adjust map items
         for (int i = 0; i < corresponding_icons.Length; i++)
         {
-            //handle map item positioning
-            float x_coordinate = corresponding_locations[i].x * pos_conversion_factor;
-            x_coordinate = x_coordinate + (zoom_percentage * x_coordinate);
-            float z_coordinate = corresponding_locations[i].y * pos_conversion_factor;
-            z_coordinate = z_coordinate + (zoom_percentage * z_coordinate);
-            corresponding_icons[i].transform.localPosition =
-                new Vector3(x_coordinate, z_coordinate, 0.0f);
+            corresponding_icons[i].transform.localPosition = getProximityMapLocation(zoom_percentage, corresponding_locations[i]);
 
             //handle map item resizing
             float item_size = (corresponding_sizes[i] / (ScenarioManager.BOUNDARY_SIZE * MAP_SIZE_RELATIVE_TO_BOUNDARY)) * (MAP_CUTOFF * 2.0f) * (0.1f);
@@ -118,6 +127,34 @@ public class ProximityMap : MonoBehaviour, IPowerable
             corresponding_icons[i].transform.localScale = new Vector3(item_size, item_size, 1.0f);
             corresponding_icons[i].SetActive(Mathf.Abs(corresponding_icons[i].transform.localPosition.x) < (MAP_CUTOFF + (item_size * 5.0f)) && Mathf.Abs(corresponding_icons[i].transform.localPosition.y) < (MAP_CUTOFF + (item_size * 5.0f)));
         }
+
+        //adjust phasers
+        for (int i = 0; i < 3; i++)
+        {
+            if (proximity_map_renderer.transform.GetChild(0).GetChild(4).gameObject.activeSelf == true)
+            {
+                displayPhaser(i);
+            }
+        }
+    }
+
+    private void displayPhaser(int index)
+    {
+        float zoom_percentage = proximity_map_options.getZoom();
+
+        //set size of phaser
+        float width = Mathf.Lerp(0.0004f, 0.0008f, zoom_percentage);
+        float length = (Vector2.Distance(phaser_locations[index][0], phaser_locations[index][1])) * POS_CONVERSION_FACTOR;
+        length = (length + (length * zoom_percentage)) * 0.68f;
+        proximity_map_renderer.transform.GetChild(0).GetChild(4).GetChild(index).localScale = new Vector3(width, length, 1.0f);
+
+        //set position of phaser
+        proximity_map_renderer.transform.GetChild(0).GetChild(4).GetChild(index).localPosition = getProximityMapLocation(zoom_percentage, (phaser_locations[index][0] + phaser_locations[index][1]) / 2.0f);
+
+        //set rotation of phaser
+        Vector2 dir = getProximityMapLocation(zoom_percentage, phaser_locations[index][0]) - getProximityMapLocation(zoom_percentage, phaser_locations[index][1]);
+        float angle = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg;
+        proximity_map_renderer.transform.GetChild(0).GetChild(4).GetChild(index).localRotation = Quaternion.Euler(0.0f, 0.0f, -angle);
     }
 
     public void rotateMap()
@@ -129,7 +166,7 @@ public class ProximityMap : MonoBehaviour, IPowerable
     {
         List<GameObject> map_items = new List<GameObject>();
 
-        world_root = GameObject.FindGameObjectWithTag("WorldRoot");
+        world_root = ReferenceAssistor.Instance.world_root;
         if (world_root == null)
         {
             return;
@@ -205,6 +242,19 @@ public class ProximityMap : MonoBehaviour, IPowerable
             StopCoroutine(item_flasher_coroutine);
         }
         StartCoroutine(itemFlasher());
+    }
+
+    public void showPhaser(int index, Vector3 start_pos, Vector3 end_pos)
+    {
+        proximity_map_renderer.transform.GetChild(0).GetChild(4).GetChild(index).gameObject.SetActive(true);
+        phaser_locations[index][0] = new Vector2(start_pos.x, start_pos.z);
+        phaser_locations[index][1] = new Vector2(end_pos.x, end_pos.z);
+        displayPhaser(index);
+    }
+
+    public void hidePhaser(int index)
+    {
+        proximity_map_renderer.transform.GetChild(0).GetChild(4).GetChild(index).gameObject.SetActive(false);
     }
 
     IEnumerator mapUpdater()

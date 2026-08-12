@@ -2,7 +2,7 @@
     LongRangeDirection.cs
     - Handles inputs for long-range phaser direction
     Contributor(s): Jake Schott
-    Last Updated: 1/4/2026
+    Last Updated: 8/10/2026
 */
 
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using UnityEngine;
 public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float MOVE_SPEED = 15.0f;
+    private static float MOVE_SPEED = 30.0f;
 
     private string CONTROL_NAME = "LONG-RANGE PHASER DIRECTION";
     private static string INFO_MESSAGE = "Angles the long-range (blue) phaser in the corresponding direction of the onscreen indicator.";
@@ -56,7 +56,6 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
 
     public Transform getIKTarget(GameObject current_target)
     {
-        //int index = ray_targets.IndexOf(current_target.name);
         return IK_target.transform;
     }
 
@@ -102,17 +101,16 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
         long_range_dial.transform.localRotation = Quaternion.Euler(248.0f, 0.0f, 180.0f + long_range_angle);
 
         //update degree text
-        float rounded_angle = Mathf.Round(long_range_angle * 10.0f) / 10.0f;
+        float rounded_angle = Mathf.Round((90.0f - long_range_angle) * 10.0f) / 10.0f;
         string display_angle = rounded_angle.ToString();
         if (display_angle.Contains(".") == false)
         {
             display_angle += ".0";
         }
-        if (display_angle.CompareTo("360.0") == 0)
-        {
-            display_angle = "0.0";
-        }
         long_range_degree_display.transform.GetChild(0).GetComponent<TMP_Text>().SetText(display_angle + "°");
+
+        //update horizontal bar
+        long_range_degree_display.transform.GetChild(1).GetChild(0).transform.localPosition = new Vector3(Mathf.Lerp(-0.0325f, 0.0325f, rounded_angle / 180.0f), 0.0f, 0.0f);
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -135,27 +133,28 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
         {
             if (angle_direction > 0)
             {
-                long_range_angle += dt * MOVE_SPEED;
+                if (long_range_angle < 90.0f)
+                {
+                    long_range_angle = Mathf.Min(90.0f, long_range_angle + (dt * MOVE_SPEED));
+                    transmitLongRangePhaserAngleAdjustmentRPC(long_range_angle);
+                }
             }
             else
             {
-                long_range_angle -= dt * MOVE_SPEED;
+                if (long_range_angle > -90.0f)
+                {
+                    long_range_angle = Mathf.Max(-90.0f, long_range_angle - (dt * MOVE_SPEED));
+                    transmitLongRangePhaserAngleAdjustmentRPC(long_range_angle);
+                }
             }
-            if (long_range_angle > 360.0f)
-            {
-                long_range_angle -= 360.0f;
-            }
-            else if (long_range_angle < 0.0f)
-            {
-                long_range_angle += 360.0f;
-            }
-            transmitLongRangePhaserAngleAdjustmentRPC(long_range_angle);
         }
     }
 
     public void resetToDefault()
     {
         long_range_angle = 0.0f;
+        BUTTONS[0].updateInteractable(true);
+        BUTTONS[1].updateInteractable(true);
         displayAdjustment();
     }
 
@@ -181,6 +180,8 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
     private void transmitLongRangePhaserAngleAdjustmentRPC(float ang)
     {
         long_range_angle = ang;
+        BUTTONS[0].updateInteractable(ang > -90.0f);
+        BUTTONS[1].updateInteractable(ang < 90.0f);
         displayAdjustment();
     }
 }

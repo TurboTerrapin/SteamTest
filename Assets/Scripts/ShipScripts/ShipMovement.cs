@@ -415,7 +415,7 @@ public class ShipMovement : NetworkBehaviour
                     return;
                 }
             }
-            if (insideBoundary == true)
+            if (insideBoundary == true || insideAltitudeBoundary == false)
             {
                 ShipBoundaryChangeRPC(false, true); //ship is outside boundary but inside altitude boundary
             }
@@ -424,7 +424,6 @@ public class ShipMovement : NetworkBehaviour
         {
             if (insideBoundary == false)
             {
-                ReferenceAssistor.Instance.hints_manager.removeHint("RETURN TO BOUNDARY", 0);
                 ShipBoundaryChangeRPC(true, true);
             }
         }
@@ -505,6 +504,7 @@ public class ShipMovement : NetworkBehaviour
             }
             else if (withinBoundary == true && boundaryCountdownCoroutine != null)
             {
+                ReferenceAssistor.Instance.hints_manager.removeHint("RETURN TO BOUNDARY", 0);
                 StopCoroutine(boundaryCountdownCoroutine);
                 boundaryCountdownCoroutine = null;
             }

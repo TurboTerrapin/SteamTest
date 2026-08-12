@@ -2,7 +2,7 @@
     BlackAndWhite.cs
     - Handles all the functions pertaining to the black-and-white scenario (the wall one)
     Contributor(s): Jake Schott
-    Last Updated: 7/20/2026
+    Last Updated: 8/11/2026
 */
 
 using System.Collections;
@@ -14,7 +14,7 @@ using UnityEngine.Rendering;
 public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusceptible
 {
     //CLASS CONSTANTS
-    private static string DEATH_MESSAGE = "Stolen ship SEACC-3002 was found destroyed near an anomalous barrier. Crew was unable to disable the wall without sustaining critical damage. No survivors were found.";
+    private static string DEATH_MESSAGE = "Stolen ship SCC-3002 was found destroyed near an anomalous barrier. Crew was unable to disable the wall without sustaining critical damage. No survivors were found.";
     private static Color[] LIGHT_BEAM_COLORS_OPTIONS = new Color[9] { ReferenceAssistor.COLOR_OPTIONS[0], ReferenceAssistor.COLOR_OPTIONS[1], ReferenceAssistor.COLOR_OPTIONS[2], ReferenceAssistor.COLOR_OPTIONS[3], Color.white, Color.red, Color.yellow, Color.blue, new Color(1.0f, 0.0f, 0.5f) };
     private static float COLOR_RESTORATION_TIME = 5.0f;
     private static float SHIELD_OSCILLATION_REFRESH_SPEED = 1.0f;

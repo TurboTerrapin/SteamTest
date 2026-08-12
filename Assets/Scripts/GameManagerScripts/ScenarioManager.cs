@@ -2,7 +2,7 @@
     ScenarioManager.cs
     - Handles loading and transitioning of scenarios
     Contributor(s): John Aylward, Jake Schott, Henryk Musial
-    Last Updated: 7/19/2026
+    Last Updated: 8/10/2026
 */
 
 using System.Collections;
@@ -574,20 +574,20 @@ public class ScenarioManager : NetworkBehaviour
         //failure conditions
         if (reason == EndCondition.TimeRanOut)
         {
-            failure_report_message = "Stolen ship designated SEACC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic " + (COUNTDOWN_TIME[getDifficulty()] / 60).ToString() + "-minute reset window.";
+            failure_report_message = "Stolen ship designated SCC-3002 was apprehended and recovered after long-range scanners intercepted its signal at the conclusion of the periodic " + (COUNTDOWN_TIME[getDifficulty()] / 60).ToString() + "-minute reset window.";
         }
         else if (reason == EndCondition.LeftBoundary)
         {
             string[] crew_members = new string[4] { "One crew member was found alive and has been", "Two crew members were found alive and have been",  "Three crew members were found alive and have been", "Four crew members were found alive and have been" };
-            failure_report_message = "Stolen ship designated SEACC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. " + crew_members[lobby_handler.getNumberOfPlayersInNetworkManagerLobby() - 1] + " arrested.";
+            failure_report_message = "Stolen ship designated SCC-3002 mistakenly left long-range scanner dead zone and was immediately identified and apprehended. " + crew_members[lobby_handler.getNumberOfPlayersInNetworkManagerLobby() - 1] + " arrested.";
         }
         else if (reason == EndCondition.SelfDestructed)
         {
-            failure_report_message = "Debris of stolen ship designated SEACC-3002 was found after apparent self-destruction. No survivors found and ship has been sent to SEACC authority for further investigation.";
+            failure_report_message = "Debris of stolen ship designated SCC-3002 was found after apparent self-destruction. No survivors found and ship has been sent to SCC authority for further investigation.";
         }
         else if (reason == EndCondition.ShipDestroyed)
         {
-            failure_report_message = "Stolen ship designated SEACC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
+            failure_report_message = "Stolen ship designated SCC-3002 was discovered adrift in space with severe hull damage. No survivors found and ship has been deemed unsalvageable due to irreparable damage.";
 
             IScenario scenario_script = getScenarioScript();
             if (scenario_script != null)
@@ -603,7 +603,7 @@ public class ScenarioManager : NetworkBehaviour
         }
 
         //destroy seats
-        GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>().destroySeats();
+        ReferenceAssistor.Instance.seat_manager.destroySeats();
 
         //turn off power
         ReferenceAssistor.Instance.power_manager.totalShutdown(false);

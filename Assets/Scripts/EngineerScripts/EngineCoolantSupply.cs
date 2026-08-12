@@ -4,14 +4,13 @@
     - Increases engine temperature over time
     - Tells PilotingSystem to reduce speed when engines are overheated
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/10/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
 
 public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -76,6 +75,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         float shortestDistance;
@@ -108,22 +108,27 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
         }
         return IK_targets[shortestIndex].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -303,6 +308,10 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
         ReferenceAssistor.Instance.power_manager.controlPowerChange(2, this.GetType().Name, cf * MAX_POWER_CONSUMPTION);
         hud_info.setPowerConsumption(cf * MAX_POWER_CONSUMPTION);
         displayCoolantFlowAdjustment();
+        if (coolant_flow > 0.5f && engine_temperature > 0.5f)
+        {
+            ReferenceAssistor.Instance.hints_manager.removeHint("INCREASE COOLANT", 2);
+        }
     }
 
     [Rpc(SendTo.Everyone)]
@@ -321,6 +330,10 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
                 ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[1]);
                 ReferenceAssistor.Instance.audio_manager.AddNotification(0, engine_capacity_notifications[2]);
             }
+            if (et > 0.5f)
+            {
+                ReferenceAssistor.Instance.hints_manager.addHint("INCREASE COOLANT", 2);
+            }
         }
 
         //set new engine temperature and display
@@ -336,7 +349,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
             ship_movement.AdjustMaxImpulseSpeed(getMaxImpulseSpeedBasedOnEngineTemperature());
         }
 
-        //update pilot position
+        //update pilot station
         engine_monitoring.temperatureAdjustment();
     }
 }

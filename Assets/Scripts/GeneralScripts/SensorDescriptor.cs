@@ -26,7 +26,8 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "power_overview",
         "ship_overview",
         "ship_health",
-        "ship_inventory"
+        "ship_inventory",
+        "engine_temperature_information"
     };
 
     //module titles 
@@ -45,7 +46,8 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "POWER OVERVIEW",
         "SHIP OVERVIEW",
         "SHIP HEALTH",
-        "SHIP INVENTORY"
+        "SHIP INVENTORY",
+        "ENGINE TEMPERATURE INFORMATION"
     };
 
     //module additional info, or "" if none
@@ -64,7 +66,8 @@ public class SensorDescriptor : MonoBehaviour, IDescribable
         "Describes ship power status according to the 6 corresponding power regulation modules.",
         "",
         "",
-        "Shows ship inventory for probes, escape pods, shield batteries, cargo, and torpedoes."
+        "Shows ship inventory for probes, escape pods, shield batteries, cargo, and torpedoes.",
+        "Shows engine coolant supply flow and current engine temperature. Increased engine temperature causes maximum ship travel speed to be reduced."
     };
 
     private List<HUDInfo> corresponding_infos = new List<HUDInfo>();

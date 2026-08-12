@@ -14,7 +14,7 @@ using TMPro;
 public class PhaserHeat : NetworkBehaviour, IPowerable
 {
     //0 is long-range, 1 is short-range
-    private static float[] PHASER_OVERHEAT_TIMES = new float[2] { 40.0f, 30.0f }; //how long it takes to overheat at max intensity
+    private static float[] PHASER_OVERHEAT_TIMES = new float[2] { 40000.0f, 30000.0f }; //how long it takes to overheat at max intensity
     private static float[] PHASER_NORMAL_COOLDOWN_TIMES = new float[2] { 5.0f, 7.5f }; //how long it takes to cool down normally
     private static float[] PHASER_OVERHEATED_COOLDOWN_TIMES = new float[2] { 20.0f, 25.0f }; //how long it takes to cool down when overheated
     private static string[] PHASER_HEAT_STATE_MESSAGES = new string[3] { "INACTIVE", "ACTIVE", "OVERHEATED" };

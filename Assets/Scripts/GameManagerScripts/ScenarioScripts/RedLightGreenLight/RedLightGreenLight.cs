@@ -21,7 +21,7 @@ using UnityEngine.Rendering;
 public class RedLightGreenLight : NetworkBehaviour, IScenario, IUniversalCommunicable
 {
     //CLASS CONSTANTS
-    private static string DEATH_MESSAGE = "Stolen ship SEACC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
+    private static string DEATH_MESSAGE = "Stolen ship SCC-3002 was discovered with critical damage to all areas of the ship after being exposed to an unexplainable anomaly of unknown origin that targets ships with impulse engines.";
     public static int[] GREEN_LIGHT_PERIOD_TIMES = new int[] { 40, 35, 30, 20 }; //easy, medium, hard, expert
     private static float CENTER_SPEED = 50.0f;
     private static float[] RING_SPEEDS = new float[] { 25.0f, 60.0f, 40.0f, 75.0f };
