@@ -65,7 +65,7 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
         List<Vector3> positions =
             ReferenceAssistor.Instance.scenario_manager.generateSpawnLocations(minDistance, MINE_QUANTITY, null);
 
-        Transform world_root = GameObject.FindGameObjectWithTag("WorldRoot").transform;
+        Transform world_root = ReferenceAssistor.Instance.world_root.transform;
 
         for (int i = 0; i < MINE_QUANTITY; i++)
         {

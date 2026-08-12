@@ -69,6 +69,7 @@ public class Phasers : NetworkBehaviour
         }
     }
 
+    //returns coordinate of point light for designated phaser based on origin, position, and light range
     private Vector3 getLightPosition(int p)
     {
         float dist = Vector3.Distance(phaserOrigins[p].transform.position, phaserTargetLocations[p]);
@@ -93,6 +94,11 @@ public class Phasers : NetworkBehaviour
         while (timeRemaining > 0.0f)
         {
             timeRemaining = Mathf.Max(0.0f, timeRemaining - Time.deltaTime);
+
+            if (ReferenceAssistor.Instance.world_root == null)
+            {
+                break;
+            }
 
             float visualProgress = Mathf.Lerp(0.0f, 1.0f, Mathf.PingPong(timeRemaining, activeHalftime) / activeHalftime);
             float beamWidth = Mathf.Lerp(0.0f, BEAM_DIAMETERS[0], visualProgress);
@@ -145,6 +151,11 @@ public class Phasers : NetworkBehaviour
         while (timeRemaining > 0.0f)
         {
             timeRemaining = Mathf.Max(0.0f, timeRemaining - Time.deltaTime);
+
+            if (ReferenceAssistor.Instance.world_root == null)
+            {
+                break;
+            }
 
             float visualProgress = Mathf.Lerp(0.0f, 1.0f, Mathf.PingPong(timeRemaining, activeHalftime) / activeHalftime);
             float beamWidth = Mathf.Lerp(0.0f, BEAM_DIAMETERS[1], visualProgress);

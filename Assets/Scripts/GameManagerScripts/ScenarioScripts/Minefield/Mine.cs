@@ -120,7 +120,11 @@ public class Mine : NetworkBehaviour, IDamageable, ITorpedoTargetable, IPhaserTa
 
     public bool getTorpedoTargetable(IDamageable.DamageType torpedo_type)
     {
-        return (mine_field.torpedoTracksMine(torpedo_type) && !(torpedo_type != IDamageable.DamageType.IonTorpedo && permanently_disabled == true));
+        if (permanently_disabled == true)
+        {
+            return (torpedo_type != IDamageable.DamageType.IonTorpedo);
+        }
+        return mine_field.torpedoTracksMine(torpedo_type);
     }
 
     public bool getPhaserTargetable(IDamageable.DamageType phaser_type)
