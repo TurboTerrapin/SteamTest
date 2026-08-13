@@ -471,6 +471,10 @@ public class LobbyHandler : NetworkBehaviour
         while (true)
         {
             yield return new WaitForSeconds(0.5f);
+            if (NetworkManager.Singleton == null)
+            {
+                Destroy(this);
+            }
             if (NetworkManager.Singleton.IsHost == true)
             {
                 hostToClientHeartbeatRPC();

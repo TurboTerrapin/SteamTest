@@ -2,7 +2,7 @@
     ShipManualSelector.cs
     - Sends inputs to ShipManual and OperatingManual (directional, selection, and back)
     Contributor(s): Jake Schott
-    Last Updated: 6/6/2026
+    Last Updated: 8/12/2026
 */
 
 using Unity.Netcode;
@@ -18,7 +18,7 @@ public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
     private static Vector3[] PUSH_DIRECTIONS = { new Vector3(-0.003f, -0.0074f, 0f), new Vector3(0.003f, -0.0074f, 0f) };
 
     private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATING MANUAL" };
-    private List<string> CONTROL_DESCS = new List<string> { "SELECT", "BACK", "UP", "DOWN", "LEFT", "RIGHT" };
+    private List<string> CONTROL_DESCS = new List<string> { "SELECT", "RETURN", "UP", "DOWN", "LEFT", "RIGHT" };
     private List<int> CONTROL_INDEXES = new List<int>() { 6, 12, 0, 2, 1, 3 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 

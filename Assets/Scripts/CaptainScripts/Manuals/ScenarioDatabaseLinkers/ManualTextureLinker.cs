@@ -1,12 +1,11 @@
 /*
     ManualTextureLinker.cs
-    - Used for linking textures to a manual page on button click
+    - Used for linking a texture and color to a manual image on button click
     Contributor(s): Jake Schott
-    Last Updated: 7/7/2026
+    Last Updated: 8/13/2026
 */
 
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class ManualTextureLinker : MonoBehaviour, IManualLinker
@@ -47,5 +46,6 @@ public class ManualTextureLinker : MonoBehaviour, IManualLinker
                 t.GetComponent<TMP_Text>().color = texture_color;
             }
         }
+        destination_object.gameObject.SetActive(true);
     }
 }
