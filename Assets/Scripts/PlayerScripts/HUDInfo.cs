@@ -56,7 +56,7 @@ public class HUDInfo
         1800f
     };
 
-    public static float[] FRAME_HEIGHT_OPTIONS = new float[] { 200f, 260f, 360f };
+    public static float[] FRAME_HEIGHT_OPTIONS = new float[] { 200f, 260f, 370f };
 
     public static int[] FRAME_HEIGHT_INDEXES = new int[]
     {
@@ -92,7 +92,7 @@ public class HUDInfo
         new Vector2[] {new Vector2(-294f, -65f), new Vector2(294f, -65f) },
         new Vector2[] {new Vector2(-600f, -65f), new Vector2(0f, -65f), new Vector2(600f, -65f) },
         new Vector2[] {new Vector2(-863f, -65f), new Vector2(-288f, -65f), new Vector2(288f, -65f), new Vector2(863f, -65f) },
-        new Vector2[] {new Vector2(-315f, -10f), new Vector2(315f, -10f), new Vector2(-582f, -105f), new Vector2(-194f, -105f), new Vector2(194f, -105f), new Vector2(582f, -105f)},
+        new Vector2[] {new Vector2(-315f, -10f), new Vector2(315f, -10f), new Vector2(-582f, -120f), new Vector2(-194f, -120f), new Vector2(194f, -120f), new Vector2(582f, -120f)},
         new Vector2[] {new Vector2(-520f, -65f), new Vector2(113f, -65f), new Vector2(601f, -65f)},
         new Vector2[] {new Vector2(0f, -65f)},
         new Vector2[] {new Vector2(-294f, -65f), new Vector2(294f, -65f)},
@@ -134,7 +134,7 @@ public class HUDInfo
         new Vector2[] {new Vector2(0f, -65f)},
         new Vector2[] {},
         new Vector2[] {},
-        new Vector2[] {new Vector2(-388f, -105f), new Vector2(0f, -105f), new Vector2(388f, -105f)},
+        new Vector2[] {new Vector2(-388f, -120f), new Vector2(0f, -120f), new Vector2(388f, -120f)},
         new Vector2[] {new Vector2(357f, -65f)},
         new Vector2[] {},
         new Vector2[] {new Vector2(0f, -65f)},

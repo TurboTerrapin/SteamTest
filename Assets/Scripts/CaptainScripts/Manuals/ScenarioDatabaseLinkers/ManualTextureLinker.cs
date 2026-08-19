@@ -2,16 +2,17 @@
     ManualTextureLinker.cs
     - Used for linking a texture and color to a manual image on button click
     Contributor(s): Jake Schott
-    Last Updated: 8/13/2026
+    Last Updated: 8/17/2026
 */
 
 using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ManualTextureLinker : MonoBehaviour, IManualLinker
 {
     [SerializeField]
-    private GameObject destination_object;
+    private List<GameObject> destination_objects;
     [SerializeField]
     private Color texture_color = Color.white;
     [SerializeField]
@@ -29,23 +30,26 @@ public class ManualTextureLinker : MonoBehaviour, IManualLinker
 
     public void link()
     {
-        destination_object.GetComponent<UnityEngine.UI.RawImage>().texture = texture;
-        destination_object.GetComponent<UnityEngine.UI.RawImage>().color = texture_color;
-        foreach (Transform t in destination_object.transform)
+        foreach (GameObject destination_object in destination_objects)
         {
-            if (t.GetComponent<UnityEngine.UI.RawImage>() != null)
+            destination_object.GetComponent<UnityEngine.UI.RawImage>().texture = texture;
+            destination_object.GetComponent<UnityEngine.UI.RawImage>().color = texture_color;
+            foreach (Transform t in destination_object.transform)
             {
-                t.GetComponent<UnityEngine.UI.RawImage>().color = texture_color;
+                if (t.GetComponent<UnityEngine.UI.RawImage>() != null)
+                {
+                    t.GetComponent<UnityEngine.UI.RawImage>().color = texture_color;
+                }
+                else if (t.GetComponent<UnityEngine.UI.Image>() != null)
+                {
+                    t.GetComponent<UnityEngine.UI.Image>().color = texture_color;
+                }
+                else if (t.GetComponent<TMP_Text>() != null)
+                {
+                    t.GetComponent<TMP_Text>().color = texture_color;
+                }
             }
-            else if (t.GetComponent<UnityEngine.UI.Image>() != null)
-            {
-                t.GetComponent<UnityEngine.UI.Image>().color = texture_color;
-            }
-            else if (t.GetComponent<TMP_Text>() != null)
-            {
-                t.GetComponent<TMP_Text>().color = texture_color;
-            }
+            destination_object.gameObject.SetActive(true);
         }
-        destination_object.gameObject.SetActive(true);
     }
 }

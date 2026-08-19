@@ -24,7 +24,7 @@ public class InitMinefield : NetworkBehaviour, IScenarioInitialization
 
     private void Start()
     {
-        manual_desc_text.SetText(manual_desc_text.text + Minefield.WARNING_SIGNAL_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
+        //manual_desc_text.SetText(manual_desc_text.text + Minefield.WARNING_SIGNAL_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
     }
 
     public void initializeDatabaseInformation()

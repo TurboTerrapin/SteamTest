@@ -168,7 +168,7 @@ public class Manual : MonoBehaviour, IPowerable
                     {
                         if (curr_button.GetComponent<PageButton>().left != null && curr_button.GetComponent<PageButton>().left.GetComponent<PageButton>() != null)
                         {
-                            if (curr_button.GetComponent<PageButton>().select_panel == prev_screen)
+                            if (curr_button.GetComponent<PageButton>().left.name.Contains("Next") == true && curr_button.GetComponent<PageButton>().select_panel == prev_screen)
                             {
                                 curr_button = curr_button.GetComponent<PageButton>().left;
                             }

@@ -2,27 +2,28 @@
     ManualUnlockHelper.cs
     - Used for unlocking a hidden screen in the manual
     Contributor(s): Jake Schott
-    Last Updated: 8/13/2026
+    Last Updated: 8/19/2026
 */
 
 using UnityEngine;
+using System.Collections.Generic;
 
 public class ManualUnlockHelper : MonoBehaviour, IManualLinker
 {
     [SerializeField]
-    private CanvasGroup fade_group;
+    private List<CanvasGroup> fade_groups;
     [SerializeField]
-    private GameObject locked_message;
+    private List<GameObject> locked_messages;
 
     public void link()
     {
-        if (fade_group != null)
+        foreach (CanvasGroup group in fade_groups)
         {
-            fade_group.alpha = 1.0f;
+            group.alpha = 1.0f;
         }
-        if (locked_message != null)
+        foreach (GameObject message in locked_messages)
         {
-            locked_message.SetActive(false);
+            message.SetActive(false);
         }
     }
 }

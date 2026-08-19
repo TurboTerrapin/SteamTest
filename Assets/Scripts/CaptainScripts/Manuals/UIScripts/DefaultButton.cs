@@ -2,7 +2,7 @@
     DefaultButton.cs
     - Default button
     Contributor(s): Jake Schott
-    Last Updated: 2/19/2026
+    Last Updated: 8/19/2026
 */
 
 using System.Collections;
@@ -17,20 +17,22 @@ public class DefaultButton : ManualButton, IManualButton
     public Sprite selected;
     public Sprite unselected;
 
-    private Color background_color;
     private Coroutine highlight_loop_coroutine = null;
+
+    private Color getBackgroundColor()
+    {
+        return Color.Lerp(Color.black, GetComponent<UnityEngine.UI.Image>().color, 0.9f);
+    }
 
     IEnumerator highlightLoop()
     {
         GameObject background = selected_indicator.transform.GetChild(0).gameObject;
-        Color c = background_color;
-        c.a = 0.0f;
-        background.GetComponent<UnityEngine.UI.Image>().color = c;
         float elapsed_time = 0.0f;
         while (true)
         {
             elapsed_time += Mathf.Min(Time.deltaTime, 1.0f / 30.0f) * FLASH_TIME;
             float a = Mathf.Lerp(0.0f, 0.3f, Mathf.PingPong(elapsed_time, 1.0f));
+            Color c = getBackgroundColor();
             c.a = a;
             background.GetComponent<UnityEngine.UI.Image>().color = c;
 
@@ -73,10 +75,6 @@ public class DefaultButton : ManualButton, IManualButton
 
     public void select()
     {
-        //get color from the border image
-        background_color = GetComponent<UnityEngine.UI.Image>().color;
-        background_color = new Color(Mathf.Max(0.0f, background_color.r - 0.1f), Mathf.Max(0.0f, background_color.g - 0.1f), Mathf.Max(0.0f, background_color.b - 0.1f), 0.0f);
-
         alphaAdjustment(1.0f);
         selected_indicator.transform.GetComponent<UnityEngine.UI.Image>().sprite = selected;
         selected_indicator.transform.GetChild(1).GetComponent<TMP_Text>().fontStyle = FontStyles.Bold;
@@ -95,7 +93,9 @@ public class DefaultButton : ManualButton, IManualButton
         {
             StopCoroutine(highlight_loop_coroutine);
         }
-        selected_indicator.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = background_color;
+        Color c = getBackgroundColor();
+        c.a = 0.0f;
+        selected_indicator.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>().color = c;
         selected_indicator.transform.GetChild(1).GetComponent<TMP_Text>().fontStyle = FontStyles.Normal;
     }
 }

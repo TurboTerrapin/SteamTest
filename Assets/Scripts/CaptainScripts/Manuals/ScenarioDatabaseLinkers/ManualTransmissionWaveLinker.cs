@@ -2,12 +2,12 @@
     ManualTransmissionWaveLinker.cs
     - Used for linking scenario database entries to a transmission wave image
     Contributor(s): Jake Schott
-    Last Updated: 6/28/2026
+    Last Updated: 8/18/2026
 */
 
 using UnityEngine;
 
-public class ManualPhaserTransmissionWaveLinker : MonoBehaviour, IManualLinker
+public class ManualTransmissionWaveLinker : MonoBehaviour, IManualLinker
 {
     [SerializeField]
     private GameObject corresponding_database_entry;
