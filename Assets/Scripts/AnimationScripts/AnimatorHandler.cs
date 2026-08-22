@@ -57,21 +57,25 @@ public class AnimatorHandler : MonoBehaviour
     public void setIKActive(bool value)
     {
         ikActive = value;
+        setIKActiveRPC(value);
     }
 
     public void setIKHead(bool value)
     {
         ikHead = value;
+        setIKHeadRPC(value);
     }
 
     public void setIKRightArm(bool value)
     {
         ikRightArm = value;
+        setIKRightArmRPC(value);
     }
 
     public void setIKLeftArm(bool value)
     {
         ikLeftArm = value;
+        setIKLeftArmRPC(value);
     }
 
     public void setRightArmIKPosition(Vector3 pos)
@@ -212,6 +216,20 @@ public class AnimatorHandler : MonoBehaviour
     public float headlookat = 1;
     public float chestlookat = 0.4f;
 
+    public void setTotalLookAt(float value)
+    {
+        totallookat = value;
+    }
+    public void setHeadLookAt(float value)
+    {
+        headlookat = value;
+    }
+    public void setChestLookAt(float value)
+    {
+        chestlookat = value;
+    }
+    
+
     private Vector3 currentR;
     private Vector3 currentL;
     private Quaternion currentRotationR;
@@ -312,5 +330,29 @@ public class AnimatorHandler : MonoBehaviour
             myAnimator.SetIKRotationWeight(AvatarIKGoal.LeftHand, 0);
             //currentL = Vector3.zero;
         }
+    }
+
+    [Rpc(SendTo.NotMe)]
+    public void setIKActiveRPC(bool value)
+    {
+        ikActive = value;
+    }
+
+    [Rpc(SendTo.NotMe)]
+    public void setIKHeadRPC(bool value)
+    {
+        ikHead = value;
+    }
+
+    [Rpc(SendTo.NotMe)]
+    public void setIKRightArmRPC(bool value)
+    {
+        ikRightArm = value;
+    }
+
+    [Rpc(SendTo.NotMe)]
+    public void setIKLeftArmRPC(bool value)
+    {
+        ikLeftArm = value;
     }
 }

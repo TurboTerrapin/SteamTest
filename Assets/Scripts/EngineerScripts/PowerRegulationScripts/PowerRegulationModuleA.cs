@@ -44,6 +44,7 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
 
     [Header("IK Targetable Details")]
     public List<GameObject> IK_targets = null;
+    public List<GameObject> hand_placements = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
@@ -75,11 +76,36 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
 
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
-        return IK_targets[index].transform;
+        int offset = index;
+
+        Debug.Log(offset);
+        
+        float shortestDistance;
+        int shortestIndex = offset * 4;
+        shortestDistance = Vector3.Distance(hand_placements[offset].transform.position, IK_targets[shortestIndex].transform.position);
+
+        int topSearchBound = shortestIndex + 3;
+
+        //Debug.Log(shortestIndex + " at " + shortestDistance);
+
+        for (int i = offset * 4; i <= topSearchBound; i++)
+        {
+            float distance = Vector3.Distance(hand_placements[offset].transform.position, IK_targets[i].transform.position);
+            if (distance < shortestDistance)
+            {
+                shortestDistance = distance;
+                shortestIndex = i;
+            }
+        }
+        
+        return IK_targets[shortestIndex].transform;
     }
+
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;

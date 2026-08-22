@@ -14334,6 +14334,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5183853511429420688}
+  - {fileID: 1370156134}
   - {fileID: 3819815680613881213}
   - {fileID: 908973449}
   - {fileID: 3810610853377560573}
@@ -17545,6 +17546,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 60277954}
   m_CullTransparentMesh: 1
+--- !u!1 &61032308
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 61032309}
+  m_Layer: 0
+  m_Name: TorpedoLoaderSelectorDialRightIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &61032309
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 61032308}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5609854, y: -0.5609855, z: -0.4304594, w: -0.4304595}
+  m_LocalPosition: {x: -0.0992, y: -0.033, z: 0.0858}
+  m_LocalScale: {x: 0.0050000004, y: 0.005000001, z: 0.005}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5183853511429420688}
+  m_LocalEulerAnglesHint: {x: -180, y: -75, z: -90}
 --- !u!1 &61170616
 GameObject:
   m_ObjectHideFlags: 0
@@ -34973,8 +35005,13 @@ MonoBehaviour:
   - {fileID: 1480683640}
   - {fileID: 449032534}
   - {fileID: 2114819698}
-  - {fileID: 263469761}
+  - {fileID: 1847398324}
+  - {fileID: 1750208287}
+  - {fileID: 1479207982}
+  - {fileID: 61032308}
   - {fileID: 1652558807}
+  hand_placements:
+  - {fileID: 1370156133}
   hand_interaction_types: 020000000200000002000000020000000100000002000000
   hand_pose: 0
   does_right_hand_flip: 0
@@ -35199,9 +35236,22 @@ MonoBehaviour:
   - {fileID: 1239406023}
   - {fileID: 1483319242}
   IK_targets:
-  - {fileID: 415574713}
-  - {fileID: 35000748}
-  - {fileID: 400700439}
+  - {fileID: 813029010}
+  - {fileID: 1020893693}
+  - {fileID: 1596387272}
+  - {fileID: 1033878058}
+  - {fileID: 1276506400}
+  - {fileID: 1276500424}
+  - {fileID: 918581571}
+  - {fileID: 293255535}
+  - {fileID: 1386545474}
+  - {fileID: 1017346004}
+  - {fileID: 1263641841}
+  - {fileID: 1156063301}
+  hand_placements:
+  - {fileID: 140548108}
+  - {fileID: 1464527195}
+  - {fileID: 1214566795}
   hand_interaction_type: 1
   hand_pose: 0
   does_right_hand_flip: 0
@@ -35328,7 +35378,7 @@ MonoBehaviour:
   hand_pose: 0
   does_right_hand_flip: 0
   right_hand_offset: {x: 0.07, y: 0, z: 0}
-  lerp_speed: 5
+  lerp_speed: 10
 --- !u!114 &119824861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41846,6 +41896,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 140501192}
   m_CullTransparentMesh: 1
+--- !u!1 &140548108
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 140548109}
+  m_Layer: 0
+  m_Name: GreenDialHandPlacement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &140548109
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140548108}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.069739096, y: -0.90840906, z: -0.16836435, w: -0.3762752}
+  m_LocalPosition: {x: 7.6245756, y: -0.2049196, z: -8.347809}
+  m_LocalScale: {x: 0.005, y: 0.0050000004, z: 0.0050000004}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1881615903}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &140549985
 GameObject:
   m_ObjectHideFlags: 0
@@ -74129,7 +74210,7 @@ GameObject:
   m_Component:
   - component: {fileID: 263469762}
   m_Layer: 0
-  m_Name: TorpedoLoaderSelectorSwitchIKTarget
+  m_Name: TorpedoLoaderSelectorDialIKTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -81956,6 +82037,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 293151589}
   m_CullTransparentMesh: 1
+--- !u!1 &293255535
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 293255536}
+  m_Layer: 0
+  m_Name: PurpleDialDialRightIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &293255536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 293255535}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.79332304, y: 0.005312443, z: -0.006923288, w: -0.6087385}
+  m_LocalPosition: {x: -0.0211, y: 0.1085, z: 0.0467}
+  m_LocalScale: {x: 0.0050000004, y: 0.0049999994, z: 0.0049999994}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1239406024}
+  m_LocalEulerAnglesHint: {x: -180, y: -75, z: -90}
 --- !u!1 &293261052
 GameObject:
   m_ObjectHideFlags: 0
@@ -150201,7 +150313,7 @@ Transform:
   m_GameObject: {fileID: 521139981}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7933532, y: -0.000000029802322, z: -0.000000029802322, w: -0.6087617}
-  m_LocalPosition: {x: -0.029601585, y: 0.11120123, z: 0.08799982}
+  m_LocalPosition: {x: -0.0295, y: 0.1321, z: 0.0968}
   m_LocalScale: {x: 0.005, y: 0.005, z: 0.005}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -236849,6 +236961,37 @@ Transform:
   - {fileID: 293482582812471960}
   m_Father: {fileID: 1818820740}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &813029010
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 813029011}
+  m_Layer: 0
+  m_Name: GreenDialDialBottomIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &813029011
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 813029010}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5572076, y: 0.55720764, z: 0.4353386, w: 0.43533868}
+  m_LocalPosition: {x: -0.1041, y: -0.0288, z: 0.0464}
+  m_LocalScale: {x: 0.004999999, y: 0.005, z: 0.004999999}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 443743780534275571}
+  m_LocalEulerAnglesHint: {x: -105, y: 0, z: 180}
 --- !u!1 &813063287
 GameObject:
   m_ObjectHideFlags: 0
@@ -265373,6 +265516,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 918542917}
   m_CullTransparentMesh: 1
+--- !u!1 &918581571
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 918581572}
+  m_Layer: 0
+  m_Name: PurpleDialDialLeftIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &918581572
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 918581571}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0053125024, y: 0.79332286, z: 0.6087387, w: 0.006923396}
+  m_LocalPosition: {x: 0.0379, y: -0.1145, z: 0.0477}
+  m_LocalScale: {x: 0.005000001, y: 0.0049999994, z: 0.0050000013}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1239406024}
+  m_LocalEulerAnglesHint: {x: -180, y: 75, z: 90}
 --- !u!1 &918649857
 GameObject:
   m_ObjectHideFlags: 0
@@ -292957,6 +293131,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotate_clockwise: 1
   rotate_speed: 10
+--- !u!1 &1017346004
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1017346005}
+  m_Layer: 0
+  m_Name: OrangeDialDialTopIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1017346005
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1017346004}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5647205, y: 0.56472045, z: 0.42554766, w: -0.42554766}
+  m_LocalPosition: {x: 0.1179, y: 0.0256, z: 0.0504}
+  m_LocalScale: {x: 0.0049999994, y: 0.005, z: 0.0049999994}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1483319243}
+  m_LocalEulerAnglesHint: {x: 75, y: -180, z: 180}
 --- !u!1 &1017375628
 GameObject:
   m_ObjectHideFlags: 0
@@ -294478,6 +294683,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1020140957}
   m_CullTransparentMesh: 1
+--- !u!1 &1020893693
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1020893694}
+  m_Layer: 0
+  m_Name: GreenDialDialTopIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1020893694
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1020893693}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5647205, y: 0.56472045, z: 0.4255476, w: -0.4255477}
+  m_LocalPosition: {x: 0.1179, y: 0.0302, z: 0.0504}
+  m_LocalScale: {x: 0.005000001, y: 0.0050000004, z: 0.005000001}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 443743780534275571}
+  m_LocalEulerAnglesHint: {x: 75, y: -180, z: 180}
 --- !u!1 &1021299957
 GameObject:
   m_ObjectHideFlags: 0
@@ -297444,6 +297680,37 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1033878058
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1033878059}
+  m_Layer: 0
+  m_Name: GreenDialDialRightIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1033878059
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1033878058}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.79332304, y: 0.0053124577, z: -0.006923273, w: -0.6087385}
+  m_LocalPosition: {x: -0.0221, y: 0.1122, z: 0.0474}
+  m_LocalScale: {x: 0.005000001, y: 0.004999999, z: 0.0049999994}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 443743780534275571}
+  m_LocalEulerAnglesHint: {x: -180, y: -75, z: -90}
 --- !u!1 &1034654341
 GameObject:
   m_ObjectHideFlags: 0
@@ -306571,7 +306838,7 @@ Transform:
   m_GameObject: {fileID: 1068538156}
   serializedVersion: 2
   m_LocalRotation: {x: -0.5609854, y: 0.5609852, z: 0.4304597, w: -0.43045962}
-  m_LocalPosition: {x: 0.11119789, y: 0.029601552, z: 0.08799973}
+  m_LocalPosition: {x: 0.1113, y: 0.0505, z: 0.0968}
   m_LocalScale: {x: 0.005, y: 0.005, z: 0.005}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -331852,6 +332119,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1155392884}
   m_CullTransparentMesh: 1
+--- !u!1 &1156063301
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1156063302}
+  m_Layer: 0
+  m_Name: OrangeDialDialRightIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1156063302
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156063301}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.79332304, y: 0.005312443, z: -0.006923288, w: -0.6087385}
+  m_LocalPosition: {x: -0.0221, y: 0.1076, z: 0.0474}
+  m_LocalScale: {x: 0.0050000004, y: 0.0049999994, z: 0.0049999994}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1483319243}
+  m_LocalEulerAnglesHint: {x: -180, y: -75, z: -90}
 --- !u!1 &1156322501
 GameObject:
   m_ObjectHideFlags: 0
@@ -348753,6 +349051,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1214532449}
   m_CullTransparentMesh: 1
+--- !u!1 &1214566795
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1214566796}
+  m_Layer: 0
+  m_Name: OrangeDialHandPlacement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1214566796
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1214566795}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.06973909, y: -0.90840906, z: -0.16836432, w: -0.37627518}
+  m_LocalPosition: {x: 7.561329, y: -0.20491959, z: -8.4110565}
+  m_LocalScale: {x: 0.005, y: 0.0050000004, z: 0.0050000004}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1881615903}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &1214944427
 GameObject:
   m_ObjectHideFlags: 0
@@ -355913,6 +356242,10 @@ Transform:
   m_Children:
   - {fileID: 1069697511}
   - {fileID: 35000749}
+  - {fileID: 1276506401}
+  - {fileID: 1276500425}
+  - {fileID: 918581572}
+  - {fileID: 293255536}
   m_Father: {fileID: 1881615903}
   m_LocalEulerAnglesHint: {x: -55, y: -45, z: 90}
 --- !u!23 &1239406025
@@ -362597,6 +362930,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1263588458}
   m_CullTransparentMesh: 1
+--- !u!1 &1263641841
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1263641842}
+  m_Layer: 0
+  m_Name: OrangeDialDialLeftIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1263641842
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1263641841}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0053125024, y: 0.79332286, z: 0.6087387, w: 0.006923396}
+  m_LocalPosition: {x: 0.0369, y: -0.1154, z: 0.0484}
+  m_LocalScale: {x: 0.005000001, y: 0.0049999994, z: 0.0050000013}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1483319243}
+  m_LocalEulerAnglesHint: {x: -180, y: 75, z: 90}
 --- !u!1 &1264217668
 GameObject:
   m_ObjectHideFlags: 0
@@ -366981,6 +367345,68 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1276087916}
   m_CullTransparentMesh: 1
+--- !u!1 &1276500424
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1276500425}
+  m_Layer: 0
+  m_Name: PurpleDialDialTopIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1276500425
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276500424}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5647205, y: 0.56472045, z: 0.42554766, w: -0.42554766}
+  m_LocalPosition: {x: 0.1189, y: 0.0265, z: 0.0497}
+  m_LocalScale: {x: 0.0049999994, y: 0.005, z: 0.0049999994}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1239406024}
+  m_LocalEulerAnglesHint: {x: 75, y: -180, z: 180}
+--- !u!1 &1276506400
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1276506401}
+  m_Layer: 0
+  m_Name: PurpleDialDialBottomIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1276506401
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276506400}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5572075, y: 0.55720764, z: 0.4353386, w: 0.43533868}
+  m_LocalPosition: {x: -0.1031, y: -0.0325, z: 0.0457}
+  m_LocalScale: {x: 0.0050000018, y: 0.0049999994, z: 0.0050000018}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1239406024}
+  m_LocalEulerAnglesHint: {x: -105, y: 0, z: 180}
 --- !u!1 &1276521038
 GameObject:
   m_ObjectHideFlags: 0
@@ -395466,6 +395892,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1370081347}
   m_CullTransparentMesh: 1
+--- !u!1 &1370156133
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1370156134}
+  m_Layer: 0
+  m_Name: TorpedoLoaderSelectorDialHandPlacement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1370156134
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370156133}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.069739096, y: -0.908409, z: -0.16836435, w: -0.37627518}
+  m_LocalPosition: {x: 6.567996, y: -0.2944454, z: -9.251625}
+  m_LocalScale: {x: 0.0050000004, y: 0.0050000004, z: 0.0050000004}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 49779451}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &1370487307
 GameObject:
   m_ObjectHideFlags: 0
@@ -400701,6 +401158,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1386354525}
   m_CullTransparentMesh: 1
+--- !u!1 &1386545474
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1386545475}
+  m_Layer: 0
+  m_Name: OrangeDialDialBottomIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1386545475
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1386545474}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5572075, y: 0.55720764, z: 0.4353386, w: 0.43533868}
+  m_LocalPosition: {x: -0.1041, y: -0.0334, z: 0.0464}
+  m_LocalScale: {x: 0.0050000018, y: 0.0049999994, z: 0.0050000018}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1483319243}
+  m_LocalEulerAnglesHint: {x: -105, y: 0, z: 180}
 --- !u!1 &1386614784
 GameObject:
   m_ObjectHideFlags: 0
@@ -400939,7 +401427,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1387282241}
   m_Layer: 0
-  m_Name: PhaserFrequencyDialRightHandPlacement
+  m_Name: PhaserFrequencyDialHandPlacement
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -424796,6 +425284,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ee80e6a53997004dba373147c50ff12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1464527195
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1464527196}
+  m_Layer: 0
+  m_Name: PurpleDialHandPlacement
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1464527196
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464527195}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.06973909, y: -0.90840906, z: -0.16836432, w: -0.37627518}
+  m_LocalPosition: {x: 7.594655, y: -0.20491944, z: -8.379456}
+  m_LocalScale: {x: 0.005, y: 0.0050000004, z: 0.0050000004}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1881615903}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 180}
 --- !u!1 &1464536153
 GameObject:
   m_ObjectHideFlags: 0
@@ -429817,6 +430336,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1478972137}
   m_CullTransparentMesh: 1
+--- !u!1 &1479207982
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1479207983}
+  m_Layer: 0
+  m_Name: TorpedoLoaderSelectorDialLeftIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1479207983
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1479207982}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5609854, y: 0.56098527, z: 0.43045974, w: -0.43045962}
+  m_LocalPosition: {x: 0.0992, y: 0.0332, z: 0.0858}
+  m_LocalScale: {x: 0.005000001, y: 0.0049999985, z: 0.0050000013}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5183853511429420688}
+  m_LocalEulerAnglesHint: {x: -180, y: 75, z: 90}
 --- !u!1 &1479250618
 GameObject:
   m_ObjectHideFlags: 0
@@ -430863,6 +431413,10 @@ Transform:
   m_Children:
   - {fileID: 1303351916}
   - {fileID: 400700440}
+  - {fileID: 1386545475}
+  - {fileID: 1017346005}
+  - {fileID: 1263641842}
+  - {fileID: 1156063302}
   m_Father: {fileID: 1881615903}
   m_LocalEulerAnglesHint: {x: -55, y: -45, z: 90}
 --- !u!23 &1483319244
@@ -462041,6 +462595,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1596268489}
   m_CullTransparentMesh: 1
+--- !u!1 &1596387272
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1596387273}
+  m_Layer: 0
+  m_Name: GreenDialDialLeftIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1596387273
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1596387272}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.005312547, y: 0.7933228, z: 0.60873866, w: 0.006923426}
+  m_LocalPosition: {x: 0.0369, y: -0.1108, z: 0.0484}
+  m_LocalScale: {x: 0.005000003, y: 0.005, z: 0.0050000013}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 443743780534275571}
+  m_LocalEulerAnglesHint: {x: -180, y: 75, z: 90}
 --- !u!1 &1596410902
 GameObject:
   m_ObjectHideFlags: 0
@@ -499800,7 +500385,7 @@ Transform:
   m_GameObject: {fileID: 1733024002}
   serializedVersion: 2
   m_LocalRotation: {x: -0.000000014901161, y: 0.79335314, z: 0.60876167, w: 0.000000029802322}
-  m_LocalPosition: {x: 0.029600918, y: -0.11120066, z: 0.08800048}
+  m_LocalPosition: {x: 0.0297, y: -0.0903, z: 0.0968}
   m_LocalScale: {x: 0.005, y: 0.005, z: 0.005}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -503971,6 +504556,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1750208287
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1750208288}
+  m_Layer: 0
+  m_Name: TorpedoLoaderSelectorDialTopIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1750208288
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1750208287}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.7933532, y: -0.000000059604645, z: -0.000000029802322, w: -0.6087617}
+  m_LocalPosition: {x: -0.0332, y: 0.0992, z: 0.0858}
+  m_LocalScale: {x: 0.005, y: 0.0049999994, z: 0.0049999994}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5183853511429420688}
+  m_LocalEulerAnglesHint: {x: 75, y: -180, z: 180}
 --- !u!1 &1750331669
 GameObject:
   m_ObjectHideFlags: 0
@@ -520696,7 +521312,7 @@ Transform:
   m_GameObject: {fileID: 1808921397}
   serializedVersion: 2
   m_LocalRotation: {x: 1.4210856e-14, y: 0.70710677, z: 0.70710677, w: 1.4210856e-14}
-  m_LocalPosition: {x: -1.0492, y: 2.6011, z: -0.5118}
+  m_LocalPosition: {x: -1.0387, y: 2.6011, z: -0.5118}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -531474,6 +532090,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1847162553}
   m_CullTransparentMesh: 1
+--- !u!1 &1847398324
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1847398325}
+  m_Layer: 0
+  m_Name: TorpedoLoaderSelectorDialBottomIKTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1847398325
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847398324}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.000000059604638, y: 0.7933531, z: 0.6087617, w: 0.000000029802319}
+  m_LocalPosition: {x: 0.0332, y: -0.0992, z: 0.0858}
+  m_LocalScale: {x: 0.0050000018, y: 0.0050000004, z: 0.005000002}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5183853511429420688}
+  m_LocalEulerAnglesHint: {x: -105, y: 0, z: 180}
 --- !u!1 &1847804736
 GameObject:
   m_ObjectHideFlags: 0
@@ -541046,8 +541693,11 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 443743780534275571}
+  - {fileID: 140548109}
   - {fileID: 1239406024}
+  - {fileID: 1464527196}
   - {fileID: 1483319243}
+  - {fileID: 1214566796}
   m_Father: {fileID: 812906986}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1881647205
@@ -569019,7 +569669,7 @@ Transform:
   m_GameObject: {fileID: 1983296240}
   serializedVersion: 2
   m_LocalRotation: {x: -0.56098545, y: -0.56098545, z: -0.43045944, w: -0.4304595}
-  m_LocalPosition: {x: -0.11120193, y: -0.029598981, z: 0.087999895}
+  m_LocalPosition: {x: -0.1111, y: -0.0087, z: 0.0968}
   m_LocalScale: {x: 0.005, y: 0.005, z: 0.005}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -615624,6 +616274,10 @@ Transform:
   m_Children:
   - {fileID: 4674817528365090114}
   - {fileID: 415574714}
+  - {fileID: 813029011}
+  - {fileID: 1020893694}
+  - {fileID: 1596387273}
+  - {fileID: 1033878059}
   m_Father: {fileID: 1881615903}
   m_LocalEulerAnglesHint: {x: -55, y: -45, z: 90}
 --- !u!4 &448430230967761711
@@ -633055,6 +633709,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 263469762}
+  - {fileID: 1847398325}
+  - {fileID: 1750208288}
+  - {fileID: 1479207983}
+  - {fileID: 61032309}
   m_Father: {fileID: 49779451}
   m_LocalEulerAnglesHint: {x: -54, y: -45, z: 0}
 --- !u!23 &5185926140257757422

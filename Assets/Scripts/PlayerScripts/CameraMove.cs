@@ -42,6 +42,12 @@ public class CameraMove : MonoBehaviour
     [SerializeField]
     private AnimationCurve chestIKLookAtCurve = new AnimationCurve();
 
+    [SerializeField]
+    private AnimationCurve chestIKLookAtCurveCaptain = new AnimationCurve();
+
+    [SerializeField]
+    private AnimationCurve chestIKLookAtCurveEngineer = new AnimationCurve();
+
     private void Start()
     {
         if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //Not owner, kill the camera
@@ -306,11 +312,16 @@ public class CameraMove : MonoBehaviour
                 animatorHandler.chestlookat = 0;
                 //animatorHandler.chestlookat = -Mathf.Abs(prevPos.x / 180) + 1;
             }
+            else if(PrimaryScript.Instance.currentSeat() == 2)
+            {
+                animatorHandler.chestlookat = chestIKLookAtCurveEngineer.Evaluate(prevPos.x / 120);
+                //animatorHandler.chestlookat = -Mathf.Abs(prevPos.x / 180) + 1;
+            }
             else
             {
                 //animatorHandler.chestlookat = Mathf.Abs(prevPos.x / 180);
 
-                Debug.Log(prevPos.x + " and " + (prevPos.x / 120) + " and " + chestIKLookAtCurve.Evaluate(prevPos.x / 120));
+                //Debug.Log(prevPos.x + " and " + (prevPos.x / 120) + " and " + chestIKLookAtCurve.Evaluate(prevPos.x / 120));
                 animatorHandler.chestlookat = chestIKLookAtCurve.Evaluate(prevPos.x / 120);
             }
 

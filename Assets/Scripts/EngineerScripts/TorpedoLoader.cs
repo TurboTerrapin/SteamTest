@@ -52,6 +52,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     [Header("IK Targetable Details")]
     public List<GameObject> IK_targets = null;
+    public List<GameObject> hand_placements = null;
     public List<AnimatorHandler.HandInteractionType> hand_interaction_types = null;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
@@ -107,8 +108,37 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     {
         int index = ray_targets.IndexOf(current_target.name);
         my_control_index = index;
+
+
+
+        if (index == 4)
+        {
+            float shortestDistance;
+            int shortestIndex = 4;
+            shortestDistance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[shortestIndex].transform.position);
+
+            int topSearchBound = shortestIndex + 3;
+
+            //Debug.Log(shortestIndex + " at " + shortestDistance);
+
+            for (int i = 4; i <= topSearchBound; i++)
+            {
+                float distance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[i].transform.position);
+                if (distance < shortestDistance)
+                {
+                    shortestDistance = distance;
+                    shortestIndex = i;
+                }
+            }
+            return IK_targets[shortestIndex].transform;
+        }
+        else if (index >= 5)
+        {
+            return IK_targets[index + 3].transform;
+        }
         return IK_targets[index].transform;
     }
+
 
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
