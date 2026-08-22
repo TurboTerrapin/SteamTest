@@ -2,7 +2,7 @@
     InitRedLightGreenLight
     - Used for initializing permanent information on RedLightGreenLight (code options)
     Contributor(s): Jake Schott
-    Last Updated: 8/18/2026
+    Last Updated: 8/19/2026
 */
 
 using Unity.Netcode;
@@ -19,10 +19,16 @@ public class InitRedLightGreenLight : NetworkBehaviour, IScenarioInitialization
     private int[] centerColors = new int[8];
 
     public List<UnityEngine.UI.Image> manual_options;
+    public TMP_Text green_light_length_text;
 
     private void Awake()
     {
         scenarioDatabaseRLGL = transform.GetChild(0).GetChild(SCENARIO_DATABASE_INDEX).gameObject;
+    }
+
+    private void Start()
+    {
+        green_light_length_text.SetText(RedLightGreenLight.GREEN_LIGHT_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
     }
 
     public void initializeDatabaseInformation()

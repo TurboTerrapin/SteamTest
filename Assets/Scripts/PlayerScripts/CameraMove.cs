@@ -6,12 +6,13 @@
     - Handles camera shaking
     - Handles displaying hints if hints enabled (ex. MISSION OBJECTIVE, POWER MONITORING)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 6/25/2026
+    Last Updated: 8/19/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
 public class CameraMove : MonoBehaviour
 {
@@ -42,12 +43,19 @@ public class CameraMove : MonoBehaviour
     [SerializeField]
     private AnimationCurve chestIKLookAtCurve = new AnimationCurve();
 
+    private void Awake()
+    {
+        myCamera = cameraHolder.transform.GetChild(0).GetComponent<Camera>();
+        animatorHandler = transform.Find("CharacterModel").GetComponent<AnimatorHandler>();
+    }
+
     private void Start()
     {
-        if (transform.gameObject.GetComponent<PlayerMove>().IsOwner == false) //Not owner, kill the camera
+        if (GetComponent<NetworkObject>().OwnerClientId != NetworkManager.Singleton.LocalClientId) //Not owner, kill the camera
         {
             Destroy(cameraHolder.gameObject);
             Destroy(this);
+            return;
         }
 
         //Hide eyes, hair
@@ -61,14 +69,6 @@ public class CameraMove : MonoBehaviour
                 }
             }
         }
-
-        myCamera = cameraHolder.transform.GetChild(0).GetComponent<Camera>();
-        if (myCamera != null)
-        {
-            myCamera.gameObject.AddComponent<AudioListener>();
-        }
-
-        animatorHandler = transform.Find("CharacterModel").GetComponent<AnimatorHandler>();
     }
 
     //Runs after scene is loaded
@@ -79,6 +79,19 @@ public class CameraMove : MonoBehaviour
         cameraLocked = false;
 
         StartCoroutine(CameraUpdater());
+    }
+
+    public static void HideMainCamera()
+    {
+        if (Camera.main != null)
+        {
+            Camera.main.gameObject.SetActive(false);
+        }
+    }
+
+    public GameObject GetCamera()
+    {
+        return myCamera.gameObject;
     }
 
     public void UnlockCamera(Vector2 initialPos)

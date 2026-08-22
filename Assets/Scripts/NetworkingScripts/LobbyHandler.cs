@@ -3,7 +3,7 @@
     - Handles RPCs that pertain to lobby functions, ex. load initiation, difficulty handling
     - Keeps track of who is actually in and connected in the lobby
     Contributor(s): Jake Schott
-    Last Updated: 5/24/2026
+    Last Updated: 8/19/2026
 */
 
 using UnityEngine;
@@ -238,6 +238,10 @@ public class LobbyHandler : NetworkBehaviour
             rebuildLobbyList();
             lobbyUpdateRPC(player_steam_ids[1], player_steam_ids[2], player_steam_ids[3], player_connecteds[1], player_connecteds[2], player_connecteds[3]);
         }
+        else
+        {
+            Debug.Log("Failed to create Steam lobby.");
+        }
     }
 
     private void onSteamLobbyJoined(Lobby l, Friend f)
@@ -296,10 +300,8 @@ public class LobbyHandler : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void allPlayersLoadRPC()
     {
-        if (NetworkManager.Singleton.IsHost == false)
-        {
-            GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
-        }
+        CameraMove.HideMainCamera();
+        GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
     }
 
     //called by a client when they are connected to the lobby which gets sent to the host and relayed back to the other clients
@@ -474,6 +476,7 @@ public class LobbyHandler : NetworkBehaviour
             if (NetworkManager.Singleton == null)
             {
                 Destroy(this);
+                yield break;
             }
             if (NetworkManager.Singleton.IsHost == true)
             {

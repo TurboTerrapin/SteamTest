@@ -2,7 +2,7 @@
     ManualOnOff.cs
     - Used to turn on and off both manuals
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/22/2026
 */
 
 using System.Collections;
@@ -14,7 +14,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
     private static float SWITCH_TIME = 0.5f;
-    public static float MAX_POWER_CONSUMPTION = 0.4f; //6 circles, 2 per manual
+    public static float MAX_POWER_CONSUMPTION = 0.4f; //4 circles, 2 per manual
 
     private string[] CONTROL_NAMES = new string[] { "PROCEDURE MANUAL", "OPERATING MANUAL" };
     public static List<string> INFO_MESSAGES = new List<string>() { "Information resource on situation analysis and response.", "Information resource on ship features and station functions." };
@@ -65,31 +65,38 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
         hud_info.setPowerConsumption(getManualPowerConsumption(index));
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         int index = ray_targets.IndexOf(current_target.name);
         return ik_targets[index].transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
     public float getManualPowerConsumption(int index)
     {
         float consumed_power = 0.0f;
@@ -178,7 +185,7 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
             switch_time = Mathf.Max(0.0f, switch_time - dt);
 
             power_switches[index].transform.localRotation =
-                Quaternion.Euler(Mathf.Lerp(starting_rotation, 295.0f, 1.0f - (switch_time / time)), 0f, 90f);
+                Quaternion.Euler(Mathf.Lerp(starting_rotation, 295.0f, 1.0f - (switch_time / time)), 0f, 90.0f);
 
             yield return null;
         }
@@ -203,17 +210,16 @@ public class ManualOnOff : NetworkBehaviour, IControllable, IIKTargetable
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             switch_time = Mathf.Max(0.0f, switch_time - dt);
 
-            float lever_angle = Mathf.Lerp(295f, 245f, switch_time / SWITCH_TIME);
+            float lever_angle = Mathf.Lerp(295.0f, 245.0f, switch_time / SWITCH_TIME);
 
             if (to_switch_to == true)
             {
-                lever_angle = Mathf.Lerp(295f, 245f, 1.0f - (switch_time / SWITCH_TIME));
+                lever_angle = Mathf.Lerp(295.0f, 245.0f, 1.0f - (switch_time / SWITCH_TIME));
             }
 
             power_switch_angles[manual_index] = lever_angle;
             power_switches[manual_index].transform.localRotation =
-                Quaternion.Euler(lever_angle, 0f, 90f);
-
+                Quaternion.Euler(lever_angle, 0.0f, 90.0f);
 
             yield return null;
         }

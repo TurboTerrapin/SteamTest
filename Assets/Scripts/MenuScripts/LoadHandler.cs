@@ -4,7 +4,7 @@
     - Handles displaying disconnection and connecting (...) screens
     - Handles Steam checks
     Contributor(s): Jake Schott, Beata Musial
-    Last Updated: 8/2/2026
+    Last Updated: 8/19/2026
 */
 
 using System.Collections;
@@ -26,6 +26,7 @@ public class LoadHandler : MonoBehaviour
     private GameObject connection_lost;
     private GameObject steam_failure;
     private GameObject dummy_camera;
+    private NetworkManager network_manager;
 
     private static int last_tip = -1; //index of last tip as to avoid repeats
     private AsyncOperation load_operation = null;
@@ -91,7 +92,11 @@ public class LoadHandler : MonoBehaviour
         {
             yield return null;
         }
-        NetworkManager.Singleton.SceneManager.OnLoad += handleSceneLoad;
+        if (network_manager == null)
+        {
+            network_manager = NetworkManager.Singleton;
+            NetworkManager.Singleton.SceneManager.OnLoad += handleSceneLoad;
+        }
     }
 
     //stops all coroutines
@@ -114,6 +119,15 @@ public class LoadHandler : MonoBehaviour
         load_coroutines.Clear();
     }
 
+    //hides main camera
+    private void enableDummyCameraIfNecessary()
+    {
+        if (Camera.main == null)
+        {
+            dummy_camera.SetActive(true);
+        }
+    }
+
     //only called when NetworkManager.Singleton.SceneManager changes the scene
     private void handleSceneLoad(ulong client_id, string scene_name, LoadSceneMode load_scene_mode, AsyncOperation async_operation)
     {
@@ -134,8 +148,29 @@ public class LoadHandler : MonoBehaviour
     {
         resetAllCoroutines();
         randomizeLoadScreen();
+        enableDummyCameraIfNecessary();
         load_coroutines.Add(StartCoroutine(loadLoop()));
         load_screen.SetActive(true);
+    }
+
+    //terminates the loading screen
+    public void endLoad(bool fade)
+    {
+        dummy_camera.SetActive(false);
+        if (load_coroutines.Count == 0)
+        {
+            return;
+        }
+
+        resetAllCoroutines();
+        if (fade == true)
+        {
+            fade_black_coroutine = StartCoroutine(fadeBlackScreen(1.0f));
+        }
+        else
+        {
+            load_screen.SetActive(false);
+        }
     }
 
     //returns true if loading at least one scene/scenario
@@ -186,26 +221,6 @@ public class LoadHandler : MonoBehaviour
         }
     }
 
-    //terminates the loading screen
-    public void endLoad(bool fade)
-    {
-        dummy_camera.SetActive(false);
-        if (load_coroutines.Count == 0)
-        {
-            return;
-        }
-
-        resetAllCoroutines();
-        if (fade == true)
-        {
-            fade_black_coroutine = StartCoroutine(fadeBlackScreen(1.0f));
-        }
-        else
-        {
-            load_screen.SetActive(false);
-        }
-    }
-
     IEnumerator lostConnectionDisplayer(string message)
     {
         while (load_operation != null && load_operation.isDone == false)
@@ -236,7 +251,8 @@ public class LoadHandler : MonoBehaviour
             PrimaryScript.Instance.unpause(); //forces unpause
             PrimaryScript.Instance.deactivate(false, true); //stops control interaction
             ReferenceAssistor.Instance.audio_manager.GetComponent<AudioManager>().MuteSFX(); //mute SFX
-            dummy_camera.SetActive(true);
+            CameraMove.HideMainCamera();
+            enableDummyCameraIfNecessary();
         }
         hideTitleAndMainMenuElements();
         resetAllCoroutines();
@@ -356,7 +372,8 @@ public class LoadHandler : MonoBehaviour
 
     IEnumerator loadBridgeEnvironment()
     {
-        dummy_camera.SetActive(true);
+        //ensure only the dummy camera is active to start
+        enableDummyCameraIfNecessary();
 
         //find player
         string player_prefab_name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
@@ -367,16 +384,9 @@ public class LoadHandler : MonoBehaviour
             yield return null;
         }
 
-        //enable load screen
-        randomizeLoadScreen();
-        load_screen.SetActive(true);
-
-        //switch cameras
-        if (Camera.main != null)
-        {
-            Camera.main.gameObject.SetActive(false);
-        }
-        player_prefab.transform.GetChild(0).gameObject.SetActive(true);
+        //switch cameras from dummy to player
+        dummy_camera.SetActive(false);
+        player_prefab.GetComponent<CameraMove>().GetCamera().SetActive(true);
 
         //wait for BridgeEnvironment to load
         while (load_operation.isDone == false)

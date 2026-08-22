@@ -401,6 +401,7 @@ public class FailureHandler : NetworkBehaviour
         // destroys everything except NetworkManager
         PlayerManager.clearDontDestroyOnLoads();
         // begin loading animation
+        CameraMove.HideMainCamera();
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
         // if host, finish reset of BridgeEnvironment to start the loop from the start
         if (NetworkManager.Singleton.IsHost == true)

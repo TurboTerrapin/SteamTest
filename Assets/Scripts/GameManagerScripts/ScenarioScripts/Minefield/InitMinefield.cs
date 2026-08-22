@@ -2,7 +2,7 @@
     InitMinefield
     - Used for initializing permanent information on Minefield (override combinations and phaser frequencies)
     Contributor(s): Jake Schott
-    Last Updated: 7/18/2026
+    Last Updated: 8/19/2026
 */
 
 using Unity.Netcode;
@@ -15,7 +15,7 @@ public class InitMinefield : NetworkBehaviour, IScenarioInitialization
 
     private GameObject scenario_database_MF;
 
-    public TMP_Text manual_desc_text;
+    public TMP_Text manual_broadcast_time_text;
 
     private void Awake()
     {
@@ -24,7 +24,7 @@ public class InitMinefield : NetworkBehaviour, IScenarioInitialization
 
     private void Start()
     {
-        //manual_desc_text.SetText(manual_desc_text.text + Minefield.WARNING_SIGNAL_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
+        manual_broadcast_time_text.SetText(Minefield.WARNING_SIGNAL_PERIOD_TIMES[GetComponent<ScenarioManager>().getDifficulty()] + " SECONDS");
     }
 
     public void initializeDatabaseInformation()

@@ -1795,9 +1795,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 186022518}
-        m_TargetAssemblyTypeName: SteamConnectionTest, Assembly-CSharp
-        m_MethodName: 
+      - m_Target: {fileID: 186022522}
+        m_TargetAssemblyTypeName: LoadHandler, Assembly-CSharp
+        m_MethodName: handleQuitButtonClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -23030,7 +23030,7 @@ GameObject:
   - component: {fileID: 535014990}
   - component: {fileID: 535014993}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: TitleScreenCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -36062,13 +36062,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 704392236}
+  - component: {fileID: 704392237}
   m_Layer: 5
   m_Name: Tips
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &704392236
 RectTransform:
   m_ObjectHideFlags: 0
@@ -36109,6 +36110,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &704392237
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 704392235}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &707823125
 GameObject:
   m_ObjectHideFlags: 0
@@ -37442,11 +37455,11 @@ GameObject:
   m_Component:
   - component: {fileID: 738878545}
   - component: {fileID: 738878548}
-  - component: {fileID: 738878547}
+  - component: {fileID: 738878549}
   - component: {fileID: 738878546}
   m_Layer: 5
   m_Name: DummyCamera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -37514,14 +37527,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!81 &738878547
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 738878544}
-  m_Enabled: 1
 --- !u!20 &738878548
 Camera:
   m_ObjectHideFlags: 0
@@ -37573,6 +37578,14 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!81 &738878549
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 738878544}
+  m_Enabled: 1
 --- !u!1 &739237927
 GameObject:
   m_ObjectHideFlags: 0
@@ -94476,7 +94489,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -160}
+  m_AnchoredPosition: {x: 0, y: -190}
   m_SizeDelta: {x: 3840, y: 2160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1541257372
@@ -94526,8 +94539,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 120
-  m_fontSizeBase: 120
+  m_fontSize: 150
+  m_fontSizeBase: 150
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

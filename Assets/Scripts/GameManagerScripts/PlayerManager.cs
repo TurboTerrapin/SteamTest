@@ -200,6 +200,7 @@ public class PlayerManager : NetworkBehaviour
         clearDontDestroyOnLoads();
         SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
         SceneData.targetUI = "MainMenu";
+        CameraMove.HideMainCamera();
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();
     }
 
