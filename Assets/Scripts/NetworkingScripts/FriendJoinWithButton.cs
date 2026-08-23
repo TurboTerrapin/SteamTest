@@ -4,7 +4,6 @@ using Steamworks.Data;
 
 public class FriendJoinWithButton : MonoBehaviour
 {
-    [SerializeField]
     private Lobby lobby;
     [SerializeField]
     private TextMeshProUGUI ownerName;

@@ -2,7 +2,7 @@
     ManualButtonRerouter.cs
     - Used for rerouting a different button to this parent upon clicking
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2026
+    Last Updated: 8/23/2026
 */
 
 using UnityEngine;
@@ -16,6 +16,13 @@ public class ManualButtonRerouter : MonoBehaviour, IManualLinker
 
     public void link()
     {
-        button_to_reroute.GetComponent<ManualButton>().select_panel = reroute_destination;
+        if (button_to_reroute.GetComponent<ManualButton>() != null)
+        {
+            button_to_reroute.GetComponent<ManualButton>().select_panel = reroute_destination;
+        }
+        else if (button_to_reroute.GetComponent<ManualButtonOptions>() != null)
+        {
+            button_to_reroute.GetComponent<ManualButtonOptions>().button_info[4] = reroute_destination;
+        }
     }
 }

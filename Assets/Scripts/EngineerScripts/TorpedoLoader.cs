@@ -2,7 +2,7 @@
     TorpedoLoader.cs
     - Handles the loading of torpedoes 
     Contributor(s): Jake Schott
-    Last Updated: 7/21/2026
+    Last Updated: 8/23/2026
 */
 
 using System.Collections;
@@ -249,7 +249,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     private void displayTorpedoSelectionAdjustment()
     {
         UnityEngine.UI.RawImage torpedo_icon = torpedo_loader_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>();
-        TMP_Text quantity_text = torpedo_loader_display.transform.GetChild(3).GetComponent<TMP_Text>();
+        TMP_Text quantity_text = torpedo_loader_display.transform.GetChild(3).GetChild(1).GetComponent<TMP_Text>();
         TMP_Text torpedo_text = torpedo_loader_display.transform.GetChild(4).GetComponent<TMP_Text>();
 
         Color torpedo_color = ship_inventory.getItemColor(1, current_torpedo_selection);
@@ -289,10 +289,7 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
         quantity_text.SetText(s_torpedo_quantity);
         quantity_text.color = torpedo_color;
         quantity_text.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(torpedo_color.r, torpedo_color.g, torpedo_color.b, 0.04f);
-        for (int i = 0; i < 4; i++)
-        {
-            quantity_text.transform.GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
-        }
+        quantity_text.transform.parent.GetComponent<UnityEngine.UI.RawImage>().color = torpedo_color;
 
         //set text
         torpedo_text.color = torpedo_color;

@@ -2,7 +2,7 @@
     PageButton.cs
     - Page button for next/back
     Contributor(s): Jake Schott
-    Last Updated: 2/19/2026
+    Last Updated: 8/23/2026
 */
 
 using System.Collections;
@@ -54,7 +54,10 @@ public class PageButton : ManualButton, IManualButton
         {
             StopCoroutine(highlight_loop_coroutine);
         }
-        highlight_loop_coroutine = StartCoroutine(highlightLoop());
+        if (gameObject.activeSelf == true)
+        {
+            highlight_loop_coroutine = StartCoroutine(highlightLoop());
+        }
     }
 
     public void deselect()

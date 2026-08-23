@@ -15,7 +15,7 @@ public class CrewManifest : NetworkBehaviour
 {
     public GameObject crew_manifest_display;
 
-    public Dictionary<ulong, string> crew_member_names = new Dictionary<ulong, string>(); //key steam ID, value crew member name (ex. "J. KIRK")
+    private Dictionary<ulong, string> crew_member_names = new Dictionary<ulong, string>(); //key steam ID, value crew member name (ex. "J. KIRK")
 
     public void reportAsReady()
     {

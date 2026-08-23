@@ -2,10 +2,8 @@ using UnityEngine;
 using TMPro;
 using Steamworks;
 
-
 public class FriendInviteWithButton : MonoBehaviour
 {
-    [SerializeField]
     private Friend friend;
     [SerializeField]
     private TextMeshProUGUI friendName;

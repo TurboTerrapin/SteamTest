@@ -1,8 +1,8 @@
 /*
     CargoEject.cs
-    - Handles selecting and ejecting of items to be ejected
+    - Handles selecting and ejecting of items
     Contributor(s): Jake Schott
-    Last Updated: 5/10/2026
+    Last Updated: 8/23/2026
 */
 
 using System.Collections;
@@ -177,7 +177,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
 
         TMP_Text item_name = cargo_eject_display.transform.GetChild(0).GetComponent<TMP_Text>();
         UnityEngine.UI.RawImage item_icon = cargo_eject_display.transform.GetChild(1).GetComponent<UnityEngine.UI.RawImage>();
-        TMP_Text item_counter = cargo_eject_display.transform.GetChild(2).GetComponent<TMP_Text>();
+        TMP_Text item_counter = cargo_eject_display.transform.GetChild(2).GetChild(1).GetComponent<TMP_Text>();
         TMP_Text item_info = cargo_eject_display.transform.GetChild(3).GetComponent<TMP_Text>();
 
         //make transparent if none available/loading
@@ -209,10 +209,7 @@ public class CargoEject : NetworkBehaviour, IControllable, IPowerable, IIKTarget
         //set item counter color
         item_counter.color = item_color;
         item_counter.transform.GetChild(0).GetComponent<TMP_Text>().color = new Color(item_color.r, item_color.g, item_color.b, 0.04f);
-        for (int i = 0; i < 4; i++)
-        {
-            item_counter.transform.GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = item_color;
-        }
+        item_counter.transform.parent.GetComponent<UnityEngine.UI.RawImage>().color = item_color;
 
         //change load bar/text color
         cargo_eject_display.transform.GetChild(4).GetComponent<TMP_Text>().color = new Color(item_color.r, item_color.g, item_color.b, 1.0f);

@@ -130,7 +130,7 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         }
 
         shield_strength_display.transform.GetChild(1).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
-        shield_strength_display.transform.GetChild(2).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
+        shield_strength_display.transform.GetChild(2).GetChild(1).GetComponent<TMP_Text>().color = new Color(0.0f, 0.84f, 1.0f, a);
         string s_available_batteries = available_batteries.ToString();
         if (available_batteries < 10)
         {
@@ -140,11 +140,8 @@ public class ShieldStrength : NetworkBehaviour, IControllable, IPowerable, IIKTa
         {
             s_available_batteries = "99";
         }
-        shield_strength_display.transform.GetChild(2).GetComponent<TMP_Text>().SetText(s_available_batteries);
-        for (int i = 0; i < 4; i++)
-        {
-            shield_strength_display.transform.GetChild(2).GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
-        }
+        shield_strength_display.transform.GetChild(2).GetChild(1).GetComponent<TMP_Text>().SetText(s_available_batteries);
+        shield_strength_display.transform.GetChild(2).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, a);
     }
 
     public int getShieldStrength(int location)

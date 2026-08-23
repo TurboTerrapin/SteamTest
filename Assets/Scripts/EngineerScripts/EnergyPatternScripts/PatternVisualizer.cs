@@ -3,7 +3,7 @@
     - Handles visuals for an energy pattern as seen in the engineer position
     - Currently operates under the assumption that there are only four rings
     Contributor(s): Jake Schott
-    Last Updated: 2/22/2026
+    Last Updated: 8/23/2026
 */
 
 using System.Collections;
@@ -15,9 +15,9 @@ public class PatternVisualizer : MonoBehaviour
     //CLASS CONSTANTS
     private static int NUM_OF_ITEMS_PER_RING = 36;
 
-    public PatternData pattern_information;
     public GameObject pattern_center;
     public List<GameObject> rings = null; //a-d
+    private PatternData pattern_information;
     private Coroutine default_rotation_coroutine = null;
     private Coroutine size_change_coroutine = null;
     private Coroutine color_change_coroutine = null;

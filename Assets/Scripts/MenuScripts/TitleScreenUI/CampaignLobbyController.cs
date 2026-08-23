@@ -250,11 +250,13 @@ public class CampaignLobbyController : MonoBehaviour
         GameNetworkManager.Instance.currentLobby.Value.SetInvisible();
         GameNetworkManager.Instance.currentLobby.Value.SetJoinable(false);
         LobbyHandler.startLoadForAllPlayers();
+        /*
         CharacterCustomization[] players = GameObject.FindObjectsByType<CharacterCustomization>(FindObjectsSortMode.InstanceID);
         foreach (CharacterCustomization c in players)
         {
             c.SyncCustomizationRPC();
         }
+        */
         NetworkManager.Singleton.SceneManager.LoadScene("BridgeEnvironment", LoadSceneMode.Single);
     }
 
