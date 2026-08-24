@@ -59,8 +59,9 @@ public class ProximityMap : MonoBehaviour, IPowerable
             float a = Mathf.Lerp(0.0f, 0.5f, anim_time / MAP_UPDATE_DELAY);
             for (int i = 0; i < corresponding_icons.Length; i++)
             {
-                corresponding_icons[i].GetComponent<SpriteRenderer>().color =
-                    new Color(corresponding_colors[i].r, corresponding_colors[i].g, corresponding_colors[i].b, a);
+                Color c = corresponding_colors[i];
+                c.a = a;
+                corresponding_icons[i].GetComponent<SpriteRenderer>().color = c;
             }
 
             yield return null;

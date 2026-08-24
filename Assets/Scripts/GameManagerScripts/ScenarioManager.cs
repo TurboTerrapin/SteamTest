@@ -402,7 +402,7 @@ public class ScenarioManager : NetworkBehaviour
         endpoint_reached = false;
         ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().LockMovement();
 
-        string next_scenario = "BlackAndWhite"; //used for override for testing (blank means obey sequence and random)
+        string next_scenario = ""; //used for override for testing (blank means obey sequence and random)
 
         if (next_scenario.CompareTo("") == 0)
         {

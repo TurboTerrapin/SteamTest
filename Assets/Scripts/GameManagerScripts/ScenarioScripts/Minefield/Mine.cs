@@ -90,6 +90,12 @@ public class Mine : NetworkBehaviour, IDamageable, ITorpedoTargetable, IPhaserTa
 
     public void damage(float damage, IDamageable.DamageType damage_type)
     {
+        // Make sure not already destroyed
+        if (GetComponent<NetworkObject>().IsSpawned == false)
+        {
+            return;
+        }
+
         // Check if need to flash shields and abort damage
         if (permanently_disabled == false && mine_field.damageTypeBypassesMineShields(damage_type) == false)
         {

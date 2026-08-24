@@ -63,9 +63,9 @@ public class ScenarioMap : MonoBehaviour, IPowerable
 
     private void clearPointsOfInterest()
     {
-        for (int i = points_of_interest.transform.childCount - 1; i >= 1; i--)
+        foreach (Transform t in points_of_interest.transform)
         {
-            GameObject.Destroy(points_of_interest.transform.GetChild(i).gameObject);
+            t.gameObject.SetActive(false);
         }
     }
 
@@ -73,7 +73,12 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     {
         for (int i = 0; i < interest_items.Count; i++)
         {
-            GameObject item_icon = GameObject.Instantiate(points_of_interest.transform.GetChild(0).gameObject, points_of_interest.transform);
+            if (i > points_of_interest.transform.childCount - 1)
+            {
+                return;
+            }
+
+            GameObject item_icon = points_of_interest.transform.GetChild(i).gameObject;
 
             if (interest_items[i].getInterestType() != PointIconType.CollectibleItem)
             {
