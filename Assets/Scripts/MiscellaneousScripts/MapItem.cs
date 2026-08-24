@@ -2,7 +2,7 @@
     MapItem.cs
     - Used for items that are detected on either the tactician radar or the engineer map
     Contributor(s): Jake Schott
-    Last Updated: 5/13/2026
+    Last Updated: 8/23/2026
 */
 
 using UnityEngine;
@@ -16,7 +16,7 @@ public class MapItem : MonoBehaviour
     [SerializeField]
     private bool is_visible = false;
     [SerializeField]
-    private bool is_interest_item = false;
+    private ScenarioMap.PointIconType interest_type = ScenarioMap.PointIconType.None;
     [SerializeField]
     private Color icon_color = Color.white;
     [SerializeField]
@@ -37,9 +37,9 @@ public class MapItem : MonoBehaviour
         is_ship = ship;
     }
 
-    public void setInterestItem(bool interest)
+    public void setInterestItem(ScenarioMap.PointIconType type)
     {
-        is_interest_item = interest;
+        interest_type = type;
     }
 
     public void setColor(Color c)
@@ -72,9 +72,9 @@ public class MapItem : MonoBehaviour
         return is_visible;
     }
 
-    public bool isInterestItem()
+    public ScenarioMap.PointIconType getInterestType()
     {
-        return is_interest_item;
+        return interest_type;
     }
 
     public Sprite getSprite()

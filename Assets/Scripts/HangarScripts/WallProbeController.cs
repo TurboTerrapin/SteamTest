@@ -99,7 +99,7 @@ public class WallProbeController : MonoBehaviour
         probes[probe].repair_duration = repair_time;
         probes[probe].SetProbeActive(true);
         timer_max = MAX_TIMER_LENGTH;
-        Debug.Log("Activating probe " + probe + " on spline " + probes[probe].current_spline.name + " for " + repair_time + " seconds");
+        //Debug.Log("Activating probe " + probe + " on spline " + probes[probe].current_spline.name + " for " + repair_time + " seconds");
 
     }
 }

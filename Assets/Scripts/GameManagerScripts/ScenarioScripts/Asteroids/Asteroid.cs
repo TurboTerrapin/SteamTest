@@ -74,4 +74,9 @@ public class Asteroid : MonoBehaviour, IDamageable, ITractorBeamable, ITorpedoTa
     {
         return tractor_beam_asteroid_color;
     }
+
+    public string getSerialNumber()
+    {
+        return "";
+    }
 }

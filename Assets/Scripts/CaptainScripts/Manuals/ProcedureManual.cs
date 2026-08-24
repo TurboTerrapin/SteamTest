@@ -95,6 +95,7 @@ public class ProcedureManual : Manual
             currently_enabled = false;
             curr_screen.SetActive(false);
             welcome_screen.SetActive(false);
+            hideReusableElements();
             if (curr_button != null)
             {
                 curr_button.GetComponent<IManualButton>().deselect();

@@ -3,7 +3,7 @@
     - Handles engineer map
     - Handles hints for boundary issues
     Contributor(s): Jake Schott
-    Last Updated: 8/10/2026
+    Last Updated: 8/24/2026
 */
 
 using System.Collections;
@@ -20,68 +20,76 @@ public class ScenarioMap : MonoBehaviour, IPowerable
     private static Color TMP_RED = new Color(1.0f, 0.0f, 0.0f, 1.0f);
     private static Color SPRITE_RED = new Color(0.96f, 0.25f, 0.28f, 1.0f); //sprite renderer shows color differently
     private static float ITEM_LOCATION_CONVERSION_FACTOR;
-    private static float INTEREST_ITEM_SIZE_CONVERSION_FACTOR;
+    private static float INTEREST_POINT_SIZE_CONVERSION_FACTOR;
 
     public GameObject navigation_display;
     public GameObject heading_display;
     public GameObject navigation_information;
     public GameObject altitude_label;
-    public List<Sprite> item_of_interest_sprites = null;
+    public List<Sprite> point_of_interest_sprites = null;
     public List<AudioClip> boundary_notifications = null;
-
     private GameObject entrance_path;
     private GameObject exit_path;
     private GameObject ship_icon;
-    private GameObject items_of_interest;
+    private GameObject points_of_interest;
     private GameObject circle_boundary;
     private GameObject countdown;
 
     private Coroutine red_flash_coroutine = null;
 
+    public enum PointIconType
+    {
+        None = 0,
+        CollectibleItem = 1,
+        DoNotEnter = 2,
+        Exclamation = 3,
+        Objective = 4
+    }
+
     private void Start()
     {
         ITEM_LOCATION_CONVERSION_FACTOR = (0.265f / (ScenarioManager.BOUNDARY_SIZE * 0.5f));
-        INTEREST_ITEM_SIZE_CONVERSION_FACTOR = (0.115f / ScenarioManager.BOUNDARY_SIZE);
+        INTEREST_POINT_SIZE_CONVERSION_FACTOR = (0.115f / ScenarioManager.BOUNDARY_SIZE);
 
         entrance_path = navigation_information.transform.GetChild(0).gameObject;
         exit_path = navigation_information.transform.GetChild(1).gameObject;
         ship_icon = navigation_information.transform.GetChild(2).gameObject;
-        items_of_interest = navigation_information.transform.GetChild(3).gameObject;
+        points_of_interest = navigation_information.transform.GetChild(3).gameObject;
         circle_boundary = navigation_information.transform.GetChild(4).gameObject;
         countdown = circle_boundary.transform.GetChild(0).gameObject;
 
-        StartCoroutine(itemOfInterestUpdater());
+        StartCoroutine(pointOfInterestUpdater());
     }
 
-    private void clearItemsOfInterest()
+    private void clearPointsOfInterest()
     {
-        for (int i = items_of_interest.transform.childCount - 1; i >= 1; i--)
+        for (int i = points_of_interest.transform.childCount - 1; i >= 1; i--)
         {
-            GameObject.Destroy(items_of_interest.transform.GetChild(i).gameObject);
+            GameObject.Destroy(points_of_interest.transform.GetChild(i).gameObject);
         }
     }
 
-    private void populateItemsOfInterest(List<MapItem> interest_items)
+    private void populatePointsOfInterest(List<MapItem> interest_items)
     {
         for (int i = 0; i < interest_items.Count; i++)
         {
-            GameObject item_icon = GameObject.Instantiate(items_of_interest.transform.GetChild(0).gameObject, items_of_interest.transform);
+            GameObject item_icon = GameObject.Instantiate(points_of_interest.transform.GetChild(0).gameObject, points_of_interest.transform);
 
-            CollectibleItem ci = interest_items[i].GetComponent<CollectibleItem>();
-            if (ci == null)
+            if (interest_items[i].getInterestType() != PointIconType.CollectibleItem)
             {
-                item_icon.GetComponent<SpriteRenderer>().sprite = item_of_interest_sprites[5];
-                item_icon.transform.localScale = new Vector3(interest_items[i].getSize() * INTEREST_ITEM_SIZE_CONVERSION_FACTOR, interest_items[i].getSize() * INTEREST_ITEM_SIZE_CONVERSION_FACTOR, 1.0f);
+                item_icon.GetComponent<SpriteRenderer>().sprite = point_of_interest_sprites[(int)interest_items[i].getInterestType() + 3];
+                item_icon.transform.localScale = new Vector3(interest_items[i].getSize() * INTEREST_POINT_SIZE_CONVERSION_FACTOR, interest_items[i].getSize() * INTEREST_POINT_SIZE_CONVERSION_FACTOR, 1.0f);
             }
             else
             {
-                if (ci.getItemCategory() == 0)
+                CollectibleItem ci = interest_items[i].GetComponent<CollectibleItem>();
+                if (ci.getItemCategory() == 0) //utility items
                 {
-                    item_icon.GetComponent<SpriteRenderer>().sprite = item_of_interest_sprites[ci.getItemIndex()];
+                    item_icon.GetComponent<SpriteRenderer>().sprite = point_of_interest_sprites[ci.getItemIndex()];
                 }
-                else if (ci.getItemCategory() == 1)
+                else if (ci.getItemCategory() == 1) //torpedoes
                 {
-                    item_icon.GetComponent<SpriteRenderer>().sprite = item_of_interest_sprites[4];
+                    item_icon.GetComponent<SpriteRenderer>().sprite = point_of_interest_sprites[4];
                 }
             }
 
@@ -98,7 +106,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         }
     }
 
-    IEnumerator itemOfInterestUpdater()
+    IEnumerator pointOfInterestUpdater()
     {
         while (true)
         {
@@ -113,7 +121,7 @@ public class ScenarioMap : MonoBehaviour, IPowerable
                     {
                         if (mi.isVisible() == true)
                         {
-                            if (mi.isInterestItem() == true)
+                            if (mi.getInterestType() != PointIconType.None)
                             {
                                 map_items.Add(mi);
                             }
@@ -121,8 +129,8 @@ public class ScenarioMap : MonoBehaviour, IPowerable
                     }
                 }
 
-                clearItemsOfInterest();
-                populateItemsOfInterest(map_items);
+                clearPointsOfInterest();
+                populatePointsOfInterest(map_items);
             }
 
             yield return new WaitForSeconds(1.0f);

@@ -2,7 +2,7 @@
     BlackAndWhite.cs
     - Handles all the functions pertaining to the black-and-white scenario (the wall one)
     Contributor(s): Jake Schott
-    Last Updated: 8/11/2026
+    Last Updated: 8/23/2026
 */
 
 using System.Collections;
@@ -11,7 +11,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusceptible
+public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusceptible, IUniversalCommunicable
 {
     //CLASS CONSTANTS
     private static string DEATH_MESSAGE = "Stolen ship SCC-3002 was found destroyed near an anomalous barrier. Crew was unable to disable the wall without sustaining critical damage. No survivors were found.";
@@ -26,6 +26,7 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
     public Material emitter_shield_material;
     public List<Material> light_beam_material_options = null;  
     public List<Mesh> radiation_options = null;
+    public GameObject token;
     public List<GameObject> radiation_emitters = null;
     public List<GameObject> emitter_shield_generators = null;
     public List<GameObject> emitter_shields = null;
@@ -38,6 +39,7 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
 
     private bool color_restored = false;
     private bool barrier_disabled = false;
+    private string token_serial_number = "";
     private bool[] enabled_emitter_shields = new bool[2] { true, true };
     private int special_emitter = -1; //the emitter that must be destroyed to bring color back
     private int[] emitter_radiation_patterns = new int[6] { -1, -1, -1, -1, -1, -1 }; //corresponds to A, B, C, D, E, and F mesh options
@@ -88,12 +90,18 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
             return;
         }
 
-        List<OffLimitsSpawnLocation> offLimitsLocations = new List<OffLimitsSpawnLocation>();
+        //set token serial number and position
+        token.transform.localPosition = new Vector3(Random.Range(-250.0f, 250.0f), Random.Range(-50.0f, 50.0f), Random.Range(-250.0f, 250.0f) + token.transform.localPosition.z);
+        token.transform.localRotation = Quaternion.Euler(Random.Range(0.0f, 180.0f), Random.Range(0.0f, 180.0f), Random.Range(0.0f, 180.0f));
+
+        //prevent collectible items from spawning into token or barrier
+        List<OffLimitsSpawnLocation> off_limits_locations = new List<OffLimitsSpawnLocation>();
+        off_limits_locations.Add(new OffLimitsSpawnLocation(token.transform.localPosition, 200.0f)); //add token
         for (int i = 0; i < 33; i++)
         {
-            offLimitsLocations.Add(new OffLimitsSpawnLocation(new Vector3((i * 150.0f) + -2400.0f, 0.0f, 2500.0f), 200.0f));
+            off_limits_locations.Add(new OffLimitsSpawnLocation(new Vector3((i * 150.0f) + -2400.0f, 0.0f, 2500.0f), 500.0f)); //add barrier point
         }
-        List<Vector3> spawnLocations = ReferenceAssistor.Instance.scenario_manager.generateSpawnLocations(50.0f, 0, offLimitsLocations);
+        List<Vector3> spawn_locations = ReferenceAssistor.Instance.scenario_manager.generateSpawnLocations(50.0f, 0, off_limits_locations);
     }
 
     public void initiateScenario()
@@ -203,12 +211,53 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         }
         ReferenceAssistor.Instance.module_handlers[0].GetComponent<SpatialCompositionAnalyzer>().setSCAProfile(sca_quantities, sca_molecules, sca_colors, true);
 
-        initializeGateAppearanceRPC(DataConverter.arrayToString(emitter_radiation_patterns), DataConverter.arrayToString(vertical_light_colors), DataConverter.arrayToString(horizontal_light_colors), DataConverter.listToString(extended_light_colors), intersect_horizontal_color);
+        //finalize information and send it out to everyone
+        initializeBlackAndWhiteRPC(DataConverter.arrayToString(emitter_radiation_patterns), DataConverter.arrayToString(vertical_light_colors), DataConverter.arrayToString(horizontal_light_colors), DataConverter.listToString(extended_light_colors), intersect_horizontal_color, ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>().generateSerialNumber());
     }
 
     public string getDeathMessage()
     {
         return DEATH_MESSAGE;
+    }
+
+    public string getTokenSerialNumber()
+    {
+        return token_serial_number;
+    }
+
+    private bool isTokenSerialNumberMessage(List<int> code_indexes, List<int> code_is_numeric)
+    {
+        string message_to_check = "";
+        for (int i = 0; i < code_indexes.Count; i++)
+        {
+            if (code_is_numeric[i] == 1)
+            {
+                message_to_check += code_indexes[i];
+            }
+            else
+            {
+                message_to_check += "X";
+            }
+        }
+
+        string correct_message = token_serial_number.Replace(" ", "");
+        return message_to_check.Contains(correct_message);
+    }
+
+    public bool checkTransmission(float frequency, List<int> code_indexes, List<int> code_is_numeric, int code_color)
+    {
+        return isTokenSerialNumberMessage(code_indexes, code_is_numeric);
+    }
+
+    public void handleTransmission(float frequency, List<int> code_indexes, List<int> code_is_numeric, int code_color)
+    {
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            if (isTokenSerialNumberMessage(code_indexes, code_is_numeric) == true)
+            {
+                emitterFlashRPC(special_emitter);
+            }
+        }
     }
 
     public void shipEnteredBarrier()
@@ -334,7 +383,7 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
     }
 
     [Rpc(SendTo.Everyone)]
-    private void initializeGateAppearanceRPC(string radiation_locations, string vert_colors, string horiz_colors, string ext_colors, int energy_pattern_color)
+    private void initializeBlackAndWhiteRPC(string radiation_locations, string vert_colors, string horiz_colors, string ext_colors, int energy_pattern_color, string t_serial_number)
     {
         //set radiation appearances to designated locations
         emitter_radiation_patterns = DataConverter.stringToArray(radiation_locations);
@@ -370,6 +419,9 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
         RLGLpattern.setRings(4, new List<int>() { energy_pattern_color, energy_pattern_color, energy_pattern_color, energy_pattern_color}, new List<int>() { 1, 2, 1, 2}, new List<bool>(){ false, false, false, false}, RING_SPEEDS);
 
         ReferenceAssistor.Instance.module_handlers[2].GetComponent<EnergyPattern>().setPattern(RLGLpattern);
+
+        //set token serial number
+        token_serial_number = t_serial_number;
     }
 
     [Rpc(SendTo.Everyone)]
@@ -391,6 +443,15 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
             color_adjustments.saturation.Override(Mathf.Lerp(0.0f, -100.0f, anim_time / COLOR_RESTORATION_TIME));
 
             yield return null;
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void emitterFlashRPC(int index)
+    {
+        if (radiation_emitters[index] != null)
+        {
+            radiation_emitters[index].GetComponent<BWEmitter>().enableFlash();
         }
     }
 

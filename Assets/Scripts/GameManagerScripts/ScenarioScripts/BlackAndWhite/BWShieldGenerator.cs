@@ -2,7 +2,7 @@
     BWShieldGenerator.cs
     - Used to control one of the four shield generators
     Contributor(s): Jake Schott
-    Last Updated: 7/20/2026
+    Last Updated: 8/23/2026
 */
 
 using System.Collections;
@@ -12,7 +12,7 @@ using UnityEngine;
 public class BWShieldGenerator : NetworkBehaviour, IDamageable, IPhaserTargetable, ITorpedoTargetable
 {
     private static float GENERATOR_ROTATION_SPEED = 75.0f;
-    private static float STARTING_HEALTH = 150.0f;
+    private static float STARTING_HEALTH = 125.0f;
 
     public BlackAndWhite black_and_white;
 
@@ -91,15 +91,16 @@ public class BWShieldGenerator : NetworkBehaviour, IDamageable, IPhaserTargetabl
             }
             ReferenceAssistor.Instance.effects_handler.createExplosion(transform.position, 5.0f, true, ReferenceAssistor.COLOR_OPTIONS[0]);
             Destroy(this);
+            return;
         }
-        else if (generator_health <= 0.0f)
+        else if (generator_health <= 0.0f && disabled_coroutine != null)
         {
             return;
         }
 
         generator_health = Mathf.Max(0.0f, generator_health - damage);
 
-        //handle disabled
+        //handle disabling
         if (generator_health <= 0.0f)
         {
             black_and_white.onShieldGeneratorDisabled(gameObject);

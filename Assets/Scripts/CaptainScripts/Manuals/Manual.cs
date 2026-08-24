@@ -2,10 +2,9 @@
     Manual.cs
     - Parent class for ProcedureManual and OperatingManual
     Contributor(s): Jake Schott
-    Last Updated: 8/22/2026
+    Last Updated: 8/24/2026
 */
 
-using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 
@@ -125,7 +124,7 @@ public class Manual : MonoBehaviour, IPowerable
         updateInteractableButtons();
     }
 
-    private void hideReusableElements()
+    protected void hideReusableElements()
     {
         foreach (Transform t in reusable_elements.transform)
         {

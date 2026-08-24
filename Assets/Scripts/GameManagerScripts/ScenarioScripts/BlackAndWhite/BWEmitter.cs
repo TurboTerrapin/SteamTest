@@ -2,9 +2,10 @@
     BWEmitter.cs
     - Used to control one of the six radiation emitters behind the wall
     Contributor(s): Jake Schott
-    Last Updated: 7/6/2026
+    Last Updated: 8/23/2026
 */
 
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -17,6 +18,8 @@ public class BWEmitter : MonoBehaviour, IDamageable, ITorpedoTargetable, IPhaser
 
     private float emitter_health = 1.0f;
     private bool protected_by_shields = true;
+    private Coroutine spin_coroutine = null;
+    private Coroutine flash_coroutine = null;
 
     private void Start()
     {
@@ -26,12 +29,50 @@ public class BWEmitter : MonoBehaviour, IDamageable, ITorpedoTargetable, IPhaser
         }
         transform.Rotate(0.0f, 0.0f, Random.Range(0.0f, 180.0f));
         transform.GetChild(0).Rotate(0.0f, 0.0f, Random.Range(0.0f, 180.0f));
+        spin_coroutine = StartCoroutine(emitterSpin());
     }
 
-    private void Update()
+    IEnumerator emitterSpin()
     {
-        transform.Rotate(0.0f, 0.0f, Time.deltaTime * EMITTER_ROTATION_SPEED);
-        transform.GetChild(0).Rotate(0.0f, 0.0f, Time.deltaTime * RADIATION_ROTATION_SPEED);
+        while (true)
+        {
+            transform.Rotate(0.0f, 0.0f, Time.deltaTime * EMITTER_ROTATION_SPEED);
+            transform.GetChild(0).Rotate(0.0f, 0.0f, Time.deltaTime * RADIATION_ROTATION_SPEED);
+
+            yield return null;
+        }
+    }
+
+    IEnumerator emitterFlash()
+    {
+        MeshRenderer renderer = GetComponent<MeshRenderer>();
+        Material[] flash_materials = renderer.materials;
+        while (true)
+        {
+            flash_materials[0] = ReferenceAssistor.Instance.lit_white;
+            renderer.materials = flash_materials;
+            yield return new WaitForSeconds(0.25f);
+            flash_materials[0] = ReferenceAssistor.Instance.pure_black;
+            renderer.materials = flash_materials;
+            yield return new WaitForSeconds(0.25f);
+        }
+    }
+
+    //only flashes if ship collects token then broadcasts token's serial number
+    public void enableFlash()
+    {
+        //stop spinning
+        if (spin_coroutine != null)
+        {
+            StopCoroutine(spin_coroutine);
+            spin_coroutine = null;
+        }
+
+        //start flashing
+        if (flash_coroutine == null)
+        {
+            flash_coroutine = StartCoroutine(emitterFlash());
+        }
     }
 
     public void damage(float damage, IDamageable.DamageType damage_type)

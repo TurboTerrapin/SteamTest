@@ -147,11 +147,7 @@ public class TractorBeam : NetworkBehaviour
 
                 if (distance <= captureDistance)
                 {
-                    string serialNumber = "";
-                    if (targetXform.GetComponent<CollectibleItem>() != null)
-                    {
-                        serialNumber = targetXform.GetComponent<CollectibleItem>().getSerialNumber();
-                    }
+                    string serialNumber = targetXform.GetComponent<ITractorBeamable>().getSerialNumber();
                     OnTargetCapturedRPC(targetXform.GetComponent<NetworkObject>().NetworkObjectId, serialNumber);
                     return; // Stop attracting, target found
                 }
