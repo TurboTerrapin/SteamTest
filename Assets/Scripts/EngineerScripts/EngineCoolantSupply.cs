@@ -186,7 +186,7 @@ public class EngineCoolantSupply : NetworkBehaviour, IControllable, IPowerable, 
         {
             coolant_flow_booster = Mathf.Max(0.0f, Mathf.Min(3.0f, coolant_flow_booster + ((coolant_flow - 0.5f) * Time.deltaTime)));
             float difference = ENGINE_TEMPERATURE_INCREASE_SPEED - (coolant_flow * (ENGINE_TEMPERATURE_INCREASE_SPEED * (1.5f + coolant_flow_booster)));
-            if (NetworkManager.Singleton != null)
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.isActiveAndEnabled == true)
             {
                 if (difference > 0.0f)
                 {

@@ -79,6 +79,7 @@ public class Phasers : NetworkBehaviour
 
     IEnumerator longRangePhaserFire(float intensity)
     {
+        Debug.Log(intensity);
         phaserRenderers[0].enabled = true;
         phaserSounds[0].pitch = 1.8f - (1.0f * intensity);
         phaserSounds[0].Play();
@@ -211,7 +212,7 @@ public class Phasers : NetworkBehaviour
                 longRangePhaserFireRPC(phaserTargetLocations[0], currentIntensity);
 
                 // run locally as host
-                yield return StartCoroutine(longRangePhaserFire(0));
+                yield return StartCoroutine(longRangePhaserFire(currentIntensity));
             }
 
             // delay before next fire
