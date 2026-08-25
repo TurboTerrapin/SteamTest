@@ -399,7 +399,7 @@ public class FailureHandler : NetworkBehaviour
     private void RestartGameRPC()
     {
         // destroys everything except NetworkManager
-        PlayerManager.clearDontDestroyOnLoads();
+        PlayerManager.clearDontDestroyOnLoads(true);
         // begin loading animation
         CameraMove.HideMainCamera();
         GameObject.Find("LoadHandler").GetComponent<LoadHandler>().startLoad();

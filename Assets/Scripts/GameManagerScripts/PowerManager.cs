@@ -4,7 +4,7 @@
     - Records changes in power consumption (as called by the individual controls)
     - Handles overconsumption and complete shutdown
     Contributor(s): Jake Schott
-    Last Updated: 7/31/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -43,6 +43,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private bool ship_has_power = true;
 
     //these three lists correspond to 0-3 pilot, tactician, engineer, captain
+    private UnityEngine.UI.RawImage[,,] power_icons = new UnityEngine.UI.RawImage[4, 2, 10];
     private List<Component>[] positional_modules = new List<Component>[] { null, null, null, null }; //the powerable components
     private List<float>[] power_distributions = new List<float>[] { new List<float>(), new List<float>(), new List<float>(), new List<float>() };
     private List<string>[] associated_controls = new List<string>[] { new List<string>(), new List<string>(), new List<string>(), new List<string>() };
@@ -67,6 +68,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
         addCaptainModules(); //positional_modules[3]
 
         linkPowerDistributions();
+
+        for (int i = 0; i < 4; i++)
+        {
+            for (int p = 0; p < 10; p++)
+            {
+                power_icons[i, 0, p] = position_power_displays[i].transform.GetChild(p + 1).GetComponent<UnityEngine.UI.RawImage>();
+                power_icons[i, 1, p] = engineer_power_displays[i].transform.GetChild(p + 1).GetComponent<UnityEngine.UI.RawImage>();
+            }
+        }
 
         power_updater_coroutine = StartCoroutine(powerUpdater());
         power_allocation.resetToDefaultAllocation(DEFAULT_POWER_ALLOCATIONS);
@@ -291,21 +301,22 @@ public class PowerManager : NetworkBehaviour, IPowerable
     }
 
     //helper method used to set the color of a power icon, called by powerUpdater() and animationProgressHelper()
-    private void powerIconHelper(GameObject to_change, float a)
+    private void powerIconHelper(int pos, int k, int p, float a)
     {
-        Color icon_color = to_change.GetComponent<UnityEngine.UI.RawImage>().color;
-        to_change.GetComponent<UnityEngine.UI.RawImage>().color = new Color(icon_color.r, icon_color.g, icon_color.b, a);
+        Color icon_color = power_icons[pos, k, p].color;
+        icon_color.a = a;
+        power_icons[pos, k, p].color = icon_color;
     }
 
     //helper method used to set the alphas of each of the green-to-red circles based on a given power level (0-10)
-    private void animationProgressHelper(GameObject display, int power_level, float percent, float min_alpha)
+    private void animationProgressHelper(int pos, int k, int power_level, float animation_progress, float min_alpha)
     {
-        float tmp_prcnt = percent;
+        float tmp_prcnt = animation_progress;
         for (int i = 0; i < power_level; i++)
         {
-            tmp_prcnt = percent - ((1.0f / power_level) * i);
+            tmp_prcnt = animation_progress - ((1.0f / power_level) * i);
             float a = Mathf.Max(min_alpha, tmp_prcnt / (1.0f / power_level));
-            powerIconHelper(display.transform.GetChild(i + 1).gameObject, a);
+            powerIconHelper(pos, k, i, a);
         }
     }
 
@@ -319,13 +330,13 @@ public class PowerManager : NetworkBehaviour, IPowerable
             for (int i = 0; i < 4; i++)
             {
                 power_levels[i] = (int)Mathf.Floor(power_consumptions[i] * 10.0f);
-                for (int k = 1; k < 11; k++)
+                for (int p = 0; p < 10; p++)
                 {
-                    position_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(k > power_levels[i]);
-                    powerIconHelper(position_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
-
-                    engineer_power_displays[i].transform.GetChild(k).GetChild(0).gameObject.SetActive(k > power_levels[i]);
-                    powerIconHelper(engineer_power_displays[i].transform.GetChild(k).gameObject, 0.2f);
+                    for (int k = 0; k < 2; k++)
+                    {
+                        powerIconHelper(i, k, p, 0.2f);
+                        power_icons[i, k, p].transform.GetChild(0).gameObject.SetActive((p + 1) > power_levels[i]);
+                    }
                 }
             }
 
@@ -338,8 +349,8 @@ public class PowerManager : NetworkBehaviour, IPowerable
                 float animation_progress = 1.0f - (anim_time / POWER_UPDATE_TIME);
                 for (int i = 0; i < 4; i++)
                 {
-                    animationProgressHelper(position_power_displays[i], power_levels[i], animation_progress, 0.2f);
-                    animationProgressHelper(engineer_power_displays[i], power_levels[i], animation_progress, 0.5f);
+                    animationProgressHelper(i, 0, power_levels[i], animation_progress, 0.2f);
+                    animationProgressHelper(i, 1, power_levels[i], animation_progress, 0.5f);
                 }
 
                 yield return null;
@@ -361,7 +372,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         int max_allocation = (int)(power_allocation.getPowerAllocation(position) * 10.0f);
 
         //recolor circles from red to their actual color
-        for (int i = 1; i <= 10; i++)
+        for (int i = 1; i < 11; i++)
         {
             //recolor circle
             float circle_alpha = engineer_power_displays[position].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
@@ -402,7 +413,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         engineer_power_displays[index].transform.GetChild(12).GetComponent<TMP_Text>().color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 
         //change colors of each circle to red
-        for (int i = 1; i <= 10; i++)
+        for (int i = 1; i < 11; i++)
         {
             float a = engineer_power_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color.a;
             engineer_power_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(1.0f, 0.0f, 0.0f, a);

@@ -2,7 +2,7 @@
     ProbeInfo.cs
     - Handles animating probe screens
     Contributor(s): Jake Schott
-    Last Updated: 2/3/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections.Generic;
@@ -46,11 +46,13 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
 
     public GameObject probe_controller_display;
 
+
     public GameObject probe_health_display;
     public GameObject probe_signal_display;
     public GameObject probe_feed_display;
     public GameObject probe_altimeter_display;
     public GameObject probe_range_display;
+    public GameObject probe_lateral_movement_stick_icon;
 
     private TMP_Text probe_in_range;
     private UnityEngine.UI.RawImage probe_render_texture_image;
@@ -99,6 +101,9 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         //update probe controller screen
         probe_controller_display.transform.GetChild(0).GetComponent<RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 1.0f);
 
+        //update lateral movement stick
+        probe_lateral_movement_stick_icon.GetComponent<SpriteRenderer>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 1.0f);
+
         //show directional arcs
         for (int i = 1; i <= 4; i++)
         {
@@ -145,6 +150,9 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
 
         //update probe controller screen
         probe_controller_display.transform.GetChild(0).GetComponent<UnityEngine.UI.RawImage>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
+
+        //update lateral movement stick
+        probe_lateral_movement_stick_icon.GetComponent<SpriteRenderer>().color = new Color(BLUE.r, BLUE.g, BLUE.b, 0.08f);
 
         //fade directional arcs
         for (int i = 1; i < 5; i++)
@@ -233,6 +241,9 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
             probe_controller_display.transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(RED.r, RED.g, RED.b, 0.08f);
         }
 
+        //update lateral movement stick
+        probe_lateral_movement_stick_icon.GetComponent<SpriteRenderer>().color = new Color(RED.r, RED.g, RED.b, 0.08f);
+
         //hide load circle
         probe_load_outer_circle.gameObject.SetActive(false);
 
@@ -246,8 +257,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         //update signal
         enableProbeOutOfRangeWarning();
 
-        //hide altimeter
-        //hide altimeter, show blank one as orange
+        //hide altimeter, show blank one as red
         probe_altimeter_display.transform.GetChild(0).gameObject.SetActive(false);
         probe_altimeter_display.transform.GetChild(1).gameObject.SetActive(true);
         foreach (Transform t in probe_altimeter_display.transform.GetChild(1))
@@ -307,6 +317,9 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
             float a = Mathf.Max(0.08f, tmp_percent / 0.25f);
             probe_controller_display.transform.GetChild(adjusted_indexes[i] + 1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(ORANGE.r, ORANGE.g, ORANGE.b, a);
         }
+
+        //update lateral movement stick
+        probe_lateral_movement_stick_icon.GetComponent<SpriteRenderer>().color = ORANGE;
 
         //update/spin center icon
         probe_icon.color = ORANGE;
@@ -373,6 +386,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_feed_display.SetActive(true);
         probe_altimeter_display.SetActive(true);
         probe_range_display.SetActive(true);
+        probe_lateral_movement_stick_icon.SetActive(true);
     }
 
     public void powerOff(int position, float time)
@@ -382,6 +396,7 @@ public class ProbeInfo : MonoBehaviour, IPowerable, IDescribable
         probe_feed_display.SetActive(false);
         probe_altimeter_display.SetActive(false);
         probe_range_display.SetActive(false);
+        probe_lateral_movement_stick_icon.SetActive(false);
     }
 
     public void displayProbeRange(float percent)

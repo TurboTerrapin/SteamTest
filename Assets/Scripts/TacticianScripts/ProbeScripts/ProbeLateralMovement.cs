@@ -1,10 +1,10 @@
 /*
     ProbeLateralMovement.cs
-    - Pushes in lateral movement buttons
+    - Moves probe lateral movement stick
     - Adjusts probe controller screen (the four directional arcs)
     - Affects probe position if host
     Contributor(s): Jake Schott
-    Last Updated: 7/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -17,7 +17,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
     //CLASS CONSTANTS
     private static float BUTTON_SPEED = 10.0f;
     private static float PROBE_SPEED = 25.0f;
-    private static Vector3 LATERAL_BUTTON_MOVE_DIRECTION = new Vector3(0.0016f, -0.006f, 0.0016f);
+    private static float LATERAL_MOVEMENT_STICK_RADIUS = 0.008f;
 
     private string CONTROL_NAME = "PROBE LATERAL MOVEMENT";
     private static string INFO_MESSAGE = "Handles the forward, reverse, left, and right movements of an active probe.";
@@ -25,13 +25,11 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
     private List<int> CONTROL_INDEXES = new List<int>() {0, 2, 1, 3};
     private List<Button> BUTTONS = new List<Button>();
 
-    public List<GameObject> lateral_buttons = null; //forward, reverse, left, right
+    public GameObject probe_lateral_movement_stick;
     public GameObject probe_monitoring_display;
 
     private bool is_active = false;
     private GameObject probe;
-    private Vector3[] initial_positions = new Vector3[4];
-    private Vector3[] final_positions = new Vector3[4];
     private float[] lateral_movement_factors = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f }; //forward, reverse, left, right
     private Coroutine lateral_adjustment_coroutine = null;
 
@@ -40,7 +38,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
     private static HUDInfo hud_info = null;
 
     [Header("IK Targetable Details")]
-    public List<GameObject> IK_targets = null;
+    public GameObject IK_target = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
@@ -59,49 +57,38 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
 
         hud_info.setButtons(BUTTONS, 8);
         hud_info.setInfo(INFO_MESSAGE);
-
-        for (int i = 0; i <= 3; i++)
-        {
-            initial_positions[i] = lateral_buttons[i].transform.localPosition;
-            final_positions[i] = lateral_buttons[i].transform.localPosition + LATERAL_BUTTON_MOVE_DIRECTION;
-        }
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
-        return IK_targets[0].transform;
-        /*
-        finger_position = 0;
-        for (int i = 0; i < button_push_percentage.Length; i++)
-        {
-            if (button_push_percentage[i] > 0) finger_position = i + 1;
-        }
-        return IK_targets[finger_position].transform;
-        
-        int index = ray_targets.IndexOf(current_target.name);
-        return IK_targets[index].transform;
-        */
+        return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
@@ -109,11 +96,26 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
 
     private void displayAdjustment()
     {
-        //push lateral buttons, update circle
-        for (int i = 0; i <= 3; i++)
+        //update stick position
+        float horizontal_pos = (lateral_movement_factors[3] - lateral_movement_factors[2]);
+        float vertical_pos = (lateral_movement_factors[1] - lateral_movement_factors[0]);
+        Vector2 stick_position = new Vector2(horizontal_pos, vertical_pos);
+        if (stick_position.magnitude > 1.0f)
         {
-            lateral_buttons[i].transform.localPosition = Vector3.Lerp(initial_positions[i], final_positions[i], lateral_movement_factors[i]);
-            probe_monitoring_display.transform.GetChild(i + 1).gameObject.GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Max(0.2f, lateral_movement_factors[i]));
+            stick_position.Normalize();
+        }
+        probe_lateral_movement_stick.transform.localPosition = new Vector3(LATERAL_MOVEMENT_STICK_RADIUS * stick_position.x, LATERAL_MOVEMENT_STICK_RADIUS * stick_position.y, 0.0f);
+
+        //don't update if already disconnected
+        if (GetComponent<ProbeController>().getProbeIsConnected() == false)
+        {
+            return;
+        }
+
+        //update directional arcs
+        for (int i = 0; i < 4; i++)
+        {
+            probe_monitoring_display.transform.GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Max(0.2f, lateral_movement_factors[i]));
         }
 
         //notify probe controller
@@ -160,7 +162,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
             Vector3 positional_adjustment = Vector3.zero;
 
             //check inputs/return buttons to default
-            for (int i = 0; i <= 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[i], keys_down) && probe != null && is_active == true)
                 {
@@ -185,7 +187,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
                 }
             }
 
-            for (int i = 0; i <= 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (lateral_movement_factors[i] != 1.0f)
                 {
@@ -225,7 +227,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
     public void activate()
     {
         is_active = true;
-        for (int i = 0; i <= 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             BUTTONS[i].updateInteractable(true);
         }
@@ -234,7 +236,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
     public void deactivate()
     {
         is_active = false;
-        for (int i = 0; i <= 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             BUTTONS[i].updateInteractable(false);
         }

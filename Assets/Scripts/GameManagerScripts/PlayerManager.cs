@@ -176,9 +176,13 @@ public class PlayerManager : NetworkBehaviour
     //--------------------------------RESTART/QUIT HANDLING----------------------------------//
     //---------------------------------------------------------------------------------------//
 
-    public static void clearDontDestroyOnLoads()
+    public static void clearDontDestroyOnLoads(bool destroy_event_system)
     {
-        List<string> to_destroy = new List<string>() { "Origin", "EventSystem", "GameManagerScripts", "PlayerUICanvas", "Seats", "PlayersHolder" };
+        List<string> to_destroy = new List<string>() { "Origin", "GameManagerScripts", "PlayerUICanvas", "Seats", "PlayersHolder" };
+        if (destroy_event_system == true)
+        {
+            to_destroy.Add("EventSystem");
+        }
         foreach (string d in to_destroy)
         {
             GameObject attempt_to_destroy = GameObject.Find(d);
@@ -196,7 +200,7 @@ public class PlayerManager : NetworkBehaviour
         {
             GameObject.Destroy(NetworkManager.Singleton.gameObject);
         }
-        clearDontDestroyOnLoads();
+        clearDontDestroyOnLoads(true);
         SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
         SceneData.targetUI = "MainMenu";
         CameraMove.HideMainCamera();

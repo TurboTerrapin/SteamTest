@@ -231,7 +231,7 @@ public class LoadHandler : MonoBehaviour
         if (load_coroutines.Count > 0) //if currently loading into BridgeEnvironment, loading a scene, or transitioning between scenes
         {
             GameObject.Destroy(NetworkManager.Singleton.gameObject);
-            PlayerManager.clearDontDestroyOnLoads();
+            PlayerManager.clearDontDestroyOnLoads(true);
             SceneManager.LoadScene("TitleScreen", LoadSceneMode.Single);
             startLoad();
             while (SceneManager.GetActiveScene().name != "TitleScreen") //get back to TitleScreen
@@ -251,6 +251,7 @@ public class LoadHandler : MonoBehaviour
             PrimaryScript.Instance.unpause(); //forces unpause
             PrimaryScript.Instance.deactivate(false, true); //stops control interaction
             ReferenceAssistor.Instance.audio_manager.GetComponent<AudioManager>().MuteSFX(); //mute SFX
+            PlayerManager.clearDontDestroyOnLoads(false);
             CameraMove.HideMainCamera();
             enableDummyCameraIfNecessary();
         }

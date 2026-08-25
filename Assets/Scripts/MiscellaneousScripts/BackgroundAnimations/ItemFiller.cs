@@ -18,6 +18,7 @@ public class ItemFiller : MonoBehaviour, IAnimable
     private float fill_percentage = 0.0f;
     private float dir = 1.0f;
 
+    private List<UnityEngine.UI.Image> images = new List<UnityEngine.UI.Image>();
     private List<float> starting_amounts = new List<float>();
     private List<float> final_amounts = new List<float>();
 
@@ -41,6 +42,10 @@ public class ItemFiller : MonoBehaviour, IAnimable
 
     private void Start()
     {
+        foreach (GameObject image in items_to_fill)
+        {
+            images.Add(image.GetComponent<UnityEngine.UI.Image>());
+        }
         generateNewStartingAmounts();
         generateNewFinalAmounts();
     }
@@ -63,7 +68,7 @@ public class ItemFiller : MonoBehaviour, IAnimable
         }
         for (int i = 0; i < items_to_fill.Count; i++)
         {
-            items_to_fill[i].GetComponent<UnityEngine.UI.Image>().fillAmount = Mathf.Lerp(starting_amounts[i], final_amounts[i], fill_percentage);
+            images[i].fillAmount = Mathf.Lerp(starting_amounts[i], final_amounts[i], fill_percentage);
         }
     }
 }

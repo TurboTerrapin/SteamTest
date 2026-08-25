@@ -383,14 +383,16 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         }
     }
 
-    //returns probe if exists and connected
+    //returns probe if exists
     public GameObject getProbe()
     {
-        if (probe_connected == true && current_probe != null)
-        {
-            return current_probe;
-        }
-        return null;
+        return current_probe;
+    }
+
+    //returns if probe currently connected
+    public bool getProbeIsConnected()
+    {
+        return probe_connected;
     }
 
     public void damageProbe(float dam)
