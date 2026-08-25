@@ -158,9 +158,9 @@ public class ProximityMap : MonoBehaviour, IPowerable
         proximity_map_renderer.transform.GetChild(0).GetChild(4).GetChild(index).localRotation = Quaternion.Euler(0.0f, 0.0f, -angle);
     }
 
-    public void rotateMap()
+    public void rotateMap(float ship_rotation)
     {
-        proximity_map_renderer.transform.GetChild(0).transform.localRotation = Quaternion.Euler(0.0f, 0.0f, this_ship.transform.localEulerAngles.y);
+        proximity_map_renderer.transform.GetChild(0).transform.localRotation = Quaternion.Euler(0.0f, 0.0f, ship_rotation);
     }
 
     private void updateMap()

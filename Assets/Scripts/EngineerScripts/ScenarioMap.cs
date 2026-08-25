@@ -298,10 +298,9 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         heading_display.transform.GetChild(3).GetChild(1).GetComponent<TMP_Text>().SetText(target_heading);
     }
 
-    public void updateShipLocation()
+    public void updateShipLocation(Vector3 world_root_position)
     {
-        GameObject world_root = ReferenceAssistor.Instance.world_root;
-        Vector2 ship_location = new Vector2(-world_root.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -world_root.transform.position.x);
+        Vector2 ship_location = new Vector2(-world_root_position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -world_root_position.x);
         ship_location *= ITEM_LOCATION_CONVERSION_FACTOR;
         if (ship_location.y <= -0.285f)
         {
@@ -314,11 +313,9 @@ public class ScenarioMap : MonoBehaviour, IPowerable
         ship_icon.transform.localPosition = new Vector3(ship_location.x, ship_location.y, 0.0f);
     }
 
-    public void updateAltitude()
+    public void updateAltitude(float current_altitude)
     {
-        GameObject world_root = ReferenceAssistor.Instance.world_root;
-        float new_altitude = -world_root.transform.position.y;
-        string rounded_altitude = (Mathf.Round(new_altitude * 10.0f) / 10.0f).ToString();
+        string rounded_altitude = (Mathf.Round(current_altitude * 10.0f) / 10.0f).ToString();
         if (rounded_altitude.Contains(".") == false)
         {
             rounded_altitude += ".0";

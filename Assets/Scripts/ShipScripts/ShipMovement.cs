@@ -6,7 +6,7 @@
     - Handles getting "stunned" when running into immovable objects
     - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
     Contributor(s): Henryk Musial
-    Last Updated: 7/20/2026
+    Last Updated: 8/24/2026
 */
 
 using System.Collections;
@@ -58,7 +58,7 @@ public class ShipMovement : NetworkBehaviour
     private float currentVerticalSpeed = 0f;
 
     // Stun values
-    private float stunFactor = 0.0f; //ranges from 0 to 1
+    private float stunFactor = 0.0f; // Ranges from 0 to 1
     private Coroutine stunPushbackCoroutine = null;
 
     // Boundary values
@@ -70,7 +70,7 @@ public class ShipMovement : NetworkBehaviour
     private float exitSlope = 0.0f;
     private float[] exitIntercepts = new float[2];
     private bool insideBoundary = true;
-    private bool insideAltitudeBoundary = true; //used for altitude boundary display in EngineerMap
+    private bool insideAltitudeBoundary = true; // Used for altitude boundary display in ScenarioMap
     private Coroutine boundaryCountdownCoroutine = null;
 
     private void AssignControlReferences()
@@ -100,19 +100,19 @@ public class ShipMovement : NetworkBehaviour
         }
     }
 
-    //called by EngineCoolantSupply
+    // Called by EngineCoolantSupply
     public void AdjustMaxImpulseSpeed(float factor)
     {
         impulseSpeedAdjustmentFactor = factor;
     }
 
-    //called by ScenarioManager
+    // Called by ScenarioManager
     public void UnlockMovement()
     {
         movementAllowed = true;
     }
 
-    //called by ScenarioManager
+    // Called by ScenarioManager
     public void LockMovement()
     {
         currentRotationSpeed = 0.0f;
@@ -125,7 +125,7 @@ public class ShipMovement : NetworkBehaviour
         movementAllowed = false;
     }
 
-    //called by DirectionalShifter
+    // Called by DirectionalShifter
     public void ShiftDirection(bool newDirection)
     {
         inReverse = newDirection;
@@ -139,27 +139,27 @@ public class ShipMovement : NetworkBehaviour
         verticalThrust = verticalThrusters.getVerticalThrusterState();
     }
 
-    //called by ScenarioManager.setNewPathsRPC()
+    // Called by ScenarioManager.setNewPathsRPC()
     public void PlaceShip(Vector2 position, float rotation)
     {
         GameObject worldRoot = ReferenceAssistor.Instance.world_root;
-        //place at entrance path point
+        // Place at entrance path point
         worldRoot.transform.position = new Vector3(-position.y, worldRoot.transform.position.y, -position.x - (ScenarioManager.BOUNDARY_SIZE * 0.5f));
-        //rotate to match entrance path channel
+        // Rotate to match entrance path channel
         transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-        //set back a little bit in the entrance path channel
+        // Set back a little bit in the entrance path channel
         worldRoot.transform.position += transform.forward * ScenarioManager.START_DIST_OFFSET;
-        //randomize height
+        // Randomize altitude
         worldRoot.transform.position = new Vector3(worldRoot.transform.position.x, Random.Range(-10.0f, 10.0f), worldRoot.transform.position.z);
-        LateralMovementRPC();
-        AltitudeChangeRPC();
-        RotationChangeRPC();
-        //start inside the boundary
+        LateralMovementRPC(worldRoot.transform.position);
+        AltitudeChangeRPC(-1.0f * worldRoot.transform.position.y);
+        RotationChangeRPC(transform.rotation.eulerAngles.y);
+        // Start inside the boundary
         insideBoundary = true;
         insideAltitudeBoundary = true;
     }
 
-    //called by PlayerManager and this
+    // Called by PlayerManager and this
     public string GetTargetHeading()
     {
         GameObject worldRoot = ReferenceAssistor.Instance.world_root;
@@ -174,18 +174,18 @@ public class ShipMovement : NetworkBehaviour
         return FlyingInstruments.getRoundedDegreeReading(angle);
     }
 
-    //returns true if within boundary (including entrance/exit channels)
+    // Returns true if within boundary (including entrance/exit channels)
     private bool ShipIsWithinBoundary()
     {
         GameObject worldRoot = ReferenceAssistor.Instance.world_root;
         Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
 
-        Vector2[] checkPoints = new Vector2[2]; //0 is lower, 1 is upper
-        Vector2[] pathPoints = entrancePoints; //where the boundary interesects the 
+        Vector2[] checkPoints = new Vector2[2]; // 0 is lower, 1 is upper
+        Vector2[] pathPoints = entrancePoints;
         float[] pathIntercepts = entranceIntercepts;
         float currentSlope = entranceSlope;
 
-        if (shipPosition.x > 0.0f) //if true, means we are checking the exit path
+        if (shipPosition.x > 0.0f) // If true, means we are checking the exit path
         {
             pathPoints = exitPoints;
             pathIntercepts = exitIntercepts;
@@ -203,36 +203,36 @@ public class ShipMovement : NetworkBehaviour
             }
         }
 
-        //assign lower (0) and upper (1) points
+        // Assign lower (0) and upper (1) points
         for (int i = 0; i < 2; i++)
         {
             checkPoints[i].x = shipPosition.x;
-            checkPoints[i].y = -9999.9f; //lower minimum
+            checkPoints[i].y = -9999.9f; // Lower minimum
             if (i == 1)
             {
-                checkPoints[i].y = 9999.9f; //upper maximum
+                checkPoints[i].y = 9999.9f; // Upper maximum
             }
             if (shipPosition.x < 0.0f)
             {
-                if (shipPosition.x <= pathPoints[i].x) //ship position is to the right of the entrance point
+                if (shipPosition.x <= pathPoints[i].x) // Ship position is to the right of the entrance point
                 {
                     checkPoints[i].y = (currentSlope * shipPosition.x) + pathIntercepts[i];
                 }
             }
             else
             {
-                if (shipPosition.x >= pathPoints[i].x) //ship position is to the left of the exit point
+                if (shipPosition.x >= pathPoints[i].x) // Ship position is to the left of the exit point
                 {
                     checkPoints[i].y = (currentSlope * shipPosition.x) + pathIntercepts[i];
                 }
             }
         }
 
-        //check if ship is between the two points
+        // Check if ship is between the two points
         return (shipPosition.y > checkPoints[0].y && shipPosition.y < checkPoints[1].y);
     }
 
-    //takes a point and an angle and returns a new point on the circle shifted angleDifference degrees
+    // Takes a point and an angle and returns a new point on the circle shifted angleDifference degrees
     private Vector2 CalculatePoint(Vector2 pathPoint, float angleDifference)
     {
         float pathPointAngle = (Mathf.Rad2Deg * Mathf.Atan(pathPoint.y / pathPoint.x));
@@ -240,10 +240,10 @@ public class ShipMovement : NetworkBehaviour
         return returnPoint;
     }
 
-    //called by ScenarioManager.setNewPathsRPC() at the start of every scenario
+    // Called by ScenarioManager.setNewPathsRPC() at the start of every scenario
     public void SetPaths(Vector2 entrancePath, float entranceRotation, Vector2 exitPath, float exitRotation)
     {
-        //plot entrance points
+        // Plot entrance points
         entrancePoints[0] = CalculatePoint(entrancePath, ScenarioManager.PATH_SIZE * 0.5f);
         entrancePoints[0] *= -1.0f;
         entrancePoints[1] = CalculatePoint(entrancePath, -ScenarioManager.PATH_SIZE * 0.5f);
@@ -252,7 +252,7 @@ public class ShipMovement : NetworkBehaviour
         entranceIntercepts[0] = entrancePoints[0].y - (entranceSlope * entrancePoints[0].x);
         entranceIntercepts[1] = entrancePoints[1].y - (entranceSlope * entrancePoints[1].x);
 
-        //plot exit points
+        // Plot exit points
         exitTarget = exitPath;
         exitPoints[0] = CalculatePoint(exitPath, -ScenarioManager.PATH_SIZE * 0.5f);
         exitPoints[1] = CalculatePoint(exitPath, ScenarioManager.PATH_SIZE * 0.5f);
@@ -304,25 +304,24 @@ public class ShipMovement : NetworkBehaviour
 
         HandleRotation(dt);
 
-        //vertical movement
+        // Vertical movement
         if (currentVerticalSpeed != 0.0f)
         {
-            //update pilot altimeter
-            AltitudeChangeRPC();
+            // Update altimeters
+            AltitudeChangeRPC(-1.0f * worldRoot.transform.position.y);
         }
 
-        //lateral movement
+        // Lateral movement
         if (currentImpulseSpeed != 0.0f || currentHorizontalSpeed != 0.0f)
         {
-            LateralMovementRPC();
+            LateralMovementRPC(worldRoot.transform.position);
         }
 
-        //any movement at all
+        // Any movement at all
         if (currentImpulseSpeed != 0.0f || currentVerticalSpeed != 0.0f || currentHorizontalSpeed != 0.0f)
         {
-            //update probe (if it exists)
-            GameObject probe = GameObject.FindGameObjectWithTag("Probe");
-            if (probe != null)
+            // Update probe (if it exists)
+            if (probeController.getProbe() != null)
             {
                 ProbeDistanceChangeRPC();
             }
@@ -364,46 +363,46 @@ public class ShipMovement : NetworkBehaviour
         }
 
         // Update maps/rotation slider
-        RotationChangeRPC();
+        RotationChangeRPC(transform.rotation.eulerAngles.y);
     }
 
 
     [Rpc(SendTo.Everyone)]
     private void ProbeDistanceChangeRPC()
     {
-        //update probe (if it exists)
+        // Update probe (if it exists)
         probeController.onProbeDistanceChange();
     }
 
     private void BoundaryCheck(GameObject worldRoot)
     {
-        //check for boundary
+        // Check for boundary
         Vector2 shipPosition = new Vector2(-worldRoot.transform.position.z - (ScenarioManager.BOUNDARY_SIZE * 0.5f), -worldRoot.transform.position.x);
         Vector2 circleCenter = new Vector2(0.0f, 0.0f);
 
         if (Mathf.Abs(worldRoot.transform.position.y) > ScenarioManager.BOUNDARY_ALTITUDE)
         {
-            ShipBoundaryChangeRPC(false, false); //ship is outside of altitude boundary
+            ShipBoundaryChangeRPC(false, false); // Ship is outside of altitude boundary
             return;
         }
 
         float distanceFromCenter = Vector2.Distance(shipPosition, circleCenter);
-        if (distanceFromCenter > (ScenarioManager.BOUNDARY_SIZE * 0.5f)) //check if outside circle
+        if (distanceFromCenter > (ScenarioManager.BOUNDARY_SIZE * 0.5f)) // Check if outside circle
         {
             if (ShipIsWithinBoundary() == true)
             {
-                if (shipPosition.x < 0.0f) //check if too far back in entrance path
+                if (shipPosition.x < 0.0f) // Check if too far back in entrance path
                 {
                     if (distanceFromCenter < ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.START_DIST_OFFSET + 50.0f))
                     {
                         if (insideBoundary == false)
                         {
-                            ShipBoundaryChangeRPC(true, true); //ship is inside entrance path and not far back enough to say out of bounds
+                            ShipBoundaryChangeRPC(true, true); // Ship is inside entrance path and not far back enough to say out of bounds
                         }
                         return;
                     }
                 }
-                else //check if reached exit in exit path
+                else // Check if reached exit in exit path
                 {
                     if (distanceFromCenter > ((ScenarioManager.BOUNDARY_SIZE * 0.5f) + ScenarioManager.DIST_TO_ENDPOINT))
                     {
@@ -417,30 +416,15 @@ public class ShipMovement : NetworkBehaviour
             }
             if (insideBoundary == true || insideAltitudeBoundary == false)
             {
-                ShipBoundaryChangeRPC(false, true); //ship is outside boundary but inside altitude boundary
+                ShipBoundaryChangeRPC(false, true); // Ship is outside boundary but inside altitude boundary
             }
         }
-        else //is inside the circle and altitude boundary
+        else // Inside the circle and altitude boundary
         {
             if (insideBoundary == false)
             {
                 ShipBoundaryChangeRPC(true, true);
             }
-        }
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void LateralMovementRPC()
-    {
-        //update map
-        GameObject worldRoot = ReferenceAssistor.Instance.world_root;
-
-        scenarioMap.updateShipLocation();
-
-        //if host, check boundary
-        if (NetworkManager.Singleton.IsHost == true)
-        {
-            BoundaryCheck(worldRoot);
         }
     }
 
@@ -478,13 +462,16 @@ public class ShipMovement : NetworkBehaviour
         stunPushbackCoroutine = null;
     }
 
-    //pushes the ship back and disables power
+    // Pushes the ship back and disables power
     public void StunShip()
     {
-        if (stunPushbackCoroutine == null)
+        if (NetworkManager.Singleton.IsHost == true)
         {
-            ReferenceAssistor.Instance.power_manager.totalShutdown(true);
-            stunPushbackCoroutine = StartCoroutine(StunPushback());
+            if (stunPushbackCoroutine == null)
+            {
+                ReferenceAssistor.Instance.power_manager.totalShutdown(true);
+                stunPushbackCoroutine = StartCoroutine(StunPushback());
+            }
         }
     }
 
@@ -524,26 +511,37 @@ public class ShipMovement : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void RotationChangeRPC()
+    private void LateralMovementRPC(Vector3 newPosition)
     {
-        proximityMap.rotateMap();
-        float ship_rotation = transform.rotation.eulerAngles.y;
-        string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
-        flyingInstruments.updateCourseHeadingScreen(ship_rotation, current_heading);
-        scenarioMap.updateShipOrientation(ship_rotation, current_heading, GetTargetHeading());
+        // Update map
+        scenarioMap.updateShipLocation(newPosition);
+
+        // If host, check boundary
+        if (NetworkManager.Singleton.IsHost == true)
+        {
+            BoundaryCheck(ReferenceAssistor.Instance.world_root);
+        }
     }
 
     [Rpc(SendTo.Everyone)]
-    private void AltitudeChangeRPC()
+    private void RotationChangeRPC(float shipRotation)
     {
-        GameObject worldRoot = ReferenceAssistor.Instance.world_root;
-        flyingInstruments.updateAltimeterScreen();
-        scenarioMap.updateAltitude();
+        proximityMap.rotateMap(shipRotation);
+        string currentHeading = FlyingInstruments.getRoundedDegreeReading(shipRotation + 90.0f);
+        flyingInstruments.updateCourseHeadingScreen(shipRotation, currentHeading);
+        scenarioMap.updateShipOrientation(shipRotation, currentHeading, GetTargetHeading());
+    }
 
-        //if host, check boundary
+    [Rpc(SendTo.Everyone)]
+    private void AltitudeChangeRPC(float shipAltitude)
+    {
+        flyingInstruments.updateAltimeterScreen(shipAltitude);
+        scenarioMap.updateAltitude(shipAltitude);
+
+        // If host, check boundary
         if (NetworkManager.Singleton.IsHost == true)
         {
-            BoundaryCheck(worldRoot);
+            BoundaryCheck(ReferenceAssistor.Instance.world_root);
         }
     }
 }

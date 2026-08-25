@@ -170,7 +170,6 @@ public class PlayerManager : NetworkBehaviour
         {
             startScenarioRPC(ReferenceAssistor.Instance.scenario_manager.getCurrentScenarioIndex());
         }
-        handleShipRepositioning();
     }
 
     //---------------------------------------------------------------------------------------//
@@ -271,20 +270,6 @@ public class PlayerManager : NetworkBehaviour
         scenarioLoadedRPC(SteamClient.SteamId);
     }
 
-    //when paths are generated, ship is relocated into entrance path, thus requiring an update to ship screens
-    public void handleShipRepositioning()
-    {
-        float ship_rotation = ReferenceAssistor.Instance.spaceship.transform.rotation.eulerAngles.y;
-        string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
-        string target_heading = ReferenceAssistor.Instance.spaceship.GetComponent<ShipMovement>().GetTargetHeading();
-
-        ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateAltimeterScreen();
-        ReferenceAssistor.Instance.module_handlers[0].GetComponent<FlyingInstruments>().updateCourseHeadingScreen(ship_rotation, current_heading);
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>().updateAltitude();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>().updateShipLocation();
-        ReferenceAssistor.Instance.module_handlers[2].GetComponent<ScenarioMap>().updateShipOrientation(ship_rotation, current_heading, target_heading);
-    }
-
     [Rpc(SendTo.Everyone)]
     private void startScenarioRPC(int current_scenario_index)
     {
@@ -306,9 +291,6 @@ public class PlayerManager : NetworkBehaviour
         //reactivate camera
         local_player.transform.GetComponent<CameraMove>().ReactivateCamera();
         
-        //update screens to account for ship's new location/rotation in newly-generated entrance path
-        handleShipRepositioning();
-
         //unmute audio and activate computer voice that was muted/deactivated during scenario transition
         ReferenceAssistor.Instance.audio_manager.ActivateComputerVoice();
         ReferenceAssistor.Instance.audio_manager.UnmuteSFX();

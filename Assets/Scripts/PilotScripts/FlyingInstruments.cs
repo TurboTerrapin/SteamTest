@@ -3,7 +3,7 @@
     - Updates course heading text and compass slider
     - Updates ship altimeter
     Contributor(s): Jake Schott
-    Last Updated: 2/1/2026
+    Last Updated: 8/24/2026
 */
 
 using System.Collections.Generic;
@@ -44,12 +44,6 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
 
     private void Start()
     {
-        float ship_rotation = GameObject.FindGameObjectWithTag("Spaceship").transform.rotation.eulerAngles.y;
-        string current_heading = FlyingInstruments.getRoundedDegreeReading(ship_rotation + 90.0f);
-
-        updateCourseHeadingScreen(ship_rotation, current_heading);
-        updateAltimeterScreen();
-
         for (int i = 0; i < INFO_TITLES.Length; i++)
         {
             corresponding_infos.Add(new HUDInfo(INFO_TITLES[i]));
@@ -92,17 +86,8 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
         return display_heading;
     }
 
-    public void updateAltimeterScreen()
+    public void updateAltimeterScreen(float current_altitude)
     {
-        GameObject world_root = GameObject.FindGameObjectWithTag("WorldRoot");
-        if (world_root == null)
-        {
-            return;
-        }
-
-        //get current altitude
-        float current_altitude = -1.0f * world_root.transform.position.y;
-
         //get number markers
         int smallest_number = (((int)(current_altitude)) / 10) * 10;
         int next_number = smallest_number + 10;
@@ -205,12 +190,6 @@ public class FlyingInstruments : MonoBehaviour, IPowerable, IDescribable
 
     public void updateCourseHeadingScreen(float current_rotation, string current_heading)
     {
-        GameObject spaceship = GameObject.FindGameObjectWithTag("Spaceship");
-        if (spaceship == null)
-        {
-            return;
-        }
-
         //get ship rotation to get directional heading
         heading_text.GetComponent<TMP_Text>().SetText(current_heading);
 
