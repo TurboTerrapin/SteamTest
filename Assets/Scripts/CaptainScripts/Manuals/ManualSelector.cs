@@ -49,7 +49,7 @@ public class ManualSelector : NetworkBehaviour, IControllable, IIKTargetable
         manuals[0] = GetComponent<ProcedureManual>();
         manuals[1] = GetComponent<OperatingManual>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true, (ManualOnOff.MAX_POWER_CONSUMPTION / 2.0f));
+        hud_info = new HUDInfo(CONTROL_NAMES[0], ManualOnOff.MAX_POWER_CONSUMPTION / 2.0f);
         for (int i = 0; i < 2; i++)
         {
             for (int x = 0; x < 6; x++)

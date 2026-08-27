@@ -3,7 +3,7 @@
     - Handles inertial dampener
     - When enabled, increase acceleration rates for thrusters and impulse throttle
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -46,7 +46,7 @@ public class InertialDampener : NetworkBehaviour, IControllable, IPowerable, IIK
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
+        hud_info = new HUDInfo(CONTROL_NAME, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);

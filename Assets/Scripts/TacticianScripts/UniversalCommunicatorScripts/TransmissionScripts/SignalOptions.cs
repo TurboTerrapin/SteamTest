@@ -2,7 +2,7 @@
     SignalOptions.cs
     - Handles the controls that send/receive transmissions
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -51,7 +51,7 @@ public class SignalOptions : NetworkBehaviour, IControllable, IIKTargetable
         universal_communicator = GetComponent<UniversalCommunicator>();
         transmission_handler = GetComponent<TransmissionHandler>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true, TransmissionHandler.MAX_POWER_CONSUMPTION);
+        hud_info = new HUDInfo(CONTROL_NAMES[0], TransmissionHandler.MAX_POWER_CONSUMPTION);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
 

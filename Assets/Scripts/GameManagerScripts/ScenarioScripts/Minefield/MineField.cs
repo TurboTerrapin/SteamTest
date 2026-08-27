@@ -94,6 +94,15 @@ public class Minefield : NetworkBehaviour, IScenario, IEmissionSusceptible, IBro
 
     public void initiateScenario()
     {
+        // Enable light layer two
+        ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(true);
+        foreach (Transform t in ReferenceAssistor.Instance.light_layer_two.transform)
+        {
+            Light l = t.GetComponent<Light>();
+            l.intensity = 0.03f;
+            l.color = Color.white;
+        }
+
         if (NetworkManager.Singleton.IsHost == false)
         {
             return;

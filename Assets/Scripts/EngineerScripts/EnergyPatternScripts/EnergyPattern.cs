@@ -3,7 +3,7 @@
     - Handles enabling/disabling energy pattern display
     - Handles shifting between ship/probe/tractor beam configuration
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -59,8 +59,8 @@ public class EnergyPattern : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     private void Start()
     {
-        hud_infos[0] = new HUDInfo(CONTROL_NAMES[0], true, MAX_POWER_CONSUMPTION);
-        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1], true, MAX_POWER_CONSUMPTION);
+        hud_infos[0] = new HUDInfo(CONTROL_NAMES[0], MAX_POWER_CONSUMPTION);
+        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1], MAX_POWER_CONSUMPTION);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_infos[0].setButtons(BUTTON_LISTS[0], 6);

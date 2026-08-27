@@ -3,7 +3,7 @@
     - Handles launching of probe
     - Handles destroying of probe
     Contributor(s): Jake Schott
-    Last Updated: 7/24/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -16,9 +16,9 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
     //CLASS CONSTANTS
     private static float RANGE = 1250.0f; //how far the probe can be from the ship while still being in contact
     private static float DEFAULT_PROBE_HEALTH = 15.0f; //starting/max health for probe
-    private static float TURN_TIME = 0.5f;
-    private static float FUNCTION_TIME = 2.0f; //how long it takes to launch or self-destruct the probe
-    private static float PROBE_TRANSFORM_ADJUSTMENT_TIME = 2.0f; //how long it takes for the probe to move forward
+    private static float DIAL_TURN_TIME = 0.5f;
+    private static float[] FUNCTION_TIMES = new float[] { 3.5f, 2.0f }; //how long it takes to launch or self-destruct the probe
+    private static float PROBE_TRANSFORM_ADJUSTMENT_TIME = 0.5f; //how long it takes for the probe to move forward
     private static float MAX_POWER_CONSUMPTION = 0.5f; //equates to 5 circles
 
     private string[] CONTROL_NAMES = new string[2] { "LAUNCH PROBE", "DESTROY PROBE" };
@@ -53,7 +53,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     private List<KeyCode> keys_down = new List<KeyCode>();
 
-    private static HUDInfo hud_info = null;
+    private static HUDInfo[] hud_infos = new HUDInfo[2];
 
     [Header("IK Targetable Details")]
     public List<GameObject> IK_targets = null;
@@ -69,22 +69,19 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         probe_info = GetComponent<ProbeInfo>();
         ship_inventory = ReferenceAssistor.Instance.spaceship.GetComponent<ShipInventory>();
 
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true, MAX_POWER_CONSUMPTION);
+        hud_infos[0] = new HUDInfo(CONTROL_NAMES[0], MAX_POWER_CONSUMPTION);
+        hud_infos[1] = new HUDInfo(CONTROL_NAMES[1]);
 
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
 
-        hud_info.setButtons(BUTTON_LISTS[0]);
+        hud_infos[0].setButtons(BUTTON_LISTS[0]);
+        hud_infos[1].setButtons(BUTTON_LISTS[1]);
     }
 
     public HUDInfo getHUDinfo(GameObject current_target)
     {
-        int index = ray_targets.IndexOf(current_target.name);
-        hud_info.setTitle(CONTROL_NAMES[index]);
-        hud_info.setInfo(INFO_MESSAGES[index]);
-
-        hud_info.setButtons(BUTTON_LISTS[index]);
-        return hud_info;
+        return hud_infos[ray_targets.IndexOf(current_target.name)];
     }
 
     public Transform getIKTarget(GameObject current_target)
@@ -118,11 +115,17 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         return lerp_speed;
     }
 
+    //notifies power change and updates UI
+    private void updatePowerConsumption(float consumption)
+    {
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumption);
+        hud_infos[0].setPowerConsumption(consumption);
+    }
+
     //called any time a probe is destroyed
     public void onProbeDestroyed()
     {
-        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
-        hud_info.setPowerConsumption(0.0f);
+        updatePowerConsumption(0.0f);
     }
 
     //run by the host to push the launched probe away from the ship
@@ -133,7 +136,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            current_probe.transform.localPosition = new Vector3(5.6f, -4.6f, 77.0f + Mathf.Lerp(30.0f, 0.0f, anim_time / PROBE_TRANSFORM_ADJUSTMENT_TIME));
+            current_probe.transform.localPosition = new Vector3(5.6f, -4.6f, 80.0f + Mathf.Lerp(30.0f, 0.0f, anim_time / PROBE_TRANSFORM_ADJUSTMENT_TIME));
 
             yield return null;
         }
@@ -158,7 +161,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             }
             Transform spaceship = ReferenceAssistor.Instance.spaceship.transform;
             current_probe = GameObject.Instantiate(probe_actual_prefab, spaceship);
-            current_probe.transform.localPosition = new Vector3(0.0f, 5.0f, 55.0f);
+            current_probe.transform.localPosition = new Vector3(5.6f, -4.6f, 80.0f);
             current_probe.transform.rotation = spaceship.rotation;
             current_probe.GetComponent<NetworkObject>().SpawnWithOwnership(0, true);
             current_probe.GetComponent<NetworkObject>().TrySetParent(spaceship, true);
@@ -169,13 +172,6 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
 
         //set health to default
         probe_health = DEFAULT_PROBE_HEALTH;
-
-        //handle new power consumption
-        if (is_powered == true)
-        {
-            ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
-            hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
-        }
     }
 
     //turns corresponding dial based on dial_turn_percentage
@@ -206,11 +202,11 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             }
             if (PrimaryScript.checkInputIndex(CONTROL_INDEXES[0], keys_down) && able_to_turn) //check if turning
             {
-                dial_turn_percentages[dial_to_check] = Mathf.Min(1.0f, dial_turn_percentages[dial_to_check] + (dt / TURN_TIME));
+                dial_turn_percentages[dial_to_check] = Mathf.Min(1.0f, dial_turn_percentages[dial_to_check] + (dt / DIAL_TURN_TIME));
             }
             else
             {
-                dial_turn_percentages[dial_to_check] = Mathf.Max(0.0f, dial_turn_percentages[dial_to_check] - (dt / TURN_TIME));
+                dial_turn_percentages[dial_to_check] = Mathf.Max(0.0f, dial_turn_percentages[dial_to_check] - (dt / DIAL_TURN_TIME));
             }
 
             transmitDialTurnAdjustmentRPC(dial_to_check, dial_turn_percentages[dial_to_check]);
@@ -239,13 +235,13 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
 
     IEnumerator dialReturn()
     {
-        float anim_time = TURN_TIME;
+        float anim_time = DIAL_TURN_TIME;
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
             for (int i = 0; i < 2; i++)
             {
-                dial_turn_percentages[i] = Mathf.Max(0.0f, dial_turn_percentages[i] - (Time.deltaTime / TURN_TIME));
+                dial_turn_percentages[i] = Mathf.Max(0.0f, dial_turn_percentages[i] - (Time.deltaTime / DIAL_TURN_TIME));
                 displayDialAdjustment(i);
             }
 
@@ -309,15 +305,20 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             serial_num = ship_inventory.removeItem("Probe");
         }
 
-        probe_charge_sound.Play();
+        updatePowerConsumption(MAX_POWER_CONSUMPTION);
 
-        float anim_time = FUNCTION_TIME;
+        float anim_time = FUNCTION_TIMES[0];
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            float percent_loaded = 1.0f - (anim_time / FUNCTION_TIME);
+            float percent_loaded = 1.0f - (anim_time / FUNCTION_TIMES[0]);
             probe_info.displayProbeLaunchProgress(percent_loaded);
+
+            if (probe_charge_sound.isPlaying == false && percent_loaded > 0.4f)
+            {
+                probe_charge_sound.Play();
+            }
 
             yield return null;
         }
@@ -325,6 +326,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         probe_charge_sound.Stop();
         probe_launch_sound.Play();
         spawnProbe(serial_num);
+        updatePowerConsumption(0.0f);
         updateDialDisplays();
 
         probe_function_coroutine = null;
@@ -341,12 +343,12 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             current_probe.GetComponent<Probe>().toggleSelfDestructVisual();
         }
 
-        float anim_time = FUNCTION_TIME;
+        float anim_time = FUNCTION_TIMES[1];
         while (anim_time > 0.0f)
         {
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
-            float percent_loaded = 1.0f - (anim_time / FUNCTION_TIME);
+            float percent_loaded = 1.0f - (anim_time / FUNCTION_TIMES[1]);
             probe_info.displayProbeDestructProgress(percent_loaded);
 
             yield return null;
@@ -581,8 +583,6 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
                 active_dial = -1;
             }
             BUTTON_LISTS[1][0].updateInteractable(probeInRange());
-            ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, MAX_POWER_CONSUMPTION);
-            hud_info.setPowerConsumption(MAX_POWER_CONSUMPTION);
         }
         else
         {
@@ -612,7 +612,7 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
         {
             BUTTON_LISTS[i][0].updateInteractable(false);
         }
-        hud_info.setPowerConsumption(0.0f);
+        updatePowerConsumption(0.0f);
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -663,11 +663,6 @@ public class ProbeController : NetworkBehaviour, IControllable, IPowerable, IIKT
             if (probe_intact == true)
             {
                 probe_info.onProbeOutOfRangeDisconnect();
-            }
-            else
-            {
-               ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, 0.0f);
-               hud_info.setPowerConsumption(0.0f);
             }
         }
         updateDialDisplays();

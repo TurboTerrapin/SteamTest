@@ -165,10 +165,10 @@ public class HUDInfo
         control_name = title;
     }
 
-    public HUDInfo(string title, bool is_powerable, float max_possible_consumption)
+    public HUDInfo(string title, float max_possible_consumption)
     {
         control_name = title;
-        consumes_power = is_powerable;
+        consumes_power = true;
         maximum_consumption = max_possible_consumption;
     }
 
@@ -307,6 +307,7 @@ public class HUDInfo
 
     public void setMaxPowerConsumption(float max_pwr_consumption)
     {
+        consumes_power = (max_pwr_consumption > 0.0f);
         maximum_consumption = max_pwr_consumption;
     }
 

@@ -2,7 +2,7 @@
     PhaserHeat.cs
     - Adjusts short-range and long-range heat based on usage and intensity
     Contributor(s): Jake Schott
-    Last Updated: 6/11/2026
+    Last Updated: 8/25/2026
 */
 
 using UnityEngine;
@@ -23,7 +23,6 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
     public GameObject phaser_heat_display;
     public List<AudioClip> overheat_notifications;
     private UnityEngine.UI.Image[] phaser_heat_bars = new UnityEngine.UI.Image[2];
-    private PhaserActivators phaser_activators;
     private PhaserIntensities phaser_intensities;
 
     private float[] phaser_heats = new float[] { 0.0f, 0.0f };
@@ -32,7 +31,6 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
 
     private void Start()
     {
-        phaser_activators = ReferenceAssistor.Instance.module_handlers[1].GetComponent<PhaserActivators>();
         phaser_intensities = ReferenceAssistor.Instance.module_handlers[1].GetComponent<PhaserIntensities>();
         phaser_heat_bars[0] = phaser_heat_display.transform.GetChild(1).GetChild(2).GetComponent<UnityEngine.UI.Image>();
         phaser_heat_bars[1] = phaser_heat_display.transform.GetChild(2).GetChild(2).GetComponent<UnityEngine.UI.Image>();
@@ -89,6 +87,7 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
         }
 
         //display color
+        phaser_intensities.adjustPhaserColor(phaser_category, c);
         phaser_heat_display.transform.GetChild(1 + phaser_category).GetChild(1).GetComponent<TMP_Text>().color = c;
         if (phaser_states[phaser_category] == 0)
         {
@@ -103,46 +102,32 @@ public class PhaserHeat : NetworkBehaviour, IPowerable
 
     IEnumerator heatAdjuster()
     {
-        bool[] active_phasers = phaser_activators.getActivePhasers();
         float[] intensities = phaser_intensities.getPhaserIntensities();
 
-        while (active_phasers[0] == true || active_phasers[1] == true || active_phasers[2] == true)
+        while (intensities[0] > 0.0f || intensities[1] > 0.0f)
         {
             do
             {
                 yield return null;
 
                 //get info
-                active_phasers = phaser_activators.getActivePhasers();
                 intensities = phaser_intensities.getPhaserIntensities();
 
-                //check for slow cooldown if overheated
+                //increase/decrease heat
                 for (int i = 0; i < 2; i++)
                 {
-                    if (phaser_states[i] == 2)
+                    if (phaser_states[i] == 2) //overheated cooldown
                     {
                         phaser_heats[i] = Mathf.Max(0.0f, phaser_heats[i] - (Time.deltaTime / PHASER_OVERHEATED_COOLDOWN_TIMES[i]));
                     }
-                }
-
-                //increase or decrease long-range phaser heat
-                if (phaser_states[0] < 2 && active_phasers[0] == true)
-                {
-                    phaser_heats[0] = Mathf.Min(1.0f, phaser_heats[0] + ((Time.deltaTime / PHASER_OVERHEAT_TIMES[0]) * (1.0f + intensities[0])));
-                }
-                else if (phaser_states[0] == 1 && active_phasers[0] == false)
-                {
-                    phaser_heats[0] = Mathf.Max(0.0f, phaser_heats[0] - (Time.deltaTime / PHASER_NORMAL_COOLDOWN_TIMES[0]));
-                }
-
-                //increase or decrease short-range phaser heat
-                if (phaser_states[1] < 2 && (active_phasers[1] == true || active_phasers[2] == true))
-                {
-                    phaser_heats[1] = Mathf.Min(1.0f, phaser_heats[1] + ((Time.deltaTime / PHASER_OVERHEAT_TIMES[1]) * (1.0f + intensities[1])));
-                }
-                else if (phaser_states[1] == 1 && active_phasers[1] == false && active_phasers[2] == false)
-                {
-                    phaser_heats[1] = Mathf.Max(0.0f, phaser_heats[1] - (Time.deltaTime / PHASER_NORMAL_COOLDOWN_TIMES[1]));
+                    else if (phaser_states[i] < 2 && intensities[i] > 0.0f) //heat increase
+                    {
+                        phaser_heats[i] = Mathf.Min(1.0f, phaser_heats[i] + ((Time.deltaTime / PHASER_OVERHEAT_TIMES[i]) * (1.0f + intensities[i])));
+                    }
+                    else if (phaser_states[i] == 1 && intensities[i] == 0.0f) //heat decrease
+                    {
+                        phaser_heats[i] = Mathf.Max(0.0f, phaser_heats[i] - (Time.deltaTime / PHASER_NORMAL_COOLDOWN_TIMES[i]));
+                    }
                 }
 
                 //send updates

@@ -2,7 +2,7 @@
     EmissionReducers.cs
     - Handles enabling/disabling of port and starboard engine emission reducers
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -48,7 +48,7 @@ public class EmissionReducers : NetworkBehaviour, IControllable, IPowerable, IIK
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true, (MAX_POWER_CONSUMPTION / 2.0f));
+        hud_info = new HUDInfo(CONTROL_NAMES[0], MAX_POWER_CONSUMPTION / 2.0f);
         BUTTON_LISTS[0].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTON_LISTS[1].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         hud_info.setButtons(BUTTON_LISTS[0], 6);

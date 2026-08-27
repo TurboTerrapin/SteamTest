@@ -3,7 +3,7 @@
     - Moves phaser sliders
     - Adjusts phaser intensity screens next to sliders
     Contributor(s): Jake Schott
-    Last Updated: 8/6/2026
+    Last Updated: 8/26/2026
 */
 
 using System.Collections;
@@ -15,19 +15,19 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
 {
     //CLASS CONSTANTS
     private static float MOVE_SPEED = 0.35f;
-    //private static float MAX_POWER_CONSUMPTION = 0.3f; //equates to 3 circles (1 circle per phaser)
-    private static float[] MAX_POWER_CONSUMPTION_BY_INDEX = new float[] { 0.1f, 0.2f };
+    private static float[] MAX_POWER_CONSUMPTION_BY_INDEX = new float[] { 0.2f, 0.4f };
     private static Vector3 PHASER_SLIDE_DIRECTION = new Vector3(0.0f, 0.031f, 0.082f);
 
-    private string[] CONTROL_NAMES = new string[] { "LONG-RANGE INTENSITY", "SHORT-RANGE INTENSITY" };
+    private string[] CONTROL_NAMES = new string[] { "LONG-RANGE PHASER", "SHORT-RANGE PHASERS" };
     private static string INFO_MESSAGE = "Adjusts the intensity of the corresponding phasers to adjust damage and firing rate.";
     private List<string> CONTROL_DESCS = new List<string> { "REDUCE", "ENERGIZE" };
     private List<int> CONTROL_INDEXES = new List<int>() { 4, 5 };
     private List<Button>[] BUTTON_LISTS = new List<Button>[2] { new List<Button>(), new List<Button>() };
 
-    public List<GameObject> phaser_display_displays = null;
+    public List<GameObject> phaser_intensity_displays = null;
     public List<GameObject> phaser_sliders = null;
-    private PhaserActivators phaser_activators;
+    private UnityEngine.UI.RawImage[,] phaser_intensity_bars = new UnityEngine.UI.RawImage[2,20];
+    private Phasers phasers;
 
     private float[] phaser_intensities = new float[2] { 0.0f, 0.0f };
     private bool is_powered = false;
@@ -48,17 +48,22 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
 
     private void Start()
     {
-        phaser_activators = GetComponent<PhaserActivators>();
-
-        hud_info = new HUDInfo(CONTROL_NAMES[0], true, 0.1f);
+        phasers = GetComponent<Phasers>();
+        hud_info = new HUDInfo(CONTROL_NAMES[0], MAX_POWER_CONSUMPTION_BY_INDEX[0]);
 
         for (int i = 0; i < 2; i++)
         {
             //set buttons
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false)); //decrease button
             BUTTON_LISTS[i].Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false)); //increase button
+
+            for (int k = 0; k < 20; k++)
+            {
+                phaser_intensity_bars[i, k] = phaser_intensity_displays[i].transform.GetChild(k).GetComponent<UnityEngine.UI.RawImage>();
+            }
         }
 
+        hud_info.setInfo(INFO_MESSAGE);
         hud_info.setButtons(BUTTON_LISTS[0], 7);
     }
 
@@ -67,10 +72,8 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         int index = ray_targets.IndexOf(current_target.name);
         hud_info.setTitle(CONTROL_NAMES[index]);
         hud_info.setButtons(BUTTON_LISTS[index], 7);
-        hud_info.setInfo(INFO_MESSAGE);
         hud_info.setPowerConsumption(getPowerConsumptionByIndex(index));
         hud_info.setMaxPowerConsumption(MAX_POWER_CONSUMPTION_BY_INDEX[index]);
-
         return hud_info;
     }
 
@@ -118,25 +121,11 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     private float getPowerConsumptionByIndex(int index)
     {
         float power_consumption = 0.0f;
-        bool[] active_phasers = GetComponent<PhaserActivators>().getActivePhasers();
-        if (index == 0)
+        if (phaser_intensities[index] > 0.0f)
         {
-            if (active_phasers[0] == true)
-            {
-                power_consumption += Mathf.Min(0.1f, (phaser_intensities[0] * 0.1f));
-            }
+            power_consumption = (MAX_POWER_CONSUMPTION_BY_INDEX[index] * 0.5f) + (MAX_POWER_CONSUMPTION_BY_INDEX[index] * 0.5f * phaser_intensities[index]);
         }
-        else
-        {
-            for (int i = 1; i < 3; i++)
-            {
-                if (active_phasers[i] == true)
-                {
-                    power_consumption += Mathf.Min(0.1f, (phaser_intensities[1] * 0.1f));
-                }
-            }
-        }
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (Mathf.Abs(power_consumption - (i * 0.1f)) < 0.001f)
             {
@@ -153,23 +142,29 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumed_power);
     }
 
+    public void adjustPhaserColor(int index, Color new_color)
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            new_color.a = phaser_intensity_bars[index, i].color.a;
+            phaser_intensity_bars[index, i].color = new_color;
+        }
+    }
+
     private void displayAdjustment(int index)
     {
         //move physical slider
         phaser_sliders[index].transform.localPosition = Vector3.Lerp(Vector3.zero, PHASER_SLIDE_DIRECTION, phaser_intensities[index]);
 
         //adjust screen
-        Color phaser_color = new Color(0.0f, 0.84f, 1.0f);
-        if (index == 1)
-        {
-            phaser_color = new Color(1.0f, 0.47f, 0.0f);
-        }
+        Color phaser_color = phaser_intensity_bars[index, 0].color;
         float tmp_pwr = phaser_intensities[index];
         for (int i = 0; i < 20; i++)
         {
             tmp_pwr = phaser_intensities[index] - (0.05f * i);
             float a = Mathf.Max(0.08f, tmp_pwr / 0.05f);
-            phaser_display_displays[index].transform.GetChild(i).GetComponent<UnityEngine.UI.RawImage>().color = new Color(phaser_color.r, phaser_color.g, phaser_color.b, a);
+            phaser_color.a = a;
+            phaser_intensity_bars[index, i].color = phaser_color;
         }
     }
 
@@ -192,17 +187,16 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         }
         if (phaser_direction != 0)
         {
+            float new_phaser_intensity;
             if (phaser_direction > 0)
             {
-                phaser_intensities[index] = Mathf.Max(0.0f, phaser_intensities[index] + dt * MOVE_SPEED);
+                new_phaser_intensity = Mathf.Min(1.0f, phaser_intensities[index] + dt * MOVE_SPEED);
             }
             else
             {
-                phaser_intensities[index] = Mathf.Min(1.0f, phaser_intensities[index] - dt * MOVE_SPEED);
+                new_phaser_intensity = Mathf.Max(0.0f, phaser_intensities[index] - dt * MOVE_SPEED);
             }
-            BUTTON_LISTS[index][0].updateInteractable(phaser_intensities[index] > 0.0f);
-            BUTTON_LISTS[index][1].updateInteractable(phaser_intensities[index] < 1.0f);
-            transmitPhaserIntensityAdjustmentRPC(index, phaser_intensities[index]);
+            transmitPhaserIntensityAdjustmentRPC(index, new_phaser_intensity);
         }
     }
 
@@ -227,6 +221,8 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
             yield return null;
         }
 
+        phasers.updatePhasers();
+
         power_loss_coroutine = null;
     }
 
@@ -235,7 +231,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         is_powered = true;
         for (int i = 0; i < 2; i++)
         {
-            phaser_display_displays[i].SetActive(true);
+            phaser_intensity_displays[i].SetActive(true);
             BUTTON_LISTS[i][0].updateInteractable(false);
             BUTTON_LISTS[i][1].updateInteractable(true);
         }
@@ -246,7 +242,7 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
         is_powered = false;
         for (int i = 0; i < 2; i++)
         {
-            phaser_display_displays[i].SetActive(false);
+            phaser_intensity_displays[i].SetActive(false);
             BUTTON_LISTS[i][0].updateInteractable(false);
             BUTTON_LISTS[i][1].updateInteractable(false);
         }
@@ -263,9 +259,16 @@ public class PhaserIntensities : NetworkBehaviour, IControllable, IPowerable, II
     [Rpc(SendTo.Everyone)]
     private void transmitPhaserIntensityAdjustmentRPC(int index, float phaser_prcnt)
     {
+        bool update_necessary = (phaser_prcnt == 0.0f || phaser_intensities[index] == 0.0f);
         phaser_intensities[index] = phaser_prcnt;
+        BUTTON_LISTS[index][0].updateInteractable(phaser_intensities[index] > 0.0f);
+        BUTTON_LISTS[index][1].updateInteractable(phaser_intensities[index] < 1.0f);
         handlePowerConsumptionChange();
         displayAdjustment(index);
         hud_info.setPowerConsumption(getPowerConsumptionByIndex(index));
+        if (update_necessary == true)
+        {
+            phasers.updatePhasers();
+        }
     }
 }

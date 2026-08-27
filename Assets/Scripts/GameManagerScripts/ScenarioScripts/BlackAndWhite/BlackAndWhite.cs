@@ -113,6 +113,12 @@ public class BlackAndWhite : NetworkBehaviour, IScenario, IComputerRegulatorSusc
 
         //enable light layer two
         ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(true);
+        foreach (Transform t in ReferenceAssistor.Instance.light_layer_two.transform)
+        {
+            Light l = t.GetComponent<Light>();
+            l.intensity = 0.25f;
+            l.color = Color.white;
+        }
 
         if (NetworkManager.Singleton.IsHost == false)
         {

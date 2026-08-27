@@ -18,6 +18,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
     private static float BUTTON_SPEED = 10.0f;
     private static float PROBE_SPEED = 25.0f;
     private static float LATERAL_MOVEMENT_STICK_RADIUS = 0.008f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "PROBE LATERAL MOVEMENT";
     private static string INFO_MESSAGE = "Handles the forward, reverse, left, and right movements of an active probe.";
@@ -48,7 +49,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, MAX_POWER_CONSUMPTION);
 
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
@@ -94,6 +95,12 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
         return lerp_speed;
     }
 
+    private void updatePowerConsumption(float consumption) 
+    {
+        hud_info.setPowerConsumption(consumption);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumption);
+    }
+
     private void displayAdjustment()
     {
         //update stick position
@@ -112,14 +119,22 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
             return;
         }
 
+        float max_direction = 0.0f;
         //update directional arcs
         for (int i = 0; i < 4; i++)
         {
+            max_direction = Mathf.Max(max_direction, lateral_movement_factors[i]);
             probe_monitoring_display.transform.GetChild(i + 1).GetComponent<UnityEngine.UI.RawImage>().color = new Color(0.0f, 0.84f, 1.0f, Mathf.Max(0.2f, lateral_movement_factors[i]));
         }
 
         //notify probe controller
         GetComponent<ProbeController>().onProbeDistanceChange();
+
+        //update power
+        if (is_active == true)
+        {
+            updatePowerConsumption(max_direction * MAX_POWER_CONSUMPTION);
+        }
     }
 
     public void linkProbe(GameObject new_probe)
@@ -240,6 +255,7 @@ public class ProbeLateralMovement : NetworkBehaviour, IControllable, IIKTargetab
         {
             BUTTONS[i].updateInteractable(false);
         }
+        updatePowerConsumption(0.0f);
     }
 
     [Rpc(SendTo.Everyone)]

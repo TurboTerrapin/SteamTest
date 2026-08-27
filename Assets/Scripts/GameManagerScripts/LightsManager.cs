@@ -2,7 +2,7 @@
     LightsManager.cs
     - Handles light stuff
     Contributor(s): Jake Schott, Henryk Musial
-    Last Updated: 6/16/2026
+    Last Updated: 8/26/2026
 */
 
 using System.Collections;
@@ -233,6 +233,9 @@ public class LightsManager : MonoBehaviour
 
         //stop sound effect
         light_flicker_sound.Stop();
+
+        //light layer two disabled to start
+        ReferenceAssistor.Instance.light_layer_two.gameObject.SetActive(false);
 
         //default lights enabled to start, emergency lights disabled to start
         enabled_lights[0] = true;

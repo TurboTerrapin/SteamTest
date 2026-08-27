@@ -2,14 +2,13 @@
     OverrideSwitches.cs
     - Handles color switches in captain position
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
 
 public class OverrideSwitches : NetworkBehaviour, IControllable, IPowerable, IIKTargetable
 {
@@ -48,7 +47,7 @@ public class OverrideSwitches : NetworkBehaviour, IControllable, IPowerable, IIK
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], true, MAX_POWER_CONSUMPTION);
+        hud_info = new HUDInfo(CONTROL_NAME + COLOR_NAMES[0], MAX_POWER_CONSUMPTION);
 
         for (int i = 0; i < 6; i++)
         {

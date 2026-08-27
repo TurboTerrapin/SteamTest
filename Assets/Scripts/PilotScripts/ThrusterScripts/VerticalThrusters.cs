@@ -3,7 +3,7 @@
     - Handles inputs for vertical thrusters
     - Extends ThrusterControl.cs
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -36,7 +36,7 @@ public class VerticalThrusters : ThrusterControl, IControllable, IPowerable, IIK
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
+        hud_info = new HUDInfo(CONTROL_NAME, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);

@@ -4,20 +4,21 @@
     - Affects probe if host
     - Tells ProbeInfo to update altimeter
     Contributor(s): Jake Schott
-    Last Updated: 7/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static AnimatorHandler;
 
 public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float LEVER_SPEED = 200.0f;
-    private static float PROBE_SPEED = 0.5f;
+    private static float LEVER_SPEED = 5.0f;
+    private static float MAX_LEVER_ANGLE = 35.0f;
+    private static float PROBE_SPEED = 15.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circle
 
     private string CONTROL_NAME = "PROBE VERTICAL MOVEMENT";
     private static string INFO_MESSAGE = "Handles the up and down movement of an active probe.";
@@ -53,7 +54,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
     {
         probe_info = GetComponent<ProbeInfo>();
 
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS, 7);
@@ -95,10 +96,16 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
         return lerp_speed;
     }
 
+    private void updatePowerConsumption(float consumption)
+    {
+        hud_info.setPowerConsumption(consumption);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumption);
+    }
+
     private void displayAdjustment()
     {
         //update lever position
-        vertical_lever.transform.localRotation = Quaternion.Euler(-114.0f + vertical_lever_angle, 45.0f, 90.0f);
+        vertical_lever.transform.localRotation = Quaternion.Euler(-110.0f + (MAX_LEVER_ANGLE * vertical_lever_angle), 45.0f, 90.0f);
 
         //notify probe controller
         GetComponent<ProbeController>().onProbeDistanceChange();
@@ -111,6 +118,12 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
             {
                 altimeter_update_coroutine = StartCoroutine(altimeterUpdater());
             }
+        }
+
+        //update power
+        if (is_active == true)
+        {
+            updatePowerConsumption(Mathf.Abs(vertical_lever_angle) * MAX_POWER_CONSUMPTION);
         }
     }
 
@@ -165,11 +178,11 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
             {
                 if (vertical_direction > 0)
                 {
-                    vertical_lever_angle = Mathf.Min(35.0f, vertical_lever_angle + dt * LEVER_SPEED);
+                    vertical_lever_angle = Mathf.Min(1.0f, vertical_lever_angle + dt * LEVER_SPEED);
                 }
                 else
                 {
-                    vertical_lever_angle = Mathf.Max(-35.0f, vertical_lever_angle - dt * LEVER_SPEED);
+                    vertical_lever_angle = Mathf.Max(-1.0f, vertical_lever_angle - dt * LEVER_SPEED);
                 }
             }
             else
@@ -189,10 +202,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
                 positional_adjustment = probe.transform.up * vertical_lever_angle * dt * PROBE_SPEED;
             }
 
-            if (vertical_lever_angle != 0.0f)
-            {
-                transmitProbeVerticalAdjustmentRPC(positional_adjustment, vertical_lever_angle);
-            }
+            transmitProbeVerticalAdjustmentRPC(positional_adjustment, vertical_lever_angle);
 
             keys_down.Clear();
             yield return null;
@@ -227,6 +237,7 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
         is_active = false;
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
+        updatePowerConsumption(0.0f);
     }
 
     public void handleInputs(List<KeyCode> inputs, GameObject current_target, float dt, int position)
@@ -253,6 +264,10 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
     [Rpc(SendTo.Everyone)]
     private void transmitProbeVerticalAdjustmentRPC(Vector3 positional_adjustment, float ang)
     {
+        vertical_lever_angle = ang;
+        displayAdjustment();
+
+        //update probe if host
         if (NetworkManager.Singleton.IsHost == true)
         {
             if (probe != null)
@@ -260,7 +275,5 @@ public class ProbeVerticalMovement : NetworkBehaviour, IControllable, IIKTargeta
                 probe.transform.localPosition += positional_adjustment;
             }
         }
-        vertical_lever_angle = ang;
-        displayAdjustment();
     }
 }

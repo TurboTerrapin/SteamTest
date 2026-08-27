@@ -47,13 +47,13 @@ public class Phasers : NetworkBehaviour
             return;
         }
 
-        bool[] activePhasers = GetComponent<PhaserActivators>().getActivePhasers();
+        float[] phaserIntensities = GetComponent<PhaserIntensities>().getPhaserIntensities();
         phaserHeat.onPhaserActivationChange();
 
         // check long-range phasers
         if (phaserManagerCoroutines[0] == null)
         {
-            if (activePhasers[0] == true)
+            if (phaserIntensities[0] > 0.0f)
             {
                 phaserManagerCoroutines[0] = StartCoroutine(longRangePhaserManager());
             }
@@ -62,7 +62,7 @@ public class Phasers : NetworkBehaviour
         // check short-range phasers
         if (phaserManagerCoroutines[1] == null)
         {
-            if (activePhasers[1] == true || activePhasers[2] == true)
+            if (phaserIntensities[1] > 0.0f)
             {
                 phaserManagerCoroutines[1] = StartCoroutine(shortRangePhaserManager());
             }
@@ -79,7 +79,6 @@ public class Phasers : NetworkBehaviour
 
     IEnumerator longRangePhaserFire(float intensity)
     {
-        Debug.Log(intensity);
         phaserRenderers[0].enabled = true;
         phaserSounds[0].pitch = 1.8f - (1.0f * intensity);
         phaserSounds[0].Play();
@@ -128,21 +127,18 @@ public class Phasers : NetworkBehaviour
         }
     }
 
-    IEnumerator shortRangePhaserFire(bool[] activePhasers, float intensity)
+    IEnumerator shortRangePhaserFire(float intensity)
     {
         // enable/disable the phasers and fire sounds
         Vector3[] phaserLightsPos = new Vector3[2];
         for (int p = 0; p < 2; p++)
         {
-            phaserRenderers[p + 1].enabled = activePhasers[p];
+            phaserRenderers[p + 1].enabled = true;
             phaserSounds[p + 1].pitch = 2.0f - (1.0f * intensity);
-            if (activePhasers[p] == true)
-            {
-                phaserSounds[p + 1].Play();
-                phaserLightsPos[p] = getLightPosition(p + 1);
-                phaserLights.transform.GetChild(p + 1).gameObject.SetActive(true);
-                GetComponent<ProximityMap>().showPhaser(p + 1, phaserOrigins[p + 1].transform.position, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[p + 1]));
-            }
+            phaserSounds[p + 1].Play();
+            phaserLightsPos[p] = getLightPosition(p + 1);
+            phaserLights.transform.GetChild(p + 1).gameObject.SetActive(true);
+            GetComponent<ProximityMap>().showPhaser(p + 1, phaserOrigins[p + 1].transform.position, ReferenceAssistor.Instance.world_root.transform.TransformPoint(phaserTargetLocations[p + 1]));
         }
 
         // play animation
@@ -196,11 +192,11 @@ public class Phasers : NetworkBehaviour
 
     IEnumerator longRangePhaserManager()
     {
-        bool[] activePhasers = GetComponent<PhaserActivators>().getActivePhasers();
-        while (activePhasers[0] == true)
+        float[] phaserIntensities = GetComponent<PhaserIntensities>().getPhaserIntensities();
+        while (phaserIntensities[0] > 0.0f)
         {
             // get intensity
-            float currentIntensity = GetComponent<PhaserIntensities>().getPhaserIntensities()[0];
+            float currentIntensity = phaserIntensities[0];
 
             // only fire if not overheated
             if (phaserHeat.isOverheated(0) == false)
@@ -217,7 +213,7 @@ public class Phasers : NetworkBehaviour
 
             // delay before next fire
             yield return new WaitForSeconds(Mathf.Lerp(DELAY_TIMES[0].x, DELAY_TIMES[0].y, currentIntensity));
-            activePhasers = GetComponent<PhaserActivators>().getActivePhasers();
+            phaserIntensities = GetComponent<PhaserIntensities>().getPhaserIntensities();
         }
 
         phaserManagerCoroutines[0] = null;
@@ -225,28 +221,28 @@ public class Phasers : NetworkBehaviour
 
     IEnumerator shortRangePhaserManager()
     {
-        bool[] activePhasers = GetComponent<PhaserActivators>().getActivePhasers();
-        while (activePhasers[1] == true || activePhasers[2] == true)
+        float[] phaserIntensities = GetComponent<PhaserIntensities>().getPhaserIntensities();
+        while (phaserIntensities[1] > 0.0f)
         {
             // get intensity
-            float currentIntensity = GetComponent<PhaserIntensities>().getPhaserIntensities()[1];
-            
+            float currentIntensity = phaserIntensities[1];
+
             // only fire if not overheated
             if (phaserHeat.isOverheated(1) == false)
             {
                 // determine targets
-                findShortRangeTargetsAndPoints(new bool[] { activePhasers[1], activePhasers[2] });
+                findShortRangeTargetsAndPoints();
 
                 // send to clients
-                shortRangePhaserFireRPC(activePhasers[1], activePhasers[2], phaserTargetLocations[1], phaserTargetLocations[2], currentIntensity);
+                shortRangePhaserFireRPC(phaserTargetLocations[1], phaserTargetLocations[2], currentIntensity);
 
                 // run locally as host
-                yield return StartCoroutine(shortRangePhaserFire(new bool[] { activePhasers[1], activePhasers[2] }, currentIntensity));
+                yield return StartCoroutine(shortRangePhaserFire(currentIntensity));
             }
 
             // delay before next fire
             yield return new WaitForSeconds(Mathf.Lerp(DELAY_TIMES[1].x, DELAY_TIMES[1].y, currentIntensity));
-            activePhasers = GetComponent<PhaserActivators>().getActivePhasers();
+            phaserIntensities = GetComponent<PhaserIntensities>().getPhaserIntensities();
         }
 
         phaserManagerCoroutines[1] = null;
@@ -342,7 +338,7 @@ public class Phasers : NetworkBehaviour
     }
 
     // sets phaserTargetObjects and phaserTargetLocations if the phaser is active
-    private void findShortRangeTargetsAndPoints(bool[] activePhasers)
+    private void findShortRangeTargetsAndPoints()
     {
         Vector3 leftPos = phaserOrigins[1].transform.position;
         Vector3 rightPos = phaserOrigins[2].transform.position;
@@ -353,11 +349,8 @@ public class Phasers : NetworkBehaviour
         Collider[] possibleTargets = Physics.OverlapSphere(midpoint, sharedRadius);
         for (int p = 0; p < 2; p++)
         {
-            if (activePhasers[p] == true)
-            {
-                phaserTargetObjects[p + 1] = findTargetOutOfList(1, p, possibleTargets);
-                phaserTargetLocations[p + 1] = getPhaserTargetCoordinate(1, p);
-            }
+            phaserTargetObjects[p + 1] = findTargetOutOfList(1, p, possibleTargets);
+            phaserTargetLocations[p + 1] = getPhaserTargetCoordinate(1, p);
         }
     }
 
@@ -386,16 +379,15 @@ public class Phasers : NetworkBehaviour
 
     // communicated to clients to ensure that they are on the same page for short-range phasers
     [Rpc(SendTo.NotServer)]
-    private void shortRangePhaserFireRPC(bool leftActive, bool rightActive, Vector3 targetLeft, Vector3 targetRight, float intensity)
+    private void shortRangePhaserFireRPC(Vector3 targetLeft, Vector3 targetRight, float intensity)
     {
-        bool[] activePhasers = new bool[2] { leftActive, rightActive };
         phaserTargetLocations[1] = targetLeft;
         phaserTargetLocations[2] = targetRight;
         if (phaserFireCoroutines[1] != null)
         {
             StopCoroutine(phaserFireCoroutines[1]);
         }
-        phaserFireCoroutines[1] = StartCoroutine(shortRangePhaserFire(activePhasers, intensity));
+        phaserFireCoroutines[1] = StartCoroutine(shortRangePhaserFire(intensity));
     }
 
     // communicated to clients to ensure that they are on the same page for long-range phaser

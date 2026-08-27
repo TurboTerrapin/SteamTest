@@ -5,7 +5,7 @@
     - Handles flashing of circle
     - Illuminates collectible item in space when ship beacon is active
     Contributor(s): Jake Schott
-    Last Updated: 8/4/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -48,7 +48,7 @@ public class ShipBeacon : NetworkBehaviour, IControllable, IPowerable, IIKTarget
    
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME, true, MAX_POWER_CONSUMPTION);
+        hud_info = new HUDInfo(CONTROL_NAME, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true)); //enable button
         hud_info.setButtons(BUTTONS);
         hud_info.setInfo(INFO_MESSAGE);

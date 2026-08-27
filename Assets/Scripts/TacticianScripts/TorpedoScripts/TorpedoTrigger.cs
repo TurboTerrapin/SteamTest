@@ -3,7 +3,7 @@
     - Handles arming and firing of torpedoes
     - Moves base and lever accordingly
     Contributor(s): Jake Schott
-    Last Updated: 7/23/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -18,6 +18,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     private static float COOLDOWN_TIME = 3.0f;
     private static float RED_BUTTON_PUSH_TIME = 0.5f;
     private static Vector3 TRIGGER_BASE_FINAL_POS = new Vector3(0.0f, -0.0148f, -0.0353f);
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "TORPEDO TRIGGER";
     private static string INFO_MESSAGE = "Used to fire torpedo in selected direction if torpedo is loaded in corresponding bay.";
@@ -61,7 +62,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         torpedo_bay_selector = GetComponent<TorpedoBaySelector>();
         torpedo_launcher = GetComponent<TorpedoLauncher>();
 
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, true));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
@@ -74,30 +75,43 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
     {
         return hud_info;
     }
+
     public Transform getIKTarget(GameObject current_target)
     {
         return IK_target.transform;
     }
+
     public AnimatorHandler.HandInteractionType getHandInteractionType()
     {
         return hand_interaction_type;
     }
+
     public float getHandPose()
     {
         return hand_pose;
     }
+
     public bool getRightHandFlip()
     {
         return does_right_hand_flip;
     }
+
     public Vector3 getRightHandOffset()
     {
         return right_hand_offset;
     }
+
     public float getLerpSpeed()
     {
         return lerp_speed;
     }
+
+    private void updatePowerConsumption(float consumption)
+    {
+        hud_info.setPowerConsumption(consumption);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumption);
+    }
+
     private void displayAdjustment()
     {
         float trigger_base_distance_percentage = Mathf.Min(1.0f, trigger_percentage / 0.8f);
@@ -123,6 +137,8 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
                 trigger_green_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
                 trigger_red_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.lit_red;
             }
+
+            updatePowerConsumption(trigger_percentage * MAX_POWER_CONSUMPTION);
         }
     }
 
@@ -264,6 +280,7 @@ public class TorpedoTrigger : NetworkBehaviour, IControllable, IPowerable, IIKTa
         BUTTONS[1].updateInteractable(false);
         trigger_green_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_green;
         trigger_red_light.GetComponent<Renderer>().material = ReferenceAssistor.Instance.unlit_red;
+        updatePowerConsumption(0.0f);
     }
 
     [Rpc(SendTo.Everyone)]

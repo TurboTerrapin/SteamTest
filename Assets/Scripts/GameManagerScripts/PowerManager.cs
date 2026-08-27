@@ -9,9 +9,11 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PowerManager : NetworkBehaviour, IPowerable
 {
@@ -45,8 +47,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
     //these three lists correspond to 0-3 pilot, tactician, engineer, captain
     private UnityEngine.UI.RawImage[,,] power_icons = new UnityEngine.UI.RawImage[4, 2, 10];
     private List<Component>[] positional_modules = new List<Component>[] { null, null, null, null }; //the powerable components
-    private List<float>[] power_distributions = new List<float>[] { new List<float>(), new List<float>(), new List<float>(), new List<float>() };
-    private List<string>[] associated_controls = new List<string>[] { new List<string>(), new List<string>(), new List<string>(), new List<string>() };
+    private Dictionary<string, float>[] power_distributions = new Dictionary<string, float>[] { new Dictionary<string, float>(), new Dictionary<string, float>(), new Dictionary<string, float>(), new Dictionary<string, float>() };
 
     private bool[] powered_positions = new bool[] { false, false, false, false }; //corresponds to pilot, tactician, engineer, captain
     private float[] power_consumptions = new float[] { 0.0f, 0.0f, 0.0f, 0.0f }; //corresponds to pilot, tactician, engineer, captain
@@ -151,25 +152,13 @@ public class PowerManager : NetworkBehaviour, IPowerable
             for (int m = 0; m < positional_modules[i].Count; m++)
             {
                 IControllable control_test = positional_modules[i][m] as IControllable;
-                if (control_test != null)
-                {
-                    string control_name = positional_modules[i][m].GetType().Name;
-
-                    if (associated_controls[i].Contains(control_name) == false)
+                IPowerable power_test = positional_modules[i][m] as IPowerable;
+                if (control_test != null || power_test != null)
+                {   
+                    if (power_distributions[i].ContainsKey(positional_modules[i][m].GetType().Name) == false)
                     {
-                        power_distributions[i].Add(0.0f);
-                        associated_controls[i].Add(control_name);
+                        power_distributions[i].Add(positional_modules[i][m].GetType().Name, 0.0f);
                     }
-                }
-                if (i == 1) //tactician exception for TransmissionHandler since it's not a "control" per se
-                {
-                    power_distributions[1].Add(0.0f);
-                    associated_controls[1].Add("TransmissionHandler");
-                }
-                else if (i == 3) //captain exception for ManualOnOff since it's not covered by IPowerable
-                {
-                    power_distributions[3].Add(0.0f);
-                    associated_controls[3].Add("ManualOnOff");
                 }
             }
         }
@@ -192,9 +181,9 @@ public class PowerManager : NetworkBehaviour, IPowerable
     private float getPowerConsumption(int position)
     {
         float total_power = 0.0f;
-        for (int p = 0; p < power_distributions[position].Count; p++)
+        foreach (KeyValuePair<string, float> kvp in power_distributions[position])
         {
-            total_power += power_distributions[position][p];
+            total_power += kvp.Value;
         }
         return Mathf.Min(1.05f, total_power);
     }
@@ -235,12 +224,15 @@ public class PowerManager : NetworkBehaviour, IPowerable
     //called by IControllables attached to module handlers
     public void controlPowerChange(int position, string control_name, float power_level)
     {
-        if (associated_controls[position].Contains(control_name) == false)
+        if (power_distributions[position].ContainsKey(control_name) == false)
         {
-            return;
+            power_distributions[position].Add(control_name, power_level);
+        }
+        else
+        {
+            power_distributions[position][control_name] = power_level;
         }
 
-        power_distributions[position][associated_controls[position].IndexOf(control_name)] = power_level;
         powerConsumptionChangeRPC(position, getPowerConsumption(position));
     }
 
@@ -287,11 +279,13 @@ public class PowerManager : NetworkBehaviour, IPowerable
             power_change_coroutines[position] = null;
         }
         powered_positions[position] = false;
-        
-        for (int i = 0; i < power_distributions[position].Count; i++)
+
+        List<string> keys = new List<string>(power_distributions[position].Keys);
+        foreach (string key in keys)
         {
-            power_distributions[position][i] = 0.0f;
+            power_distributions[position][key] = 0.0f;
         }
+
         power_consumptions[position] = getPowerConsumption(position);
         checkForOverconsumption(position, power_consumptions[position]);
 
@@ -726,7 +720,7 @@ public class PowerManager : NetworkBehaviour, IPowerable
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[4].GetComponent("StatusIndicators")); //8
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("UniversalCommunicator")); //9
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("PhaserIntensities")); //10
-        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("PhaserActivators")); //11
+        tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("LifeformScanner")); //11
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("LongRangeDirection")); //12
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("ProximityMap")); //13
         tactician_modules.Add(ReferenceAssistor.Instance.module_handlers[1].GetComponent("TorpedoTrigger")); //14

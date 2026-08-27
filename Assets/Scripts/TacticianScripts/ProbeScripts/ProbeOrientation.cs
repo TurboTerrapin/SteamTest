@@ -3,7 +3,7 @@
     - Turns lever
     - Affects probe if host
     Contributor(s): Jake Schott
-    Last Updated: 5/12/2026
+    Last Updated: 8/25/2026
 */
 
 using System.Collections;
@@ -14,8 +14,10 @@ using Unity.Netcode;
 public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
 {
     //CLASS CONSTANTS
-    private static float LEVER_SPEED = 150.0f;
+    private static float LEVER_SPEED = 5.0f;
+    private static float MAX_LEVER_ANGLE = 35.0f;
     private static float TURN_SPEED = 100.0f;
+    private static float MAX_POWER_CONSUMPTION = 0.2f; //equates to 2 circles
 
     private string CONTROL_NAME = "PROBE ORIENTATION";
     private static string INFO_MESSAGE = "Handles the rotation and turning of an active probe.";
@@ -29,7 +31,6 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
     private GameObject probe;
     private float orientation_lever_angle = 0.0f;
     private float orientation_angle = 0.0f;
-
     private Coroutine orientation_adjustment_coroutine = null;
 
     private List<KeyCode> keys_down = new List<KeyCode>();
@@ -47,7 +48,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
 
     private void Start()
     {
-        hud_info = new HUDInfo(CONTROL_NAME);
+        hud_info = new HUDInfo(CONTROL_NAME, MAX_POWER_CONSUMPTION);
         BUTTONS.Add(new Button(CONTROL_DESCS[0], CONTROL_INDEXES[0], false, false));
         BUTTONS.Add(new Button(CONTROL_DESCS[1], CONTROL_INDEXES[1], false, false));
         hud_info.setButtons(BUTTONS);
@@ -89,17 +90,29 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
         return lerp_speed;
     }
 
+    private void updatePowerConsumption(float consumption)
+    {
+        hud_info.setPowerConsumption(consumption);
+        ReferenceAssistor.Instance.power_manager.controlPowerChange(1, this.GetType().Name, consumption);
+    }
+
     private void displayAdjustment()
     {
         //update lever positions
-        orientation_lever.transform.localRotation = Quaternion.Euler(0.0f, -orientation_lever_angle, 0.0f);
+        orientation_lever.transform.localRotation = Quaternion.Euler(0.0f, MAX_LEVER_ANGLE * (-orientation_lever_angle), 0.0f);
+
+        //update power
+        if (is_active == true)
+        {
+            updatePowerConsumption(Mathf.Abs(orientation_lever_angle) * MAX_POWER_CONSUMPTION);
+        }
     }
 
     public void linkProbe(GameObject new_probe)
     {
         probe = new_probe;
         orientation_angle = new_probe.transform.rotation.eulerAngles.y;
-        for (int i = 0; i <= 1; i++)
+        for (int i = 0; i < 2; i++)
         {
             BUTTONS[i].updateInteractable(true);
         }
@@ -110,7 +123,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
     public void unlinkProbe()
     {
         probe = null;
-        for (int i = 0; i <= 1; i++)
+        for (int i = 0; i < 2; i++)
         {
             BUTTONS[i].updateInteractable(false);
         }
@@ -148,11 +161,11 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
             {
                 if (orientation_direction > 0)
                 {
-                    orientation_lever_angle = Mathf.Max(-35.0f, orientation_lever_angle - dt * LEVER_SPEED);
+                    orientation_lever_angle = Mathf.Max(-1.0f, orientation_lever_angle - dt * LEVER_SPEED);
                 }
                 else
                 {
-                    orientation_lever_angle = Mathf.Min(35.0f, orientation_lever_angle + dt * LEVER_SPEED);
+                    orientation_lever_angle = Mathf.Min(1.0f, orientation_lever_angle + dt * LEVER_SPEED);
                 }
             }
             else
@@ -169,14 +182,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
 
             if (Mathf.Abs(orientation_lever_angle) > 0.0f)
             {
-                if (orientation_lever_angle > 0.0f)
-                {
-                    orientation_angle -= (orientation_lever_angle / 35.0f) * TURN_SPEED * dt;
-                }
-                else
-                {
-                    orientation_angle += (orientation_lever_angle / -35.0f) * TURN_SPEED * dt;
-                }
+                orientation_angle -= orientation_lever_angle * TURN_SPEED * dt;
                 orientation_angle = (Mathf.Round(orientation_angle * 10) / 10.0f);
                 if (orientation_angle > 359.9f)
                 {
@@ -188,10 +194,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
                 }
             }
 
-            if (orientation_lever_angle != 0.0f)
-            {
-                transmitProbeOrientationAdjustmentRPC(orientation_angle, orientation_lever_angle);
-            }
+            transmitProbeOrientationAdjustmentRPC(orientation_angle, orientation_lever_angle);
 
             keys_down.Clear();
             yield return null;
@@ -233,6 +236,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
         is_active = false;
         BUTTONS[0].updateInteractable(false);
         BUTTONS[1].updateInteractable(false);
+        updatePowerConsumption(0.0f);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -241,6 +245,7 @@ public class ProbeOrientation : NetworkBehaviour, IControllable, IIKTargetable
         orientation_angle = or_angle;
         orientation_lever_angle = lev_angle;
         displayAdjustment();
+
         //update probe if host
         if (NetworkManager.Singleton.IsHost == true)
         {
