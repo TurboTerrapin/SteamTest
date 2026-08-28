@@ -6,7 +6,7 @@
     - Handles getting "stunned" when running into immovable objects
     - Tells ScenarioManager when ship reaches endpoint or leaves boundary for too long
     Contributor(s): Henryk Musial
-    Last Updated: 8/24/2026
+    Last Updated: 8/27/2026
 */
 
 using System.Collections;
@@ -267,19 +267,22 @@ public class ShipMovement : NetworkBehaviour
         Vector3 horizontal = -transform.right;
         Vector3 vertical = transform.up;
 
+        float newImpulseSpeed;
         if (inReverse == false)
         {
-            currentImpulseSpeed = currentImpulse * maxImpulseForwardSpeed;
+            newImpulseSpeed = currentImpulse * maxImpulseForwardSpeed;
         }
         else
         {
-            currentImpulseSpeed = currentImpulse * -maxImpulseReverseSpeed;
+            newImpulseSpeed = currentImpulse * -maxImpulseReverseSpeed;
         }
 
-        currentImpulseSpeed *= impulseSpeedAdjustmentFactor;
+        newImpulseSpeed *= impulseSpeedAdjustmentFactor;
 
         currentHorizontalSpeed = maxThrusterSpeed * horizontalThrust;
         currentVerticalSpeed = maxThrusterSpeed * verticalThrust;
+
+        currentImpulseSpeed = Mathf.MoveTowards(currentImpulseSpeed, newImpulseSpeed, 50.0f * dt);
 
         if (stunPushbackCoroutine != null)
         {
