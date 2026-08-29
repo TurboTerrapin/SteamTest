@@ -6,7 +6,7 @@
     - Handles camera shaking
     - Handles displaying hints if hints enabled (ex. MISSION OBJECTIVE, POWER MONITORING)
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 8/19/2026
+    Last Updated: 8/29/2026
 */
 
 using System.Collections;
@@ -51,11 +51,14 @@ public class CameraMove : MonoBehaviour
 
     private void Start()
     {
-        if (GetComponent<NetworkObject>().OwnerClientId != NetworkManager.Singleton.LocalClientId) //Not owner, kill the camera
+        if (GetComponent<NetworkObject>() != null)
         {
-            Destroy(cameraHolder.gameObject);
-            Destroy(this);
-            return;
+            if (GetComponent<NetworkObject>().OwnerClientId != NetworkManager.Singleton.LocalClientId) //Not owner, kill the camera
+            {
+                Destroy(cameraHolder.gameObject);
+                Destroy(this);
+                return;
+            }
         }
 
         //Hide eyes, hair
@@ -314,7 +317,7 @@ public class CameraMove : MonoBehaviour
 
             cameraHolder.localRotation = Quaternion.AngleAxis(prevPos.x, Vector3.up) * Quaternion.AngleAxis(prevPos.y, Vector3.right);
 
-            if(PrimaryScript.Instance.currentSeat() == 3)
+            if((PrimaryScript.Instance as BridgePrimaryScript).currentSeat() == 3)
             {
                 animatorHandler.chestlookat = 0;
                 //animatorHandler.chestlookat = -Mathf.Abs(prevPos.x / 180) + 1;

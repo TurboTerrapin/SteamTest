@@ -181,7 +181,7 @@ public class PowerRegulationModuleF : NetworkBehaviour, IControllable, IPowerReg
 
     IEnumerator buttonPush(int index)
     {
-        int curr_seat = PrimaryScript.Instance.currentSeat();
+        int curr_seat = (PrimaryScript.Instance as BridgePrimaryScript).currentSeat();
 
         for (int i = 0; i < 3; i++)
         {

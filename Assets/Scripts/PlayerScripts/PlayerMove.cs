@@ -6,13 +6,14 @@
     - Handles shifting while seated
     - Enables collisions/rigidbody/gravity on the player character
     Contributor(s): John Aylward, Jake Schott
-    Last Updated: 7/31/2026
+    Last Updated: 8/29/2026
 */
 
 using System.Collections;
 using Steamworks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerMove : NetworkBehaviour
 {
@@ -29,20 +30,22 @@ public class PlayerMove : NetworkBehaviour
     private Coroutine seatChangeCoroutine = null; //Used for sit down or get up animations
     private Coroutine shiftCoroutine = null; //Used for seat shifting
     private Coroutine moveCoroutine = null; //Used for movement checking
-    private SeatManager seatManager = null;
 
     [SerializeField]
     private Animator animator = null;
 
     AnimationController myAnimationController = null;
 
-    void Start()
+    private void Start()
     {
-        DontDestroyOnLoad(gameObject);
+        if (SceneManager.GetActiveScene().name.CompareTo("IntroSequence") != 0)
+        {
+            DontDestroyOnLoad(gameObject);
+        }
 
         myAnimationController = GetComponent<AnimationController>();
 
-        if (transform.gameObject.GetComponent<NetworkObject>().IsOwner == true)
+        if (NetworkManager.Singleton.IsListening == false || GetComponent<NetworkObject>().IsOwner == true)
         {
             //USERNAME_STEAMID
             transform.name = SteamClient.Name + "_" + SteamClient.SteamId.ToString();
@@ -55,8 +58,6 @@ public class PlayerMove : NetworkBehaviour
 
     public void Initialize()
     {
-        seatManager = GameObject.FindGameObjectWithTag("SeatHandler").GetComponent<SeatManager>();
-
         if (moveCoroutine == null)
         {
             moveCoroutine = StartCoroutine(CheckForMovement());
@@ -121,13 +122,13 @@ public class PlayerMove : NetworkBehaviour
     {
         animator.transform.GetComponent<AnimatorHandler>().setIKActive(false);
 
-        bool isLeft = seatManager.getSitDownDirection(pos, transform.position);
+        bool isLeft = ReferenceAssistor.Instance.seat_manager.getSitDownDirection(pos, transform.position);
         myAnimationController.setAnimatorBool("IsLeft", isLeft);
         myAnimationController.setAnimatorInteger("Seat", pos);
         myAnimationController.setAnimatorFloat("Movement", 0.0f);
         myAnimationController.setAnimatorFloat("Forward", 0.0f);
 
-        GameObject toOrient = seatManager.getSitDownPosition(pos, transform.position);
+        GameObject toOrient = ReferenceAssistor.Instance.seat_manager.getSitDownPosition(pos, transform.position);
         yield return StartCoroutine(RepositionPlayer(toOrient.transform.localPosition + toOrient.transform.parent.localPosition, toOrient.transform.localRotation.eulerAngles.y, 0.2f));
 
         myAnimationController.setAnimatorBool("SittingDown", true);
@@ -136,7 +137,7 @@ public class PlayerMove : NetworkBehaviour
         //If not captain, move the player DURING the animation because the animation happens in place
         if (pos != 3)
         {
-            Vector3 endPos = seatManager.physical_seats[pos].transform.localPosition + seatManager.physical_seats[pos].transform.GetChild(2).localPosition;
+            Vector3 endPos = ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.localPosition + ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.GetChild(2).localPosition;
             yield return StartCoroutine(PlayerAnimationTransformationAdjustment(endPos));
         }
 
@@ -148,7 +149,7 @@ public class PlayerMove : NetworkBehaviour
     {
         Transform cameraHolder = transform.GetComponent<CameraMove>().cameraHolder;
 
-        bool isLeft = seatManager.getGetUpDirection(pos);
+        bool isLeft = ReferenceAssistor.Instance.seat_manager.getGetUpDirection(pos);
         myAnimationController.setIKActive(false);
         transform.GetComponent<CameraMove>().LockCamera();
 
@@ -179,10 +180,10 @@ public class PlayerMove : NetworkBehaviour
         //If not captain, move the player DURING the animation because the animation happens in place
         if (pos != 3)
         {
-            Vector3 endPos = seatManager.physical_seats[pos].transform.localPosition + seatManager.physical_seats[pos].transform.GetChild(0).localPosition;
+            Vector3 endPos = ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.localPosition + ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.GetChild(0).localPosition;
             if (isLeft == true)
             {
-                endPos = seatManager.physical_seats[pos].transform.localPosition + seatManager.physical_seats[pos].transform.GetChild(1).localPosition;
+                endPos = ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.localPosition + ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.GetChild(1).localPosition;
             }
             yield return StartCoroutine(PlayerAnimationTransformationAdjustment(endPos));
         }
@@ -266,8 +267,8 @@ public class PlayerMove : NetworkBehaviour
     //Pushes the player in or out during sit down or get up animations
     IEnumerator Push(int pos, bool forward)
     {
-        seatManager.beginShift(pos);
-        GameObject physicalSeat = seatManager.physical_seats[pos];
+        ReferenceAssistor.Instance.seat_manager.beginShift(pos);
+        GameObject physicalSeat = ReferenceAssistor.Instance.seat_manager.physical_seats[pos];
         if (physicalSeat == null)
         {
             yield break;
@@ -301,36 +302,36 @@ public class PlayerMove : NetworkBehaviour
         PrimaryScript.Instance.onShiftChange();
     }
 
-    //Adjust the player prefab (bean) and tells SeatManager to adjust seat during a shift
+    //Adjust the player prefab (bean) and tells ReferenceAssistor.Instance.seat_manager to adjust seat during a shift
     IEnumerator Shift(int pos)
     {
         bool lookDirection = transform.GetComponent<CameraMove>().cameraHolder.localRotation.eulerAngles.y < 120;
-        int newSeatIndex = seatManager.getShiftLocation(pos, lookDirection);
+        int newSeatIndex = ReferenceAssistor.Instance.seat_manager.getShiftLocation(pos, lookDirection);
         Vector3 pushDir = new Vector3(SEAT_PUSH_IN_ADJUSTMENTS[pos].x, 0.0f, SEAT_PUSH_IN_ADJUSTMENTS[pos].y);
-        Vector3 startPos = seatManager.physical_seats[pos].transform.localPosition;
+        Vector3 startPos = ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.localPosition;
         Vector3 endPos = new Vector3(SeatManager.SEAT_COORDINATES[pos][newSeatIndex].x, startPos.y, SeatManager.SEAT_COORDINATES[pos][newSeatIndex].y) + pushDir;
 
-        Vector3 offset = seatManager.physical_seats[pos].transform.localPosition - transform.localPosition;
+        Vector3 offset = ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.localPosition - transform.localPosition;
 
         float totalShiftTime = Vector3.Distance(startPos, endPos) / SHIFT_SPEED;
         float shiftTime = totalShiftTime;
 
-        seatManager.beginShift(pos);
+        ReferenceAssistor.Instance.seat_manager.beginShift(pos);
 
         while (shiftTime > 0.0f)
         {
             float dt = Mathf.Min(Time.deltaTime, 1.0f / 30.0f);
             shiftTime = Mathf.Max(0.0f, shiftTime - dt);
             transform.localPosition = Vector3.Lerp(endPos, startPos, shiftTime / totalShiftTime) - offset;
-            if (seatManager.physical_seats[pos] != null)
+            if (ReferenceAssistor.Instance.seat_manager.physical_seats[pos] != null)
             {
-                seatManager.physical_seats[pos].transform.localPosition = Vector3.Lerp(endPos, startPos, shiftTime / totalShiftTime);
+                ReferenceAssistor.Instance.seat_manager.physical_seats[pos].transform.localPosition = Vector3.Lerp(endPos, startPos, shiftTime / totalShiftTime);
             }
 
             yield return null;
         }
 
-        seatManager.updateSeatIndex(pos, newSeatIndex);
+        ReferenceAssistor.Instance.seat_manager.updateSeatIndex(pos, newSeatIndex);
 
         shiftCoroutine = null;
         PrimaryScript.Instance.onShiftChange();
@@ -349,8 +350,6 @@ public class PlayerMove : NetworkBehaviour
     //Checks inputs and triggers move
     private void UpdateMovement()
     {
-        if (!gameObject.GetComponent<PlayerMove>().IsOwner) return;
-
         if (!PrimaryScript.Instance.isPaused())
         {
             moveDir.x = Input.GetAxis("Horizontal");

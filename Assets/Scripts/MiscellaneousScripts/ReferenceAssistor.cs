@@ -44,6 +44,7 @@ public class ReferenceAssistor : MonoBehaviour
     public GameObject world_root;
     public GameObject spaceship;
     public Volume camera_settings;
+    public IntroSequenceManager intro_sequence_manager;
     public AudioManager audio_manager;
     public EffectsHandler effects_handler;
     public FailureHandler failure_handler;

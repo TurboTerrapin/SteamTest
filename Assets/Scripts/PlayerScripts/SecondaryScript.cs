@@ -270,14 +270,21 @@ public class SecondaryScript : MonoBehaviour
         GetComponent<PrimaryScript>().setCursorVisibility(hide && !force_hide);
     }
 
-    public void displayMissionObjective(float delay)
+    public void displayMissionObjective(bool bridge_environment_intro, float delay)
     {
         if (mission_objective_display_coroutine != null)
         {
             StopCoroutine(mission_objective_display_coroutine);
         }
 
-        mission_objective_display_coroutine = StartCoroutine(missionObjectiveReveal(delay));
+        if (bridge_environment_intro == true)
+        {
+            mission_objective_display_coroutine = StartCoroutine(bridgeEnvironmentMissionObjectiveReveal(delay));
+        }
+        else
+        {
+            mission_objective_display_coroutine = StartCoroutine(introSequenceMissionObjectiveReveal(delay));
+        }
     }
 
     public bool isDisplayingIntro()
@@ -300,7 +307,7 @@ public class SecondaryScript : MonoBehaviour
         mission_objective.SetActive(false);
     }
 
-    IEnumerator missionObjectiveReveal(float delay)
+    IEnumerator bridgeEnvironmentMissionObjectiveReveal(float delay)
     {
         //set transparency to 0
         mission_objective.transform.GetChild(0).GetComponent<CanvasGroup>().alpha = 0.0f;
@@ -325,7 +332,7 @@ public class SecondaryScript : MonoBehaviour
         station_functions.SetActive(false);
         mission_objective.SetActive(true);
 
-        //background, border, dividers, circles, and "MISSION OBJECTIVE"
+        //background, border, dividers, and "MISSION OBJECTIVE"
         float anim_time = 1.0f;
         while (anim_time > 0.0f)
         {
@@ -387,6 +394,69 @@ public class SecondaryScript : MonoBehaviour
             anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
 
             mission_objective.transform.GetChild(9).GetComponent<CanvasGroup>().alpha = Mathf.Lerp(1.0f, 0.0f, anim_time / 0.5f);
+
+            yield return null;
+        }
+
+        mission_objective_display_coroutine = null;
+    }
+
+    IEnumerator introSequenceMissionObjectiveReveal(float delay)
+    {
+        //set transparency to 0
+        mission_objective.transform.GetChild(0).GetComponent<CanvasGroup>().alpha = 0.0f;
+        mission_objective.transform.GetChild(1).GetComponent<CanvasGroup>().alpha = 0.0f;
+        for (int i = 0; i < 2; i++)
+        {
+            mission_objective.transform.GetChild(i + 2).GetComponent<TMP_Text>().alpha = 0.0f;
+        }
+        mission_objective.transform.GetChild(4).GetComponent<CanvasGroup>().alpha = 0.0f;
+
+        yield return new WaitForSeconds(delay);
+
+        secondary_info.SetActive(true);
+        permanent_overlay.SetActive(true);
+        stations_button.SetActive(false);
+        current_station_indicator.SetActive(false);
+        station_functions.SetActive(false);
+        mission_objective.SetActive(true);
+
+        //background, border, dividers, and "MISSION OBJECTIVE"
+        float anim_time = 2.0f;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            float a = Mathf.Lerp(1.0f, 0.0f, anim_time / 2.0f);
+            mission_objective.transform.GetChild(0).GetComponent<CanvasGroup>().alpha = a;
+            mission_objective.transform.GetChild(1).GetComponent<CanvasGroup>().alpha = a;
+            mission_objective.transform.GetChild(2).GetComponent<TMP_Text>().alpha = a;
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(1.0f);
+
+        //bullet one
+        anim_time = 2.0f;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            mission_objective.transform.GetChild(3).GetComponent<TMP_Text>().alpha = Mathf.Lerp(1.0f, 0.0f, anim_time / 2.0f);
+
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(1.0f);
+
+        //show exit button
+        anim_time = 1.0f;
+        while (anim_time > 0.0f)
+        {
+            anim_time = Mathf.Max(0.0f, anim_time - Time.deltaTime);
+
+            mission_objective.transform.GetChild(4).GetComponent<CanvasGroup>().alpha = Mathf.Lerp(1.0f, 0.0f, anim_time);
 
             yield return null;
         }
