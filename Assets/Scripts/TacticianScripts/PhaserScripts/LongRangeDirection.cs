@@ -6,6 +6,7 @@
 */
 
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -32,9 +33,13 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
     private static HUDInfo hud_info = null;
 
     [Header("IK Targetable Details")]
-    public GameObject IK_target = null;
+    public List<GameObject> IK_targets = null;
+    public List<GameObject> hand_placements = null;
+    public AnimatorHandler myAnimatorHandler = null;
     public AnimatorHandler.HandInteractionType hand_interaction_type = AnimatorHandler.HandInteractionType.Pinch;
     public float hand_pose = 0;
+    public bool has_right_arm_IK_targets = false;
+    public bool right_arm_IK_targets_active = true;
     public bool does_right_hand_flip = false;
     public Vector3 right_hand_offset = Vector3.zero;
     [Tooltip("Set to -1 for no lerp")]
@@ -53,11 +58,30 @@ public class LongRangeDirection : NetworkBehaviour, IControllable, IPowerable, I
     {
         return hud_info;
     }
-
+    public void setRightHandSpecificTargets(bool value)
+    {
+        if (!has_right_arm_IK_targets) return;
+        right_arm_IK_targets_active |= value;
+    }
     public Transform getIKTarget(GameObject current_target)
     {
         //int index = ray_targets.IndexOf(current_target.name);
-        return IK_target.transform;
+
+        float shortestDistance;
+        int shortestIndex = 0;
+        shortestDistance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[shortestIndex].transform.position);
+
+        for (int i = 1; i < IK_targets.Count; i++)
+        {
+            float distance = Vector3.Distance(hand_placements[0].transform.position, IK_targets[i].transform.position);
+            if (distance < shortestDistance)
+            {
+                shortestDistance = distance;
+                shortestIndex = i;
+            }
+        }
+
+        return IK_targets[shortestIndex].transform;
     }
 
     public AnimatorHandler.HandInteractionType getHandInteractionType()

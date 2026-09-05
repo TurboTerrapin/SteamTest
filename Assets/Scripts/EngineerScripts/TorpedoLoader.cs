@@ -57,7 +57,8 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
     public float hand_pose = 0;
     public bool does_right_hand_flip = false;
     public int finger_position = 0;
-    public Vector3 right_hand_offset = Vector3.zero;
+    public List<Vector3> right_hand_offsets = null;
+    int index = 0;
     public float lerp_speed = 5f;
 
     private int my_control_index = 0;
@@ -106,11 +107,8 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     public Transform getIKTarget(GameObject current_target)
     {
-        int index = ray_targets.IndexOf(current_target.name);
+        index = ray_targets.IndexOf(current_target.name);
         my_control_index = index;
-
-
-
         if (index == 4)
         {
             float shortestDistance;
@@ -157,7 +155,9 @@ public class TorpedoLoader : NetworkBehaviour, IControllable, IPowerable, IIKTar
 
     public Vector3 getRightHandOffset()
     {
-        return right_hand_offset;
+        if(index == 4) return right_hand_offsets[0];
+
+        return right_hand_offsets[1];
     }
 
     public float getLerpSpeed()

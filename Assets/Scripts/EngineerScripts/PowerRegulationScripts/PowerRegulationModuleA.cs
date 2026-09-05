@@ -82,15 +82,11 @@ public class PowerRegulationModuleA : NetworkBehaviour, IControllable, IPowerReg
         int index = ray_targets.IndexOf(current_target.name);
         int offset = index;
 
-        Debug.Log(offset);
-        
         float shortestDistance;
         int shortestIndex = offset * 4;
         shortestDistance = Vector3.Distance(hand_placements[offset].transform.position, IK_targets[shortestIndex].transform.position);
 
         int topSearchBound = shortestIndex + 3;
-
-        //Debug.Log(shortestIndex + " at " + shortestDistance);
 
         for (int i = offset * 4; i <= topSearchBound; i++)
         {

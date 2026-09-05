@@ -16,4 +16,5 @@ public interface IIKTargetable
     public bool getRightHandFlip();
     public Vector3 getRightHandOffset();
     public float getLerpSpeed();
+    //public void setRightHandSpecificTargets(bool value);
 }
